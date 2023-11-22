@@ -110,12 +110,7 @@ uint32_t lexibook_jg7425_state::screen_update(screen_device &screen, bitmap_rgb3
 
 void lexibook_jg7425_state::map(address_map &map)
 {
-
 	map(0xa0000000, 0xa0ffffff).ram().share("mainram");
-
-	map(0x9f000000, 0x9fffffff).ram().share("mainram");
-	map(0xbf000000, 0xbfffffff).ram().share("mainram");
-
 	// it quickly ends up jumping to BF000024, which is probably internal ROM - can we simulate what it wants?
 }
 
