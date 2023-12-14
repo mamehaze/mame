@@ -128,19 +128,8 @@ inline void tatsumi_state::roundupt_drawgfxzoomrotate( BitmapClass &dest_bmp, co
 			int sx;//=ssx>>16;
 			int sy;//=ssy>>16;
 
-
-//          int ex = sx+sprite_screen_width;
-//          int ey = sy+sprite_screen_height;
-
-			int incxx=0x10000;//(int)((float)dx * cos(theta));
-//          int incxy=0x0;//(int)((float)dy * -sin(theta));
-			int incyx=0x0;//(int)((float)dx * sin(theta));
-//          int incyy=0x10000;//(int)((float)dy * cos(theta));
-
-			if (flipx)
-			{
-			}
-
+			int incxx=0x10000;
+			int incyx=0x0;
 
 			if (ssx&0x80000000) sx=0-(0x10000 - (ssx>>16)); else sx=ssx>>16;
 			if (ssy&0x80000000) sy=0-(0x10000 - (ssy>>16)); else sy=ssy>>16;
@@ -196,55 +185,6 @@ inline void tatsumi_state::roundupt_drawgfxzoomrotate( BitmapClass &dest_bmp, co
 
 			if( ex>sx )
 			{ /* skip if inner loop doesn't draw anything */
-#if 0
-				int startx=0;
-				int starty=0;
-
-//              int incxx=0x10000;
-//              int incxy=0;
-//              int incyx=0;
-//              int incyy=0x10000;
-				double theta=rotate * ((2.0 * M_PI)/512.0);
-				double c=cos(theta);
-				double s=sin(theta);
-
-
-			//  if (ey-sy > 0)
-			//      dy=dy / (ey-sy);
-				{
-					float angleAsRadians=(float)rotate * (7.28f / 512.0f);
-					//float ccx = cosf(angleAsRadians);
-					//float ccy = sinf(angleAsRadians);
-					float a=0;
-
-				}
-
-				for( int y=sy; y<ey; y++ )
-				{
-					uint32_t *const dest = &dest_bmp.pix(y);
-					int cx = startx;
-					int cy = starty;
-
-					int x_index = x_index_base;
-					for( int x=sx; x<ex; x++ )
-					{
-						const uint8_t *source = code_base + (cy>>16) * gfx->rowbytes();
-						int c = source[(cx >> 16)];
-						if( c != transparent_color )
-						{
-							if (write_priority_only)
-								dest[x]=shadow_pens[c];
-							else
-								dest[x]=pal[c];
-						}
-						cx += incxx;
-						cy += incxy;
-					}
-					startx += incyx;
-					starty += incyy;
-				}
-#endif
-#if 1 // old
 				for( int y=sy; y<ey; y++ )
 				{
 					uint8_t const *const source = code_base + (y_index>>16) * gfx->rowbytes();
@@ -267,120 +207,67 @@ inline void tatsumi_state::roundupt_drawgfxzoomrotate( BitmapClass &dest_bmp, co
 
 					y_index += dy;
 				}
-#endif
 			}
 		}
 	}
 }
 
-static void mycopyrozbitmap_core(bitmap_ind8 &bitmap, const bitmap_rgb32 &srcbitmap,
-		int dstx, int dsty, int srcwidth, int srcheight, int incxx, int incxy, int incyx, int incyy,
-		const rectangle &clip, int transparent_color)
-{ }
-
-static void mycopyrozbitmap_core(bitmap_rgb32 &bitmap, const bitmap_rgb32 &srcbitmap,
-		int dstx, int dsty, int srcwidth, int srcheight, int incxx, int incxy, int incyx, int incyy,
-		const rectangle &clip, int transparent_color)
-{
-//  const int xmask = srcbitmap.width()-1;
-//  const int ymask = srcbitmap.height()-1;
-	const int widthshifted = srcwidth << 16;
-	const int heightshifted = srcheight << 16;
-
-	uint32_t startx=0;
-	uint32_t starty=0;
-
-	int sx = dstx;
-	int sy = dsty;
-	int ex = dstx + srcwidth;
-	int ey = dsty + srcheight;
-
-	if (sx<clip.min_x) sx=clip.min_x;
-	if (ex>clip.max_x) ex=clip.max_x;
-	if (sy<clip.min_y) sy=clip.min_y;
-	if (ey>clip.max_y) ey=clip.max_y;
-
-	if (sx <= ex)
-	{
-		while (sy <= ey)
-		{
-			int x = sx;
-			uint32_t cx = startx;
-			uint32_t cy = starty;
-			uint32_t *dest = &bitmap.pix(sy, sx);
-
-			while (x <= ex)
-			{
-				if (cx < widthshifted && cy < heightshifted)
-				{
-					int c = srcbitmap.pix(cy >> 16, cx >> 16);
-
-					if (c != transparent_color)
-						*dest = c;
-				}
-
-				cx += incxx;
-				cy += incxy;
-				x++;
-				dest++;
-			}
-			startx += incyx;
-			starty += incyy;
-			sy++;
-		}
-	}
-}
 
 template<class BitmapClass>
 void tatsumi_state::draw_sprites(BitmapClass &bitmap, const rectangle &cliprect, int write_priority_only, int rambank)
 {
 	// Sprite data is double buffered
-	for (int offs = rambank;offs < rambank + 0x800;offs += 6)
+	for (int offs = rambank; offs < rambank + 0x800; offs += 6)
 	{
 		/*
-		    Sprite RAM itself uses an index into two ROM tables to actually draw the object.
+			Sprite RAM itself uses an index into two ROM tables to actually draw the object.
 
-		    Sprite RAM format:
+			Sprite RAM format:
 
-		    Word 0: 0xf000 - ?
-		            0x0fff - Index into ROM sprite table
-		    Word 1: 0x8000 - X Flip
-		            0x4000 - Y Flip
-		            0x3000 - ?
-		            0x0ff8 - Color
-		            0x0007 - ?
-		    Word 2: 0xffff - X position
-		    Word 3: 0xffff - Y position
-		    Word 4: 0x01ff - Scale
-		    Word 5: 0x01ff - Rotation
+			Word 0: 0xf000 - ?
+					0x0fff - Index into ROM sprite table
+			Word 1: 0x8000 - X Flip
+					0x4000 - Y Flip
+					0x3000 - ?
+					0x0ff8 - Color
+					0x0007 - ?
+			Word 2: 0xffff - X position
+			Word 3: 0xffff - Y position
+			Word 4: 0x01ff - Scale
+			Word 5: 0x01ff - Rotation
 
-		    Sprite ROM table format, alternate lines come from each bank, with the
-		    very first line indicating control information:
+			Sprite ROM table format, alternate lines come from each bank, with the
+			very first line indicating control information:
 
-		    First bank:
-		    Byte 0: Y destination offset (in scanlines, unaffected by scale).
-		    Byte 1: Always 0?
-		    Byte 2: Number of source scanlines to render from (so unaffected by destination scale).
-		    Byte 3: Usually 0, sometimes 0x80??
+			First bank:
+			Byte 0: Y destination offset (in scanlines, unaffected by scale).
+			Byte 1: Always 0?
+			Byte 2: Number of source scanlines to render from (so unaffected by destination scale).
+			Byte 3: Usually 0, sometimes 0x80??
 
-		    Other banks:
-		    Byte 0: Width of line in tiles (-1)
-		    Byte 1: X offset to start drawing line at (multipled by scale * 8)
-		    Bytes 2/3: Tile index to start fetching tiles from (increments per tile).
+			Other banks:
+			Byte 0: Width of line in tiles (-1)
+			Byte 1: X offset to start drawing line at (multipled by scale * 8)
+			Bytes 2/3: Tile index to start fetching tiles from (increments per tile).
 
 		*/
-		int y =         m_spriteram[offs+3];
-		int x =         m_spriteram[offs+2];
-		int scale =     m_spriteram[offs+4] & 0x1ff;
-		int color =     m_spriteram[offs+1] >> 3 & 0x1ff;
-		int flip_x =    m_spriteram[offs+1] & 0x8000;
-		int flip_y =    m_spriteram[offs+1] & 0x4000;
-		int rotate =    0;//m_spriteram[offs+5]&0x1ff; // Todo:  Turned off for now
+		int y = m_spriteram[offs + 3];
+		int x = m_spriteram[offs + 2];
+		int scale = m_spriteram[offs + 4] & 0x1ff;
+		int color = m_spriteram[offs + 1] >> 3 & 0x1ff;
+		int flip_x = m_spriteram[offs + 1] & 0x8000;
+		int flip_y = m_spriteram[offs + 1] & 0x4000;
+		int rotate = m_spriteram[offs + 5]; // Todo:  Turned off for now
+
+		if (rotate)
+			printf("%04x is rotated sprite %04x\n", offs, rotate);
+
+		rotate = 0;
 
 		int index = m_spriteram[offs];
 
-//      if (m_spriteram[offs+1]&0x7)
-//          color=machine().rand()%0xff;
+		if (m_spriteram[offs + 1] & 0x3007)
+			color = machine().rand() % 0xff;
 
 		/* End of sprite list marker */
 		if (index == 0xffff || m_spriteram[offs + 4] == 0xffff) // todo
@@ -393,7 +280,7 @@ void tatsumi_state::draw_sprites(BitmapClass &bitmap, const rectangle &cliprect,
 		uint8_t const *src2 = m_rom_sprite_lookup[1] + (index * 4);
 
 		int lines = src1[2];
-		int y_offset = src1[0]&0xf8;
+		int y_offset = src1[0] & 0xf8;
 
 		lines -= y_offset;
 
@@ -406,19 +293,14 @@ void tatsumi_state::draw_sprites(BitmapClass &bitmap, const rectangle &cliprect,
 		else
 			render_y += y_offset * scale;
 
-		if (rotate)
-		{
-			render_y = 0;
-			m_temp_bitmap.fill(0);
-		}
-
 		int extent_x = 0, extent_y = 0;
 
 		src1 += 4;
 		int h = 0;
 
-		while (lines > 0) {
-			int base, x_offs, x_width, x_pos, draw_this_line = 1;
+		while (lines > 0)
+		{
+			int base, x_offs, x_width, x_pos;
 			int this_extent = 0;
 
 			/* Odd and even lines come from different banks */
@@ -433,78 +315,48 @@ void tatsumi_state::draw_sprites(BitmapClass &bitmap, const rectangle &cliprect,
 				base = src2[2] | (src2[3] << 8);
 			}
 
-			if (draw_this_line) {
-				base *= 2;
-
-				if (!rotate)
-				{
-					if (flip_x)
-						x_pos = render_x - x_offs - scale * 8;
-					else
-						x_pos = render_x + x_offs;
-				}
-				else
-					x_pos = x_offs;
-
-				for (int w = 0; w < x_width; w++) {
-					if (rotate)
-						roundupt_drawgfxzoomrotate(
-								m_temp_bitmap,cliprect,m_gfxdecode->gfx(0),
-								base,
-								color,flip_x,flip_y,x_pos,render_y,
-								scale,scale,0,write_priority_only);
-					else
-						roundupt_drawgfxzoomrotate(
-								bitmap,cliprect,m_gfxdecode->gfx(0),
-								base,
-								color,flip_x,flip_y,x_pos,render_y,
-								scale,scale,0,write_priority_only);
-					base++;
-
-					if (flip_x)
-						x_pos -= scale * 8;
-					else
-						x_pos += scale * 8;
-
-					this_extent += scale * 8;
-				}
-				if (h & 1)
-					src1 += 4;
-				else
-					src2 += 4;
-
-				if (this_extent > extent_x)
-					extent_x = this_extent;
-				this_extent = 0;
-
-				if (flip_y)
-					render_y -= 8 * scale;
-				else
-					render_y += 8 * scale;
-				extent_y += 8 * scale;
-
-				h++;
-				lines -= 8;
-			}
+			base *= 2;
+			
+			if (flip_x)
+				x_pos = render_x - x_offs - scale * 8;
 			else
+				x_pos = render_x + x_offs;
+
+			for (int w = 0; w < x_width; w++)
 			{
-				h = 32; // hack
+
+				roundupt_drawgfxzoomrotate(
+					bitmap, cliprect, m_gfxdecode->gfx(0),
+					base,
+					color, flip_x, flip_y, x_pos, render_y,
+					scale, scale, 0, write_priority_only);
+				base++;
+
+				if (flip_x)
+					x_pos -= scale * 8;
+				else
+					x_pos += scale * 8;
+
+				this_extent += scale * 8;
 			}
-		}
 
-		if (rotate)
-		{
-			double theta = rotate * ((2.0 * M_PI) / 512.0);
+			if (h & 1)
+				src1 += 4;
+			else
+				src2 += 4;
 
-			int incxx = (int)(65536.0 * cos(theta));
-			int incxy = (int)(65536.0 * -sin(theta));
-			int incyx = (int)(65536.0 * sin(theta));
-			int incyy = (int)(65536.0 * cos(theta));
+			if (this_extent > extent_x)
+				extent_x = this_extent;
+			this_extent = 0;
 
-			extent_x = extent_x >> 16;
-			extent_y = extent_y >> 16;
-			if (extent_x > 2 && extent_y > 2)
-				mycopyrozbitmap_core(bitmap, m_temp_bitmap, x/* + (extent_x/2)*/, y /*+ (extent_y/2)*/, extent_x, extent_y, incxx, incxy, incyx, incyy, cliprect, 0);
+			if (flip_y)
+				render_y -= 8 * scale;
+			else
+				render_y += 8 * scale;
+			extent_y += 8 * scale;
+
+			h++;
+			lines -= 8;			
 		}
 	}
 }
