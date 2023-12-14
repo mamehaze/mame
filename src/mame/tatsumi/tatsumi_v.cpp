@@ -190,11 +190,11 @@ uint32_t apache3_state::screen_update_apache3(screen_device &screen, bitmap_rgb3
 
 	bitmap.fill(m_palette->pen(0), cliprect);
 	screen.priority().fill(0, cliprect);
-	m_spritegen->draw_alpha_pass();
+	m_spritegen->draw_alpha_pass(cliprect);
 	draw_sky(bitmap, cliprect, 256, m_apache3_rotate_ctrl[1]);
 	apply_shadow_bitmap(bitmap,cliprect,screen.priority(), 0);
 //  draw_ground(bitmap, cliprect);
-	m_spritegen->draw_alt_pass();
+	m_spritegen->draw_alt_pass(bitmap, cliprect);
 	m_tx_layer->draw(screen, bitmap, cliprect, 0,0);
 	return 0;
 }
@@ -522,7 +522,7 @@ uint32_t roundup5_state::screen_update_roundup5(screen_device &screen, bitmap_rg
 
 	bitmap.fill(m_palette->pen(384), cliprect); // todo
 	screen.priority().fill(0, cliprect);
-	m_spritegen->draw_alpha_pass();
+	m_spritegen->draw_alpha_pass(cliprect);
 	draw_landscape(bitmap,cliprect,0);
 	draw_landscape(bitmap,cliprect,1);
 	draw_road(bitmap,cliprect);
@@ -530,11 +530,11 @@ uint32_t roundup5_state::screen_update_roundup5(screen_device &screen, bitmap_rg
 	if(m_control_word & 0x80) // enabled on map screen after a play
 	{
 		m_tx_layer->draw(screen, bitmap, cliprect, 0,0);
-		m_spritegen->draw_regular_pass();
+		m_spritegen->draw_regular_pass(bitmap, cliprect);
 	}
 	else
 	{
-		m_spritegen->draw_regular_pass();
+		m_spritegen->draw_regular_pass(bitmap, cliprect);
 		m_tx_layer->draw(screen, bitmap, cliprect, 0,0);
 	}
 	return 0;
@@ -802,10 +802,10 @@ uint32_t cyclwarr_state::screen_update_cyclwarr(screen_device &screen, bitmap_rg
 //  popmessage("%04x %04x %04x %04x",m_video_config[0],m_video_config[1],m_video_config[2],m_video_config[3]);
 
 	screen.priority().fill(0, cliprect);
-	m_spritegen->draw_alpha_pass();
+	m_spritegen->draw_alpha_pass(cliprect);
 	draw_bg_layers(screen, bitmap, cliprect, 0);
 	apply_shadow_bitmap(bitmap,cliprect,screen.priority(), m_mixing_control & 1);
-	m_spritegen->draw_regular_pass();
+	m_spritegen->draw_regular_pass(bitmap, cliprect);
 	draw_bg_layers(screen, bitmap, cliprect, 1);
 	return 0;
 }

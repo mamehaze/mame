@@ -11,6 +11,7 @@ tatsumi_rot_sprite_deice::tatsumi_rot_sprite_deice(const machine_config &mconfig
 	: device_t(mconfig, TATSUMI_ROT_SPRITES, tag, owner, clock)
 	, m_gfxdecode(*this, finder_base::DUMMY_TAG)
 	, m_palette(*this, finder_base::DUMMY_TAG)
+	, m_screen(*this, finder_base::DUMMY_TAG)
 {
 }
 
@@ -399,17 +400,17 @@ void tatsumi_rot_sprite_deice::init_cyclwarr()
 	m_rom_clut[1] = memregion("sprites_h")->base() + len2 - 0x1000;
 }
 
-void tatsumi_rot_sprite_deice::draw_alpha_pass()
+void tatsumi_rot_sprite_deice::draw_alpha_pass( const rectangle &cliprect)
 {
-	//draw_sprites(screen.priority(),cliprect,1,(m_sprite_control_ram[0xe0]&0x1000) ? 0x1000 : 0); // Alpha pass only
+	draw_sprites(m_screen->priority(),cliprect,1,(m_sprite_control_ram[0xe0]&0x1000) ? 0x1000 : 0); // Alpha pass only
 }
 
-void tatsumi_rot_sprite_deice::draw_regular_pass()
+void tatsumi_rot_sprite_deice::draw_regular_pass(bitmap_rgb32 &bitmap, const rectangle &cliprect)
 {
-	// draw_sprites(bitmap,cliprect,0,(m_sprite_control_ram[0xe0]&0x1000) ? 0x1000 : 0);
+	draw_sprites(bitmap,cliprect,0,(m_sprite_control_ram[0xe0]&0x1000) ? 0x1000 : 0);
 }
 
-void tatsumi_rot_sprite_deice::draw_alt_pass()
+void tatsumi_rot_sprite_deice::draw_alt_pass(bitmap_rgb32 &bitmap, const rectangle &cliprect)
 {
-	// draw_sprites(bitmap, cliprect, 0, (m_sprite_control_ram[0x20] & 0x1000) ? 0x1000 : 0);
+	draw_sprites(bitmap, cliprect, 0, (m_sprite_control_ram[0x20] & 0x1000) ? 0x1000 : 0);
 }

@@ -18,6 +18,7 @@ public:
 	// configuration
 	template <typename T> void set_gfxdecode_tag(T &&tag) { m_gfxdecode.set_tag(std::forward<T>(tag)); }
 	template <typename T> void set_palette_tag(T &&tag) { m_palette.set_tag(std::forward<T>(tag)); }
+	template <typename T> void set_screen_tag(T &&tag) { m_screen.set_tag(std::forward<T>(tag)); }
 
 	uint16_t cyclwarr_sprite_r(offs_t offset) { return m_spriteram[offset]; }
 	void cyclwarr_sprite_w(offs_t offset, uint16_t data, uint16_t mem_mask) { COMBINE_DATA(&m_spriteram[offset]); }
@@ -40,9 +41,9 @@ public:
 	void init_roundup5();
 	void init_cyclwarr();
 
-	void draw_alpha_pass();
-	void draw_regular_pass();
-	void draw_alt_pass();
+	void draw_alpha_pass(const rectangle &cliprect);
+	void draw_regular_pass(bitmap_rgb32 &bitmap, const rectangle &cliprect);
+	void draw_alt_pass(bitmap_rgb32 &bitmap, const rectangle &cliprect);
 
 	std::unique_ptr<uint8_t[]> m_shadow_pen_array;
 
@@ -53,6 +54,7 @@ protected:
 private:
 	required_device<gfxdecode_device> m_gfxdecode;
 	required_device<palette_device> m_palette;
+	required_device<screen_device> m_screen;
 
 	uint16_t m_spriteram[0x4000/2];
 	uint16_t m_sprite_control_ram[0x200/2];

@@ -890,6 +890,7 @@ void apache3_state::apache3(machine_config &config)
 	TATSUMI_ROT_SPRITES(config, m_spritegen, 0);
 	m_spritegen->set_gfxdecode_tag("gfxdecode");
 	m_spritegen->set_palette_tag("palette");
+	m_spritegen->set_screen_tag("screen");
 
 	/* video hardware */
 	screen_device &screen(SCREEN(config, "screen", SCREEN_TYPE_RASTER));
@@ -957,6 +958,7 @@ void roundup5_state::roundup5(machine_config &config)
 	TATSUMI_ROT_SPRITES(config, m_spritegen, 0);
 	m_spritegen->set_gfxdecode_tag("gfxdecode");
 	m_spritegen->set_palette_tag("palette");
+	m_spritegen->set_screen_tag("screen");
 
 	/* sound hardware */
 	SPEAKER(config, "lspeaker").front_left();
@@ -1041,6 +1043,7 @@ void cyclwarr_state::cyclwarr(machine_config &config)
 	TATSUMI_ROT_SPRITES(config, m_spritegen, 0);
 	m_spritegen->set_gfxdecode_tag("gfxdecode");
 	m_spritegen->set_palette_tag("palette");
+	m_spritegen->set_screen_tag("screen");
 
 	/* sound hardware */
 	SPEAKER(config, "lspeaker").front_left();
