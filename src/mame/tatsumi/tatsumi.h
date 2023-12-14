@@ -13,6 +13,8 @@
 #include "emupal.h"
 #include "tilemap.h"
 
+#include "tatsumi_rotation_sprites.h"
+
 class tatsumi_state : public driver_device
 {
 public:
@@ -25,10 +27,9 @@ public:
 		, m_oki(*this, "oki")
 		, m_gfxdecode(*this, "gfxdecode")
 		, m_palette(*this, "palette")
+		, m_spritegen(*this, "spritegen")
 		, m_videoram(*this, "videoram")
 		, m_sharedram(*this, "sharedram")
-		, m_sprite_control_ram(*this, "obj_ctrl_ram")
-		, m_spriteram(*this, "spriteram")
 		, m_mainregion(*this, "master_rom")
 		, m_subregion(*this, "slave_rom")
 	{ }
@@ -45,33 +46,22 @@ protected:
 	required_device<okim6295_device> m_oki;
 	required_device<gfxdecode_device> m_gfxdecode;
 	required_device<palette_device> m_palette;
+	required_device<tatsumi_rot_sprite_deice> m_spritegen;
 
 	optional_shared_ptr<uint16_t> m_videoram;
 	optional_shared_ptr<uint16_t> m_sharedram;
-	required_shared_ptr<uint16_t> m_sprite_control_ram;
-	required_shared_ptr<uint16_t> m_spriteram;
 	required_memory_region m_mainregion;
 	required_memory_region m_subregion;
 
-	uint8_t *m_rom_sprite_lookup[2];
-	uint8_t *m_rom_clut[2];
+
 	uint16_t m_control_word;
 	uint8_t m_last_control;
 	tilemap_t *m_tx_layer;
-	bitmap_rgb32 m_temp_bitmap;
-	std::unique_ptr<uint8_t[]> m_shadow_pen_array;
 	void text_w(offs_t offset, uint16_t data, uint16_t mem_mask = ~0);
 	uint16_t tatsumi_v30_68000_r(offs_t offset);
 	void tatsumi_v30_68000_w(offs_t offset, uint16_t data, uint16_t mem_mask = ~0);
-	uint16_t tatsumi_sprite_control_r(offs_t offset);
-	void tatsumi_sprite_control_w(offs_t offset, uint16_t data, uint16_t mem_mask = ~0);
 
 	void tatsumi_reset();
-	template<class BitmapClass> void draw_sprites(BitmapClass &bitmap, const rectangle &cliprect, int write_priority_only, int rambank);
-	template<class BitmapClass> inline void roundupt_drawgfxzoomrotate( BitmapClass &dest_bmp, const rectangle &clip,
-		gfx_element *gfx, uint32_t code,uint32_t color,int flipx,int flipy,uint32_t ssx,uint32_t ssy,
-		int scalex, int scaley, int rotate, int write_priority_only );
-	void update_cluts(int fake_palette_offset, int object_base, int length);
 
 	uint8_t m_hd6445_reg[64];
 	void apply_shadow_bitmap(bitmap_rgb32 &bitmap, const rectangle &cliprect, bitmap_ind8 &shadow_bitmap, uint8_t xor_output);
@@ -212,8 +202,6 @@ protected:
 	virtual void machine_reset() override;
 
 private:
-	uint16_t cyclwarr_sprite_r(offs_t offset);
-	void cyclwarr_sprite_w(offs_t offset, uint16_t data, uint16_t mem_mask = ~0);
 	void video_config_w(offs_t offset, uint16_t data, uint16_t mem_mask = ~0);
 	void bigfight_a40000_w(offs_t offset, uint16_t data, uint16_t mem_mask = ~0);
 	void mixing_control_w(offs_t offset, uint16_t data, uint16_t mem_mask = ~0);
