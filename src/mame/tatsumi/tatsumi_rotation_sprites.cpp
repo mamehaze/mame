@@ -18,6 +18,31 @@ tatsumi_rot_sprite_deice::tatsumi_rot_sprite_deice(const machine_config &mconfig
 void tatsumi_rot_sprite_deice::device_start()
 {
 	m_shadow_pen_array = make_unique_clear<uint8_t[]>(8192);
+
+	m_spriteram = make_unique_clear<uint16_t[]>(0x4000/2);
+	m_sprite_control_ram = make_unique_clear<uint16_t[]>(0x200/2);
+
+	uint8_t *dst = memregion("sprites")->base();
+	uint8_t *src1 = memregion("sprites_l")->base();
+	int len1 = memregion("sprites_l")->bytes();
+	uint8_t *src2 = memregion("sprites_h")->base();
+	int len2 = memregion("sprites_h")->bytes();
+
+	for (int i = 0; i < len1; i += 32)
+	{
+		memcpy(dst, src1, 32);
+		src1 += 32;
+		dst += 32;
+		memcpy(dst, src2, 32);
+		dst += 32;
+		src2 += 32;
+	}
+
+	// Copy sprite & palette data out of GFX rom area
+	m_rom_sprite_lookup[0] = memregion("sprites_l")->base();
+	m_rom_sprite_lookup[1] = memregion("sprites_h")->base();
+	m_rom_clut[0] = memregion("sprites_l")->base() + len1 - m_romtableoffset;
+	m_rom_clut[1] = memregion("sprites_h")->base() + len2 - m_romtableoffset;
 }
 
 void tatsumi_rot_sprite_deice::device_reset()
@@ -192,7 +217,9 @@ void tatsumi_rot_sprite_deice::draw_sprites(BitmapClass &bitmap, const rectangle
 		int rotate = m_spriteram[offs + 5]; // Todo:  Turned off for now
 
 		if (rotate)
-			printf("%04x is rotated sprite %04x\n", offs, rotate);
+		{
+		//	printf("%04x is rotated sprite %04x\n", offs, rotate);
+		}
 
 		rotate = 0;
 
@@ -329,76 +356,6 @@ void tatsumi_rot_sprite_deice::update_cluts(int fake_palette_offset, int object_
 	}
 }
 
-void tatsumi_rot_sprite_deice::init_apache3()
-{
-	uint8_t *dst = memregion("sprites")->base();
-	uint8_t *src1 = memregion("sprites_l")->base();
-	uint8_t *src2 = memregion("sprites_h")->base();
-
-	for (int i = 0; i < 0x100000; i += 32)
-	{
-		memcpy(dst, src1, 32);
-		src1 += 32;
-		dst += 32;
-		memcpy(dst, src2, 32);
-		dst += 32;
-		src2 += 32;
-	}
-
-	// Copy sprite & palette data out of GFX rom area
-	m_rom_sprite_lookup[0] = memregion("sprites_l")->base();
-	m_rom_sprite_lookup[1] = memregion("sprites_h")->base();
-	m_rom_clut[0] = memregion("sprites_l")->base() + 0x100000 - 0x800;
-	m_rom_clut[1] = memregion("sprites_h")->base() + 0x100000 - 0x800;
-}
-
-void tatsumi_rot_sprite_deice::init_roundup5()
-{
-	uint8_t *dst = memregion("sprites")->base();
-	uint8_t *src1 = memregion("sprites_l")->base();
-	uint8_t *src2 = memregion("sprites_h")->base();
-
-	for (int i = 0; i < 0xc0000; i += 32)
-	{
-		memcpy(dst, src1, 32);
-		src1 += 32;
-		dst += 32;
-		memcpy(dst, src2, 32);
-		dst += 32;
-		src2 += 32;
-	}
-
-	// Copy sprite & palette data out of GFX rom area
-	m_rom_sprite_lookup[0] = memregion("sprites_l")->base();
-	m_rom_sprite_lookup[1] = memregion("sprites_h")->base();
-	m_rom_clut[0] = memregion("sprites_l")->base() + 0xc0000 - 0x800;
-	m_rom_clut[1] = memregion("sprites_h")->base() + 0xc0000 - 0x800;
-}
-
-void tatsumi_rot_sprite_deice::init_cyclwarr()
-{
-	uint8_t *dst = memregion("sprites")->base();
-	uint8_t *src1 = memregion("sprites_l")->base();
-	int len1 = memregion("sprites_l")->bytes();
-	uint8_t *src2 = memregion("sprites_h")->base();
-	int len2 = memregion("sprites_h")->bytes();
-
-	for (int i = 0; i < len1; i += 32)
-	{
-		memcpy(dst, src1, 32);
-		src1 += 32;
-		dst += 32;
-		memcpy(dst, src2, 32);
-		dst += 32;
-		src2 += 32;
-	}
-
-	// Copy sprite & palette data out of GFX rom area
-	m_rom_sprite_lookup[0] = memregion("sprites_l")->base();
-	m_rom_sprite_lookup[1] = memregion("sprites_h")->base();
-	m_rom_clut[0] = memregion("sprites_l")->base() + len1 - 0x1000;
-	m_rom_clut[1] = memregion("sprites_h")->base() + len2 - 0x1000;
-}
 
 void tatsumi_rot_sprite_deice::draw_alpha_pass( const rectangle &cliprect)
 {

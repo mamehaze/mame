@@ -891,6 +891,7 @@ void apache3_state::apache3(machine_config &config)
 	m_spritegen->set_gfxdecode_tag("gfxdecode");
 	m_spritegen->set_palette_tag("palette");
 	m_spritegen->set_screen_tag("screen");
+	m_spritegen->set_romtable_offset(0x800);
 
 	/* video hardware */
 	screen_device &screen(SCREEN(config, "screen", SCREEN_TYPE_RASTER));
@@ -959,6 +960,7 @@ void roundup5_state::roundup5(machine_config &config)
 	m_spritegen->set_gfxdecode_tag("gfxdecode");
 	m_spritegen->set_palette_tag("palette");
 	m_spritegen->set_screen_tag("screen");
+	m_spritegen->set_romtable_offset(0x800);
 
 	/* sound hardware */
 	SPEAKER(config, "lspeaker").front_left();
@@ -1044,6 +1046,7 @@ void cyclwarr_state::cyclwarr(machine_config &config)
 	m_spritegen->set_gfxdecode_tag("gfxdecode");
 	m_spritegen->set_palette_tag("palette");
 	m_spritegen->set_screen_tag("screen");
+	m_spritegen->set_romtable_offset(0x1000);
 
 	/* sound hardware */
 	SPEAKER(config, "lspeaker").front_left();
@@ -1567,8 +1570,6 @@ ROM_END
 
 void apache3_state::init_apache3()
 {
-	m_spritegen->init_apache3();
-
 	tatsumi_reset();
 
 	m_apache3_rot_idx = 0;
@@ -1581,13 +1582,11 @@ void apache3_state::init_apache3()
 
 void roundup5_state::init_roundup5()
 {
-	m_spritegen->init_roundup5();
 	tatsumi_reset();
 }
 
 void cyclwarr_state::init_cyclwarr()
 {
-	m_spritegen->init_cyclwarr();
 	tatsumi_reset();
 }
 
@@ -1599,9 +1598,12 @@ void cyclwarr_state::init_cyclwarr()
 GAME( 1988, apache3,   0,        apache3,   apache3,  apache3_state,  init_apache3,  ROT0, "Tatsumi", "Apache 3 (rev F)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_NOT_WORKING ) // Rev F CPU code
 GAME( 1988, apache3a,  apache3,  apache3,   apache3,  apache3_state,  init_apache3,  ROT0, "Tatsumi", "Apache 3 (rev E)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_NOT_WORKING ) // Rev C & E CPU code
 GAME( 1988, apache3b,  apache3,  apache3,   apache3,  apache3_state,  init_apache3,  ROT0, "Tatsumi (Kana Corporation license)", "Apache 3 (Kana Corporation license, rev G)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_NOT_WORKING ) // Rev C & G CPU code
+
 GAMEL(1989, roundup5,  0,        roundup5,  roundup5, roundup5_state, init_roundup5, ROT0, "Tatsumi", "Round Up 5 - Super Delta Force", MACHINE_IMPERFECT_GRAPHICS | MACHINE_NOT_WORKING, layout_roundup5 )
+
 GAME( 1991, cyclwarr,  0,        cyclwarr,  cyclwarr, cyclwarr_state, init_cyclwarr, ROT0, "Tatsumi", "Cycle Warriors (rev C)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_NOT_WORKING ) // Rev C & B CPU code
 GAME( 1991, cyclwarra, cyclwarr, cyclwarr,  cyclwarb, cyclwarr_state, init_cyclwarr, ROT0, "Tatsumi", "Cycle Warriors (rev B)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_NOT_WORKING ) // Rev B & A CPU code
 GAME( 1991, cyclwarrb, cyclwarr, cyclwarr,  cyclwarb, cyclwarr_state, init_cyclwarr, ROT0, "Tatsumi", "Cycle Warriors", MACHINE_IMPERFECT_GRAPHICS | MACHINE_NOT_WORKING ) // Original version with no Rev roms
+
 GAME( 1992, bigfight,  0,        bigfight,  bigfight, cyclwarr_state, init_cyclwarr, ROT0, "Tatsumi", "Big Fight - Big Trouble In The Atlantic Ocean", MACHINE_IMPERFECT_GRAPHICS )
 GAME( 1992, bigfightj, bigfight, bigfight,  bigfight, cyclwarr_state, init_cyclwarr, ROT0, "Tatsumi", "Big Fight - Big Trouble In The Atlantic Ocean (Japan, rev F)", MACHINE_IMPERFECT_GRAPHICS ) // Rev D through F CPU codes
