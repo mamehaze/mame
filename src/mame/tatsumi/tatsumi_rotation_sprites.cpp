@@ -52,9 +52,9 @@ void tatsumi_rot_sprite_deice::device_reset()
 template<class BitmapClass>
 inline void tatsumi_rot_sprite_deice::roundupt_drawgfxzoomrotate( BitmapClass &dest_bmp, const rectangle &clip,
 		gfx_element *gfx, uint32_t code,uint32_t color,int flipx,int flipy,uint32_t ssx,uint32_t ssy,
-		int scalex, int scaley, int rotate, int write_priority_only )
+		int scale, int rotate, int write_priority_only )
 {
-	if (!scalex || !scaley) return;
+	if (!scale) return;
 
 	/*
 	scalex and scaley are 16.16 fixed point numbers
@@ -67,107 +67,89 @@ inline void tatsumi_rot_sprite_deice::roundupt_drawgfxzoomrotate( BitmapClass &d
 	rectangle myclip = clip;
 	myclip &= dest_bmp.cliprect();
 
-	if( gfx )
+	const pen_t *pal = &m_palette->pen(gfx->colorbase() + gfx->granularity() * (color % gfx->colors()));
+	const uint8_t *shadow_pens = m_shadow_pen_array.get() + (gfx->granularity() * (color % gfx->colors()));
+	const uint8_t *code_base = gfx->get_data(code % gfx->elements());
+
+	int block_size = 8 * scale;
+	int sprite_screen_height = ((ssy&0xffff)+block_size)>>16;
+	int sprite_screen_width = ((ssx&0xffff)+block_size)>>16;
+
+	if (sprite_screen_width && sprite_screen_height)
 	{
-		const pen_t *pal = &m_palette->pen(gfx->colorbase() + gfx->granularity() * (color % gfx->colors()));
-		const uint8_t *shadow_pens = m_shadow_pen_array.get() + (gfx->granularity() * (color % gfx->colors()));
-		const uint8_t *code_base = gfx->get_data(code % gfx->elements());
+		/* compute sprite increment per screen pixel */
+		int dx = (gfx->width()<<16)/sprite_screen_width;
+		int dy = (gfx->height()<<16)/sprite_screen_height;
 
-		int block_size = 8 * scalex;
-		int sprite_screen_height = ((ssy&0xffff)+block_size)>>16;
-		int sprite_screen_width = ((ssx&0xffff)+block_size)>>16;
+		int sx;//=ssx>>16;
+		int sy;//=ssy>>16;
 
-		if (sprite_screen_width && sprite_screen_height)
+		int incxx=0x10000;
+		int incyx=0x0;
+
+		if (ssx&0x80000000) sx=0-(0x10000 - (ssx>>16)); else sx=ssx>>16;
+		if (ssy&0x80000000) sy=0-(0x10000 - (ssy>>16)); else sy=ssy>>16;
+		int ex = sx+sprite_screen_width;
+		int ey = sy+sprite_screen_height;
+		int x_index_base;
+		if( flipx )
 		{
-			/* compute sprite increment per screen pixel */
-			int dx = (gfx->width()<<16)/sprite_screen_width;
-			int dy = (gfx->height()<<16)/sprite_screen_height;
+			x_index_base = (sprite_screen_width-1)*dx;
+			dx = -dx;
+			incxx=-incxx;
+			incyx=-incyx;
+		}
+		else
+		{
+			x_index_base = 0;
+		}
 
-			int sx;//=ssx>>16;
-			int sy;//=ssy>>16;
+		int y_index;
+		if( flipy )
+		{
+			y_index = (sprite_screen_height-1)*dy;
+			dy = -dy;
+		}
+		else
+		{
+			y_index = 0;
+		}
 
-			int incxx=0x10000;
-			int incyx=0x0;
-
-			if (ssx&0x80000000) sx=0-(0x10000 - (ssx>>16)); else sx=ssx>>16;
-			if (ssy&0x80000000) sy=0-(0x10000 - (ssy>>16)); else sy=ssy>>16;
-			int ex = sx+sprite_screen_width;
-			int ey = sy+sprite_screen_height;
-			int x_index_base;
-			if( flipx )
+		if( ex>sx )
+		{ /* skip if inner loop doesn't draw anything */
+			for( int y=sy; y<ey; y++ )
 			{
-				x_index_base = (sprite_screen_width-1)*dx;
-				dx = -dx;
-				incxx=-incxx;
-				incyx=-incyx;
-			}
-			else
-			{
-				x_index_base = 0;
-			}
+				uint8_t const *const source = code_base + (y_index>>16) * gfx->rowbytes();
 
-			int y_index;
-			if( flipy )
-			{
-				y_index = (sprite_screen_height-1)*dy;
-				dy = -dy;
-			}
-			else
-			{
-				y_index = 0;
-			}
-
-			if( sx < myclip.min_x)
-			{ /* clip left */
-				int pixels = myclip.min_x-sx;
-				sx += pixels;
-				x_index_base += pixels*dx;
-			}
-			if( sy < myclip.min_y )
-			{ /* clip top */
-				int pixels = myclip.min_y-sy;
-				sy += pixels;
-				y_index += pixels*dy;
-			}
-			/* NS 980211 - fixed incorrect clipping */
-			if( ex > myclip.max_x+1 )
-			{ /* clip right */
-				int pixels = ex-myclip.max_x-1;
-				ex -= pixels;
-			}
-			if( ey > myclip.max_y+1 )
-			{ /* clip bottom */
-				int pixels = ey-myclip.max_y-1;
-				ey -= pixels;
-			}
-
-			if( ex>sx )
-			{ /* skip if inner loop doesn't draw anything */
-				for( int y=sy; y<ey; y++ )
+				if ((y > clip.min_y) && (y <= clip.max_y))
 				{
-					uint8_t const *const source = code_base + (y_index>>16) * gfx->rowbytes();
 					typename BitmapClass::pixel_t *const dest = &dest_bmp.pix(y);
 
 					int x_index = x_index_base;
-					for( int x=sx; x<ex; x++ )
+					for (int x = sx; x < ex; x++)
 					{
-						int c = source[x_index>>16];
-						if( c )
+						int c = source[x_index >> 16];
+						if (c)
 						{
-							// Only draw shadow pens if writing priority buffer
-							if (write_priority_only)
-								dest[x]=shadow_pens[c];
-							else if (!shadow_pens[c])
-								dest[x]=pal[c];
+							if ((x > clip.min_x) && (x <= clip.max_x))
+							{
+								// Only draw shadow pens if writing priority buffer
+								if (write_priority_only)
+									dest[x] = shadow_pens[c];
+								else if (!shadow_pens[c])
+									dest[x] = pal[c];
+							}
 						}
 						x_index += dx;
 					}
-
-					y_index += dy;
 				}
+
+				y_index += dy;
+
 			}
 		}
 	}
+	
 }
 
 uint8_t *tatsumi_rot_sprite_deice::get_tile_line_src(uint8_t *src1, uint8_t* src2, int h)
@@ -285,13 +267,13 @@ void tatsumi_rot_sprite_deice::draw_sprites(BitmapClass &bitmap, const rectangle
 
 			for (int w = 0; w < x_width; w++)
 			{
+				int tile = base + w;
 
 				roundupt_drawgfxzoomrotate(
 					bitmap, cliprect, m_gfxdecode->gfx(0),
-					base,
+					tile,
 					color, flip_x, flip_y, x_pos, render_y,
-					scale, scale, 0, write_priority_only);
-				base++;
+					scale, 0, write_priority_only);
 
 				if (flip_x)
 					x_pos -= scale * 8;
