@@ -30,6 +30,7 @@ public:
 	//  if ((offset==0xe0 && data&0xefff) || offset!=0xe0)
 	//      logerror("%s:  Tatsumi TZB215 sprite control %04x %08x\n", m_maincpu->pc(), offset, data);
 	
+	uint8_t * get_tile_line_src(uint8_t *src1, uint8_t *src2, int h);
 
 	template<class BitmapClass> void draw_sprites(BitmapClass &bitmap, const rectangle &cliprect, int write_priority_only, int rambank);
 

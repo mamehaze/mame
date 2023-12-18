@@ -170,6 +170,18 @@ inline void tatsumi_rot_sprite_deice::roundupt_drawgfxzoomrotate( BitmapClass &d
 	}
 }
 
+uint8_t *tatsumi_rot_sprite_deice::get_tile_line_src(uint8_t *src1, uint8_t* src2, int h)
+{
+	if (h & 1)
+	{
+		return &src1[4 + (4 * (h >> 1))];
+	}
+	else
+	{
+		return &src2[(4 * (h >> 1))];
+	}
+}
+
 template<class BitmapClass>
 void tatsumi_rot_sprite_deice::draw_sprites(BitmapClass &bitmap, const rectangle &cliprect, int write_priority_only, int rambank)
 {
@@ -235,10 +247,10 @@ void tatsumi_rot_sprite_deice::draw_sprites(BitmapClass &bitmap, const rectangle
 		if (index >= 0x4000)
 			continue;
 
-		uint8_t const *src1 = m_rom_sprite_lookup[0] + (index * 4);
-		uint8_t const *src2 = m_rom_sprite_lookup[1] + (index * 4);
+		uint8_t *src1 = m_rom_sprite_lookup[0] + (index * 4);
+		uint8_t *src2 = m_rom_sprite_lookup[1] + (index * 4);
 
-		int lines = src1[2];
+		int lines = src1[2] & 0xf8;
 		int y_offset = src1[0] & 0xf8; // low bits are also set (bigfight title screen) but using them causes issues, this is a ROM table so why have them set?
 
 		lines -= y_offset;
@@ -252,24 +264,17 @@ void tatsumi_rot_sprite_deice::draw_sprites(BitmapClass &bitmap, const rectangle
 		else
 			render_y += y_offset * scale;
 
-		src1 += 4;
 		int h = 0;
 
-		while (lines > 0)
+		while (lines >= 0)
 		{
-			int base, x_offs, x_width, x_pos;
+			int x_pos;
+			uint8_t* src = get_tile_line_src(src1, src2, h);
 
 			/* Odd and even lines come from different banks */
-			if (h & 1) {
-				x_width = src1[0] + 1;
-				x_offs = src1[1] * scale * 8;
-				base = src1[2] | (src1[3] << 8);
-			}
-			else {
-				x_width = src2[0] + 1;
-				x_offs = src2[1] * scale * 8;
-				base = src2[2] | (src2[3] << 8);
-			}
+			int x_width = src[0] + 1;
+			int x_offs = src[1] * scale * 8;
+			int base = src[2] | (src[3] << 8);
 
 			base *= 2;
 			
@@ -295,10 +300,6 @@ void tatsumi_rot_sprite_deice::draw_sprites(BitmapClass &bitmap, const rectangle
 
 			}
 
-			if (h & 1)
-				src1 += 4;
-			else
-				src2 += 4;
 
 			if (flip_y)
 				render_y -= 8 * scale;
