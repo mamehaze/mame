@@ -239,7 +239,7 @@ void tatsumi_rot_sprite_deice::draw_sprites(BitmapClass &bitmap, const rectangle
 		uint8_t const *src2 = m_rom_sprite_lookup[1] + (index * 4);
 
 		int lines = src1[2];
-		int y_offset = src1[0] & 0xf8;
+		int y_offset = src1[0] & 0xf8; // low bits are also set (bigfight title screen) but using them causes issues, this is a ROM table so why have them set?
 
 		lines -= y_offset;
 
@@ -252,15 +252,12 @@ void tatsumi_rot_sprite_deice::draw_sprites(BitmapClass &bitmap, const rectangle
 		else
 			render_y += y_offset * scale;
 
-		int extent_x = 0, extent_y = 0;
-
 		src1 += 4;
 		int h = 0;
 
 		while (lines > 0)
 		{
 			int base, x_offs, x_width, x_pos;
-			int this_extent = 0;
 
 			/* Odd and even lines come from different banks */
 			if (h & 1) {
@@ -296,7 +293,6 @@ void tatsumi_rot_sprite_deice::draw_sprites(BitmapClass &bitmap, const rectangle
 				else
 					x_pos += scale * 8;
 
-				this_extent += scale * 8;
 			}
 
 			if (h & 1)
@@ -304,15 +300,10 @@ void tatsumi_rot_sprite_deice::draw_sprites(BitmapClass &bitmap, const rectangle
 			else
 				src2 += 4;
 
-			if (this_extent > extent_x)
-				extent_x = this_extent;
-			this_extent = 0;
-
 			if (flip_y)
 				render_y -= 8 * scale;
 			else
 				render_y += 8 * scale;
-			extent_y += 8 * scale;
 
 			h++;
 			lines -= 8;			
