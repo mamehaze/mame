@@ -52,7 +52,7 @@ void tatsumi_rot_sprite_deice::device_reset()
 template<class BitmapClass>
 inline void tatsumi_rot_sprite_deice::roundupt_drawgfxzoomrotate( BitmapClass &dest_bmp, const rectangle &clip,
 		gfx_element *gfx, uint32_t code,uint32_t color,int flipx,int flipy,uint32_t ssx,uint32_t ssy,
-		int scale, int rotate, int write_priority_only )
+		int scale, int rotate, int write_priority_only, int real_line )
 {
 	if (!scale) return;
 
@@ -72,84 +72,71 @@ inline void tatsumi_rot_sprite_deice::roundupt_drawgfxzoomrotate( BitmapClass &d
 	const uint8_t *code_base = gfx->get_data(code % gfx->elements());
 
 	int block_size = 8 * scale;
-	int sprite_screen_height = ((ssy&0xffff)+block_size)>>16;
 	int sprite_screen_width = ((ssx&0xffff)+block_size)>>16;
 
-	if (sprite_screen_width && sprite_screen_height)
+	if (sprite_screen_width)
 	{
 		/* compute sprite increment per screen pixel */
 		int dx = (gfx->width()<<16)/sprite_screen_width;
-		int dy = (gfx->height()<<16)/sprite_screen_height;
+		//int dy = (gfx->height()<<16)/sprite_screen_height;
 
 		int sx;//=ssx>>16;
 		int sy;//=ssy>>16;
 
 		int incxx=0x10000;
-		int incyx=0x0;
+		//int incyx=0x0;
 
 		if (ssx&0x80000000) sx=0-(0x10000 - (ssx>>16)); else sx=ssx>>16;
-		if (ssy&0x80000000) sy=0-(0x10000 - (ssy>>16)); else sy=ssy>>16;
+
+		sy=ssy>>16;
 		int ex = sx+sprite_screen_width;
-		int ey = sy+sprite_screen_height;
 		int x_index_base;
 		if( flipx )
 		{
 			x_index_base = (sprite_screen_width-1)*dx;
 			dx = -dx;
 			incxx=-incxx;
-			incyx=-incyx;
+		//	incyx=-incyx;
 		}
 		else
 		{
 			x_index_base = 0;
 		}
 
-		int y_index;
-		if( flipy )
-		{
-			y_index = (sprite_screen_height-1)*dy;
-			dy = -dy;
-		}
-		else
-		{
-			y_index = 0;
-		}
+		//int y_index;
+		//y_index = 0;
+		//for( int y=sy; y<ey; y++ )
 
-		if( ex>sx )
-		{ /* skip if inner loop doesn't draw anything */
-			for( int y=sy; y<ey; y++ )
+		int y = sy;
+
+		{
+			uint8_t const *const source = code_base + real_line * gfx->rowbytes();
+
+			if ((y >= clip.min_y) && (y < clip.max_y))
 			{
-				uint8_t const *const source = code_base + (y_index>>16) * gfx->rowbytes();
+				typename BitmapClass::pixel_t *const dest = &dest_bmp.pix(y);
 
-				if ((y > clip.min_y) && (y <= clip.max_y))
+				int x_index = x_index_base;
+				for (int x = sx; x < ex; x++)
 				{
-					typename BitmapClass::pixel_t *const dest = &dest_bmp.pix(y);
-
-					int x_index = x_index_base;
-					for (int x = sx; x < ex; x++)
+					int c = source[x_index >> 16];
+					if (c)
 					{
-						int c = source[x_index >> 16];
-						if (c)
+						if ((x >= clip.min_x) && (x < clip.max_x))
 						{
-							if ((x > clip.min_x) && (x <= clip.max_x))
-							{
-								// Only draw shadow pens if writing priority buffer
-								if (write_priority_only)
-									dest[x] = shadow_pens[c];
-								else if (!shadow_pens[c])
-									dest[x] = pal[c];
-							}
+							// Only draw shadow pens if writing priority buffer
+							if (write_priority_only)
+								dest[x] = shadow_pens[c];
+							else if (!shadow_pens[c])
+								dest[x] = pal[c];
 						}
-						x_index += dx;
 					}
+					x_index += dx;
 				}
-
-				y_index += dy;
-
 			}
+			//y_index += dy;
 		}
-	}
-	
+	}	
 }
 
 uint8_t *tatsumi_rot_sprite_deice::get_tile_line_src(uint8_t *src1, uint8_t* src2, int h)
@@ -246,50 +233,75 @@ void tatsumi_rot_sprite_deice::draw_sprites(BitmapClass &bitmap, const rectangle
 		else
 			render_y += y_offset * scale;
 
-		int h = 0;
 
-		while (lines >= 0)
+	//	while (lines >= 0)
 		{
-			int x_pos;
-			uint8_t* src = get_tile_line_src(src1, src2, h);
+	
 
-			/* Odd and even lines come from different banks */
-			int x_width = src[0] + 1;
-			int x_offs = src[1] * scale * 8;
-			int base = src[2] | (src[3] << 8);
+			int block_size = 8 * scale;
+			int sprite_screen_height = block_size >> 16;
 
-			base *= 2;
-			
-			if (flip_x)
-				x_pos = render_x - x_offs - scale * 8;
+
+			int dy;
+
+			if (sprite_screen_height)
+				dy = (8<<16)/sprite_screen_height;
 			else
-				x_pos = render_x + x_offs;
+				dy = 1;
 
-			for (int w = 0; w < x_width; w++)
+
+
+			int lineyyy = 0;
+
+			for (int yonscreen = 0; yonscreen < sprite_screen_height; yonscreen++)
 			{
-				int tile = base + w;
 
-				roundupt_drawgfxzoomrotate(
-					bitmap, cliprect, m_gfxdecode->gfx(0),
-					tile,
-					color, flip_x, flip_y, x_pos, render_y,
-					scale, 0, write_priority_only);
+				int x_pos;
+				uint8_t *src = get_tile_line_src(src1, src2, lineyyy>>16);
+
+				/* Odd and even lines come from different banks */
+				int x_width = src[0] + 1;
+				int x_offs = src[1] * scale * 8;
+				int base = src[2] | (src[3] << 8);
+
+				base *= 2;
+
 
 				if (flip_x)
-					x_pos -= scale * 8;
+					x_pos = render_x - x_offs - scale * 8;
 				else
-					x_pos += scale * 8;
+					x_pos = render_x + x_offs;
+
+
+
+				for (int w = 0; w < x_width; w++)
+				{
+					int tile = base + w;
+
+					roundupt_drawgfxzoomrotate(
+						bitmap, cliprect, m_gfxdecode->gfx(0),
+						tile,
+						color, flip_x, flip_y, x_pos, render_y + (yonscreen << 16),
+						scale, 0, write_priority_only, lineyyy>>16);
+
+					if (flip_x)
+						x_pos -= scale * 8;
+					else
+						x_pos += scale * 8;
+
+				}
+
+				lineyyy+=dy;
 
 			}
 
+		//	if (flip_y)
+		//		render_y -= 8 * scale;
+		//	else
+		//		render_y += 8 * scale;
 
-			if (flip_y)
-				render_y -= 8 * scale;
-			else
-				render_y += 8 * scale;
-
-			h++;
-			lines -= 8;			
+		//	h++;
+		//	lines -= 8;			
 		}
 	}
 }
