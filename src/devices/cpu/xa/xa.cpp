@@ -22,11 +22,16 @@ DEFINE_DEVICE_TYPE(MX10EXA, mx10exa_cpu_device, "mx10exa", "Philips MX10EXA")
 
 xa_cpu_device::xa_cpu_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, uint32_t clock, address_map_constructor prg_map)
 	: cpu_device(mconfig, type, tag, owner, clock)
-	, m_program_config("data", ENDIANNESS_LITTLE, 16, 24, 0, prg_map)
+	, m_program_config("program", ENDIANNESS_LITTLE, 16, 24, 0, prg_map)
+	, m_data_config("data", ENDIANNESS_LITTLE, 16, 24, 0, address_map_constructor(FUNC(xa_cpu_device::data_map), this))
+	, m_sfr_config("sfr", ENDIANNESS_LITTLE, 8, 11, 0, address_map_constructor(FUNC(xa_cpu_device::sfr_map), this))
 	, m_pc(0)
 	, m_program(nullptr)
+	, m_data(nullptr)
+	, m_sfr(nullptr)
 	, m_icount(0)
 {
+	add_names(default_names);
 }
 
 xa_cpu_device::xa_cpu_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
@@ -47,6 +52,23 @@ std::unique_ptr<util::disasm_interface> xa_cpu_device::create_disassembler()
 
 /*****************************************************************************/
 
+void xa_cpu_device::sfr_SCR_w(u8 data)
+{
+	printf("write %02x to SCR\n", data);
+}
+
+/*****************************************************************************/
+
+void xa_cpu_device::data_map(address_map &map)
+{
+}
+
+void xa_cpu_device::sfr_map(address_map &map)
+{
+	map(0x000, 0x040).w(FUNC(xa_cpu_device::sfr_SCR_w));
+
+}
+
 void xa_cpu_device::internal_map(address_map &map)
 {
 }
@@ -60,7 +82,9 @@ void mx10exa_cpu_device::mx10exa_internal_map(address_map &map)
 device_memory_interface::space_config_vector xa_cpu_device::memory_space_config() const
 {
 	return space_config_vector {
-		std::make_pair(AS_PROGRAM, &m_program_config)
+		std::make_pair(AS_PROGRAM, &m_program_config),
+		std::make_pair(AS_DATA,    &m_data_config),
+		std::make_pair(AS_IO,      &m_sfr_config)
 	};
 }
 
@@ -193,6 +217,23 @@ void xa_cpu_device::add_names(const mem_info *info)
 {
 	for(unsigned int i=0; info[i].addr >= 0; i++)
 		m_names[info[i].addr] = info[i].name;
+}
+
+void xa_cpu_device::write_direct16(u16 addr, u16 data)
+{
+	fatalerror("write_direct16 %04x %04x\n", addr, data);
+}
+
+void xa_cpu_device::write_direct8(u16 addr, u8 data)
+{
+	if (addr < 0x400)
+	{
+		fatalerror("write_direct8 %04x %04x\n", addr, data);
+	}
+	else
+	{
+		m_sfr->write_byte(addr - 0x400, data);
+	}
 }
 
 std::string xa_cpu_device::get_data_address(u16 arg) const
@@ -576,7 +617,24 @@ void xa_cpu_device::handle_adds_movs(XA_EXECUTE_PARAMS, int which)
 	{
 		const u8 op3 = m_program->read_byte(m_pc++);
 		const u16 direct = ((op2 & 0xf0) << 4) | op3;
-		fatalerror( "%s%s %s, %s", m_addsmovs[which], size ? ".w" : ".b", get_directtext(direct), show_expanded_data4(data4, size));
+
+		if (which == 1)
+		{
+			if (size)
+			{
+				write_direct16(direct, op3);
+			}
+			else
+			{
+				write_direct8(direct, op3);
+			}
+			return;
+		}
+		else
+		{
+			fatalerror( "%s%s %s, %s\n", m_addsmovs[which], size ? ".w" : ".b", get_directtext(direct), show_expanded_data4(data4, size));
+		}
+
 		return;
 	}
 	}
@@ -1913,6 +1971,8 @@ void xa_cpu_device::d_bkpt(XA_EXECUTE_PARAMS)
 void xa_cpu_device::device_start()
 {
 	m_program = &space(AS_PROGRAM);
+	m_data = &space(AS_DATA);
+	m_sfr = &space(AS_IO);
 
 	state_add(STATE_GENPC,      "GENPC",     m_pc).formatstr("%08X");
 	state_add(STATE_GENPCBASE,  "CURPC",     m_pc).callexport().noshow();

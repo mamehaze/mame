@@ -31,8 +31,12 @@ protected:
 
 private:
 	void internal_map(address_map &map);
+	void data_map(address_map &map);
+	void sfr_map(address_map &map);
 
 	address_space_config m_program_config;
+	address_space_config m_data_config;
+	address_space_config m_sfr_config;
 
 	struct mem_info {
 		int addr;
@@ -59,6 +63,11 @@ private:
 	std::string get_bittext(int bit);
 	std::string get_directtext(int bit);
 	std::string show_expanded_data4(u16 data4, int size);
+
+	void sfr_SCR_w(u8 data);
+
+	void write_direct16(u16 addr, u16 data);
+	void write_direct8(u16 addr, u8 data);
 
 	void handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op);
 	void handle_alu_type1(XA_EXECUTE_PARAMS, uint8_t op2);
@@ -131,6 +140,8 @@ private:
 	uint32_t m_pc;
 
 	address_space *m_program;
+	address_space *m_data;
+	address_space *m_sfr;
 	int m_icount;
 };
 
