@@ -66,7 +66,14 @@ private:
 
 	u8 sfr_WDCON_r();
 
+
+	void sfr_PSWL_w(u8 data);
+	void sfr_PSWH_w(u8 data);
+	void sfr_PSW51_w(u8 data);
+
 	void sfr_SCR_w(u8 data);
+	void sfr_WFEED1_w(u8 data);
+	void sfr_WFEED2_w(u8 data);
 
 	void write_direct16(u16 addr, u16 data);
 	u8 read_direct8(u16 addr);
@@ -144,6 +151,9 @@ private:
 
 	uint8_t m_WDCON;
 	uint8_t m_SCR;
+
+	// R0-R3 can have 4 selectable banks, R4-R7 are global
+	uint16_t m_regs[(4 * 4) + 4];
 
 	address_space *m_program;
 	address_space *m_data;

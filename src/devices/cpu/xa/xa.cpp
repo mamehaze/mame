@@ -57,6 +57,20 @@ u8 xa_cpu_device::sfr_WDCON_r()
 	return m_WDCON;
 }
 
+void xa_cpu_device::sfr_PSWL_w(u8 data)
+{
+	printf("write %02x to PSWL\n", data);
+}
+
+void xa_cpu_device::sfr_PSWH_w(u8 data)
+{
+	printf("write %02x to PSWH\n", data);
+}
+
+void xa_cpu_device::sfr_PSW51_w(u8 data)
+{
+}
+
 void xa_cpu_device::sfr_SCR_w(u8 data)
 {
 	/* System Configuration Register (SCR)
@@ -73,6 +87,16 @@ void xa_cpu_device::sfr_SCR_w(u8 data)
 	m_SCR = data;
 }
 
+void xa_cpu_device::sfr_WFEED1_w(u8 data)
+{
+	logerror("write %02x to WFEED1\n", data);
+}
+
+void xa_cpu_device::sfr_WFEED2_w(u8 data)
+{
+	logerror("write %02x to WFEED2\n", data);
+}
+
 /*****************************************************************************/
 
 void xa_cpu_device::data_map(address_map &map)
@@ -81,9 +105,18 @@ void xa_cpu_device::data_map(address_map &map)
 
 void xa_cpu_device::sfr_map(address_map &map)
 {
+	map(0x000, 0x000).w(FUNC(xa_cpu_device::sfr_PSWL_w));
+	map(0x001, 0x001).w(FUNC(xa_cpu_device::sfr_PSWH_w));
+	map(0x002, 0x002).w(FUNC(xa_cpu_device::sfr_PSW51_w));
+
 	map(0x01f, 0x01f).r(FUNC(xa_cpu_device::sfr_WDCON_r));
 	map(0x040, 0x040).w(FUNC(xa_cpu_device::sfr_SCR_w));
+	map(0x05d, 0x05d).w(FUNC(xa_cpu_device::sfr_WFEED1_w));
+	map(0x05e, 0x05e).w(FUNC(xa_cpu_device::sfr_WFEED2_w));
 }
+
+
+
 
 void xa_cpu_device::internal_map(address_map &map)
 {
@@ -510,11 +543,17 @@ void xa_cpu_device::handle_alu_type1(XA_EXECUTE_PARAMS, uint8_t op2)
 		const u8 op4 = m_program->read_byte(m_pc++);
 		const u16 direct = ((op2 & 0xf0) << 4) | op3;
 
-		if (alu_op == 5)
+		if (alu_op == 5) // AND
 		{
 			u8 val = read_direct8(direct);
 			u8 newval = val & op4;
 			// change N flag, change Z flag
+			write_direct8(direct, newval);
+		}
+		else if (alu_op == 8) // MOV
+		{
+			u8 newval = op4;
+			// do MOV flags?
 			write_direct8(direct, newval);
 		}
 		else
@@ -530,7 +569,15 @@ void xa_cpu_device::handle_alu_type1(XA_EXECUTE_PARAMS, uint8_t op2)
 		const u8 op4 = m_program->read_byte(m_pc++);
 		const u8 rd = (op2 & 0xf0) >> 4;
 		const u16 data = (op3 << 8) | op4;
-		fatalerror( "%s.w %s, #$%04x", m_aluops[alu_op], m_regnames16[rd], data );
+
+		if (alu_op == 8) // MOV
+		{
+			printf("%s.w %s, #$%04x\n", m_aluops[alu_op], m_regnames16[rd], data);
+		}
+		else
+		{
+			fatalerror("%s.w %s, #$%04x", m_aluops[alu_op], m_regnames16[rd], data);
+		}
 		return;
 	}
 
@@ -659,19 +706,21 @@ void xa_cpu_device::handle_adds_movs(XA_EXECUTE_PARAMS, int which)
 		const u8 op3 = m_program->read_byte(m_pc++);
 		const u16 direct = ((op2 & 0xf0) << 4) | op3;
 
-		if (which == 1)
+		if (which == 1) // MOVS
 		{
 			if (size)
 			{
-				write_direct16(direct, op3);
+				u16 extended = util::sext(data4, 4);
+				write_direct16(direct, extended);
 			}
 			else
 			{
-				write_direct8(direct, op3);
+				u8 extended = util::sext(data4, 4);
+				write_direct8(direct, extended);
 			}
 			return;
 		}
-		else
+		else // ANDS
 		{
 			fatalerror( "%s%s %s, %s\n", m_addsmovs[which], size ? ".w" : ".b", get_directtext(direct), show_expanded_data4(data4, size));
 		}
@@ -736,7 +785,7 @@ NOP                         No operation                                        
 */
 void xa_cpu_device::d_nop(XA_EXECUTE_PARAMS)
 {
-	fatalerror( "NOP");
+	//fatalerror( "NOP");
 	return;
 }
 
@@ -2023,6 +2072,9 @@ void xa_cpu_device::device_start()
 
 void xa_cpu_device::device_reset()
 {
+	u16 temppsw = m_program->read_word(0);
+	sfr_PSWL_w(temppsw & 0xff);
+	sfr_PSWH_w((temppsw >> 8) & 0xff);
 	m_pc = m_program->read_word(2);
 
 	m_WDCON = 0x00;
