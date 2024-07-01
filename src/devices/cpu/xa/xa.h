@@ -64,9 +64,12 @@ private:
 	std::string get_directtext(int bit);
 	std::string show_expanded_data4(u16 data4, int size);
 
+	u8 sfr_WDCON_r();
+
 	void sfr_SCR_w(u8 data);
 
 	void write_direct16(u16 addr, u16 data);
+	u8 read_direct8(u16 addr);
 	void write_direct8(u16 addr, u8 data);
 
 	void handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op);
@@ -138,6 +141,9 @@ private:
 
 
 	uint32_t m_pc;
+
+	uint8_t m_WDCON;
+	uint8_t m_SCR;
 
 	address_space *m_program;
 	address_space *m_data;

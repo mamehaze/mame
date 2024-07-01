@@ -52,9 +52,25 @@ std::unique_ptr<util::disasm_interface> xa_cpu_device::create_disassembler()
 
 /*****************************************************************************/
 
+u8 xa_cpu_device::sfr_WDCON_r()
+{
+	return m_WDCON;
+}
+
 void xa_cpu_device::sfr_SCR_w(u8 data)
 {
+	/* System Configuration Register (SCR)
+
+	---- PPCZ
+
+	 PP = PT0/1: Peripheral timer multiplier
+	 C = CM: 80c51 Compatibility Mode (registers appera in data memory, indirect addressing behavior changed)
+	 Z = Page Zero / Small Memory mode (only 16-bits of address are pushed / pulled from stack, faster timing on those ops)
+
+	*/
+
 	printf("write %02x to SCR\n", data);
+	m_SCR = data;
 }
 
 /*****************************************************************************/
@@ -65,8 +81,8 @@ void xa_cpu_device::data_map(address_map &map)
 
 void xa_cpu_device::sfr_map(address_map &map)
 {
-	map(0x000, 0x040).w(FUNC(xa_cpu_device::sfr_SCR_w));
-
+	map(0x01f, 0x01f).r(FUNC(xa_cpu_device::sfr_WDCON_r));
+	map(0x040, 0x040).w(FUNC(xa_cpu_device::sfr_SCR_w));
 }
 
 void xa_cpu_device::internal_map(address_map &map)
@@ -234,6 +250,20 @@ void xa_cpu_device::write_direct8(u16 addr, u8 data)
 	{
 		m_sfr->write_byte(addr - 0x400, data);
 	}
+}
+
+u8 xa_cpu_device::read_direct8(u16 addr)
+{
+	if (addr < 0x400)
+	{
+		fatalerror("read_direct8 %04x\n", addr);
+		return 0;
+	}
+	else
+	{
+		return m_sfr->read_byte(addr - 0x400);
+	}
+	return 0;
 }
 
 std::string xa_cpu_device::get_data_address(u16 arg) const
@@ -479,7 +509,18 @@ void xa_cpu_device::handle_alu_type1(XA_EXECUTE_PARAMS, uint8_t op2)
 		const u8 op3 = m_program->read_byte(m_pc++);
 		const u8 op4 = m_program->read_byte(m_pc++);
 		const u16 direct = ((op2 & 0xf0) << 4) | op3;
-		fatalerror( "%s.b %s, #$%02x", m_aluops[alu_op], get_directtext(direct), op4 );
+
+		if (alu_op == 5)
+		{
+			u8 val = read_direct8(direct);
+			u8 newval = val & op4;
+			// change N flag, change Z flag
+			write_direct8(direct, newval);
+		}
+		else
+		{
+			fatalerror("%s.b %s, #$%02x", m_aluops[alu_op], get_directtext(direct), op4);
+		}
 		return;
 	}
 
@@ -1982,8 +2023,11 @@ void xa_cpu_device::device_start()
 
 void xa_cpu_device::device_reset()
 {
-	// temp, as there is code here on superkds
 	m_pc = m_program->read_word(2);
+
+	m_WDCON = 0x00;
+	m_SCR = 0x00;
+
 }
 
 /*****************************************************************************/
