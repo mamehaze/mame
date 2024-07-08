@@ -147,12 +147,28 @@ private:
 	std::unordered_map<offs_t, const char *> m_names;
 
 
+	uint8_t m_im;
+	uint8_t m_rs;
+	uint8_t m_zflag;
+	uint8_t m_nflag;
+	uint8_t m_vflag;
+	uint8_t m_c_flag;
+	uint8_t m_ac_flag;
+	uint8_t m_sm_flag;
+	uint8_t m_tm_flag;
+	uint8_t m_p_flag;
+	uint8_t m_f0_flag;
+	uint8_t m_f1_flag;
+
 	uint32_t m_pc;
 
 	uint8_t m_WDCON;
 	uint8_t m_SCR;
 
-	// R0-R3 can have 4 selectable banks, R4-R7 are global
+	// 16-bit regs R0-R3 can have 4 selectable banks, R4-R7 are global
+	// for 8-bit use each register can be seen as High and Low parts
+	// R4 when split is R4H and R4L, R4L acts as ACC from i8051 for compatibility, R4H acts as B
+	// R6H is DPH, R6L is DPL
 	uint16_t m_regs[(4 * 4) + 4];
 
 	address_space *m_program;

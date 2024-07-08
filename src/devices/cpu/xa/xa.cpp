@@ -59,16 +59,25 @@ u8 xa_cpu_device::sfr_WDCON_r()
 
 void xa_cpu_device::sfr_PSWL_w(u8 data)
 {
+	// PSWL  C AC - - - V N Z
+
+
 	printf("write %02x to PSWL\n", data);
 }
 
+
+
 void xa_cpu_device::sfr_PSWH_w(u8 data)
 {
+	// PSWH  SM TM RS1 RS0 IM3 IM2 IM1 IM0
+
 	printf("write %02x to PSWH\n", data);
 }
 
 void xa_cpu_device::sfr_PSW51_w(u8 data)
 {
+	// PSW51  C AC F0 RS1 RS0 OV F1 P
+
 }
 
 void xa_cpu_device::sfr_SCR_w(u8 data)
@@ -78,7 +87,7 @@ void xa_cpu_device::sfr_SCR_w(u8 data)
 	---- PPCZ
 
 	 PP = PT0/1: Peripheral timer multiplier
-	 C = CM: 80c51 Compatibility Mode (registers appera in data memory, indirect addressing behavior changed)
+	 C = CM: 80c51 Compatibility Mode (registers appear in data memory, indirect addressing behavior changed)
 	 Z = Page Zero / Small Memory mode (only 16-bits of address are pushed / pulled from stack, faster timing on those ops)
 
 	*/
