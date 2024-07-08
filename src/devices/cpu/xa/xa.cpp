@@ -277,6 +277,30 @@ void xa_cpu_device::add_names(const mem_info *info)
 		m_names[info[i].addr] = info[i].name;
 }
 
+
+void xa_cpu_device::set_reg16(int reg, u16 data)
+{
+	if (reg < 3)
+	{
+		// banked regs
+		int regbank = 0;
+		m_regs[(regbank * 4) + reg] = data;
+
+	}
+	else if (reg < 8)
+	{
+		// do we need to calculate parity bit (in PSW51) on all R4 writes (as R4 as backwards compatibility with accumulator)
+		// or only when the backwards compatible instructions are used? (for now, simply ignore it)
+		reg -= 4;
+		m_regs[(4 * 4) + reg] = data;
+	}
+	else
+	{
+		fatalerror("set_reg16 with reg %d val = %04x\n", reg, data);
+	}
+}
+
+
 void xa_cpu_device::write_direct16(u16 addr, u16 data)
 {
 	fatalerror("write_direct16 %04x %04x\n", addr, data);
@@ -582,6 +606,7 @@ void xa_cpu_device::handle_alu_type1(XA_EXECUTE_PARAMS, uint8_t op2)
 		if (alu_op == 8) // MOV
 		{
 			printf("%s.w %s, #$%04x\n", m_aluops[alu_op], m_regnames16[rd], data);
+			set_reg16(rd, data);
 		}
 		else
 		{
@@ -2076,6 +2101,31 @@ void xa_cpu_device::device_start()
 	state_add(STATE_GENPC,      "GENPC",     m_pc).formatstr("%08X");
 	state_add(STATE_GENPCBASE,  "CURPC",     m_pc).callexport().noshow();
 
+	state_add(XA_BANK0_R0, "BANK0_R0", m_regs[0]);
+	state_add(XA_BANK0_R1, "BANK0_R1", m_regs[1]);
+	state_add(XA_BANK0_R2, "BANK0_R2", m_regs[2]);
+	state_add(XA_BANK0_R3, "BANK0_R3", m_regs[3]);
+
+	state_add(XA_BANK1_R0, "BANK1_R0", m_regs[4]);
+	state_add(XA_BANK1_R1, "BANK1_R1", m_regs[5]);
+	state_add(XA_BANK1_R2, "BANK1_R2", m_regs[6]);
+	state_add(XA_BANK1_R3, "BANK1_R3", m_regs[7]);
+
+	state_add(XA_BANK2_R0, "BANK2_R0", m_regs[8]);
+	state_add(XA_BANK2_R1, "BANK2_R1", m_regs[9]);
+	state_add(XA_BANK2_R2, "BANK2_R2", m_regs[10]);
+	state_add(XA_BANK2_R3, "BANK2_R3", m_regs[11]);
+
+	state_add(XA_BANK3_R0, "BANK3_R0", m_regs[12]);
+	state_add(XA_BANK3_R1, "BANK3_R1", m_regs[13]);
+	state_add(XA_BANK3_R2, "BANK3_R2", m_regs[14]);
+	state_add(XA_BANK3_R3, "BANK3_R3", m_regs[15]);
+
+	state_add(XA_R4, "R4", m_regs[16]);
+	state_add(XA_R5, "R5", m_regs[17]);
+	state_add(XA_R6, "R6", m_regs[18]);
+	state_add(XA_R7, "R7", m_regs[19]);
+
 	set_icountptr(m_icount);
 }
 
@@ -2088,6 +2138,11 @@ void xa_cpu_device::device_reset()
 
 	m_WDCON = 0x00;
 	m_SCR = 0x00;
+
+	for (int i = 0; i < 4 * 4 + 4; i++)
+	{
+		m_regs[i] = 0x0000;
+	}
 
 }
 

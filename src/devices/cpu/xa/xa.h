@@ -9,6 +9,34 @@
 #define XA_EXECUTE_PARAMS uint8_t op
 #define XA_EXECUTE_CALL_PARAMS op
 
+enum {
+	XA_BANK0_R0,
+	XA_BANK0_R1,
+	XA_BANK0_R2,
+	XA_BANK0_R3,
+
+	XA_BANK1_R0,
+	XA_BANK1_R1,
+	XA_BANK1_R2,
+	XA_BANK1_R3,
+
+	XA_BANK2_R0,
+	XA_BANK2_R1,
+	XA_BANK2_R2,
+	XA_BANK2_R3,
+
+	XA_BANK3_R0,
+	XA_BANK3_R1,
+	XA_BANK3_R2,
+	XA_BANK3_R3,
+
+	XA_R4,
+	XA_R5,
+	XA_R6,
+	XA_R7,
+};
+
+
 class xa_cpu_device : public cpu_device
 {
 public:
@@ -43,6 +71,7 @@ private:
 		const char *name;
 	};
 
+
 	static const mem_info default_names[];
 	void add_names(const mem_info *info);
 
@@ -66,6 +95,7 @@ private:
 
 	u8 sfr_WDCON_r();
 
+	void set_reg16(int reg, u16 data);
 
 	void sfr_PSWL_w(u8 data);
 	void sfr_PSWH_w(u8 data);
