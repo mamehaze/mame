@@ -52,6 +52,11 @@ std::unique_ptr<util::disasm_interface> xa_cpu_device::create_disassembler()
 
 /*****************************************************************************/
 
+void xa_cpu_device::set_pc_in_current_page(u16 addr)
+{
+	m_pc = addr;
+}
+
 u8 xa_cpu_device::sfr_WDCON_r()
 {
 	return m_WDCON;
@@ -300,6 +305,36 @@ void xa_cpu_device::set_reg16(int reg, u16 data)
 	}
 }
 
+u16 xa_cpu_device::get_reg16(int reg)
+{
+	if (reg < 3)
+	{
+		// banked regs
+		int regbank = 0;
+		return m_regs[(regbank * 4) + reg];
+
+	}
+	else if (reg < 8)
+	{
+		// do we need to calculate parity bit (in PSW51) on all R4 writes (as R4 as backwards compatibility with accumulator)
+		// or only when the backwards compatible instructions are used? (for now, simply ignore it)
+		reg -= 4;
+		return m_regs[(4 * 4) + reg];
+	}
+	else
+	{
+		fatalerror("get_reg16 with reg %d\n", reg);
+		return 0;
+	}
+}
+
+void xa_cpu_device::write_data16(int address, u16 data)
+{
+	if (address & 1)
+		fatalerror("unaligned in write_data16\n");
+
+	m_data->write_word(address, data);
+}
 
 void xa_cpu_device::write_direct16(u16 addr, u16 data)
 {
@@ -714,7 +749,20 @@ void xa_cpu_device::handle_adds_movs(XA_EXECUTE_PARAMS, int which)
 	case 0x03:
 	{
 		int rd = (op2 & 0x70) >> 4;
-		fatalerror( "%s%s [%s+], %s", m_addsmovs[which], size ? ".w" : ".b", m_regnames16[rd], show_expanded_data4(data4, size));
+
+		if (size) // MOVS.w [Rx], #data4
+		{
+			printf("%s%s [%s+], %s\n", m_addsmovs[which], size ? ".w" : ".b", m_regnames16[rd], show_expanded_data4(data4, size).c_str());
+			u16 data = util::sext(data4, 4);
+			u16 regval = get_reg16(rd);
+			write_data16(regval, data);
+			regval += 2;
+			set_reg16(rd, regval);
+		}
+		else  // MOVS.b [Rx], #data4
+		{
+			fatalerror("%s%s [%s+], %s", m_addsmovs[which], size ? ".w" : ".b", m_regnames16[rd], show_expanded_data4(data4, size));
+		}
 		return;
 	}
 
@@ -1164,7 +1212,24 @@ void xa_cpu_device::d_pushpop_djnz_subgroup(XA_EXECUTE_PARAMS)
 		address &= ~1; // must be word aligned
 		const char** regnames = size ? m_regnames16 : m_regnames8;
 
-		fatalerror( "DJNZ%s %s, $%04x", size ? ".w" : ".b", regnames[rd], address);
+		if (size) // DJNZ.w Rd, rel8
+		{
+			u16 regval = get_reg16(rd);
+			regval--;
+			set_reg16(rd, regval);
+
+			if (regval != 0)
+			{
+				set_pc_in_current_page(address);
+			}
+
+			printf("DJNZ%s %s, $%04x\n", size ? ".w" : ".b", regnames[rd], address);
+		}
+		else // DJNZ.b Rd, rel8
+		{
+			fatalerror("DJNZ%s %s, $%04x", size ? ".w" : ".b", regnames[rd], address);
+		}
+
 		return;
 	}
 	else

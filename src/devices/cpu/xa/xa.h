@@ -95,7 +95,12 @@ private:
 
 	u8 sfr_WDCON_r();
 
+	u16 get_reg16(int reg);
 	void set_reg16(int reg, u16 data);
+
+	void set_pc_in_current_page(u16 addr);
+
+	void write_data16(int address, u16 data);
 
 	void sfr_PSWL_w(u8 data);
 	void sfr_PSWH_w(u8 data);
