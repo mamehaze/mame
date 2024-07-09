@@ -298,6 +298,27 @@ void xa_cpu_device::push_word_to_stack(u16 data)
 	}
 }
 
+void xa_cpu_device::set_reg8(int reg, u8 data)
+{
+	int high = reg & 1;
+
+	reg >>= 1;
+
+	if (reg < 4)
+	{
+		// banked regs
+		int regbank = 0;
+
+		if (high)
+			m_regs[(regbank * 4) + reg] = (m_regs[(regbank * 4) + reg] & 0x00ff) | (data << 8);
+		else
+			m_regs[(regbank * 4) + reg] = (m_regs[(regbank * 4) + reg] & 0xff00) | (data << 0);
+	}
+	else
+	{
+		fatalerror("set_reg8 on register R4 or above\n");
+	}
+}
 
 
 void xa_cpu_device::set_reg16(int reg, u16 data)
@@ -1207,7 +1228,20 @@ void xa_cpu_device::d_movc_rd_rsinc(XA_EXECUTE_PARAMS)
 	int rs = (op2 & 0x07);
 	const char** regnames = size ? m_regnames16 : m_regnames8;
 
-	fatalerror( "MOVC%s %s, [%s+]", size ? ".w" : ".b", regnames[rd], m_regnames16[rs]);
+	if (size)
+	{
+		fatalerror("MOVC%s %s, [%s+]\n", size ? ".w" : ".b", regnames[rd], m_regnames16[rs]);
+	}
+	else
+	{
+		printf("MOVC%s %s, [%s+]\n", size ? ".w" : ".b", regnames[rd], m_regnames16[rs]);
+
+		u16 ptr = get_reg16(rs);
+		u8 data = m_program->read_byte(ptr);
+		ptr++;
+		set_reg16(rs, ptr);
+		set_reg8(rd, data);
+	}
 }
 
 /*

@@ -95,6 +95,8 @@ private:
 
 	u8 sfr_WDCON_r();
 
+	void set_reg8(int reg, u8 data);
+
 	u16 get_reg16(int reg);
 	void set_reg16(int reg, u16 data);
 
