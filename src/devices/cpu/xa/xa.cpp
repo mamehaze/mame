@@ -52,6 +52,9 @@ std::unique_ptr<util::disasm_interface> xa_cpu_device::create_disassembler()
 
 /*****************************************************************************/
 
+
+
+
 void xa_cpu_device::set_pc_in_current_page(u16 addr)
 {
 	m_pc = addr;
@@ -282,6 +285,18 @@ void xa_cpu_device::add_names(const mem_info *info)
 		m_names[info[i].addr] = info[i].name;
 }
 
+void xa_cpu_device::do_nz_flags_8(u8 data)
+{
+	if (data & 0x80)
+		set_n_flag();
+	else
+		clear_n_flag();
+
+	if (data == 0x00)
+		set_z_flag();
+	else
+		clear_z_flag();
+}
 
 void xa_cpu_device::push_word_to_stack(u16 data)
 {
@@ -316,7 +331,16 @@ void xa_cpu_device::set_reg8(int reg, u8 data)
 	}
 	else
 	{
-		fatalerror("set_reg8 on register R4 or above\n");
+		if (reg == 7)
+		{
+			fatalerror("set_reg8 on register R7\n");
+		}
+
+		reg -= 4;
+		if (high)
+			m_regs[(4 * 4) + reg] = (m_regs[(4 * 4) + reg] & 0x00ff) | (data << 8);
+		else
+			m_regs[(4 * 4) + reg] = (m_regs[(4 * 4) + reg] & 0xff00) | (data << 0);
 	}
 }
 
@@ -793,14 +817,58 @@ void xa_cpu_device::handle_adds_movs(XA_EXECUTE_PARAMS, int which)
 	{
 		int rd = (op2 & 0xf0) >> 4;
 		const char** regnames = size ? m_regnames16 : m_regnames8;
-		fatalerror( "%s%s %s, %s", m_addsmovs[which], size ? ".w" : ".b", regnames[rd], show_expanded_data4(data4, size)); // last is not m_regnames8
+
+		if (which)
+		{
+			if (size) // MOVS.w Rd, #data4
+			{
+				printf( "%s%s %s, %s", m_addsmovs[which], size ? ".w" : ".b", regnames[rd], show_expanded_data4(data4, size).c_str()); // last is not m_regnames8
+			}
+			else  // MOVS.b Rd, #data4
+			{
+				fatalerror( "%s%s %s, %s", m_addsmovs[which], size ? ".w" : ".b", regnames[rd], show_expanded_data4(data4, size)); // last is not m_regnames8
+			}
+		}
+		else
+		{
+			if (size) // ADDS.w Rd, #data4
+			{
+				fatalerror( "%s%s %s, %s", m_addsmovs[which], size ? ".w" : ".b", regnames[rd], show_expanded_data4(data4, size)); // last is not m_regnames8
+			}
+			else // ADDS.b Rd, #data4
+			{
+				fatalerror( "%s%s %s, %s", m_addsmovs[which], size ? ".w" : ".b", regnames[rd], show_expanded_data4(data4, size)); // last is not m_regnames8
+			}
+		}
 		return;
 	}
 
 	case 0x02:
 	{
 		int rd = (op2 & 0x70) >> 4;
-		fatalerror( "%s%s [%s], %s", m_addsmovs[which], size ? ".w" : ".b", m_regnames16[rd], show_expanded_data4(data4, size));
+
+		if (which == 1) // MOVS
+		{
+			if (size) // .w
+			{
+				fatalerror("%s%s [%s], %s", m_addsmovs[which], size ? ".w" : ".b", m_regnames16[rd], show_expanded_data4(data4, size));
+			}
+			else // .b
+			{
+				fatalerror("%s%s [%s], %s", m_addsmovs[which], size ? ".w" : ".b", m_regnames16[rd], show_expanded_data4(data4, size));
+			}
+		}
+		else // ADDS
+		{
+			if (size) // .w
+			{
+				fatalerror("%s%s [%s], %s", m_addsmovs[which], size ? ".w" : ".b", m_regnames16[rd], show_expanded_data4(data4, size));
+			}
+			else
+			{
+				fatalerror("%s%s [%s], %s", m_addsmovs[which], size ? ".w" : ".b", m_regnames16[rd], show_expanded_data4(data4, size));
+			}
+		}
 		return;
 	}
 
@@ -808,18 +876,32 @@ void xa_cpu_device::handle_adds_movs(XA_EXECUTE_PARAMS, int which)
 	{
 		int rd = (op2 & 0x70) >> 4;
 
-		if (size) // MOVS.w [Rx], #data4
+		if (which)
 		{
-			printf("%s%s [%s+], %s\n", m_addsmovs[which], size ? ".w" : ".b", m_regnames16[rd], show_expanded_data4(data4, size).c_str());
-			u16 data = util::sext(data4, 4);
-			u16 regval = get_reg16(rd);
-			write_data16(regval, data);
-			regval += 2;
-			set_reg16(rd, regval);
+			if (size) // MOVS.w [Rd], #data4
+			{
+				printf("%s%s [%s+], %s\n", m_addsmovs[which], size ? ".w" : ".b", m_regnames16[rd], show_expanded_data4(data4, size).c_str());
+				u16 data = util::sext(data4, 4);
+				u16 regval = get_reg16(rd);
+				write_data16(regval, data);
+				regval += 2;
+				set_reg16(rd, regval);
+			}
+			else  // MOVS.b [Rd], #data4
+			{
+				fatalerror("%s%s [%s+], %s", m_addsmovs[which], size ? ".w" : ".b", m_regnames16[rd], show_expanded_data4(data4, size));
+			}
 		}
-		else  // MOVS.b [Rx], #data4
+		else
 		{
-			fatalerror("%s%s [%s+], %s", m_addsmovs[which], size ? ".w" : ".b", m_regnames16[rd], show_expanded_data4(data4, size));
+			if (size) // ADDS.w [Rd], #data4
+			{
+				fatalerror("%s%s [%s+], %s", m_addsmovs[which], size ? ".w" : ".b", m_regnames16[rd], show_expanded_data4(data4, size));
+			}
+			else // ADDS.b [Rd], #data4
+			{
+				fatalerror("%s%s [%s+], %s", m_addsmovs[which], size ? ".w" : ".b", m_regnames16[rd], show_expanded_data4(data4, size));
+			}
 		}
 		return;
 	}
@@ -828,7 +910,28 @@ void xa_cpu_device::handle_adds_movs(XA_EXECUTE_PARAMS, int which)
 	{
 		int rd = (op2 & 0x70) >> 4;
 		const u8 op3 = m_program->read_byte(m_pc++);
-		fatalerror( "%s%s [%s+$%02x], %s", m_addsmovs[which], size ? ".w" : ".b", m_regnames16[rd], op3, show_expanded_data4(data4, size));
+		if (which == 1) // MOVS
+		{
+			if (size) // .w
+			{
+				fatalerror("%s%s [%s+$%02x], %s", m_addsmovs[which], size ? ".w" : ".b", m_regnames16[rd], op3, show_expanded_data4(data4, size));
+			}
+			else // .b
+			{
+				fatalerror("%s%s [%s+$%02x], %s", m_addsmovs[which], size ? ".w" : ".b", m_regnames16[rd], op3, show_expanded_data4(data4, size));
+			}
+		}
+		else  // ADDS
+		{
+			if (size) // .w
+			{
+				fatalerror("%s%s [%s+$%02x], %s", m_addsmovs[which], size ? ".w" : ".b", m_regnames16[rd], op3, show_expanded_data4(data4, size));
+			}
+			else // .b
+			{
+				fatalerror("%s%s [%s+$%02x], %s", m_addsmovs[which], size ? ".w" : ".b", m_regnames16[rd], op3, show_expanded_data4(data4, size));
+			}
+		}
 		return;
 	}
 
@@ -838,7 +941,28 @@ void xa_cpu_device::handle_adds_movs(XA_EXECUTE_PARAMS, int which)
 		const u8 op3 = m_program->read_byte(m_pc++);
 		const u8 op4 = m_program->read_byte(m_pc++);
 		const int offset = (op3 << 8) | op4;
-		fatalerror( "%s%s [%s+$%04x], %s", m_addsmovs[which], size ? ".w" : ".b", m_regnames16[rd], offset, show_expanded_data4(data4, size));
+		if (which == 1) // MOVS
+		{
+			if (size) // .w
+			{
+				fatalerror("%s%s [%s+$%04x], %s", m_addsmovs[which], size ? ".w" : ".b", m_regnames16[rd], offset, show_expanded_data4(data4, size));
+			}
+			else // .b
+			{
+				fatalerror("%s%s [%s+$%04x], %s", m_addsmovs[which], size ? ".w" : ".b", m_regnames16[rd], offset, show_expanded_data4(data4, size));
+			}
+		}
+		else // ADDS
+		{
+			if (size) // .w
+			{
+				fatalerror("%s%s [%s+$%04x], %s", m_addsmovs[which], size ? ".w" : ".b", m_regnames16[rd], offset, show_expanded_data4(data4, size));
+			}
+			else // .b
+			{
+				fatalerror("%s%s [%s+$%04x], %s", m_addsmovs[which], size ? ".w" : ".b", m_regnames16[rd], offset, show_expanded_data4(data4, size));
+			}
+		}
 		return;
 	}
 	case 0x06:
@@ -848,12 +972,12 @@ void xa_cpu_device::handle_adds_movs(XA_EXECUTE_PARAMS, int which)
 
 		if (which == 1) // MOVS
 		{
-			if (size)
+			if (size) // .w
 			{
 				u16 extended = util::sext(data4, 4);
 				write_direct16(direct, extended);
 			}
-			else
+			else // .b
 			{
 				u8 extended = util::sext(data4, 4);
 				write_direct8(direct, extended);
@@ -862,7 +986,14 @@ void xa_cpu_device::handle_adds_movs(XA_EXECUTE_PARAMS, int which)
 		}
 		else // ANDS
 		{
-			fatalerror( "%s%s %s, %s\n", m_addsmovs[which], size ? ".w" : ".b", get_directtext(direct), show_expanded_data4(data4, size));
+			if (size) // .w
+			{
+				fatalerror("%s%s %s, %s\n", m_addsmovs[which], size ? ".w" : ".b", get_directtext(direct), show_expanded_data4(data4, size));
+			}
+			else // .b
+			{
+				fatalerror("%s%s %s, %s\n", m_addsmovs[which], size ? ".w" : ".b", get_directtext(direct), show_expanded_data4(data4, size));
+			}
 		}
 
 		return;
@@ -1241,6 +1372,9 @@ void xa_cpu_device::d_movc_rd_rsinc(XA_EXECUTE_PARAMS)
 		ptr++;
 		set_reg16(rs, ptr);
 		set_reg8(rd, data);
+
+		do_nz_flags_8(data);
+
 	}
 }
 
@@ -2216,9 +2350,27 @@ BR rel8                     Short unconditional branch                          
 void xa_cpu_device::d_branch(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
-	int address = m_pc + ((s8)op2)*2;
+	int address = m_pc + ((s8)op2) * 2;
 	address &= ~1; // must be word aligned
-	fatalerror( "%s $%04x", m_branches[op & 0xf], address);
+
+
+	switch (op & 0x0f)
+	{
+	case 0x03: // BEQ
+	{
+		if (get_z_flag())
+		{
+			set_pc_in_current_page(address);
+		}
+		break;
+	}
+
+	default:
+	{
+		fatalerror("%s $%04x", m_branches[op & 0xf], address);
+		break;
+	}
+	}
 }
 
 /*

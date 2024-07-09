@@ -95,6 +95,16 @@ private:
 
 	u8 sfr_WDCON_r();
 
+	void do_nz_flags_8(u8 data);
+
+	uint8_t get_n_flag() { return m_nflag; }
+	void set_n_flag() { m_nflag = 1; }
+	void clear_n_flag() { m_nflag = 0; }
+
+	uint8_t get_z_flag() { return m_zflag; }
+	void set_z_flag()  { m_zflag = 1; }
+	void clear_z_flag() { m_zflag = 0; }
+
 	void set_reg8(int reg, u8 data);
 
 	u16 get_reg16(int reg);
