@@ -99,6 +99,7 @@ private:
 	void set_reg16(int reg, u16 data);
 
 	void set_pc_in_current_page(u16 addr);
+	void push_word_to_stack(u16 data);
 
 	void write_data16(int address, u16 data);
 
@@ -196,6 +197,11 @@ private:
 	uint8_t m_f1_flag;
 
 	uint32_t m_pc;
+
+	bool m_usermode;
+
+	uint16_t m_USP; // user stack pointer
+	uint16_t m_SSP; // system stack pointer
 
 	uint8_t m_WDCON;
 	uint8_t m_SCR;

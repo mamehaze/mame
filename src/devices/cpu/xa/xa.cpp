@@ -283,9 +283,26 @@ void xa_cpu_device::add_names(const mem_info *info)
 }
 
 
+void xa_cpu_device::push_word_to_stack(u16 data)
+{
+	if (m_usermode)
+	{
+		// should use the segment register as well!
+		m_USP -= 2;
+		m_data->write_word(m_USP, data);
+	}
+	else
+	{
+		m_SSP -= 2;
+		m_data->write_word(m_SSP, data);
+	}
+}
+
+
+
 void xa_cpu_device::set_reg16(int reg, u16 data)
 {
-	if (reg < 3)
+	if (reg < 4)
 	{
 		// banked regs
 		int regbank = 0;
@@ -294,6 +311,17 @@ void xa_cpu_device::set_reg16(int reg, u16 data)
 	}
 	else if (reg < 8)
 	{
+		if (reg == 7)
+		{
+			// R7 is the stack pointer, which switches between USP and SSP depending on mode
+			if (m_usermode)
+				m_USP = data;
+			else
+				m_SSP = data;
+
+			return;		
+		}
+
 		// do we need to calculate parity bit (in PSW51) on all R4 writes (as R4 as backwards compatibility with accumulator)
 		// or only when the backwards compatible instructions are used? (for now, simply ignore it)
 		reg -= 4;
@@ -307,7 +335,7 @@ void xa_cpu_device::set_reg16(int reg, u16 data)
 
 u16 xa_cpu_device::get_reg16(int reg)
 {
-	if (reg < 3)
+	if (reg < 4)
 	{
 		// banked regs
 		int regbank = 0;
@@ -316,6 +344,15 @@ u16 xa_cpu_device::get_reg16(int reg)
 	}
 	else if (reg < 8)
 	{
+		if (reg == 7)
+		{
+			// R7 is the stack pointer, which switches between USP and SSP depending on mode
+			if (m_usermode)
+				return m_USP;
+			else
+				return m_SSP;
+		}
+
 		// do we need to calculate parity bit (in PSW51) on all R4 writes (as R4 as backwards compatibility with accumulator)
 		// or only when the backwards compatible instructions are used? (for now, simply ignore it)
 		reg -= 4;
@@ -1673,7 +1710,11 @@ void xa_cpu_device::d_asl_c(XA_EXECUTE_PARAMS)
 		u16 offset = (op2 << 8) | op3;
 		int address = m_pc + ((s16)offset)*2;
 		address &= ~1; // must be word aligned
-		fatalerror( "CALL $%04x", address);
+		printf( "CALL $%04x", address);
+
+		push_word_to_stack(m_pc);
+		set_pc_in_current_page(address);
+
 		return;
 	}
 	else
@@ -2189,7 +2230,7 @@ void xa_cpu_device::device_start()
 	state_add(XA_R4, "R4", m_regs[16]);
 	state_add(XA_R5, "R5", m_regs[17]);
 	state_add(XA_R6, "R6", m_regs[18]);
-	state_add(XA_R7, "R7", m_regs[19]);
+	state_add(XA_R7, "R7", m_usermode ? m_USP : m_SSP);
 
 	set_icountptr(m_icount);
 }
@@ -2204,10 +2245,15 @@ void xa_cpu_device::device_reset()
 	m_WDCON = 0x00;
 	m_SCR = 0x00;
 
+	m_USP = 0x0100;
+	m_SSP = 0x0100;
+
 	for (int i = 0; i < 4 * 4 + 4; i++)
 	{
 		m_regs[i] = 0x0000;
 	}
+
+	m_usermode = true;
 
 }
 
