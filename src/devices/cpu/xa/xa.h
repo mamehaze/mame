@@ -106,6 +106,11 @@ private:
 	void set_z_flag()  { m_zflag = 1; }
 	void clear_z_flag() { m_zflag = 0; }
 
+	uint8_t get_c_flag() { return m_cflag; }
+	void set_c_flag()  { m_cflag = 1; }
+	void clear_c_flag() { m_cflag = 0; }
+
+
 	uint8_t get_reg8(int reg);
 	void set_reg8(int reg, u8 data);
 
@@ -194,6 +199,18 @@ private:
 	void d_branch(XA_EXECUTE_PARAMS);
 	void d_bkpt(XA_EXECUTE_PARAMS);
 
+
+
+	void add_byte_direct_data8(u16 direct, u8 data8);
+	void addc_byte_direct_data8(u16 direct, u8 data8);
+	void sub_byte_direct_data8(u16 direct, u8 data8);
+	void subc_byte_direct_data8(u16 direct, u8 data8);
+	void cmp_byte_direct_data8(u16 direct, u8 data8);
+	void and_byte_direct_data8(u16 direct, u8 data8);
+	void or_byte_direct_data8(u16 direct, u8 data8);
+	void xor_byte_direct_data8(u16 direct, u8 data8);
+	void mov_byte_direct_data8(u16 direct, u8 data8);
+
 	std::unordered_map<offs_t, const char *> m_names;
 
 
@@ -202,7 +219,7 @@ private:
 	uint8_t m_zflag;
 	uint8_t m_nflag;
 	uint8_t m_vflag;
-	uint8_t m_c_flag;
+	uint8_t m_cflag;
 	uint8_t m_ac_flag;
 	uint8_t m_sm_flag;
 	uint8_t m_tm_flag;

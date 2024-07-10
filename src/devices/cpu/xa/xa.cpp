@@ -689,7 +689,7 @@ void xa_cpu_device::handle_alu_type1(XA_EXECUTE_PARAMS, uint8_t op2)
 	int alu_op = op2 & 0x0f;
 	switch (op & 0x0f)
 	{
-	case 0x01:
+	case 0x01: // ALUOP.b Rd, data8
 	{
 		const u8 op3 = m_program->read_byte(m_pc++);
 		const u8 rd = (op2 & 0xf0) >> 4;
@@ -697,7 +697,7 @@ void xa_cpu_device::handle_alu_type1(XA_EXECUTE_PARAMS, uint8_t op2)
 		return;
 	}
 
-	case 0x02:
+	case 0x02: // ALUOP.b [Rd], data8
 	{
 		const u8 op3 = m_program->read_byte(m_pc++);
 		const u8 rd = (op2 & 0xf0) >> 4;
@@ -705,7 +705,7 @@ void xa_cpu_device::handle_alu_type1(XA_EXECUTE_PARAMS, uint8_t op2)
 		return;
 	}
 
-	case 0x03:
+	case 0x03: // ALUOP.b [Rd+], data8
 	{
 		const u8 op3 = m_program->read_byte(m_pc++);
 		const u8 rd = (op2 & 0xf0) >> 4;
@@ -713,7 +713,7 @@ void xa_cpu_device::handle_alu_type1(XA_EXECUTE_PARAMS, uint8_t op2)
 		return;
 	}
 
-	case 0x04:
+	case 0x04: // ALUOP.b [Rd+offs8], data8
 	{
 		const u8 op3 = m_program->read_byte(m_pc++);
 		const u8 op4 = m_program->read_byte(m_pc++);
@@ -722,7 +722,7 @@ void xa_cpu_device::handle_alu_type1(XA_EXECUTE_PARAMS, uint8_t op2)
 		return;
 	}
 
-	case 0x05:
+	case 0x05: // ALUOP.b [Rd+offs16], data8
 	{
 		const u8 op3 = m_program->read_byte(m_pc++);
 		const u8 op4 = m_program->read_byte(m_pc++);
@@ -733,33 +733,30 @@ void xa_cpu_device::handle_alu_type1(XA_EXECUTE_PARAMS, uint8_t op2)
 		return;
 	}
 
-	case 0x06:
+	case 0x06: // ALUOP.b DIRECT, data8
 	{
 		const u8 op3 = m_program->read_byte(m_pc++);
 		const u8 op4 = m_program->read_byte(m_pc++);
 		const u16 direct = ((op2 & 0xf0) << 4) | op3;
 
-		if (alu_op == 5) // AND
+		switch (alu_op)
 		{
-			u8 val = read_direct8(direct);
-			u8 newval = val & op4;
-			// change N flag, change Z flag
-			write_direct8(direct, newval);
+		case 0x0: add_byte_direct_data8(direct, op4); break;
+		case 0x1: addc_byte_direct_data8(direct, op4); break;
+		case 0x2: sub_byte_direct_data8(direct, op4); break;
+		case 0x3: subc_byte_direct_data8(direct, op4); break;
+		case 0x4: cmp_byte_direct_data8(direct, op4); break;
+		case 0x5: and_byte_direct_data8(direct, op4); break;
+		case 0x6: or_byte_direct_data8(direct, op4); break;
+		case 0x7: xor_byte_direct_data8(direct, op4); break;
+		case 0x8: mov_byte_direct_data8(direct, op4); break;
+		default: fatalerror("UNK_ALUOP.b %s, #$%02x", get_directtext(direct), op4); break;
 		}
-		else if (alu_op == 8) // MOV
-		{
-			u8 newval = op4;
-			// do MOV flags?
-			write_direct8(direct, newval);
-		}
-		else
-		{
-			fatalerror("%s.b %s, #$%02x", m_aluops[alu_op], get_directtext(direct), op4);
-		}
+
 		return;
 	}
 
-	case 0x09:
+	case 0x09: // ALUOP.w Rd, data16
 	{
 		const u8 op3 = m_program->read_byte(m_pc++);
 		const u8 op4 = m_program->read_byte(m_pc++);
@@ -778,7 +775,7 @@ void xa_cpu_device::handle_alu_type1(XA_EXECUTE_PARAMS, uint8_t op2)
 		return;
 	}
 
-	case 0x0a:
+	case 0x0a: // ALUOP.w [Rd], data16
 	{
 		const u8 op3 = m_program->read_byte(m_pc++);
 		const u8 op4 = m_program->read_byte(m_pc++);
@@ -788,7 +785,7 @@ void xa_cpu_device::handle_alu_type1(XA_EXECUTE_PARAMS, uint8_t op2)
 		return;
 	}
 
-	case 0x0b:
+	case 0x0b: // ALUOP.w [Rd+], data16
 	{
 		const u8 op3 = m_program->read_byte(m_pc++);
 		const u8 op4 = m_program->read_byte(m_pc++);
@@ -798,7 +795,7 @@ void xa_cpu_device::handle_alu_type1(XA_EXECUTE_PARAMS, uint8_t op2)
 		return;
 	}
 
-	case 0x0c:
+	case 0x0c: // ALPOP.w [Rd+offs8], data16
 	{
 		const u8 op3 = m_program->read_byte(m_pc++);
 		const u8 op4 = m_program->read_byte(m_pc++);
@@ -810,7 +807,7 @@ void xa_cpu_device::handle_alu_type1(XA_EXECUTE_PARAMS, uint8_t op2)
 		return;
 	}
 
-	case 0x0d:
+	case 0x0d: // ALUOP.w [Rd+offs16], data16
 	{
 		const u8 op3 = m_program->read_byte(m_pc++);
 		const u8 op4 = m_program->read_byte(m_pc++);
@@ -823,7 +820,7 @@ void xa_cpu_device::handle_alu_type1(XA_EXECUTE_PARAMS, uint8_t op2)
 		return;
 	}
 
-	case 0x0e:
+	case 0x0e: // ALUOP.w DIRECT, data16
 	{
 		const u8 op3 = m_program->read_byte(m_pc++);
 		const u8 op4 = m_program->read_byte(m_pc++);
@@ -2328,11 +2325,18 @@ void xa_cpu_device::d_cjne_d8(XA_EXECUTE_PARAMS)
 
 		uint8_t regval = get_reg8(rd);
 
-		if (regval != op4)
+		uint16_t result = regval - op4;
+
+		do_nz_flags_8((u8)result);
+		if (result & 0x0100)
+			set_c_flag();
+		else
+			clear_c_flag();
+
+		if (!get_z_flag())
 		{
 			set_pc_in_current_page(address);
 		}
-		// TODO: flag
 	}
 }
 
