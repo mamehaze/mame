@@ -750,9 +750,8 @@ void xa_cpu_device::handle_alu_type1(XA_EXECUTE_PARAMS, uint8_t op2)
 		case 0x6: or_byte_direct_data8(direct, op4); break;
 		case 0x7: xor_byte_direct_data8(direct, op4); break;
 		case 0x8: mov_byte_direct_data8(direct, op4); break;
-		default: fatalerror("UNK_ALUOP.b %s, #$%02x", get_directtext(direct), op4); break;
+		default: fatalerror("UNK_ALUOP.b %s, #$%02x (DIRECT, DATA8)", get_directtext(direct), op4); break;
 		}
-
 		return;
 	}
 
@@ -761,16 +760,20 @@ void xa_cpu_device::handle_alu_type1(XA_EXECUTE_PARAMS, uint8_t op2)
 		const u8 op3 = m_program->read_byte(m_pc++);
 		const u8 op4 = m_program->read_byte(m_pc++);
 		const u8 rd = (op2 & 0xf0) >> 4;
-		const u16 data = (op3 << 8) | op4;
+		const u16 data16 = (op3 << 8) | op4;
 
-		if (alu_op == 8) // MOV
+		switch (alu_op)
 		{
-			printf("%s.w %s, #$%04x\n", m_aluops[alu_op], m_regnames16[rd], data);
-			set_reg16(rd, data);
-		}
-		else
-		{
-			fatalerror("%s.w %s, #$%04x", m_aluops[alu_op], m_regnames16[rd], data);
+		case 0x0: add_word_rd_data16(rd, data16); break;
+		case 0x1: addc_word_rd_data16(rd, data16); break;
+		case 0x2: sub_word_rd_data16(rd, data16); break;
+		case 0x3: subc_word_rd_data16(rd, data16); break;
+		case 0x4: cmp_word_rd_data16(rd, data16); break;
+		case 0x5: and_word_rd_data16(rd, data16); break;
+		case 0x6: or_word_rd_data16(rd, data16); break;
+		case 0x7: xor_word_rd_data16(rd, data16); break;
+		case 0x8: mov_word_rd_data16(rd, data16); break;
+		default: fatalerror("%s.w %s, #$%04x (RD, DATA16)", m_aluops[alu_op], m_regnames16[rd], data16); break;
 		}
 		return;
 	}
