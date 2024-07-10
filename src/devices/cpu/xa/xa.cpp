@@ -584,10 +584,32 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 
 		if (size)
 		{
+/*
+	void add_word_rd_rs(u8 rd, u8 rs);
+	void addc_word_rd_rs(u8 rd, u8 rs);
+	void sub_word_rd_rs(u8 rd, u8 rs);
+	void subc_word_rd_rs(u8 rd, u8 rs);
+	void cmp_word_rd_rs(u8 rd, u8 rs);
+	void and_word_rd_rs(u8 rd, u8 rs);
+	void or_word_rd_rs(u8 rd, u8 rs);
+	void xor_word_rd_rs(u8 rd, u8 rs);
+	void mov_word_rd_rs(u8 rd, u8 rs);
+*/
 			fatalerror("%s.w %s, %s", m_aluops[alu_op], regnames[rd], regnames[rs]); // ALUOP.w Rd, Rs
 		}
 		else
 		{
+/*
+	void add_byte_rd_rs(u8 rd, u8 rs);
+	void addc_byte_rd_rs(u8 rd, u8 rs);
+	void sub_byte_rd_rs(u8 rd, u8 rs);
+	void subc_byte_rd_rs(u8 rd, u8 rs);
+	void cmp_byte_rd_rs(u8 rd, u8 rs);
+	void and_byte_rd_rs(u8 rd, u8 rs);
+	void or_byte_rd_rs(u8 rd, u8 rs);
+	void xor_byte_rd_rs(u8 rd, u8 rs);
+	void mov_byte_rd_rs(u8 rd, u8 rs);
+*/
 			fatalerror("%s.b %s, %s", m_aluops[alu_op], regnames[rd], regnames[rs]); // ALUOP.b Rd, Rs
 		}
 
@@ -604,10 +626,32 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 
 			if (size)
 			{
+/*
+	void add_word_rd_indrs(u8 rd, u8 rs);
+	void addc_word_rd_indrs(u8 rd, u8 rs);
+	void sub_word_rd_indrs(u8 rd, u8 rs);
+	void subc_word_rd_indrs(u8 rd, u8 rs);
+	void cmp_word_rd_indrs(u8 rd, u8 rs);
+	void and_word_rd_indrs(u8 rd, u8 rs);
+	void or_word_rd_indrs(u8 rd, u8 rs);
+	void xor_word_rd_indrs(u8 rd, u8 rs);
+	void mov_word_rd_indrs(u8 rd, u8 rs);
+*/
 				fatalerror("%s.w %s, [%s]", m_aluops[alu_op], regnames[rd], m_regnames16[rs]); // ALUOP.w Rd, [Rs]
 			}
 			else
 			{
+/*
+	void add_byte_rd_indrs(u8 rd, u8 rs);
+	void addc_byte_rd_indrs(u8 rd, u8 rs);
+	void sub_byte_rd_indrs(u8 rd, u8 rs);
+	void subc_byte_rd_indrs(u8 rd, u8 rs);
+	void cmp_byte_rd_indrs(u8 rd, u8 rs);
+	void and_byte_rd_indrs(u8 rd, u8 rs);
+	void or_byte_rd_indrs(u8 rd, u8 rs);
+	void xor_byte_rd_indrs(u8 rd, u8 rs);
+	void mov_byte_rd_indrs(u8 rd, u8 rs);
+*/
 				fatalerror("%s.b %s, [%s]", m_aluops[alu_op], regnames[rd], m_regnames16[rs]); // ALUOP.b Rd, [Rs]
 			}
 		}
@@ -618,10 +662,32 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 
 			if (size)
 			{
+/*
+	void add_word_indrd_rs(u8 rd, u8 rs);
+	void addc_word_indrd_rs(u8 rd, u8 rs);
+	void sub_word_indrd_rs(u8 rd, u8 rs);
+	void subc_word_indrd_rs(u8 rd, u8 rs);
+	void cmp_word_indrd_rs(u8 rd, u8 rs);
+	void and_word_indrd_rs(u8 rd, u8 rs);
+	void or_word_indrd_rs(u8 rd, u8 rs);
+	void xor_word_indrd_rs(u8 rd, u8 rs);
+	void mov_word_indrd_rs(u8 rd, u8 rs);
+*/
 				fatalerror("%s.w [%s], %s", m_aluops[alu_op], m_regnames16[rd], regnames[rs]); // ALUOP.w [Rd], Rs
 			}
 			else
 			{
+/*
+	void add_byte_indrd_rs(u8 rd, u8 rs);
+	void addc_byte_indrd_rs(u8 rd, u8 rs);
+	void sub_byte_indrd_rs(u8 rd, u8 rs);
+	void subc_byte_indrd_rs(u8 rd, u8 rs);
+	void cmp_byte_indrd_rs(u8 rd, u8 rs);
+	void and_byte_indrd_rs(u8 rd, u8 rs);
+	void or_byte_indrd_rs(u8 rd, u8 rs);
+	void xor_byte_indrd_rs(u8 rd, u8 rs);
+	void mov_byte_indrd_rs(u8 rd, u8 rs);
+*/
 				fatalerror("%s.b [%s], %s", m_aluops[alu_op], m_regnames16[rd], regnames[rs]); // ALUOP.b [Rd], Rs
 			}
 		}
@@ -637,10 +703,33 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 			const u8 rd = (op2 & 0xf0) >> 4;
 			if (size)
 			{
+/*
+	void add_word_rd_indrsinc(u8 rd, u8 rs);
+	void addc_word_rd_indrsinc(u8 rd, u8 rs);
+	void sub_word_rd_indrsinc(u8 rd, u8 rs);
+	void subc_word_rd_indrsinc(u8 rd, u8 rs);
+	void cmp_word_rd_indrsinc(u8 rd, u8 rs);
+	void and_word_rd_indrsinc(u8 rd, u8 rs);
+	void or_word_rd_indrsinc(u8 rd, u8 rs);
+	void xor_word_rd_indrsinc(u8 rd, u8 rs);
+	void mov_word_rd_indrsinc(u8 rd, u8 rs);
+*/
 				fatalerror("%s.w %s, [%s+]", m_aluops[alu_op], regnames[rd], m_regnames16[rs]); // ALUOP.w Rd, [Rs+]
 			}
 			else
 			{
+/*
+	void add_byte_rd_indrsinc(u8 rd, u8 rs);
+	void addc_byte_rd_indrsinc(u8 rd, u8 rs);
+	void sub_byte_rd_indrsinc(u8 rd, u8 rs);
+	void subc_byte_rd_indrsinc(u8 rd, u8 rs);
+	void cmp_byte_rd_indrsinc(u8 rd, u8 rs);
+	void and_byte_rd_indrsinc(u8 rd, u8 rs);
+	void or_byte_rd_indrsinc(u8 rd, u8 rs);
+	void xor_byte_rd_indrsinc(u8 rd, u8 rs);
+	void mov_byte_rd_indrsinc(u8 rd, u8 rs);
+*/
+
 				fatalerror("%s.b %s, [%s+]", m_aluops[alu_op], regnames[rd], m_regnames16[rs]); // ALUOP.b Rd, [Rs+]
 			}
 		}
@@ -651,10 +740,36 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 
 			if (size)
 			{
+/*
+	void add_word_indrdinc_rs(u8 rd, u8 rs);
+	void addc_word_indrdinc_rs(u8 rd, u8 rs);
+	void sub_word_indrdinc_rs(u8 rd, u8 rs);
+	void subc_word_indrdinc_rs(u8 rd, u8 rs);
+	void cmp_word_indrdinc_rs(u8 rd, u8 rs);
+	void and_word_indrdinc_rs(u8 rd, u8 rs);
+	void or_word_indrdinc_rs(u8 rd, u8 rs);
+	void xor_word_indrdinc_rs(u8 rd, u8 rs);
+	void mov_word_indrdinc_rs(u8 rd, u8 rs);
+
+*/
+
 				fatalerror("%s.w [%s+], %s", m_aluops[alu_op], m_regnames16[rd], regnames[rs]); // ALUOP.w [Rd+], Rs
 			}
 			else
 			{
+/*
+	void add_byte_indrdinc_rs(u8 rd, u8 rs);
+	void addc_byte_indrdinc_rs(u8 rd, u8 rs);
+	void sub_byte_indrdinc_rs(u8 rd, u8 rs);
+	void subc_byte_indrdinc_rs(u8 rd, u8 rs);
+	void cmp_byte_indrdinc_rs(u8 rd, u8 rs);
+	void and_byte_indrdinc_rs(u8 rd, u8 rs);
+	void or_byte_indrdinc_rs(u8 rd, u8 rs);
+	void xor_byte_indrdinc_rs(u8 rd, u8 rs);
+	void mov_byte_indrdinc_rs(u8 rd, u8 rs);
+
+*/
+
 				fatalerror("%s.b [%s+], %s", m_aluops[alu_op], m_regnames16[rd], regnames[rs]); // ALUOP.b [Rd+], Rs
 			}
 		}
@@ -672,10 +787,36 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 
 			if (size)
 			{
+/*
+	void add_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
+	void addc_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
+	void sub_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
+	void subc_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
+	void cmp_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
+	void and_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
+	void or_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
+	void xor_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
+	void mov_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
+
+*/
+
 				fatalerror("%s.w %s, [%s+#$%02x]", m_aluops[alu_op], regnames[rd], m_regnames16[rs], op3); // ALUOP.w Rd, [Rs+off8]
 			}
 			else
 			{
+/*
+	void add_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
+	void addc_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
+	void sub_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
+	void subc_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
+	void cmp_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
+	void and_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
+	void or_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
+	void xor_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
+	void mov_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
+
+*/
+
 				fatalerror("%s.b %s, [%s+#$%02x]", m_aluops[alu_op], regnames[rd], m_regnames16[rs], op3); // ALUOP.b Rd, [Rs+off8]
 			}
 		}
@@ -686,10 +827,34 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 
 			if (size)
 			{
+/*
+	void add_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
+	void addc_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
+	void sub_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
+	void subc_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
+	void cmp_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
+	void and_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
+	void or_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
+	void xor_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
+	void mov_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
+*/
+
 				fatalerror("%s.w [%s+#$%02x], %s", m_aluops[alu_op], m_regnames16[rd], op3, regnames[rs]); // ALUOP.w [Rd+off8], Rs
 			}
 			else
 			{
+/*
+	void add_byte_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
+	void addc_byte_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
+	void sub_byte_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
+	void subc_byte_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
+	void cmp_byte_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
+	void and_byte_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
+	void or_byte_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
+	void xor_byte_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
+	void mov_byte_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
+
+*/
 				fatalerror("%s.b [%s+#$%02x], %s", m_aluops[alu_op], m_regnames16[rd], op3, regnames[rs]); // ALUOP.b [Rd+off8], Rs
 			}
 		}
@@ -709,10 +874,35 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 
 			if (size)
 			{
+/*
+
+	void add_word_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
+	void addc_word_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
+	void sub_word_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
+	void subc_word_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
+	void cmp_word_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
+	void and_word_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
+	void or_word_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
+	void xor_word_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
+	void mov_word_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
+
+*/
 				fatalerror("%s.w %s, [%s+#$%04x]", m_aluops[alu_op], regnames[rd], m_regnames16[rs], offset16); // ALUOP.w Rd, [Rs+off16]
 			}
 			else
 			{
+/*
+	void add_byte_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
+	void addc_byte_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
+	void sub_byte_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
+	void subc_byte_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
+	void cmp_byte_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
+	void and_byte_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
+	void or_byte_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
+	void xor_byte_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
+	void mov_byte_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
+*/ 
+
 				fatalerror("%s.b %s, [%s+#$%04x]", m_aluops[alu_op], regnames[rd], m_regnames16[rs], offset16); // ALUOP.b Rd, [Rs+off16]
 			}
 		}
@@ -723,10 +913,32 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 
 			if (size)
 			{
+/*
+	void add_word_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
+	void addc_word_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
+	void sub_word_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
+	void subc_word_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
+	void cmp_word_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
+	void and_word_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
+	void or_word_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
+	void xor_word_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
+	void mov_word_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
+*/
 				fatalerror("%s.w [%s+#$%04x], %s", m_aluops[alu_op], m_regnames16[rd], offset16, regnames[rs]); // ALUOP.w [Rd+off16], Rs
 			}
 			else
 			{
+/*
+	void add_byte_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
+	void addc_byte_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
+	void sub_byte_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
+	void subc_byte_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
+	void cmp_byte_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
+	void and_byte_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
+	void or_byte_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
+	void xor_byte_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
+	void mov_byte_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
+*/
 				fatalerror("%s.b [%s+#$%04x], %s", m_aluops[alu_op], m_regnames16[rd], offset16, regnames[rs]); // ALUOP.b [Rd+off16], Rs
 			}
 		}
@@ -744,10 +956,32 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 
 			if (size)
 			{
+/*
+	void add_word_rd_direct(u8 rd, u16 direct);
+	void addc_word_rd_direct(u8 rd, u16 direct);
+	void sub_word_rd_direct(u8 rd, u16 direct);
+	void subc_word_rd_direct(u8 rd, u16 direct);
+	void cmp_word_rd_direct(u8 rd, u16 direct);
+	void and_word_rd_direct(u8 rd, u16 direct);
+	void or_word_rd_direct(u8 rd, u16 direct);
+	void xor_word_rd_direct(u8 rd, u16 direct);
+	void mov_word_rd_direct(u8 rd, u16 direct);
+*/
 				fatalerror("%s.w %s, %s", m_aluops[alu_op], regnames[rd], get_directtext(direct)); // ALUOP.w Rd, Direct
 			}
 			else
 			{
+/*
+	void add_byte_rd_direct(u8 rd, u16 direct);
+	void addc_byte_rd_direct(u8 rd, u16 direct);
+	void sub_byte_rd_direct(u8 rd, u16 direct);
+	void subc_byte_rd_direct(u8 rd, u16 direct);
+	void cmp_byte_rd_direct(u8 rd, u16 direct);
+	void and_byte_rd_direct(u8 rd, u16 direct);
+	void or_byte_rd_direct(u8 rd, u16 direct);
+	void xor_byte_rd_direct(u8 rd, u16 direct);
+	void mov_byte_rd_direct(u8 rd, u16 direct);
+*/
 				fatalerror("%s.b %s, %s", m_aluops[alu_op], regnames[rd], get_directtext(direct)); // ALUOP.b Rd, Direct
 			}
 		}
@@ -757,10 +991,32 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 
 			if (size)
 			{
+/*
+	void add_word_direct_rs(u16 direct, u8 rs);
+	void addc_word_direct_rs(u16 direct, u8 rs);
+	void sub_word_direct_rs(u16 direct, u8 rs);
+	void subc_word_direct_rs(u16 direct, u8 rs);
+	void cmp_word_direct_rs(u16 direct, u8 rs);
+	void and_word_direct_rs(u16 direct, u8 rs);
+	void or_word_direct_rs(u16 direct, u8 rs);
+	void xor_word_direct_rs(u16 direct, u8 rs);
+	void mov_word_direct_rs(u16 direct, u8 rs);
+*/
 				fatalerror("%s.w %s, %s", m_aluops[alu_op], get_directtext(direct), regnames[rs]); // ALUOP.w Direct, Rs
 			}
 			else
 			{
+/*
+	void add_byte_direct_rs(u16 direct, u8 rs);
+	void addc_byte_direct_rs(u16 direct, u8 rs);
+	void sub_byte_direct_rs(u16 direct, u8 rs);
+	void subc_byte_direct_rs(u16 direct, u8 rs);
+	void cmp_byte_direct_rs(u16 direct, u8 rs);
+	void and_byte_direct_rs(u16 direct, u8 rs);
+	void or_byte_direct_rs(u16 direct, u8 rs);
+	void xor_byte_direct_rs(u16 direct, u8 rs);
+	void mov_byte_direct_rs(u16 direct, u8 rs);
+*/
 				fatalerror("%s.b %s, %s", m_aluops[alu_op], get_directtext(direct), regnames[rs]); // ALUOP.b Direct, Rs
 			}
 		}
