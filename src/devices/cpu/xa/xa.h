@@ -339,15 +339,15 @@ private:
 	void xor_word_indrd_data16(u8 rd, u16 data16);
 	void mov_word_indrd_data16(u8 rd, u16 data16);
 
-	void  add_word_indrdinc_data16(u8 rd, u16 data16);
-	void  addc_word_indrdinc_data16(u8 rd, u16 data16);
-	void  sub_word_indrdinc_data16(u8 rd, u16 data16);
-	void  subc_word_indrdinc_data16(u8 rd, u16 data16);
-	void  cmp_word_indrdinc_data16(u8 rd, u16 data16);
-	void  and_word_indrdinc_data16(u8 rd, u16 data16);
-	void  or_word_indrdinc_data16(u8 rd, u16 data16);
-	void  xor_word_indrdinc_data16(u8 rd, u16 data16);
-	void  mov_word_indrdinc_data16(u8 rd, u16 data16);
+	void add_word_indrdinc_data16(u8 rd, u16 data16);
+	void addc_word_indrdinc_data16(u8 rd, u16 data16);
+	void sub_word_indrdinc_data16(u8 rd, u16 data16);
+	void subc_word_indrdinc_data16(u8 rd, u16 data16);
+	void cmp_word_indrdinc_data16(u8 rd, u16 data16);
+	void and_word_indrdinc_data16(u8 rd, u16 data16);
+	void or_word_indrdinc_data16(u8 rd, u16 data16);
+	void xor_word_indrdinc_data16(u8 rd, u16 data16);
+	void mov_word_indrdinc_data16(u8 rd, u16 data16);
 
 	void add_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16);
 	void addc_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16);
