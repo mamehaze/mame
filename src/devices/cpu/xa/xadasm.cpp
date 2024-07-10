@@ -793,7 +793,7 @@ int xa_dasm::d_xch_type1(XA_DASM_PARAMS)
 	const char** regnames = size ? m_regnames16 : m_regnames8;
 	const u8 rd = (op2 & 0xf0) >> 4;
 	const u8 rs = (op2 & 0x07);
-	util::stream_format(stream, "XCH %s, [%s]", regnames[rd], m_regnames16[rs]);
+	util::stream_format(stream, "XCH%s %s, [%s]", size ? ".w" : ".b", regnames[rd], m_regnames16[rs]);
 	return 2;
 }
 

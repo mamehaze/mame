@@ -581,7 +581,16 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 	{
 		const u8 rs = (op2 & 0x0f);
 		const u8 rd = (op2 & 0xf0) >> 4;
-		fatalerror( "%s%s %s, %s", m_aluops[alu_op], size ? ".w" : ".b", regnames[rd], regnames[rs] );
+
+		if (size)
+		{
+			fatalerror("%s.w %s, %s", m_aluops[alu_op], regnames[rd], regnames[rs]); // ALUOP.w Rd, Rs
+		}
+		else
+		{
+			fatalerror("%s.b %s, %s", m_aluops[alu_op], regnames[rd], regnames[rs]); // ALUOP.b Rd, Rs
+		}
+
 		return;
 	}
 
@@ -592,13 +601,29 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 		{
 			const u8 rs = (op2 & 0x07);
 			const u8 rd = (op2 & 0xf0) >> 4;
-			fatalerror( "%s%s %s, [%s]", m_aluops[alu_op], size ? ".w" : ".b", regnames[rd], m_regnames16[rs] );
+
+			if (size)
+			{
+				fatalerror("%s.w %s, [%s]", m_aluops[alu_op], regnames[rd], m_regnames16[rs]);
+			}
+			else
+			{
+				fatalerror("%s.b %s, [%s]", m_aluops[alu_op], regnames[rd], m_regnames16[rs]);
+			}
 		}
 		else
 		{
 			const u8 rd = (op2 & 0x07);
 			const u8 rs = (op2 & 0xf0) >> 4;
-			fatalerror( "%s%s [%s], %s", m_aluops[alu_op], size ? ".w" : ".b", m_regnames16[rd], regnames[rs] );
+
+			if (size)
+			{
+				fatalerror("%s.w [%s], %s", m_aluops[alu_op], m_regnames16[rd], regnames[rs]);
+			}
+			else
+			{
+				fatalerror("%s.b [%s], %s", m_aluops[alu_op], m_regnames16[rd], regnames[rs]);
+			}
 		}
 		return;
 	}
@@ -610,13 +635,28 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 		{
 			const u8 rs = (op2 & 0x07);
 			const u8 rd = (op2 & 0xf0) >> 4;
-			fatalerror( "%s%s %s, [%s+]", m_aluops[alu_op], size ? ".w" : ".b", regnames[rd], m_regnames16[rs] );
+			if (size)
+			{
+				fatalerror("%s.w %s, [%s+]", m_aluops[alu_op], regnames[rd], m_regnames16[rs]);
+			}
+			else
+			{
+				fatalerror("%s.b %s, [%s+]", m_aluops[alu_op], regnames[rd], m_regnames16[rs]);
+			}
 		}
 		else
 		{
 			const u8 rd = (op2 & 0x07);
 			const u8 rs = (op2 & 0xf0) >> 4;
-			fatalerror( "%s%s [%s+], %s", m_aluops[alu_op], size ? ".w" : ".b", m_regnames16[rd], regnames[rs] );
+
+			if (size)
+			{
+				fatalerror("%s.w [%s+], %s", m_aluops[alu_op], m_regnames16[rd], regnames[rs]);
+			}
+			else
+			{
+				fatalerror("%s.b [%s+], %s", m_aluops[alu_op], m_regnames16[rd], regnames[rs]);
+			}
 		}
 		return;
 	}
@@ -629,13 +669,29 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 		{
 			const u8 rs = (op2 & 0x07);
 			const u8 rd = (op2 & 0xf0) >> 4;
-			fatalerror( "%s%s %s, [%s+#$%02x]", m_aluops[alu_op], size ? ".w" : ".b", regnames[rd], m_regnames16[rs], op3 );
+
+			if (size)
+			{
+				fatalerror("%s.w %s, [%s+#$%02x]", m_aluops[alu_op], regnames[rd], m_regnames16[rs], op3);
+			}
+			else
+			{
+				fatalerror("%s.b %s, [%s+#$%02x]", m_aluops[alu_op], regnames[rd], m_regnames16[rs], op3);
+			}
 		}
 		else
 		{
 			const u8 rd = (op2 & 0x07);
 			const u8 rs = (op2 & 0xf0) >> 4;
-			fatalerror( "%s%s [%s+#$%02x], %s", m_aluops[alu_op], size ? ".w" : ".b", m_regnames16[rd], op3, regnames[rs] );
+
+			if (size)
+			{
+				fatalerror("%s.w [%s+#$%02x], %s", m_aluops[alu_op], m_regnames16[rd], op3, regnames[rs]);
+			}
+			else
+			{
+				fatalerror("%s.b [%s+#$%02x], %s", m_aluops[alu_op], m_regnames16[rd], op3, regnames[rs]);
+			}
 		}
 		return;
 	}
@@ -650,13 +706,29 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 		{
 			const u8 rs = (op2 & 0x07);
 			const u8 rd = (op2 & 0xf0) >> 4;
-			fatalerror( "%s%s %s, [%s+#$%04x]", m_aluops[alu_op], size ? ".w" : ".b", regnames[rd], m_regnames16[rs], offset16 );
+
+			if (size)
+			{
+				fatalerror("%s.w %s, [%s+#$%04x]", m_aluops[alu_op], regnames[rd], m_regnames16[rs], offset16);
+			}
+			else
+			{
+				fatalerror("%s.b %s, [%s+#$%04x]", m_aluops[alu_op], regnames[rd], m_regnames16[rs], offset16);
+			}
 		}
 		else
 		{
 			const u8 rd = (op2 & 0x07);
 			const u8 rs = (op2 & 0xf0) >> 4;
-			fatalerror( "%s%s [%s+#$%04x], %s", m_aluops[alu_op], size ? ".w" : ".b", m_regnames16[rd], offset16, regnames[rs] );
+
+			if (size)
+			{
+				fatalerror("%s.w [%s+#$%04x], %s", m_aluops[alu_op], m_regnames16[rd], offset16, regnames[rs]);
+			}
+			else
+			{
+				fatalerror("%s.b [%s+#$%04x], %s", m_aluops[alu_op], m_regnames16[rd], offset16, regnames[rs]);
+			}
 		}
 		return;
 	}
@@ -669,12 +741,28 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 		if (!optype)
 		{
 			const u8 rd = (op2 & 0xf0) >> 4;
-			fatalerror( "%s%s %s, %s", m_aluops[alu_op], size ? ".w" : ".b", regnames[rd], get_directtext(direct) );
+
+			if (size)
+			{
+				fatalerror("%s.w %s, %s", m_aluops[alu_op], regnames[rd], get_directtext(direct));
+			}
+			else
+			{
+				fatalerror("%s.b %s, %s", m_aluops[alu_op], regnames[rd], get_directtext(direct));
+			}
 		}
 		else
 		{
 			const u8 rs = (op2 & 0xf0) >> 4;
-			fatalerror( "%s%s %s, %s", m_aluops[alu_op], size ? ".w" : ".b", get_directtext(direct), regnames[rs] );
+
+			if (size)
+			{
+				fatalerror("%s.w %s, %s", m_aluops[alu_op], get_directtext(direct), regnames[rs]);
+			}
+			else
+			{
+				fatalerror("%s.b %s, %s", m_aluops[alu_op], get_directtext(direct), regnames[rs]);
+			}
 		}
 		return;
 	}
@@ -868,11 +956,11 @@ void xa_cpu_device::handle_adds_movs(XA_EXECUTE_PARAMS, int which)
 		{
 			if (size) // MOVS.w Rd, #data4
 			{
-				fatalerror( "%s%s %s, %s", m_addsmovs[which], size ? ".w" : ".b", regnames[rd], show_expanded_data4(data4, size).c_str());
+				fatalerror( "%s.w %s, %s", m_addsmovs[which], regnames[rd], show_expanded_data4(data4, size).c_str());
 			}
 			else  // MOVS.b Rd, #data4
 			{
-				//printf( "%s%s %s, %s", m_addsmovs[which], size ? ".w" : ".b", regnames[rd], show_expanded_data4(data4, size).c_str());
+				//printf( "%s.b %s, %s", m_addsmovs[which], regnames[rd], show_expanded_data4(data4, size).c_str());
 				u8 data = util::sext(data4, 4);
 				set_reg8(rd, data);
 				do_nz_flags_8(data);
@@ -882,11 +970,11 @@ void xa_cpu_device::handle_adds_movs(XA_EXECUTE_PARAMS, int which)
 		{
 			if (size) // ADDS.w Rd, #data4
 			{
-				fatalerror( "%s%s %s, %s", m_addsmovs[which], size ? ".w" : ".b", regnames[rd], show_expanded_data4(data4, size));
+				fatalerror( "%s.w %s, %s", m_addsmovs[which], regnames[rd], show_expanded_data4(data4, size));
 			}
 			else // ADDS.b Rd, #data4
 			{
-				fatalerror( "%s%s %s, %s", m_addsmovs[which], size ? ".w" : ".b", regnames[rd], show_expanded_data4(data4, size));
+				fatalerror( "%s.b %s, %s", m_addsmovs[which], regnames[rd], show_expanded_data4(data4, size));
 			}
 		}
 		return;
@@ -900,22 +988,22 @@ void xa_cpu_device::handle_adds_movs(XA_EXECUTE_PARAMS, int which)
 		{
 			if (size) // .w
 			{
-				fatalerror("%s%s [%s], %s", m_addsmovs[which], size ? ".w" : ".b", m_regnames16[rd], show_expanded_data4(data4, size));
+				fatalerror("%s.w [%s], %s", m_addsmovs[which], m_regnames16[rd], show_expanded_data4(data4, size));
 			}
 			else // .b
 			{
-				fatalerror("%s%s [%s], %s", m_addsmovs[which], size ? ".w" : ".b", m_regnames16[rd], show_expanded_data4(data4, size));
+				fatalerror("%s.b [%s], %s", m_addsmovs[which], m_regnames16[rd], show_expanded_data4(data4, size));
 			}
 		}
 		else // ADDS
 		{
 			if (size) // .w
 			{
-				fatalerror("%s%s [%s], %s", m_addsmovs[which], size ? ".w" : ".b", m_regnames16[rd], show_expanded_data4(data4, size));
+				fatalerror("%s.w [%s], %s", m_addsmovs[which], m_regnames16[rd], show_expanded_data4(data4, size));
 			}
 			else
 			{
-				fatalerror("%s%s [%s], %s", m_addsmovs[which], size ? ".w" : ".b", m_regnames16[rd], show_expanded_data4(data4, size));
+				fatalerror("%s.b [%s], %s", m_addsmovs[which], m_regnames16[rd], show_expanded_data4(data4, size));
 			}
 		}
 		return;
@@ -929,7 +1017,7 @@ void xa_cpu_device::handle_adds_movs(XA_EXECUTE_PARAMS, int which)
 		{
 			if (size) // MOVS.w [Rd], #data4
 			{
-				printf("%s%s [%s+], %s\n", m_addsmovs[which], size ? ".w" : ".b", m_regnames16[rd], show_expanded_data4(data4, size).c_str());
+				printf("%s.w [%s+], %s\n", m_addsmovs[which], m_regnames16[rd], show_expanded_data4(data4, size).c_str());
 				u16 data = util::sext(data4, 4);
 				u16 regval = get_reg16(rd);
 				write_data16(regval, data);
@@ -940,18 +1028,18 @@ void xa_cpu_device::handle_adds_movs(XA_EXECUTE_PARAMS, int which)
 			}
 			else  // MOVS.b [Rd], #data4
 			{
-				fatalerror("%s%s [%s+], %s", m_addsmovs[which], size ? ".w" : ".b", m_regnames16[rd], show_expanded_data4(data4, size));
+				fatalerror("%s.b [%s+], %s", m_addsmovs[which], m_regnames16[rd], show_expanded_data4(data4, size));
 			}
 		}
 		else
 		{
 			if (size) // ADDS.w [Rd], #data4
 			{
-				fatalerror("%s%s [%s+], %s", m_addsmovs[which], size ? ".w" : ".b", m_regnames16[rd], show_expanded_data4(data4, size));
+				fatalerror("%s.w [%s+], %s", m_addsmovs[which], m_regnames16[rd], show_expanded_data4(data4, size));
 			}
 			else // ADDS.b [Rd], #data4
 			{
-				fatalerror("%s%s [%s+], %s", m_addsmovs[which], size ? ".w" : ".b", m_regnames16[rd], show_expanded_data4(data4, size));
+				fatalerror("%s.b [%s+], %s", m_addsmovs[which], m_regnames16[rd], show_expanded_data4(data4, size));
 			}
 		}
 		return;
@@ -965,22 +1053,22 @@ void xa_cpu_device::handle_adds_movs(XA_EXECUTE_PARAMS, int which)
 		{
 			if (size) // .w
 			{
-				fatalerror("%s%s [%s+$%02x], %s", m_addsmovs[which], size ? ".w" : ".b", m_regnames16[rd], op3, show_expanded_data4(data4, size));
+				fatalerror("%s.w [%s+$%02x], %s", m_addsmovs[which], m_regnames16[rd], op3, show_expanded_data4(data4, size));
 			}
 			else // .b
 			{
-				fatalerror("%s%s [%s+$%02x], %s", m_addsmovs[which], size ? ".w" : ".b", m_regnames16[rd], op3, show_expanded_data4(data4, size));
+				fatalerror("%s.b [%s+$%02x], %s", m_addsmovs[which], m_regnames16[rd], op3, show_expanded_data4(data4, size));
 			}
 		}
 		else  // ADDS
 		{
 			if (size) // .w
 			{
-				fatalerror("%s%s [%s+$%02x], %s", m_addsmovs[which], size ? ".w" : ".b", m_regnames16[rd], op3, show_expanded_data4(data4, size));
+				fatalerror("%s.w [%s+$%02x], %s", m_addsmovs[which], m_regnames16[rd], op3, show_expanded_data4(data4, size));
 			}
 			else // .b
 			{
-				fatalerror("%s%s [%s+$%02x], %s", m_addsmovs[which], size ? ".w" : ".b", m_regnames16[rd], op3, show_expanded_data4(data4, size));
+				fatalerror("%s.b [%s+$%02x], %s", m_addsmovs[which], m_regnames16[rd], op3, show_expanded_data4(data4, size));
 			}
 		}
 		return;
@@ -996,22 +1084,22 @@ void xa_cpu_device::handle_adds_movs(XA_EXECUTE_PARAMS, int which)
 		{
 			if (size) // .w
 			{
-				fatalerror("%s%s [%s+$%04x], %s", m_addsmovs[which], size ? ".w" : ".b", m_regnames16[rd], offset, show_expanded_data4(data4, size));
+				fatalerror("%s.w [%s+$%04x], %s", m_addsmovs[which], m_regnames16[rd], offset, show_expanded_data4(data4, size));
 			}
 			else // .b
 			{
-				fatalerror("%s%s [%s+$%04x], %s", m_addsmovs[which], size ? ".w" : ".b", m_regnames16[rd], offset, show_expanded_data4(data4, size));
+				fatalerror("%s.b [%s+$%04x], %s", m_addsmovs[which], m_regnames16[rd], offset, show_expanded_data4(data4, size));
 			}
 		}
 		else // ADDS
 		{
 			if (size) // .w
 			{
-				fatalerror("%s%s [%s+$%04x], %s", m_addsmovs[which], size ? ".w" : ".b", m_regnames16[rd], offset, show_expanded_data4(data4, size));
+				fatalerror("%s.w [%s+$%04x], %s", m_addsmovs[which], m_regnames16[rd], offset, show_expanded_data4(data4, size));
 			}
 			else // .b
 			{
-				fatalerror("%s%s [%s+$%04x], %s", m_addsmovs[which], size ? ".w" : ".b", m_regnames16[rd], offset, show_expanded_data4(data4, size));
+				fatalerror("%s.b [%s+$%04x], %s", m_addsmovs[which], m_regnames16[rd], offset, show_expanded_data4(data4, size));
 			}
 		}
 		return;
@@ -1041,11 +1129,11 @@ void xa_cpu_device::handle_adds_movs(XA_EXECUTE_PARAMS, int which)
 		{
 			if (size) // .w
 			{
-				fatalerror("%s%s %s, %s\n", m_addsmovs[which], size ? ".w" : ".b", get_directtext(direct), show_expanded_data4(data4, size));
+				fatalerror("%s.w %s, %s\n", m_addsmovs[which], get_directtext(direct), show_expanded_data4(data4, size));
 			}
 			else // .b
 			{
-				fatalerror("%s%s %s, %s\n", m_addsmovs[which], size ? ".w" : ".b", get_directtext(direct), show_expanded_data4(data4, size));
+				fatalerror("%s.b %s, %s\n", m_addsmovs[which], get_directtext(direct), show_expanded_data4(data4, size));
 			}
 		}
 
@@ -1065,7 +1153,16 @@ void xa_cpu_device::handle_pushpop_rlist(XA_EXECUTE_PARAMS, int type)
 	if (size)
 	{
 		// h is ignored?
-		// TODO util::stream_format(stream, "%s%s ", m_pushpull[type], size ? ".w" : ".b");
+		//
+
+		if (size)
+		{
+			// TODO util::stream_format(stream, "%s.w ", m_pushpull[type]);
+		}
+		else
+		{
+			// TODO util::stream_format(stream, "%s.b ", m_pushpull[type]);
+		}
 
 		bool firstbit = true;
 		for (int i = 0; i < 8; i++)
@@ -1081,7 +1178,14 @@ void xa_cpu_device::handle_pushpop_rlist(XA_EXECUTE_PARAMS, int type)
 	}
 	else
 	{
-		// TODO util::stream_format(stream, "%s%s ", m_pushpull[type], size ? ".w" : ".b");
+		if (size)
+		{
+			// TODO util::stream_format(stream, "%s.w ", m_pushpull[type]);
+		}
+		else
+		{
+			// TODO util::stream_format(stream, "%s.b ", m_pushpull[type]);
+		}
 
 		bool firstbit = true;
 		for (int i = 0; i < 8; i++)
@@ -1323,7 +1427,14 @@ void xa_cpu_device::d_xch_type1(XA_EXECUTE_PARAMS)
 	const u8 rd = (op2 & 0xf0) >> 4;
 	const u8 rs = (op2 & 0x07);
 
-	fatalerror( "XCH %s, [%s]", regnames[rd], m_regnames16[rs]);
+	if (size)
+	{
+		fatalerror("XCH.w %s, [%s]", regnames[rd], m_regnames16[rs]);
+	}
+	else
+	{
+		fatalerror("XCH.b %s, [%s]", regnames[rd], m_regnames16[rs]);
+	}
 }
 
 /*
@@ -1414,7 +1525,7 @@ void xa_cpu_device::d_movc_rd_rsinc(XA_EXECUTE_PARAMS)
 
 	if (size) // MOVC.w Rd, [Rs+]
 	{
-		fatalerror("MOVC%s %s, [%s+]\n", size ? ".w" : ".b", regnames[rd], m_regnames16[rs]);
+		fatalerror("MOVC.w %s, [%s+]\n", regnames[rd], m_regnames16[rs]);
 	}
 	else // MOVC.b Rd, [Rs+]
 	{
@@ -1476,12 +1587,10 @@ void xa_cpu_device::d_pushpop_djnz_subgroup(XA_EXECUTE_PARAMS)
 			{
 				set_pc_in_current_page(address);
 			}
-
-			printf("DJNZ%s %s, $%04x\n", size ? ".w" : ".b", regnames[rd], address);
 		}
 		else // DJNZ.b Rd, rel8
 		{
-			fatalerror("DJNZ%s %s, $%04x", size ? ".w" : ".b", regnames[rd], address);
+			fatalerror("DJNZ.b %s, $%04x", regnames[rd], address);
 		}
 
 		return;
@@ -1493,20 +1602,55 @@ void xa_cpu_device::d_pushpop_djnz_subgroup(XA_EXECUTE_PARAMS)
 		switch (op2 & 0xf0)
 		{
 		case 0x00:
-			fatalerror( "POPU%s %s", size ? ".w" : ".b", get_directtext(direct));
+		{
+			if (size)
+			{
+				fatalerror("POPU.w %s", get_directtext(direct));
+			}
+			else
+			{
+				fatalerror("POPU.b %s", get_directtext(direct));
+			}
 			break;
-
+		}
 		case 0x10:
-			fatalerror( "POP%s %s", size ? ".w" : ".b", get_directtext(direct));
+		{
+			if (size)
+			{
+				fatalerror("POP.w %s", get_directtext(direct));
+			}
+			else
+			{
+				fatalerror("POP.b %s", get_directtext(direct));
+			}
 			break;
+		}
 
 		case 0x20:
-			fatalerror( "PUSHU%s %s", size ? ".w" : ".b", get_directtext(direct));
+		{
+			if (size)
+			{
+				fatalerror("PUSHU.w %s", get_directtext(direct));
+			}
+			else
+			{
+				fatalerror("PUSHU.b %s", get_directtext(direct));
+			}
 			break;
+		}
 
 		case 0x30:
-			fatalerror( "PUSH%s %s", size ? ".w" : ".b", get_directtext(direct));
+		{
+			if (size)
+			{
+				fatalerror("PUSH.w %s", get_directtext(direct));
+			}
+			else
+			{
+				fatalerror("PUSH.b %s", get_directtext(direct));
+			}
 			break;
+		}
 
 		default:
 			fatalerror( "illegal");
@@ -1540,7 +1684,15 @@ void xa_cpu_device::d_g9_subgroup(XA_EXECUTE_PARAMS)
 	{
 		int rd = (op2 & 0x70) >> 4;
 		int rs = (op2 & 0x07);
-		fatalerror( "MOV%s [%s+], [%s+]", size ? ".w" : ".b", m_regnames16[rd], m_regnames16[rs]);
+
+		if (size)
+		{
+			fatalerror("MOV.w [%s+], [%s+]", m_regnames16[rd], m_regnames16[rs]);
+		}
+		else
+		{
+			fatalerror("MOV.b [%s+], [%s+]", m_regnames16[rd], m_regnames16[rs]);
+		}
 	}
 	else
 	{
@@ -1555,19 +1707,42 @@ void xa_cpu_device::d_g9_subgroup(XA_EXECUTE_PARAMS)
 		case 0x09:
 		{
 			int rd = (op2 & 0xf0) >> 4;
-			fatalerror( "SEXT%s %s", size ? ".w" : ".b", regnames[rd]);
+			if (size)
+			{
+				fatalerror("SEXT.w %s", regnames[rd]);
+			}
+			else
+			{
+				fatalerror("SEXT.b %s", regnames[rd]);
+			}
 			return;
 		}
 		case 0x0a:
 		{
 			int rd = (op2 & 0xf0) >> 4;
-			fatalerror( "CPL%s %s", size ? ".w" : ".b", regnames[rd]);
+
+			if (size)
+			{
+				fatalerror("CPL.w %s", regnames[rd]);
+			}
+			else
+			{
+				fatalerror("CPL.b %s", regnames[rd]);
+			}
 			return;
 		}
 		case 0x0b:
 		{
 			int rd = (op2 & 0xf0) >> 4;
-			fatalerror( "NEG%s %sx", size ? ".w" : ".b", regnames[rd]);
+
+			if (size)
+			{
+				fatalerror("NEG.w %sx", regnames[rd]);
+			}
+			else
+			{
+				fatalerror("NEG.b %sx", regnames[rd]);
+			}
 			return;
 		}
 		case 0x0c:
@@ -1783,7 +1958,15 @@ void xa_cpu_device::d_movdir(XA_EXECUTE_PARAMS)
 	{
 		const u8 rd = op2 & (0xf0) >> 4;
 		const char** regnames = size ? m_regnames16 : m_regnames8;
-		fatalerror( "XCH%s %s, %s", size ? ".w" : ".b", regnames[rd], get_directtext(direct) );
+
+		if (size)
+		{
+			fatalerror("XCH.w %s, %s", regnames[rd], get_directtext(direct));
+		}
+		else
+		{
+			fatalerror("XCH.b %s, %s", regnames[rd], get_directtext(direct));
+		}
 		return;
 	}
 	else
@@ -1791,13 +1974,29 @@ void xa_cpu_device::d_movdir(XA_EXECUTE_PARAMS)
 		if (op2 & 0x80)
 		{
 			const u8 rs = op2 & (0x70) >> 4;
-			fatalerror( "MOV%s %s, [%s]", size ? ".w" : ".b", get_directtext(direct), m_regnames16[rs]);
+
+			if (size)
+			{
+				fatalerror("MOV.w %s, [%s]", get_directtext(direct), m_regnames16[rs]);
+			}
+			else
+			{
+				fatalerror("MOV.b %s, [%s]", get_directtext(direct), m_regnames16[rs]);
+			}
 			return;
 		}
 		else
 		{
 			const u8 rd = op2 & (0x70) >> 4;
-			fatalerror( "MOV%s [%s], %s",  size ? ".w" : ".b", m_regnames16[rd], get_directtext(direct));
+
+			if (size)
+			{
+				fatalerror("MOV.w [%s], %s", m_regnames16[rd], get_directtext(direct));
+			}
+			else
+			{
+				fatalerror("MOV.b [%s], %s", m_regnames16[rd], get_directtext(direct));
+			}
 			return;	
 		}
 	}
@@ -1830,13 +2029,29 @@ void xa_cpu_device::d_movx_subgroup(XA_EXECUTE_PARAMS)
 	{
 		const u8 rs = (op2 & 0xf0) >> 4;
 		const u8 rd = (op2 & 0x07);
-		fatalerror( "MOVX%s [%s], %s", size ? ".w" : ".b", m_regnames16[rd], regnames[rs]);
+
+		if (size)
+		{
+			fatalerror("MOVX.w [%s], %s", m_regnames16[rd], regnames[rs]);
+		}
+		else
+		{
+			fatalerror("MOVX.b [%s], %s", m_regnames16[rd], regnames[rs]);
+		}
 	}
 	else
 	{
 		const u8 rd = (op2 & 0xf0) >> 4;
 		const u8 rs = (op2 & 0x07);
-		fatalerror( "MOVX%s %s, [%s]", size ? ".w" : ".b", regnames[rd], m_regnames16[rs]);
+
+		if (size)
+		{
+			fatalerror("MOVX.w %s, [%s]", regnames[rd], m_regnames16[rs]);
+		}
+		else
+		{
+			fatalerror("MOVX.b %s, [%s]", regnames[rd], m_regnames16[rs]);
+		}
 	}
 }
 
@@ -1852,7 +2067,15 @@ void xa_cpu_device::d_rr(XA_EXECUTE_PARAMS)
 	const char** regnames = size ? m_regnames16 : m_regnames8;
 	const u8 rd = (op2 & 0xf0) >> 4;
 	const u8 data = rd & 0x0f;
-	fatalerror( "RR%s %s, %d", size ? ".w" : ".b", regnames[rd], data);
+
+	if (size)
+	{
+		fatalerror("RR.w %s, %d", regnames[rd], data);
+	}
+	else
+	{
+		fatalerror("RR.b %s, %d", regnames[rd], data);
+	}
 }
 
 /*
@@ -1878,7 +2101,15 @@ void xa_cpu_device::d_rrc(XA_EXECUTE_PARAMS)
 	const char** regnames = size ? m_regnames16 : m_regnames8;
 	const u8 rd = (op2 & 0xf0) >> 4;
 	const u8 data = rd & 0x0f;
-	fatalerror( "RRC%s %s, %d", size ? ".w" : ".b", regnames[rd], data);
+
+	if (size)
+	{
+		fatalerror("RRC.w %s, %d", regnames[rd], data);
+	}
+	else
+	{
+		fatalerror("RRC.b %s, %d", regnames[rd], data);
+	}
 }
 
 
@@ -2088,7 +2319,15 @@ void xa_cpu_device::d_rl(XA_EXECUTE_PARAMS)
 	const char** regnames = size ? m_regnames16 : m_regnames8;
 	const u8 rd = (op2 & 0xf0) >> 4;
 	const u8 data4 = (op2 & 0x0f);
-	fatalerror( "RL%s %d, %d", size ? ".w" : ".b", regnames[rd], data4);
+
+	if (size)
+	{
+		fatalerror("RL.w %d, %d", regnames[rd], data4);
+	}
+	else
+	{
+		fatalerror("RL.b %d, %d", regnames[rd], data4);
+	}
 }
 
 /*
@@ -2101,7 +2340,15 @@ void xa_cpu_device::d_rlc(XA_EXECUTE_PARAMS)
 	const char** regnames = size ? m_regnames16 : m_regnames8;
 	const u8 rd = (op2 & 0xf0) >> 4;
 	const u8 data4 = (op2 & 0x0f);
-	fatalerror( "RLC%s Rd, %d", size ? ".w" : ".b", regnames[rd], data4);
+
+	if (size)
+	{
+		fatalerror( "RLC.w Rd, %d", regnames[rd], data4);
+	}
+	else
+	{
+		fatalerror( "RLC.b Rd, %d", regnames[rd], data4);
+	}
 }
 
 // -------------------------------------- Group e --------------------------------------
