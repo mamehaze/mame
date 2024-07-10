@@ -92,88 +92,14 @@ void xa_cpu_device::mov_byte_direct_data8(u16 direct, u8 data8)
 
 // -----------------------------------------------
 
-void xa_cpu_device::add_word_rd_data8(u8 rd, u8 data8) {}
-void xa_cpu_device::addc_word_rd_data8(u8 rd, u8 data8){}
-void xa_cpu_device::sub_word_rd_data8(u8 rd, u8 data8) {}
-void xa_cpu_device::subc_word_rd_data8(u8 rd, u8 data8){}
-void xa_cpu_device::cmp_word_rd_data8(u8 rd, u8 data8) {}
-void xa_cpu_device::and_word_rd_data8(u8 rd, u8 data8) {}
-void xa_cpu_device::or_word_rd_data8(u8 rd, u8 data8)  {}
-void xa_cpu_device::xor_word_rd_data8(u8 rd, u8 data8) {}
-void xa_cpu_device::mov_word_rd_data8(u8 rd, u8 data8) {}
-
-// -----------------------------------------------
-
-void xa_cpu_device::add_word_indrd_data8(u8 rd, u8 data8) {}
-void xa_cpu_device::addc_word_indrd_data8(u8 rd, u8 data8){}
-void xa_cpu_device::sub_word_indrd_data8(u8 rd, u8 data8) {}
-void xa_cpu_device::subc_word_indrd_data8(u8 rd, u8 data8){}
-void xa_cpu_device::cmp_word_indrd_data8(u8 rd, u8 data8) {}
-void xa_cpu_device::and_word_indrd_data8(u8 rd, u8 data8) {}
-void xa_cpu_device::or_word_indrd_data8(u8 rd, u8 data8)  {}
-void xa_cpu_device::xor_word_indrd_data8(u8 rd, u8 data8) {}
-void xa_cpu_device::mov_word_indrd_data8(u8 rd, u8 data8) {}
-
-// -----------------------------------------------
-
-void xa_cpu_device::add_word_indrdinc_data8(u8 rd, u8 data8) {}
-void xa_cpu_device::addc_word_indrdinc_data8(u8 rd, u8 data8){}
-void xa_cpu_device::sub_word_indrdinc_data8(u8 rd, u8 data8) {}
-void xa_cpu_device::subc_word_indrdinc_data8(u8 rd, u8 data8){}
-void xa_cpu_device::cmp_word_indrdinc_data8(u8 rd, u8 data8) {}
-void xa_cpu_device::and_word_indrdinc_data8(u8 rd, u8 data8) {}
-void xa_cpu_device::or_word_indrdinc_data8(u8 rd, u8 data8)  {}
-void xa_cpu_device::xor_word_indrdinc_data8(u8 rd, u8 data8) {}
-void xa_cpu_device::mov_word_indrdinc_data8(u8 rd, u8 data8) {}
-
-// -----------------------------------------------
-
-void xa_cpu_device::add_word_indrdoff8_data8(u8 rd, u8 offset8, u8 data8) {}
-void xa_cpu_device::addc_word_indrdoff8_data8(u8 rd, u8 offset8, u8 data8){}
-void xa_cpu_device::sub_word_indrdoff8_data8(u8 rd, u8 offset8, u8 data8) {}
-void xa_cpu_device::subc_word_indrdoff8_data8(u8 rd, u8 offset8, u8 data8){}
-void xa_cpu_device::cmp_word_indrdoff8_data8(u8 rd, u8 offset8, u8 data8) {}
-void xa_cpu_device::and_word_indrdoff8_data8(u8 rd, u8 offset8, u8 data8) {}
-void xa_cpu_device::or_word_indrdoff8_data8(u8 rd, u8 offset8, u8 data8)  {}
-void xa_cpu_device::xor_word_indrdoff8_data8(u8 rd, u8 offset8, u8 data8) {}
-void xa_cpu_device::mov_word_indrdoff8_data8(u8 rd, u8 offset8, u8 data8) {}
-
-// -----------------------------------------------
-
-void xa_cpu_device::add_word_indrdoff16_data8(u8 rd, u16 offset16, u8 data8) {}
-void xa_cpu_device::addc_word_indrdoff16_data8(u8 rd, u16 offset16, u8 data8){}
-void xa_cpu_device::sub_word_indrdoff16_data8(u8 rd, u16 offset16, u8 data8) {}
-void xa_cpu_device::subc_word_indrdoff16_data8(u8 rd, u16 offset16, u8 data8){}
-void xa_cpu_device::cmp_word_indrdoff16_data8(u8 rd, u16 offset16, u8 data8) {}
-void xa_cpu_device::and_word_indrdoff16_data8(u8 rd, u16 offset16, u8 data8) {}
-void xa_cpu_device::or_word_indrdoff16_data8(u8 rd, u16 offset16, u8 data8)  {}
-void xa_cpu_device::xor_word_indrdoff16_data8(u8 rd, u16 offset16, u8 data8) {}
-void xa_cpu_device::mov_word_indrdoff16_data8(u8 rd, u16 offset16, u8 data8) {}
-
-// -----------------------------------------------
-
-void xa_cpu_device::add_word_direct_data8(u8 rd, u8 data8) {}
-void xa_cpu_device::addc_word_direct_data8(u8 rd, u8 data8){}
-void xa_cpu_device::sub_word_direct_data8(u8 rd, u8 data8) {}
-void xa_cpu_device::subc_word_direct_data8(u8 rd, u8 data8){}
-void xa_cpu_device::cmp_word_direct_data8(u8 rd, u8 data8) {}
-void xa_cpu_device::and_word_direct_data8(u8 rd, u8 data8) {}
-void xa_cpu_device::or_word_direct_data8(u8 rd, u8 data8)  {}
-void xa_cpu_device::xor_word_direct_data8(u8 rd, u8 data8) {}
-void xa_cpu_device::mov_word_direct_data8(u8 rd, u8 data8) {}
-
-// -----------------------------------------------
-
-
-
-void xa_cpu_device::add_word_rd_data16(u8 rd, u16 data16) {}
-void xa_cpu_device::addc_word_rd_data16(u8 rd, u16 data16){}
-void xa_cpu_device::sub_word_rd_data16(u8 rd, u16 data16) {}
-void xa_cpu_device::subc_word_rd_data16(u8 rd, u16 data16){}
-void xa_cpu_device::cmp_word_rd_data16(u8 rd, u16 data16) {}
-void xa_cpu_device::and_word_rd_data16(u8 rd, u16 data16) {}
-void xa_cpu_device::or_word_rd_data16(u8 rd, u16 data16)  {}
-void xa_cpu_device::xor_word_rd_data16(u8 rd, u16 data16) {}
+void xa_cpu_device::add_word_rd_data16(u8 rd, u16 data16) { fatalerror("ADD.w %s, #$%04x (RD, DATA16)", m_regnames16[rd], data16); }
+void xa_cpu_device::addc_word_rd_data16(u8 rd, u16 data16){ fatalerror("ADDC.w %s, #$%04x (RD, DATA16)", m_regnames16[rd], data16); }
+void xa_cpu_device::sub_word_rd_data16(u8 rd, u16 data16) { fatalerror("SUB.w %s, #$%04x (RD, DATA16)", m_regnames16[rd], data16); }
+void xa_cpu_device::subc_word_rd_data16(u8 rd, u16 data16){ fatalerror("SUBC.w %s, #$%04x (RD, DATA16)", m_regnames16[rd], data16); }
+void xa_cpu_device::cmp_word_rd_data16(u8 rd, u16 data16) { fatalerror("CMP.w % s, #$ % 04x(RD, DATA16)", m_regnames16[rd], data16); }
+void xa_cpu_device::and_word_rd_data16(u8 rd, u16 data16) { fatalerror("AND.w %s, #$%04x (RD, DATA16)", m_regnames16[rd], data16); }
+void xa_cpu_device::or_word_rd_data16(u8 rd, u16 data16)  { fatalerror("OR.w %s, #$%04x (RD, DATA16)", m_regnames16[rd], data16); }
+void xa_cpu_device::xor_word_rd_data16(u8 rd, u16 data16) { fatalerror("XOR.w %s, #$%04x (RD, DATA16)", m_regnames16[rd], data16); }
 
 void xa_cpu_device::mov_word_rd_data16(u8 rd, u16 data16){
 	printf("MOV.w %s, #$%04x\n", m_regnames16[rd], data16);
@@ -182,52 +108,52 @@ void xa_cpu_device::mov_word_rd_data16(u8 rd, u16 data16){
 
 // -----------------------------------------------
 
-void xa_cpu_device::add_word_indrd_data16(u8 rd, u16 data16) {}
-void xa_cpu_device::addc_word_indrd_data16(u8 rd, u16 data16){}
-void xa_cpu_device::sub_word_indrd_data16(u8 rd, u16 data16) {}
-void xa_cpu_device::subc_word_indrd_data16(u8 rd, u16 data16){}
-void xa_cpu_device::cmp_word_indrd_data16(u8 rd, u16 data16) {}
-void xa_cpu_device::and_word_indrd_data16(u8 rd, u16 data16) {}
-void xa_cpu_device::or_word_indrd_data16(u8 rd, u16 data16)  {}
-void xa_cpu_device::xor_word_indrd_data16(u8 rd, u16 data16) {}
-void xa_cpu_device::mov_word_indrd_data16(u8 rd, u16 data16) {}
+void xa_cpu_device::add_word_indrd_data16(u8 rd, u16 data16) { fatalerror( "ADD.w [%s], #$%04x ([RD], DATA16)", m_regnames16[rd], data16); }
+void xa_cpu_device::addc_word_indrd_data16(u8 rd, u16 data16){ fatalerror( "ADDC.w [%s], #$%04x ([RD], DATA16)", m_regnames16[rd], data16); }
+void xa_cpu_device::sub_word_indrd_data16(u8 rd, u16 data16) { fatalerror( "SUB.w [%s], #$%04x ([RD], DATA16)", m_regnames16[rd], data16); }
+void xa_cpu_device::subc_word_indrd_data16(u8 rd, u16 data16){ fatalerror( "SUBC.w [%s], #$%04x ([RD], DATA16)", m_regnames16[rd], data16); }
+void xa_cpu_device::cmp_word_indrd_data16(u8 rd, u16 data16) { fatalerror( "CMP.w [%s], #$%04x ([RD], DATA16)", m_regnames16[rd], data16); }
+void xa_cpu_device::and_word_indrd_data16(u8 rd, u16 data16) { fatalerror( "AND.w [%s], #$%04x ([RD], DATA16)", m_regnames16[rd], data16); }
+void xa_cpu_device::or_word_indrd_data16(u8 rd, u16 data16)  { fatalerror( "OR.w [%s], #$%04x ([RD], DATA16)", m_regnames16[rd], data16); }
+void xa_cpu_device::xor_word_indrd_data16(u8 rd, u16 data16) { fatalerror( "XOR.w [%s], #$%04x ([RD], DATA16)", m_regnames16[rd], data16); }
+void xa_cpu_device::mov_word_indrd_data16(u8 rd, u16 data16) { fatalerror( "MOV.w [%s], #$%04x ([RD], DATA16)", m_regnames16[rd], data16); }
 
-void xa_cpu_device::add_word_indrdinc_data16(u8 rd, u16 data16) {}
-void xa_cpu_device::addc_word_indrdinc_data16(u8 rd, u16 data16){}
-void xa_cpu_device::sub_word_indrdinc_data16(u8 rd, u16 data16) {}
-void xa_cpu_device::subc_word_indrdinc_data16(u8 rd, u16 data16){}
-void xa_cpu_device::cmp_word_indrdinc_data16(u8 rd, u16 data16) {}
-void xa_cpu_device::and_word_indrdinc_data16(u8 rd, u16 data16) {}
-void xa_cpu_device::or_word_indrdinc_data16(u8 rd, u16 data16)  {}
-void xa_cpu_device::xor_word_indrdinc_data16(u8 rd, u16 data16) {}
-void xa_cpu_device::mov_word_indrdinc_data16(u8 rd, u16 data16) {}
+void xa_cpu_device::add_word_indrdinc_data16(u8 rd, u16 data16) { fatalerror( "ADD.w [%s+], #$%04x ([RD+], DATA16)", m_regnames16[rd], data16); }
+void xa_cpu_device::addc_word_indrdinc_data16(u8 rd, u16 data16){ fatalerror( "ADDC.w [%s+], #$%04x ([RD+], DATA16)", m_regnames16[rd], data16); }
+void xa_cpu_device::sub_word_indrdinc_data16(u8 rd, u16 data16) { fatalerror( "SUB.w [%s+], #$%04x ([RD+], DATA16)", m_regnames16[rd], data16); }
+void xa_cpu_device::subc_word_indrdinc_data16(u8 rd, u16 data16){ fatalerror( "SUBC.w [%s+], #$%04x ([RD+], DATA16)", m_regnames16[rd], data16); }
+void xa_cpu_device::cmp_word_indrdinc_data16(u8 rd, u16 data16) { fatalerror( "CMP.w [%s+], #$%04x ([RD+], DATA16)", m_regnames16[rd], data16); }
+void xa_cpu_device::and_word_indrdinc_data16(u8 rd, u16 data16) { fatalerror( "AND.w [%s+], #$%04x ([RD+], DATA16)", m_regnames16[rd], data16); }
+void xa_cpu_device::or_word_indrdinc_data16(u8 rd, u16 data16)  { fatalerror( "OR.w [%s+], #$%04x ([RD+], DATA16)", m_regnames16[rd], data16); }
+void xa_cpu_device::xor_word_indrdinc_data16(u8 rd, u16 data16) { fatalerror( "XOR.w [%s+], #$%04x ([RD+], DATA16)", m_regnames16[rd], data16); }
+void xa_cpu_device::mov_word_indrdinc_data16(u8 rd, u16 data16) { fatalerror( "MOV.w [%s+], #$%04x ([RD+], DATA16)", m_regnames16[rd], data16); }
 
-void xa_cpu_device::add_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16) {}
-void xa_cpu_device::addc_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16){}
-void xa_cpu_device::sub_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16) {}
-void xa_cpu_device::subc_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16){}
-void xa_cpu_device::cmp_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16) {}
-void xa_cpu_device::and_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16) {}
-void xa_cpu_device::or_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16)  {}
-void xa_cpu_device::xor_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16) {}
-void xa_cpu_device::mov_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16) {}
+void xa_cpu_device::add_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16) { fatalerror( "ADD.w [%s+#$%02x], #$%04x ([RD+offs8], DATA16)", m_regnames16[rd], offset8, data16); }
+void xa_cpu_device::addc_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16){ fatalerror( "ADDC.w [%s+#$%02x], #$%04x ([RD+offs8], DATA16)", m_regnames16[rd], offset8, data16); }
+void xa_cpu_device::sub_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16) { fatalerror( "SUB.w [%s+#$%02x], #$%04x ([RD+offs8], DATA16)", m_regnames16[rd], offset8, data16); }
+void xa_cpu_device::subc_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16){ fatalerror( "SUBC.w [%s+#$%02x], #$%04x ([RD+offs8], DATA16)", m_regnames16[rd], offset8, data16); }
+void xa_cpu_device::cmp_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16) { fatalerror( "CMP.w [%s+#$%02x], #$%04x ([RD+offs8], DATA16)", m_regnames16[rd], offset8, data16); }
+void xa_cpu_device::and_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16) { fatalerror( "AND.w [%s+#$%02x], #$%04x ([RD+offs8], DATA16)", m_regnames16[rd], offset8, data16); }
+void xa_cpu_device::or_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16)  { fatalerror( "OR.w [%s+#$%02x], #$%04x ([RD+offs8], DATA16)", m_regnames16[rd], offset8, data16); }
+void xa_cpu_device::xor_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16) { fatalerror( "XOR.w [%s+#$%02x], #$%04x ([RD+offs8], DATA16)", m_regnames16[rd], offset8, data16); }
+void xa_cpu_device::mov_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16) { fatalerror( "MOV.w [%s+#$%02x], #$%04x ([RD+offs8], DATA16)", m_regnames16[rd], offset8, data16); }
 
-void xa_cpu_device::add_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16) {}
-void xa_cpu_device::addc_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16){}
-void xa_cpu_device::sub_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16) {}
-void xa_cpu_device::subc_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16){}
-void xa_cpu_device::cmp_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16) {}
-void xa_cpu_device::and_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16) {}
-void xa_cpu_device::or_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16)  {}
-void xa_cpu_device::xor_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16) {}
-void xa_cpu_device::mov_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16) {}
+void xa_cpu_device::add_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16) { fatalerror( "ADD.w [%s+#$%04x], #$%04x ([RD+offs16], DATA16)", m_regnames16[rd], offset16, data16); }
+void xa_cpu_device::addc_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16){ fatalerror( "ADDC.w [%s+#$%04x], #$%04x ([RD+offs16], DATA16)", m_regnames16[rd], offset16, data16); }
+void xa_cpu_device::sub_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16) { fatalerror( "SUB.w [%s+#$%04x], #$%04x ([RD+offs16], DATA16)", m_regnames16[rd], offset16, data16); }
+void xa_cpu_device::subc_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16){ fatalerror( "SUBC.w [%s+#$%04x], #$%04x ([RD+offs16], DATA16)", m_regnames16[rd], offset16, data16); }
+void xa_cpu_device::cmp_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16) { fatalerror( "CMP.w [%s+#$%04x], #$%04x ([RD+offs16], DATA16)", m_regnames16[rd], offset16, data16); }
+void xa_cpu_device::and_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16) { fatalerror( "AND.w [%s+#$%04x], #$%04x ([RD+offs16], DATA16)", m_regnames16[rd], offset16, data16); }
+void xa_cpu_device::or_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16)  { fatalerror( "OR.w [%s+#$%04x], #$%04x ([RD+offs16], DATA16)", m_regnames16[rd], offset16, data16); }
+void xa_cpu_device::xor_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16) { fatalerror( "XOR.w [%s+#$%04x], #$%04x ([RD+offs16], DATA16)", m_regnames16[rd], offset16, data16); }
+void xa_cpu_device::mov_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16) { fatalerror( "MOV.w [%s+#$%04x], #$%04x ([RD+offs16], DATA16)", m_regnames16[rd], offset16, data16); }
 
-void xa_cpu_device::add_word_direct_data16(u16 direct, u16 data16) {}
-void xa_cpu_device::addc_word_direct_data16(u16 direct, u16 data16){}
-void xa_cpu_device::sub_word_direct_data16(u16 direct, u16 data16) {}
-void xa_cpu_device::subc_word_direct_data16(u16 direct, u16 data16){}
-void xa_cpu_device::cmp_word_direct_data16(u16 direct, u16 data16) {}
-void xa_cpu_device::and_word_direct_data16(u16 direct, u16 data16) {}
-void xa_cpu_device::or_word_direct_data16(u16 direct, u16 data16)  {}
-void xa_cpu_device::xor_word_direct_data16(u16 direct, u16 data16) {}
-void xa_cpu_device::mov_word_direct_data16(u16 direct, u16 data16) {}
+void xa_cpu_device::add_word_direct_data16(u16 direct, u16 data16) { fatalerror( "ADD.w %s, #$%04x (DIRECT, DATA16)", get_directtext(direct), data16); }
+void xa_cpu_device::addc_word_direct_data16(u16 direct, u16 data16){ fatalerror( "ADDC.w %s, #$%04x (DIRECT, DATA16)", get_directtext(direct), data16); }
+void xa_cpu_device::sub_word_direct_data16(u16 direct, u16 data16) { fatalerror( "SUB.w %s, #$%04x (DIRECT, DATA16)", get_directtext(direct), data16); }
+void xa_cpu_device::subc_word_direct_data16(u16 direct, u16 data16){ fatalerror( "SUBC.w %s, #$%04x (DIRECT, DATA16)", get_directtext(direct), data16); }
+void xa_cpu_device::cmp_word_direct_data16(u16 direct, u16 data16) { fatalerror( "CMP.w %s, #$%04x (DIRECT, DATA16)", get_directtext(direct), data16); }
+void xa_cpu_device::and_word_direct_data16(u16 direct, u16 data16) { fatalerror( "AND.w %s, #$%04x (DIRECT, DATA16)", get_directtext(direct), data16); }
+void xa_cpu_device::or_word_direct_data16(u16 direct, u16 data16)  { fatalerror( "OR.w %s, #$%04x (DIRECT, DATA16)", get_directtext(direct), data16); }
+void xa_cpu_device::xor_word_direct_data16(u16 direct, u16 data16) { fatalerror( "XOR.w %s, #$%04x (DIRECT, DATA16)", get_directtext(direct), data16); }
+void xa_cpu_device::mov_word_direct_data16(u16 direct, u16 data16) { fatalerror( "MOV.w %s, #$%04x (DIRECT, DATA16)", get_directtext(direct), data16); }

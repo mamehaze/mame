@@ -199,7 +199,7 @@ private:
 	void d_branch(XA_EXECUTE_PARAMS);
 	void d_bkpt(XA_EXECUTE_PARAMS);
 
-	void add_byte_rd_data8(u8 rd, u8 data8);
+	void add_byte_rd_data8(u8 rd, u8 data8); // used
 	void addc_byte_rd_data8(u8 rd, u8 data8);
 	void sub_byte_rd_data8(u8 rd, u8 data8);
 	void subc_byte_rd_data8(u8 rd, u8 data8);
@@ -209,7 +209,7 @@ private:
 	void xor_byte_rd_data8(u8 rd, u8 data8);
 	void mov_byte_rd_data8(u8 rd, u8 data8);
 
-	void add_byte_indrd_data8(u8 rd, u8 data8);
+	void add_byte_indrd_data8(u8 rd, u8 data8); // used
 	void addc_byte_indrd_data8(u8 rd, u8 data8);
 	void sub_byte_indrd_data8(u8 rd, u8 data8);
 	void subc_byte_indrd_data8(u8 rd, u8 data8);
@@ -219,7 +219,7 @@ private:
 	void xor_byte_indrd_data8(u8 rd, u8 data8);
 	void mov_byte_indrd_data8(u8 rd, u8 data8);
 
-	void add_byte_indrdinc_data8(u8 rd, u8 data8);
+	void add_byte_indrdinc_data8(u8 rd, u8 data8); // used
 	void addc_byte_indrdinc_data8(u8 rd, u8 data8);
 	void sub_byte_indrdinc_data8(u8 rd, u8 data8);
 	void subc_byte_indrdinc_data8(u8 rd, u8 data8);
@@ -229,7 +229,7 @@ private:
 	void xor_byte_indrdinc_data8(u8 rd, u8 data8);
 	void mov_byte_indrdinc_data8(u8 rd, u8 data8);
 
-	void add_byte_indrdoff8_data8(u8 rd, u8 offset8, u8 data8);
+	void add_byte_indrdoff8_data8(u8 rd, u8 offset8, u8 data8); // used
 	void addc_byte_indrdoff8_data8(u8 rd, u8 offset8, u8 data8);
 	void sub_byte_indrdoff8_data8(u8 rd, u8 offset8, u8 data8);
 	void subc_byte_indrdoff8_data8(u8 rd, u8 offset8, u8 data8);
@@ -239,7 +239,7 @@ private:
 	void xor_byte_indrdoff8_data8(u8 rd, u8 offset8, u8 data8);
 	void mov_byte_indrdoff8_data8(u8 rd, u8 offset8, u8 data8);
 
-	void add_byte_indrdoff16_data8(u8 rd, u16 offset16, u8 data8);
+	void add_byte_indrdoff16_data8(u8 rd, u16 offset16, u8 data8); // used
 	void addc_byte_indrdoff16_data8(u8 rd, u16 offset16, u8 data8);
 	void sub_byte_indrdoff16_data8(u8 rd, u16 offset16, u8 data8);
 	void subc_byte_indrdoff16_data8(u8 rd, u16 offset16, u8 data8);
@@ -249,7 +249,7 @@ private:
 	void xor_byte_indrdoff16_data8(u8 rd, u16 offset16, u8 data8);
 	void mov_byte_indrdoff16_data8(u8 rd, u16 offset16, u8 data8);
 
-	void add_byte_direct_data8(u16 direct, u8 data8);
+	void add_byte_direct_data8(u16 direct, u8 data8); // used
 	void addc_byte_direct_data8(u16 direct, u8 data8);
 	void sub_byte_direct_data8(u16 direct, u8 data8);
 	void subc_byte_direct_data8(u16 direct, u8 data8);
@@ -259,67 +259,9 @@ private:
 	void xor_byte_direct_data8(u16 direct, u8 data8);
 	void mov_byte_direct_data8(u16 direct, u8 data8);
 
-	void add_word_rd_data8(u8 rd, u8 data8);
-	void addc_word_rd_data8(u8 rd, u8 data8);
-	void sub_word_rd_data8(u8 rd, u8 data8);
-	void subc_word_rd_data8(u8 rd, u8 data8);
-	void cmp_word_rd_data8(u8 rd, u8 data8);
-	void and_word_rd_data8(u8 rd, u8 data8);
-	void or_word_rd_data8(u8 rd, u8 data8);
-	void xor_word_rd_data8(u8 rd, u8 data8);
-	void mov_word_rd_data8(u8 rd, u8 data8);
 
-	void add_word_indrd_data8(u8 rd, u8 data8);
-	void addc_word_indrd_data8(u8 rd, u8 data8);
-	void sub_word_indrd_data8(u8 rd, u8 data8);
-	void subc_word_indrd_data8(u8 rd, u8 data8);
-	void cmp_word_indrd_data8(u8 rd, u8 data8);
-	void and_word_indrd_data8(u8 rd, u8 data8);
-	void or_word_indrd_data8(u8 rd, u8 data8);
-	void xor_word_indrd_data8(u8 rd, u8 data8);
-	void mov_word_indrd_data8(u8 rd, u8 data8);
 
-	void add_word_indrdinc_data8(u8 rd, u8 data8);
-	void addc_word_indrdinc_data8(u8 rd, u8 data8);
-	void sub_word_indrdinc_data8(u8 rd, u8 data8);
-	void subc_word_indrdinc_data8(u8 rd, u8 data8);
-	void cmp_word_indrdinc_data8(u8 rd, u8 data8);
-	void and_word_indrdinc_data8(u8 rd, u8 data8);
-	void or_word_indrdinc_data8(u8 rd, u8 data8);
-	void xor_word_indrdinc_data8(u8 rd, u8 data8);
-	void mov_word_indrdinc_data8(u8 rd, u8 data8);
-
-	void add_word_indrdoff8_data8(u8 rd, u8 offset8, u8 data8);
-	void addc_word_indrdoff8_data8(u8 rd, u8 offset8, u8 data8);
-	void sub_word_indrdoff8_data8(u8 rd, u8 offset8, u8 data8);
-	void subc_word_indrdoff8_data8(u8 rd, u8 offset8, u8 data8);
-	void cmp_word_indrdoff8_data8(u8 rd, u8 offset8, u8 data8);
-	void and_word_indrdoff8_data8(u8 rd, u8 offset8, u8 data8);
-	void or_word_indrdoff8_data8(u8 rd, u8 offset8, u8 data8);
-	void xor_word_indrdoff8_data8(u8 rd, u8 offset8, u8 data8);
-	void mov_word_indrdoff8_data8(u8 rd, u8 offset8, u8 data8);
-
-	void add_word_indrdoff16_data8(u8 rd, u16 offset16, u8 data8);
-	void addc_word_indrdoff16_data8(u8 rd, u16 offset16, u8 data8);
-	void sub_word_indrdoff16_data8(u8 rd, u16 offset16, u8 data8);
-	void subc_word_indrdoff16_data8(u8 rd, u16 offset16, u8 data8);
-	void cmp_word_indrdoff16_data8(u8 rd, u16 offset16, u8 data8);
-	void and_word_indrdoff16_data8(u8 rd, u16 offset16, u8 data8);
-	void or_word_indrdoff16_data8(u8 rd, u16 offset16, u8 data8);
-	void xor_word_indrdoff16_data8(u8 rd, u16 offset16, u8 data8);
-	void mov_word_indrdoff16_data8(u8 rd, u16 offset16, u8 data8);
-
-	void add_word_direct_data8(u8 rd, u8 data8);
-	void addc_word_direct_data8(u8 rd, u8 data8);
-	void sub_word_direct_data8(u8 rd, u8 data8);
-	void subc_word_direct_data8(u8 rd, u8 data8);
-	void cmp_word_direct_data8(u8 rd, u8 data8);
-	void and_word_direct_data8(u8 rd, u8 data8);
-	void or_word_direct_data8(u8 rd, u8 data8);
-	void xor_word_direct_data8(u8 rd, u8 data8);
-	void mov_word_direct_data8(u8 rd, u8 data8);
-
-	void add_word_rd_data16(u8 rd, u16 data16);
+	void add_word_rd_data16(u8 rd, u16 data16); // used
 	void addc_word_rd_data16(u8 rd, u16 data16);
 	void sub_word_rd_data16(u8 rd, u16 data16);
 	void subc_word_rd_data16(u8 rd, u16 data16);
@@ -329,7 +271,7 @@ private:
 	void xor_word_rd_data16(u8 rd, u16 data16);
 	void mov_word_rd_data16(u8 rd, u16 data16);
 
-	void add_word_indrd_data16(u8 rd, u16 data16);
+	void add_word_indrd_data16(u8 rd, u16 data16); // used
 	void addc_word_indrd_data16(u8 rd, u16 data16);
 	void sub_word_indrd_data16(u8 rd, u16 data16);
 	void subc_word_indrd_data16(u8 rd, u16 data16);
@@ -339,7 +281,7 @@ private:
 	void xor_word_indrd_data16(u8 rd, u16 data16);
 	void mov_word_indrd_data16(u8 rd, u16 data16);
 
-	void add_word_indrdinc_data16(u8 rd, u16 data16);
+	void add_word_indrdinc_data16(u8 rd, u16 data16); // used
 	void addc_word_indrdinc_data16(u8 rd, u16 data16);
 	void sub_word_indrdinc_data16(u8 rd, u16 data16);
 	void subc_word_indrdinc_data16(u8 rd, u16 data16);
@@ -349,7 +291,7 @@ private:
 	void xor_word_indrdinc_data16(u8 rd, u16 data16);
 	void mov_word_indrdinc_data16(u8 rd, u16 data16);
 
-	void add_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16);
+	void add_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16); // used
 	void addc_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16);
 	void sub_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16);
 	void subc_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16);
@@ -359,7 +301,7 @@ private:
 	void xor_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16);
 	void mov_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16);
 
-	void add_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16);
+	void add_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16); // used
 	void addc_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16);
 	void sub_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16);
 	void subc_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16);
@@ -369,7 +311,7 @@ private:
 	void xor_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16);
 	void mov_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16);
 
-	void add_word_direct_data16(u16 direct, u16 data16);
+	void add_word_direct_data16(u16 direct, u16 data16); // uused
 	void addc_word_direct_data16(u16 direct, u16 data16);
 	void sub_word_direct_data16(u16 direct, u16 data16);
 	void subc_word_direct_data16(u16 direct, u16 data16);
