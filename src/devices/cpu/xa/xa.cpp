@@ -604,11 +604,11 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 
 			if (size)
 			{
-				fatalerror("%s.w %s, [%s]", m_aluops[alu_op], regnames[rd], m_regnames16[rs]);
+				fatalerror("%s.w %s, [%s]", m_aluops[alu_op], regnames[rd], m_regnames16[rs]); // ALUOP.w Rd, [Rs]
 			}
 			else
 			{
-				fatalerror("%s.b %s, [%s]", m_aluops[alu_op], regnames[rd], m_regnames16[rs]);
+				fatalerror("%s.b %s, [%s]", m_aluops[alu_op], regnames[rd], m_regnames16[rs]); // ALUOP.b Rd, [Rs]
 			}
 		}
 		else
@@ -618,11 +618,11 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 
 			if (size)
 			{
-				fatalerror("%s.w [%s], %s", m_aluops[alu_op], m_regnames16[rd], regnames[rs]);
+				fatalerror("%s.w [%s], %s", m_aluops[alu_op], m_regnames16[rd], regnames[rs]); // ALUOP.w [Rd], Rs
 			}
 			else
 			{
-				fatalerror("%s.b [%s], %s", m_aluops[alu_op], m_regnames16[rd], regnames[rs]);
+				fatalerror("%s.b [%s], %s", m_aluops[alu_op], m_regnames16[rd], regnames[rs]); // ALUOP.b [Rd], Rs
 			}
 		}
 		return;
@@ -637,11 +637,11 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 			const u8 rd = (op2 & 0xf0) >> 4;
 			if (size)
 			{
-				fatalerror("%s.w %s, [%s+]", m_aluops[alu_op], regnames[rd], m_regnames16[rs]);
+				fatalerror("%s.w %s, [%s+]", m_aluops[alu_op], regnames[rd], m_regnames16[rs]); // ALUOP.w Rd, [Rs+]
 			}
 			else
 			{
-				fatalerror("%s.b %s, [%s+]", m_aluops[alu_op], regnames[rd], m_regnames16[rs]);
+				fatalerror("%s.b %s, [%s+]", m_aluops[alu_op], regnames[rd], m_regnames16[rs]); // ALUOP.b Rd, [Rs+]
 			}
 		}
 		else
@@ -651,11 +651,11 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 
 			if (size)
 			{
-				fatalerror("%s.w [%s+], %s", m_aluops[alu_op], m_regnames16[rd], regnames[rs]);
+				fatalerror("%s.w [%s+], %s", m_aluops[alu_op], m_regnames16[rd], regnames[rs]); // ALUOP.w [Rd+], Rs
 			}
 			else
 			{
-				fatalerror("%s.b [%s+], %s", m_aluops[alu_op], m_regnames16[rd], regnames[rs]);
+				fatalerror("%s.b [%s+], %s", m_aluops[alu_op], m_regnames16[rd], regnames[rs]); // ALUOP.b [Rd+], Rs
 			}
 		}
 		return;
@@ -672,11 +672,11 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 
 			if (size)
 			{
-				fatalerror("%s.w %s, [%s+#$%02x]", m_aluops[alu_op], regnames[rd], m_regnames16[rs], op3);
+				fatalerror("%s.w %s, [%s+#$%02x]", m_aluops[alu_op], regnames[rd], m_regnames16[rs], op3); // ALUOP.w Rd, [Rs+off8]
 			}
 			else
 			{
-				fatalerror("%s.b %s, [%s+#$%02x]", m_aluops[alu_op], regnames[rd], m_regnames16[rs], op3);
+				fatalerror("%s.b %s, [%s+#$%02x]", m_aluops[alu_op], regnames[rd], m_regnames16[rs], op3); // ALUOP.b Rd, [Rs+off8]
 			}
 		}
 		else
@@ -686,11 +686,11 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 
 			if (size)
 			{
-				fatalerror("%s.w [%s+#$%02x], %s", m_aluops[alu_op], m_regnames16[rd], op3, regnames[rs]);
+				fatalerror("%s.w [%s+#$%02x], %s", m_aluops[alu_op], m_regnames16[rd], op3, regnames[rs]); // ALUOP.w [Rd+off8], Rs
 			}
 			else
 			{
-				fatalerror("%s.b [%s+#$%02x], %s", m_aluops[alu_op], m_regnames16[rd], op3, regnames[rs]);
+				fatalerror("%s.b [%s+#$%02x], %s", m_aluops[alu_op], m_regnames16[rd], op3, regnames[rs]); // ALUOP.b [Rd+off8], Rs
 			}
 		}
 		return;
@@ -709,11 +709,11 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 
 			if (size)
 			{
-				fatalerror("%s.w %s, [%s+#$%04x]", m_aluops[alu_op], regnames[rd], m_regnames16[rs], offset16);
+				fatalerror("%s.w %s, [%s+#$%04x]", m_aluops[alu_op], regnames[rd], m_regnames16[rs], offset16); // ALUOP.w Rd, [Rs+off16]
 			}
 			else
 			{
-				fatalerror("%s.b %s, [%s+#$%04x]", m_aluops[alu_op], regnames[rd], m_regnames16[rs], offset16);
+				fatalerror("%s.b %s, [%s+#$%04x]", m_aluops[alu_op], regnames[rd], m_regnames16[rs], offset16); // ALUOP.b Rd, [Rs+off16]
 			}
 		}
 		else
@@ -723,11 +723,11 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 
 			if (size)
 			{
-				fatalerror("%s.w [%s+#$%04x], %s", m_aluops[alu_op], m_regnames16[rd], offset16, regnames[rs]);
+				fatalerror("%s.w [%s+#$%04x], %s", m_aluops[alu_op], m_regnames16[rd], offset16, regnames[rs]); // ALUOP.w [Rd+off16], Rs
 			}
 			else
 			{
-				fatalerror("%s.b [%s+#$%04x], %s", m_aluops[alu_op], m_regnames16[rd], offset16, regnames[rs]);
+				fatalerror("%s.b [%s+#$%04x], %s", m_aluops[alu_op], m_regnames16[rd], offset16, regnames[rs]); // ALUOP.b [Rd+off16], Rs
 			}
 		}
 		return;
@@ -744,11 +744,11 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 
 			if (size)
 			{
-				fatalerror("%s.w %s, %s", m_aluops[alu_op], regnames[rd], get_directtext(direct));
+				fatalerror("%s.w %s, %s", m_aluops[alu_op], regnames[rd], get_directtext(direct)); // ALUOP.w Rd, Direct
 			}
 			else
 			{
-				fatalerror("%s.b %s, %s", m_aluops[alu_op], regnames[rd], get_directtext(direct));
+				fatalerror("%s.b %s, %s", m_aluops[alu_op], regnames[rd], get_directtext(direct)); // ALUOP.b Rd, Direct
 			}
 		}
 		else
@@ -757,11 +757,11 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 
 			if (size)
 			{
-				fatalerror("%s.w %s, %s", m_aluops[alu_op], get_directtext(direct), regnames[rs]);
+				fatalerror("%s.w %s, %s", m_aluops[alu_op], get_directtext(direct), regnames[rs]); // ALUOP.w Direct, Rs
 			}
 			else
 			{
-				fatalerror("%s.b %s, %s", m_aluops[alu_op], get_directtext(direct), regnames[rs]);
+				fatalerror("%s.b %s, %s", m_aluops[alu_op], get_directtext(direct), regnames[rs]); // ALUOP.b Direct, Rs
 			}
 		}
 		return;

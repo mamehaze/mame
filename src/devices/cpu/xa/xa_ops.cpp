@@ -157,3 +157,254 @@ void xa_cpu_device::and_word_direct_data16(u16 direct, u16 data16) { fatalerror(
 void xa_cpu_device::or_word_direct_data16(u16 direct, u16 data16)  { fatalerror( "OR.w %s, #$%04x (DIRECT, DATA16)", get_directtext(direct), data16); }
 void xa_cpu_device::xor_word_direct_data16(u16 direct, u16 data16) { fatalerror( "XOR.w %s, #$%04x (DIRECT, DATA16)", get_directtext(direct), data16); }
 void xa_cpu_device::mov_word_direct_data16(u16 direct, u16 data16) { fatalerror( "MOV.w %s, #$%04x (DIRECT, DATA16)", get_directtext(direct), data16); }
+
+// ------------------------------------------
+// ------------------------------------------
+// ------------------------------------------
+
+
+void xa_cpu_device::add_word_rd_rs(u8 rd, u8 rs) {}
+void xa_cpu_device::addc_word_rd_rs(u8 rd, u8 rs){}
+void xa_cpu_device::sub_word_rd_rs(u8 rd, u8 rs) {}
+void xa_cpu_device::subc_word_rd_rs(u8 rd, u8 rs){}
+void xa_cpu_device::cmp_word_rd_rs(u8 rd, u8 rs) {}
+void xa_cpu_device::and_word_rd_rs(u8 rd, u8 rs) {}
+void xa_cpu_device::or_word_rd_rs(u8 rd, u8 rs)  {}
+void xa_cpu_device::xor_word_rd_rs(u8 rd, u8 rs) {}
+void xa_cpu_device::mov_word_rd_rs(u8 rd, u8 rs) {}
+
+// ALUOP.b Rd, Rs
+void xa_cpu_device::add_byte_rd_rs(u8 rd, u8 rs) {}
+void xa_cpu_device::addc_byte_rd_rs(u8 rd, u8 rs){}
+void xa_cpu_device::sub_byte_rd_rs(u8 rd, u8 rs) {}
+void xa_cpu_device::subc_byte_rd_rs(u8 rd, u8 rs){}
+void xa_cpu_device::cmp_byte_rd_rs(u8 rd, u8 rs) {}
+void xa_cpu_device::and_byte_rd_rs(u8 rd, u8 rs) {}
+void xa_cpu_device::or_byte_rd_rs(u8 rd, u8 rs)  {}
+void xa_cpu_device::xor_byte_rd_rs(u8 rd, u8 rs) {}
+void xa_cpu_device::mov_byte_rd_rs(u8 rd, u8 rs) {}
+
+// ALUOP.w Rd, [Rs]
+void xa_cpu_device::add_word_rd_indrs(u8 rd, u8 rs) {}
+void xa_cpu_device::addc_word_rd_indrs(u8 rd, u8 rs){}
+void xa_cpu_device::sub_word_rd_indrs(u8 rd, u8 rs) {}
+void xa_cpu_device::subc_word_rd_indrs(u8 rd, u8 rs){}
+void xa_cpu_device::cmp_word_rd_indrs(u8 rd, u8 rs) {}
+void xa_cpu_device::and_word_rd_indrs(u8 rd, u8 rs) {}
+void xa_cpu_device::or_word_rd_indrs(u8 rd, u8 rs)  {}
+void xa_cpu_device::xor_word_rd_indrs(u8 rd, u8 rs) {}
+void xa_cpu_device::mov_word_rd_indrs(u8 rd, u8 rs) {}
+
+// ALUOP.b Rd, [Rs]
+void xa_cpu_device::add_byte_rd_indrs(u8 rd, u8 rs) {}
+void xa_cpu_device::addc_byte_rd_indrs(u8 rd, u8 rs){}
+void xa_cpu_device::sub_byte_rd_indrs(u8 rd, u8 rs) {}
+void xa_cpu_device::subc_byte_rd_indrs(u8 rd, u8 rs){}
+void xa_cpu_device::cmp_byte_rd_indrs(u8 rd, u8 rs) {}
+void xa_cpu_device::and_byte_rd_indrs(u8 rd, u8 rs) {}
+void xa_cpu_device::or_byte_rd_indrs(u8 rd, u8 rs)  {}
+void xa_cpu_device::xor_byte_rd_indrs(u8 rd, u8 rs) {}
+void xa_cpu_device::mov_byte_rd_indrs(u8 rd, u8 rs) {}
+
+// ALUOP.w [Rd], Rs
+void xa_cpu_device::add_word_indrd_rs(u8 rd, u8 rs) {}
+void xa_cpu_device::addc_word_indrd_rs(u8 rd, u8 rs){}
+void xa_cpu_device::sub_word_indrd_rs(u8 rd, u8 rs) {}
+void xa_cpu_device::subc_word_indrd_rs(u8 rd, u8 rs){}
+void xa_cpu_device::cmp_word_indrd_rs(u8 rd, u8 rs) {}
+void xa_cpu_device::and_word_indrd_rs(u8 rd, u8 rs) {}
+void xa_cpu_device::or_word_indrd_rs(u8 rd, u8 rs)  {}
+void xa_cpu_device::xor_word_indrd_rs(u8 rd, u8 rs) {}
+void xa_cpu_device::mov_word_indrd_rs(u8 rd, u8 rs) {}
+
+
+// ALUOP.b [Rd], Rs
+void xa_cpu_device::add_byte_indrd_rs(u8 rd, u8 rs) {}
+void xa_cpu_device::addc_byte_indrd_rs(u8 rd, u8 rs){}
+void xa_cpu_device::sub_byte_indrd_rs(u8 rd, u8 rs) {}
+void xa_cpu_device::subc_byte_indrd_rs(u8 rd, u8 rs){}
+void xa_cpu_device::cmp_byte_indrd_rs(u8 rd, u8 rs) {}
+void xa_cpu_device::and_byte_indrd_rs(u8 rd, u8 rs) {}
+void xa_cpu_device::or_byte_indrd_rs(u8 rd, u8 rs)  {}
+void xa_cpu_device::xor_byte_indrd_rs(u8 rd, u8 rs) {}
+void xa_cpu_device::mov_byte_indrd_rs(u8 rd, u8 rs) {}
+
+// ALUOP.w Rd, [Rs+]
+void xa_cpu_device::add_word_rd_indrsinc(u8 rd, u8 rs) {}
+void xa_cpu_device::addc_word_rd_indrsinc(u8 rd, u8 rs){}
+void xa_cpu_device::sub_word_rd_indrsinc(u8 rd, u8 rs) {}
+void xa_cpu_device::subc_word_rd_indrsinc(u8 rd, u8 rs){}
+void xa_cpu_device::cmp_word_rd_indrsinc(u8 rd, u8 rs) {}
+void xa_cpu_device::and_word_rd_indrsinc(u8 rd, u8 rs) {}
+void xa_cpu_device::or_word_rd_indrsinc(u8 rd, u8 rs)  {}
+void xa_cpu_device::xor_word_rd_indrsinc(u8 rd, u8 rs) {}
+void xa_cpu_device::mov_word_rd_indrsinc(u8 rd, u8 rs) {}
+
+// ALUOP.b Rd, [Rs+]
+void xa_cpu_device::add_byte_rd_indrsinc(u8 rd, u8 rs) {}
+void xa_cpu_device::addc_byte_rd_indrsinc(u8 rd, u8 rs){}
+void xa_cpu_device::sub_byte_rd_indrsinc(u8 rd, u8 rs) {}
+void xa_cpu_device::subc_byte_rd_indrsinc(u8 rd, u8 rs){}
+void xa_cpu_device::cmp_byte_rd_indrsinc(u8 rd, u8 rs) {}
+void xa_cpu_device::and_byte_rd_indrsinc(u8 rd, u8 rs) {}
+void xa_cpu_device::or_byte_rd_indrsinc(u8 rd, u8 rs)  {}
+void xa_cpu_device::xor_byte_rd_indrsinc(u8 rd, u8 rs) {}
+void xa_cpu_device::mov_byte_rd_indrsinc(u8 rd, u8 rs) {}
+
+// ALUOP.w [Rd+], Rs
+void xa_cpu_device::add_word_indrdinc_rs(u8 rd, u8 rs) {}
+void xa_cpu_device::addc_word_indrdinc_rs(u8 rd, u8 rs){}
+void xa_cpu_device::sub_word_indrdinc_rs(u8 rd, u8 rs) {}
+void xa_cpu_device::subc_word_indrdinc_rs(u8 rd, u8 rs){}
+void xa_cpu_device::cmp_word_indrdinc_rs(u8 rd, u8 rs) {}
+void xa_cpu_device::and_word_indrdinc_rs(u8 rd, u8 rs) {}
+void xa_cpu_device::or_word_indrdinc_rs(u8 rd, u8 rs)  {}
+void xa_cpu_device::xor_word_indrdinc_rs(u8 rd, u8 rs) {}
+void xa_cpu_device::mov_word_indrdinc_rs(u8 rd, u8 rs) {}
+
+
+// ALUOP.b [Rd+], Rs
+void xa_cpu_device::add_byte_indrdinc_rs(u8 rd, u8 rs) {}
+void xa_cpu_device::addc_byte_indrdinc_rs(u8 rd, u8 rs){}
+void xa_cpu_device::sub_byte_indrdinc_rs(u8 rd, u8 rs) {}
+void xa_cpu_device::subc_byte_indrdinc_rs(u8 rd, u8 rs){}
+void xa_cpu_device::cmp_byte_indrdinc_rs(u8 rd, u8 rs) {}
+void xa_cpu_device::and_byte_indrdinc_rs(u8 rd, u8 rs) {}
+void xa_cpu_device::or_byte_indrdinc_rs(u8 rd, u8 rs)  {}
+void xa_cpu_device::xor_byte_indrdinc_rs(u8 rd, u8 rs) {}
+void xa_cpu_device::mov_byte_indrdinc_rs(u8 rd, u8 rs) {}
+
+
+// ALUOP.w Rd, [Rs+off8]
+void xa_cpu_device::add_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8) {}
+void xa_cpu_device::addc_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8){}
+void xa_cpu_device::sub_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8) {}
+void xa_cpu_device::subc_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8){}
+void xa_cpu_device::cmp_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8) {}
+void xa_cpu_device::and_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8) {}
+void xa_cpu_device::or_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8)  {}
+void xa_cpu_device::xor_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8) {}
+void xa_cpu_device::mov_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8) {}
+
+// ALUOP.b Rd, [Rs+off8]
+void xa_cpu_device::add_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8) {}
+void xa_cpu_device::addc_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8){}
+void xa_cpu_device::sub_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8) {}
+void xa_cpu_device::subc_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8){}
+void xa_cpu_device::cmp_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8) {}
+void xa_cpu_device::and_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8) {}
+void xa_cpu_device::or_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8)  {}
+void xa_cpu_device::xor_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8) {}
+void xa_cpu_device::mov_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8) {}
+
+// ALUOP.w [Rd+off8], Rs
+void xa_cpu_device::add_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs) {}
+void xa_cpu_device::addc_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs){}
+void xa_cpu_device::sub_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs) {}
+void xa_cpu_device::subc_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs){}
+void xa_cpu_device::cmp_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs) {}
+void xa_cpu_device::and_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs) {}
+void xa_cpu_device::or_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs)  {}
+void xa_cpu_device::xor_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs) {}
+void xa_cpu_device::mov_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs) {}
+
+
+// ALUOP.b [Rd+off8], Rs
+void xa_cpu_device::add_byte_rdoff8_rs(u8 rd, u8 offset8, u8 rs) {}
+void xa_cpu_device::addc_byte_rdoff8_rs(u8 rd, u8 offset8, u8 rs){}
+void xa_cpu_device::sub_byte_rdoff8_rs(u8 rd, u8 offset8, u8 rs) {}
+void xa_cpu_device::subc_byte_rdoff8_rs(u8 rd, u8 offset8, u8 rs){}
+void xa_cpu_device::cmp_byte_rdoff8_rs(u8 rd, u8 offset8, u8 rs) {}
+void xa_cpu_device::and_byte_rdoff8_rs(u8 rd, u8 offset8, u8 rs) {}
+void xa_cpu_device::or_byte_rdoff8_rs(u8 rd, u8 offset8, u8 rs)  {}
+void xa_cpu_device::xor_byte_rdoff8_rs(u8 rd, u8 offset8, u8 rs) {}
+void xa_cpu_device::mov_byte_rdoff8_rs(u8 rd, u8 offset8, u8 rs) {}
+
+
+// ALUOP.w Rd, [Rs+off16]
+void xa_cpu_device::add_word_rd_rsoff16(u8 rd, u8 rs, u16 offset16) {}
+void xa_cpu_device::addc_word_rd_rsoff16(u8 rd, u8 rs, u16 offset16){}
+void xa_cpu_device::sub_word_rd_rsoff16(u8 rd, u8 rs, u16 offset16) {}
+void xa_cpu_device::subc_word_rd_rsoff16(u8 rd, u8 rs, u16 offset16){}
+void xa_cpu_device::cmp_word_rd_rsoff16(u8 rd, u8 rs, u16 offset16) {}
+void xa_cpu_device::and_word_rd_rsoff16(u8 rd, u8 rs, u16 offset16) {}
+void xa_cpu_device::or_word_rd_rsoff16(u8 rd, u8 rs, u16 offset16)  {}
+void xa_cpu_device::xor_word_rd_rsoff16(u8 rd, u8 rs, u16 offset16) {}
+void xa_cpu_device::mov_word_rd_rsoff16(u8 rd, u8 rs, u16 offset16) {}
+
+// ALUOP.b Rd, [Rs+off16]
+void xa_cpu_device::add_byte_rd_rsoff16(u8 rd, u8 rs, u16 offset16) {}
+void xa_cpu_device::addc_byte_rd_rsoff16(u8 rd, u8 rs, u16 offset16){}
+void xa_cpu_device::sub_byte_rd_rsoff16(u8 rd, u8 rs, u16 offset16) {}
+void xa_cpu_device::subc_byte_rd_rsoff16(u8 rd, u8 rs, u16 offset16){}
+void xa_cpu_device::cmp_byte_rd_rsoff16(u8 rd, u8 rs, u16 offset16) {}
+void xa_cpu_device::and_byte_rd_rsoff16(u8 rd, u8 rs, u16 offset16) {}
+void xa_cpu_device::or_byte_rd_rsoff16(u8 rd, u8 rs, u16 offset16)  {}
+void xa_cpu_device::xor_byte_rd_rsoff16(u8 rd, u8 rs, u16 offset16) {}
+void xa_cpu_device::mov_byte_rd_rsoff16(u8 rd, u8 rs, u16 offset16) {}
+
+// ALUOP.w [Rd+off16], Rs
+void xa_cpu_device::add_word_rdoff16_rs(u8 rd, u16 offset16, u8 rs) {}
+void xa_cpu_device::addc_word_rdoff16_rs(u8 rd, u16 offset16, u8 rs){}
+void xa_cpu_device::sub_word_rdoff16_rs(u8 rd, u16 offset16, u8 rs) {}
+void xa_cpu_device::subc_word_rdoff16_rs(u8 rd, u16 offset16, u8 rs){}
+void xa_cpu_device::cmp_word_rdoff16_rs(u8 rd, u16 offset16, u8 rs) {}
+void xa_cpu_device::and_word_rdoff16_rs(u8 rd, u16 offset16, u8 rs) {}
+void xa_cpu_device::or_word_rdoff16_rs(u8 rd, u16 offset16, u8 rs)  {}
+void xa_cpu_device::xor_word_rdoff16_rs(u8 rd, u16 offset16, u8 rs) {}
+void xa_cpu_device::mov_word_rdoff16_rs(u8 rd, u16 offset16, u8 rs) {}
+
+// ALUOP.b [Rd+off16], Rs
+void xa_cpu_device::add_byte_rdoff16_rs(u8 rd, u16 offset16, u8 rs) {}
+void xa_cpu_device::addc_byte_rdoff16_rs(u8 rd, u16 offset16, u8 rs){}
+void xa_cpu_device::sub_byte_rdoff16_rs(u8 rd, u16 offset16, u8 rs) {}
+void xa_cpu_device::subc_byte_rdoff16_rs(u8 rd, u16 offset16, u8 rs){}
+void xa_cpu_device::cmp_byte_rdoff16_rs(u8 rd, u16 offset16, u8 rs) {}
+void xa_cpu_device::and_byte_rdoff16_rs(u8 rd, u16 offset16, u8 rs) {}
+void xa_cpu_device::or_byte_rdoff16_rs(u8 rd, u16 offset16, u8 rs)  {}
+void xa_cpu_device::xor_byte_rdoff16_rs(u8 rd, u16 offset16, u8 rs) {}
+void xa_cpu_device::mov_byte_rdoff16_rs(u8 rd, u16 offset16, u8 rs) {}
+
+// ALUOP.w Rd, Direct
+void xa_cpu_device::add_word_rd_direct(u8 rd, u16 direct) {}
+void xa_cpu_device::addc_word_rd_direct(u8 rd, u16 direct){}
+void xa_cpu_device::sub_word_rd_direct(u8 rd, u16 direct) {}
+void xa_cpu_device::subc_word_rd_direct(u8 rd, u16 direct){}
+void xa_cpu_device::cmp_word_rd_direct(u8 rd, u16 direct) {}
+void xa_cpu_device::and_word_rd_direct(u8 rd, u16 direct) {}
+void xa_cpu_device::or_word_rd_direct(u8 rd, u16 direct)  {}
+void xa_cpu_device::xor_word_rd_direct(u8 rd, u16 direct) {}
+void xa_cpu_device::mov_word_rd_direct(u8 rd, u16 direct) {}
+
+// ALUOP.b Rd, Direct
+void xa_cpu_device::add_byte_rd_direct(u8 rd, u16 direct) {}
+void xa_cpu_device::addc_byte_rd_direct(u8 rd, u16 direct){}
+void xa_cpu_device::sub_byte_rd_direct(u8 rd, u16 direct) {}
+void xa_cpu_device::subc_byte_rd_direct(u8 rd, u16 direct){}
+void xa_cpu_device::cmp_byte_rd_direct(u8 rd, u16 direct) {}
+void xa_cpu_device::and_byte_rd_direct(u8 rd, u16 direct) {}
+void xa_cpu_device::or_byte_rd_direct(u8 rd, u16 direct)  {}
+void xa_cpu_device::xor_byte_rd_direct(u8 rd, u16 direct) {}
+void xa_cpu_device::mov_byte_rd_direct(u8 rd, u16 direct) {}
+
+// ALUOP.w Direct, Rs
+void xa_cpu_device::add_word_direct_rs(u16 direct, u8 rs) {}
+void xa_cpu_device::addc_word_direct_rs(u16 direct, u8 rs){}
+void xa_cpu_device::sub_word_direct_rs(u16 direct, u8 rs) {}
+void xa_cpu_device::subc_word_direct_rs(u16 direct, u8 rs){}
+void xa_cpu_device::cmp_word_direct_rs(u16 direct, u8 rs) {}
+void xa_cpu_device::and_word_direct_rs(u16 direct, u8 rs) {}
+void xa_cpu_device::or_word_direct_rs(u16 direct, u8 rs)  {}
+void xa_cpu_device::xor_word_direct_rs(u16 direct, u8 rs) {}
+void xa_cpu_device::mov_word_direct_rs(u16 direct, u8 rs) {}
+
+	// ALUOP.b Direct, Rs
+void xa_cpu_device::add_byte_direct_rs(u16 direct, u8 rs) {}
+void xa_cpu_device::addc_byte_direct_rs(u16 direct, u8 rs){}
+void xa_cpu_device::sub_byte_direct_rs(u16 direct, u8 rs) {}
+void xa_cpu_device::subc_byte_direct_rs(u16 direct, u8 rs){}
+void xa_cpu_device::cmp_byte_direct_rs(u16 direct, u8 rs) {}
+void xa_cpu_device::and_byte_direct_rs(u16 direct, u8 rs) {}
+void xa_cpu_device::or_byte_direct_rs(u16 direct, u8 rs)  {}
+void xa_cpu_device::xor_byte_direct_rs(u16 direct, u8 rs) {}
+void xa_cpu_device::mov_byte_direct_rs(u16 direct, u8 rs) {}

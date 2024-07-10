@@ -311,7 +311,7 @@ private:
 	void xor_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16);
 	void mov_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16);
 
-	void add_word_direct_data16(u16 direct, u16 data16); // uused
+	void add_word_direct_data16(u16 direct, u16 data16); // used
 	void addc_word_direct_data16(u16 direct, u16 data16);
 	void sub_word_direct_data16(u16 direct, u16 data16);
 	void subc_word_direct_data16(u16 direct, u16 data16);
@@ -320,6 +320,256 @@ private:
 	void or_word_direct_data16(u16 direct, u16 data16);
 	void xor_word_direct_data16(u16 direct, u16 data16);
 	void mov_word_direct_data16(u16 direct, u16 data16);
+
+	///////////////////////////////////
+
+	// ALUOP.w Rd, Rs
+	void add_word_rd_rs(u8 rd, u8 rs);
+	void addc_word_rd_rs(u8 rd, u8 rs);
+	void sub_word_rd_rs(u8 rd, u8 rs);
+	void subc_word_rd_rs(u8 rd, u8 rs);
+	void cmp_word_rd_rs(u8 rd, u8 rs);
+	void and_word_rd_rs(u8 rd, u8 rs);
+	void or_word_rd_rs(u8 rd, u8 rs);
+	void xor_word_rd_rs(u8 rd, u8 rs);
+	void mov_word_rd_rs(u8 rd, u8 rs);
+
+	// ALUOP.b Rd, Rs
+	void add_byte_rd_rs(u8 rd, u8 rs);
+	void addc_byte_rd_rs(u8 rd, u8 rs);
+	void sub_byte_rd_rs(u8 rd, u8 rs);
+	void subc_byte_rd_rs(u8 rd, u8 rs);
+	void cmp_byte_rd_rs(u8 rd, u8 rs);
+	void and_byte_rd_rs(u8 rd, u8 rs);
+	void or_byte_rd_rs(u8 rd, u8 rs);
+	void xor_byte_rd_rs(u8 rd, u8 rs);
+	void mov_byte_rd_rs(u8 rd, u8 rs);
+
+	// ALUOP.w Rd, [Rs]
+	void add_word_rd_indrs(u8 rd, u8 rs);
+	void addc_word_rd_indrs(u8 rd, u8 rs);
+	void sub_word_rd_indrs(u8 rd, u8 rs);
+	void subc_word_rd_indrs(u8 rd, u8 rs);
+	void cmp_word_rd_indrs(u8 rd, u8 rs);
+	void and_word_rd_indrs(u8 rd, u8 rs);
+	void or_word_rd_indrs(u8 rd, u8 rs);
+	void xor_word_rd_indrs(u8 rd, u8 rs);
+	void mov_word_rd_indrs(u8 rd, u8 rs);
+
+	// ALUOP.b Rd, [Rs]
+	void add_byte_rd_indrs(u8 rd, u8 rs);
+	void addc_byte_rd_indrs(u8 rd, u8 rs);
+	void sub_byte_rd_indrs(u8 rd, u8 rs);
+	void subc_byte_rd_indrs(u8 rd, u8 rs);
+	void cmp_byte_rd_indrs(u8 rd, u8 rs);
+	void and_byte_rd_indrs(u8 rd, u8 rs);
+	void or_byte_rd_indrs(u8 rd, u8 rs);
+	void xor_byte_rd_indrs(u8 rd, u8 rs);
+	void mov_byte_rd_indrs(u8 rd, u8 rs);
+
+	// ALUOP.w [Rd], Rs
+	void add_word_indrd_rs(u8 rd, u8 rs);
+	void addc_word_indrd_rs(u8 rd, u8 rs);
+	void sub_word_indrd_rs(u8 rd, u8 rs);
+	void subc_word_indrd_rs(u8 rd, u8 rs);
+	void cmp_word_indrd_rs(u8 rd, u8 rs);
+	void and_word_indrd_rs(u8 rd, u8 rs);
+	void or_word_indrd_rs(u8 rd, u8 rs);
+	void xor_word_indrd_rs(u8 rd, u8 rs);
+	void mov_word_indrd_rs(u8 rd, u8 rs);
+
+
+	// ALUOP.b [Rd], Rs
+	void add_byte_indrd_rs(u8 rd, u8 rs);
+	void addc_byte_indrd_rs(u8 rd, u8 rs);
+	void sub_byte_indrd_rs(u8 rd, u8 rs);
+	void subc_byte_indrd_rs(u8 rd, u8 rs);
+	void cmp_byte_indrd_rs(u8 rd, u8 rs);
+	void and_byte_indrd_rs(u8 rd, u8 rs);
+	void or_byte_indrd_rs(u8 rd, u8 rs);
+	void xor_byte_indrd_rs(u8 rd, u8 rs);
+	void mov_byte_indrd_rs(u8 rd, u8 rs);
+
+	// ALUOP.w Rd, [Rs+]
+	void add_word_rd_indrsinc(u8 rd, u8 rs);
+	void addc_word_rd_indrsinc(u8 rd, u8 rs);
+	void sub_word_rd_indrsinc(u8 rd, u8 rs);
+	void subc_word_rd_indrsinc(u8 rd, u8 rs);
+	void cmp_word_rd_indrsinc(u8 rd, u8 rs);
+	void and_word_rd_indrsinc(u8 rd, u8 rs);
+	void or_word_rd_indrsinc(u8 rd, u8 rs);
+	void xor_word_rd_indrsinc(u8 rd, u8 rs);
+	void mov_word_rd_indrsinc(u8 rd, u8 rs);
+
+	// ALUOP.b Rd, [Rs+]
+	void add_byte_rd_indrsinc(u8 rd, u8 rs);
+	void addc_byte_rd_indrsinc(u8 rd, u8 rs);
+	void sub_byte_rd_indrsinc(u8 rd, u8 rs);
+	void subc_byte_rd_indrsinc(u8 rd, u8 rs);
+	void cmp_byte_rd_indrsinc(u8 rd, u8 rs);
+	void and_byte_rd_indrsinc(u8 rd, u8 rs);
+	void or_byte_rd_indrsinc(u8 rd, u8 rs);
+	void xor_byte_rd_indrsinc(u8 rd, u8 rs);
+	void mov_byte_rd_indrsinc(u8 rd, u8 rs);
+
+	// ALUOP.w [Rd+], Rs
+	void add_word_indrdinc_rs(u8 rd, u8 rs);
+	void addc_word_indrdinc_rs(u8 rd, u8 rs);
+	void sub_word_indrdinc_rs(u8 rd, u8 rs);
+	void subc_word_indrdinc_rs(u8 rd, u8 rs);
+	void cmp_word_indrdinc_rs(u8 rd, u8 rs);
+	void and_word_indrdinc_rs(u8 rd, u8 rs);
+	void or_word_indrdinc_rs(u8 rd, u8 rs);
+	void xor_word_indrdinc_rs(u8 rd, u8 rs);
+	void mov_word_indrdinc_rs(u8 rd, u8 rs);
+
+
+	// ALUOP.b [Rd+], Rs
+	void add_byte_indrdinc_rs(u8 rd, u8 rs);
+	void addc_byte_indrdinc_rs(u8 rd, u8 rs);
+	void sub_byte_indrdinc_rs(u8 rd, u8 rs);
+	void subc_byte_indrdinc_rs(u8 rd, u8 rs);
+	void cmp_byte_indrdinc_rs(u8 rd, u8 rs);
+	void and_byte_indrdinc_rs(u8 rd, u8 rs);
+	void or_byte_indrdinc_rs(u8 rd, u8 rs);
+	void xor_byte_indrdinc_rs(u8 rd, u8 rs);
+	void mov_byte_indrdinc_rs(u8 rd, u8 rs);
+
+
+	// ALUOP.w Rd, [Rs+off8]
+	void add_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
+	void addc_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
+	void sub_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
+	void subc_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
+	void cmp_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
+	void and_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
+	void or_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
+	void xor_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
+	void mov_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
+
+	// ALUOP.b Rd, [Rs+off8]
+	void add_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
+	void addc_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
+	void sub_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
+	void subc_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
+	void cmp_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
+	void and_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
+	void or_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
+	void xor_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
+	void mov_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
+
+	// ALUOP.w [Rd+off8], Rs
+	void add_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
+	void addc_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
+	void sub_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
+	void subc_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
+	void cmp_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
+	void and_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
+	void or_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
+	void xor_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
+	void mov_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
+
+
+	// ALUOP.b [Rd+off8], Rs
+	void add_byte_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
+	void addc_byte_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
+	void sub_byte_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
+	void subc_byte_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
+	void cmp_byte_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
+	void and_byte_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
+	void or_byte_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
+	void xor_byte_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
+	void mov_byte_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
+
+
+	// ALUOP.w Rd, [Rs+off16]
+	void add_word_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
+	void addc_word_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
+	void sub_word_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
+	void subc_word_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
+	void cmp_word_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
+	void and_word_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
+	void or_word_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
+	void xor_word_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
+	void mov_word_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
+
+	// ALUOP.b Rd, [Rs+off16]
+	void add_byte_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
+	void addc_byte_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
+	void sub_byte_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
+	void subc_byte_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
+	void cmp_byte_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
+	void and_byte_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
+	void or_byte_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
+	void xor_byte_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
+	void mov_byte_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
+
+	// ALUOP.w [Rd+off16], Rs
+	void add_word_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
+	void addc_word_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
+	void sub_word_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
+	void subc_word_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
+	void cmp_word_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
+	void and_word_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
+	void or_word_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
+	void xor_word_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
+	void mov_word_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
+
+	// ALUOP.b [Rd+off16], Rs
+	void add_byte_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
+	void addc_byte_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
+	void sub_byte_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
+	void subc_byte_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
+	void cmp_byte_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
+	void and_byte_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
+	void or_byte_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
+	void xor_byte_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
+	void mov_byte_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
+
+	// ALUOP.w Rd, Direct
+	void add_word_rd_direct(u8 rd, u16 direct);
+	void addc_word_rd_direct(u8 rd, u16 direct);
+	void sub_word_rd_direct(u8 rd, u16 direct);
+	void subc_word_rd_direct(u8 rd, u16 direct);
+	void cmp_word_rd_direct(u8 rd, u16 direct);
+	void and_word_rd_direct(u8 rd, u16 direct);
+	void or_word_rd_direct(u8 rd, u16 direct);
+	void xor_word_rd_direct(u8 rd, u16 direct);
+	void mov_word_rd_direct(u8 rd, u16 direct);
+
+	// ALUOP.b Rd, Direct
+	void add_byte_rd_direct(u8 rd, u16 direct);
+	void addc_byte_rd_direct(u8 rd, u16 direct);
+	void sub_byte_rd_direct(u8 rd, u16 direct);
+	void subc_byte_rd_direct(u8 rd, u16 direct);
+	void cmp_byte_rd_direct(u8 rd, u16 direct);
+	void and_byte_rd_direct(u8 rd, u16 direct);
+	void or_byte_rd_direct(u8 rd, u16 direct);
+	void xor_byte_rd_direct(u8 rd, u16 direct);
+	void mov_byte_rd_direct(u8 rd, u16 direct);
+
+	// ALUOP.w Direct, Rs
+	void add_word_direct_rs(u16 direct, u8 rs);
+	void addc_word_direct_rs(u16 direct, u8 rs);
+	void sub_word_direct_rs(u16 direct, u8 rs);
+	void subc_word_direct_rs(u16 direct, u8 rs);
+	void cmp_word_direct_rs(u16 direct, u8 rs);
+	void and_word_direct_rs(u16 direct, u8 rs);
+	void or_word_direct_rs(u16 direct, u8 rs);
+	void xor_word_direct_rs(u16 direct, u8 rs);
+	void mov_word_direct_rs(u16 direct, u8 rs);
+
+		// ALUOP.b Direct, Rs
+	void add_byte_direct_rs(u16 direct, u8 rs);
+	void addc_byte_direct_rs(u16 direct, u8 rs);
+	void sub_byte_direct_rs(u16 direct, u8 rs);
+	void subc_byte_direct_rs(u16 direct, u8 rs);
+	void cmp_byte_direct_rs(u16 direct, u8 rs);
+	void and_byte_direct_rs(u16 direct, u8 rs);
+	void or_byte_direct_rs(u16 direct, u8 rs);
+	void xor_byte_direct_rs(u16 direct, u8 rs);
+	void mov_byte_direct_rs(u16 direct, u8 rs);
+
 
 	std::unordered_map<offs_t, const char *> m_names;
 
