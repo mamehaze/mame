@@ -285,6 +285,20 @@ void xa_cpu_device::add_names(const mem_info *info)
 		m_names[info[i].addr] = info[i].name;
 }
 
+void xa_cpu_device::do_nz_flags_16(u16 data)
+{
+	if (data & 0x8000)
+		set_n_flag();
+	else
+		clear_n_flag();
+
+	if (data == 0x0000)
+		set_z_flag();
+	else
+		clear_z_flag();
+}
+
+
 void xa_cpu_device::do_nz_flags_8(u8 data)
 {
 	if (data & 0x80)
@@ -310,6 +324,38 @@ void xa_cpu_device::push_word_to_stack(u16 data)
 	{
 		m_SSP -= 2;
 		m_data->write_word(m_SSP, data);
+	}
+}
+
+uint8_t xa_cpu_device::get_reg8(int reg)
+{
+	int high = reg & 1;
+
+	reg >>= 1;
+
+	if (reg < 4)
+	{
+		// banked regs
+		int regbank = 0;
+
+		if (high)
+			return (m_regs[(regbank * 4) + reg] & 0xff00) >> 8;
+		else
+			return (m_regs[(regbank * 4) + reg] & 0x00ff) >> 0;
+	}
+	else
+	{
+		if (reg == 7)
+		{
+			fatalerror("get_reg8 on register R7\n");
+			return 0;
+		}
+
+		reg -= 4;
+		if (high)
+			return (m_regs[(4 * 4) + reg] & 0xff00) >> 8;
+		else
+			return (m_regs[(4 * 4) + reg] & 0x00ff) >> 0;
 	}
 }
 
@@ -822,22 +868,25 @@ void xa_cpu_device::handle_adds_movs(XA_EXECUTE_PARAMS, int which)
 		{
 			if (size) // MOVS.w Rd, #data4
 			{
-				printf( "%s%s %s, %s", m_addsmovs[which], size ? ".w" : ".b", regnames[rd], show_expanded_data4(data4, size).c_str()); // last is not m_regnames8
+				fatalerror( "%s%s %s, %s", m_addsmovs[which], size ? ".w" : ".b", regnames[rd], show_expanded_data4(data4, size).c_str());
 			}
 			else  // MOVS.b Rd, #data4
 			{
-				fatalerror( "%s%s %s, %s", m_addsmovs[which], size ? ".w" : ".b", regnames[rd], show_expanded_data4(data4, size)); // last is not m_regnames8
+				//printf( "%s%s %s, %s", m_addsmovs[which], size ? ".w" : ".b", regnames[rd], show_expanded_data4(data4, size).c_str());
+				u8 data = util::sext(data4, 4);
+				set_reg8(rd, data);
+				do_nz_flags_8(data);
 			}
 		}
 		else
 		{
 			if (size) // ADDS.w Rd, #data4
 			{
-				fatalerror( "%s%s %s, %s", m_addsmovs[which], size ? ".w" : ".b", regnames[rd], show_expanded_data4(data4, size)); // last is not m_regnames8
+				fatalerror( "%s%s %s, %s", m_addsmovs[which], size ? ".w" : ".b", regnames[rd], show_expanded_data4(data4, size));
 			}
 			else // ADDS.b Rd, #data4
 			{
-				fatalerror( "%s%s %s, %s", m_addsmovs[which], size ? ".w" : ".b", regnames[rd], show_expanded_data4(data4, size)); // last is not m_regnames8
+				fatalerror( "%s%s %s, %s", m_addsmovs[which], size ? ".w" : ".b", regnames[rd], show_expanded_data4(data4, size));
 			}
 		}
 		return;
@@ -885,7 +934,9 @@ void xa_cpu_device::handle_adds_movs(XA_EXECUTE_PARAMS, int which)
 				u16 regval = get_reg16(rd);
 				write_data16(regval, data);
 				regval += 2;
+				do_nz_flags_16(regval);
 				set_reg16(rd, regval);
+
 			}
 			else  // MOVS.b [Rd], #data4
 			{
@@ -974,13 +1025,15 @@ void xa_cpu_device::handle_adds_movs(XA_EXECUTE_PARAMS, int which)
 		{
 			if (size) // .w
 			{
-				u16 extended = util::sext(data4, 4);
-				write_direct16(direct, extended);
+				u16 data = util::sext(data4, 4);
+				do_nz_flags_16(data);
+				write_direct16(direct, data);
 			}
 			else // .b
 			{
-				u8 extended = util::sext(data4, 4);
-				write_direct8(direct, extended);
+				u8 data = util::sext(data4, 4);
+				do_nz_flags_8(data);
+				write_direct8(direct, data);
 			}
 			return;
 		}
@@ -1359,22 +1412,18 @@ void xa_cpu_device::d_movc_rd_rsinc(XA_EXECUTE_PARAMS)
 	int rs = (op2 & 0x07);
 	const char** regnames = size ? m_regnames16 : m_regnames8;
 
-	if (size)
+	if (size) // MOVC.w Rd, [Rs+]
 	{
 		fatalerror("MOVC%s %s, [%s+]\n", size ? ".w" : ".b", regnames[rd], m_regnames16[rs]);
 	}
-	else
+	else // MOVC.b Rd, [Rs+]
 	{
-		printf("MOVC%s %s, [%s+]\n", size ? ".w" : ".b", regnames[rd], m_regnames16[rs]);
-
 		u16 ptr = get_reg16(rs);
 		u8 data = m_program->read_byte(ptr);
 		ptr++;
 		set_reg16(rs, ptr);
-		set_reg8(rd, data);
-
 		do_nz_flags_8(data);
-
+		set_reg8(rd, data);
 	}
 }
 
@@ -2271,12 +2320,19 @@ void xa_cpu_device::d_cjne_d8(XA_EXECUTE_PARAMS)
 	if (op2 & 0x08)
 	{
 		const u8 rd = (op2 & 0x70) >> 4;
-		fatalerror( "CJNE [%d], #$%02x, $%04x", m_regnames16[rd], op4, address);
+		fatalerror( "CJNE [%s], #$%02x, $%04x", m_regnames16[rd], op4, address);
 	}
 	else
 	{
 		const u8 rd = (op2 & 0xf0) >> 4;
-		fatalerror( "CJNE %d, #$%02x, $%04x", m_regnames8[rd], op4, address);
+
+		uint8_t regval = get_reg8(rd);
+
+		if (regval != op4)
+		{
+			set_pc_in_current_page(address);
+		}
+		// TODO: flag
 	}
 }
 

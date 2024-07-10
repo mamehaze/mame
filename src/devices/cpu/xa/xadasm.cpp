@@ -1790,12 +1790,12 @@ int xa_dasm::d_cjne_d8(XA_DASM_PARAMS)
 	if (op2 & 0x08)
 	{
 		const u8 rd = (op2 & 0x70) >> 4;
-		util::stream_format(stream, "CJNE [%d], #$%02x, $%04x", m_regnames16[rd], op4, address);
+		util::stream_format(stream, "CJNE [%s], #$%02x, $%04x", m_regnames16[rd], op4, address);
 	}
 	else
 	{
 		const u8 rd = (op2 & 0xf0) >> 4;
-		util::stream_format(stream, "CJNE %d, #$%02x, $%04x", m_regnames8[rd], op4, address);
+		util::stream_format(stream, "CJNE %s, #$%02x, $%04x", m_regnames8[rd], op4, address);
 	}
 	return 4;
 }
