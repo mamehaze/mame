@@ -323,6 +323,11 @@ private:
 
 	///////////////////////////////////
 
+	void aluop_word_rd_rs(int alu_op, u8 rd, u8 rs);
+	void aluop_byte_rd_rs(int alu_op, u8 rd, u8 rs);
+	void aluop_word_rd_indrs(int alu_op, u8 rd, u8 rs);
+	void aluop_byte_rd_indrs(int alu_op, u8 rd, u8 rs);
+
 	// ALUOP.w Rd, Rs
 	void add_word_rd_rs(u8 rd, u8 rs);
 	void addc_word_rd_rs(u8 rd, u8 rs);

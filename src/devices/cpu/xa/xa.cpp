@@ -581,40 +581,7 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 	{
 		const u8 rs = (op2 & 0x0f);
 		const u8 rd = (op2 & 0xf0) >> 4;
-
-		if (size)
-		{
-			switch (alu_op)
-			{
-			case 0x0: add_word_rd_rs(rd, rs); break;
-			case 0x1: addc_word_rd_rs(rd, rs); break;
-			case 0x2: sub_word_rd_rs(rd, rs); break;
-			case 0x3: subc_word_rd_rs(rd, rs); break;
-			case 0x4: cmp_word_rd_rs(rd, rs); break;
-			case 0x5: and_word_rd_rs(rd, rs); break;
-			case 0x6: or_word_rd_rs(rd, rs); break;
-			case 0x7: xor_word_rd_rs(rd, rs); break;
-			case 0x8: mov_word_rd_rs(rd, rs); break;
-			default: fatalerror("UNK_ALUOP.w %s, %s", regnames[rd], regnames[rs]); // ALUOP.w Rd, Rs
-			}
-		}
-		else
-		{
-			switch (alu_op)
-			{
-			case 0x0: add_byte_rd_rs(rd, rs); break;
-			case 0x1: addc_byte_rd_rs(rd, rs); break;
-			case 0x2: sub_byte_rd_rs(rd, rs); break;
-			case 0x3: subc_byte_rd_rs(rd, rs); break;
-			case 0x4: cmp_byte_rd_rs(rd, rs); break;
-			case 0x5: and_byte_rd_rs(rd, rs); break;
-			case 0x6: or_byte_rd_rs(rd, rs); break;
-			case 0x7: xor_byte_rd_rs(rd, rs); break;
-			case 0x8: mov_byte_rd_rs(rd, rs); break;
-			default: fatalerror("UNK_ALUOP.b %s, %s", regnames[rd], regnames[rs]); // ALUOP.b Rd, Rs
-			}
-		}
-
+		if (size) { aluop_word_rd_rs(alu_op, rd, rs); }	else { aluop_byte_rd_rs(alu_op, rd, rs); }
 		return;
 	}
 
@@ -625,39 +592,7 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 		{
 			const u8 rs = (op2 & 0x07);
 			const u8 rd = (op2 & 0xf0) >> 4;
-
-			if (size)
-			{
-				switch (alu_op)
-				{
-				case 0x0: add_word_rd_indrs(rd, rs); break;
-				case 0x1: addc_word_rd_indrs(rd, rs); break;
-				case 0x2: sub_word_rd_indrs(rd, rs); break;
-				case 0x3: subc_word_rd_indrs(rd, rs); break;
-				case 0x4: cmp_word_rd_indrs(rd, rs); break;
-				case 0x5: and_word_rd_indrs(rd, rs); break;
-				case 0x6: or_word_rd_indrs(rd, rs); break;
-				case 0x7: xor_word_rd_indrs(rd, rs); break;
-				case 0x8: mov_word_rd_indrs(rd, rs); break;
-				default: fatalerror("UNK_ALUOP.w %s, [%s]", regnames[rd], m_regnames16[rs]); // ALUOP.w Rd, [Rs]
-				}
-			}
-			else
-			{
-				switch (alu_op)
-				{
-				case 0x0: add_byte_rd_indrs(rd, rs); break;
-				case 0x1: addc_byte_rd_indrs(rd, rs); break;
-				case 0x2: sub_byte_rd_indrs(rd, rs); break;
-				case 0x3: subc_byte_rd_indrs(rd, rs); break;
-				case 0x4: cmp_byte_rd_indrs(rd, rs); break;
-				case 0x5: and_byte_rd_indrs(rd, rs); break;
-				case 0x6: or_byte_rd_indrs(rd, rs); break;
-				case 0x7: xor_byte_rd_indrs(rd, rs); break;
-				case 0x8: mov_byte_rd_indrs(rd, rs); break;
-				default: fatalerror("UNK_ALUOP.b %s, [%s]", regnames[rd], m_regnames16[rs]); // ALUOP.b Rd, [Rs]
-				}
-			}
+			if (size) { aluop_word_rd_indrs(alu_op, rd, rs); } else { aluop_byte_rd_indrs(alu_op, rd, rs); }
 		}
 		else
 		{
