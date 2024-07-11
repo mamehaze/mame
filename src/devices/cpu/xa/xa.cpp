@@ -560,11 +560,21 @@ void xa_cpu_device::handle_shift(XA_EXECUTE_PARAMS, int shift_type)
 
 	if (size == 0x00)
 	{
-		fatalerror( "%s%s %s, %d", m_shifts[shift_type], m_dwparamsizes[size >> 2], m_regnames8[rd], data);
+		switch (shift_type)
+		{
+		case 0x0: fatalerror("ASL%s %s, %d", m_dwparamsizes[size >> 2], m_regnames8[rd], data); break;
+		case 0x1: fatalerror("ASR%s %s, %d", m_dwparamsizes[size >> 2], m_regnames8[rd], data); break;
+		case 0x2: fatalerror("LSR%s %s, %d", m_dwparamsizes[size >> 2], m_regnames8[rd], data); break;
+		}
 	}
 	else
 	{
-		fatalerror( "%s%s %s, %d", m_shifts[shift_type], m_dwparamsizes[size >> 2], m_regnames16[rd], data);
+		switch (shift_type)
+		{
+		case 0x0: fatalerror("ASL%s %s, %d", m_dwparamsizes[size >> 2], m_regnames16[rd], data); break;
+		case 0x1: fatalerror("ASR%s %s, %d", m_dwparamsizes[size >> 2], m_regnames16[rd], data); break;
+		case 0x2: fatalerror("LSR%s %s, %d", m_dwparamsizes[size >> 2], m_regnames16[rd], data); break;
+		}
 	}
 }
 

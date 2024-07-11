@@ -85,7 +85,6 @@ private:
 	const char* m_branches[15] = { "BCC", "BCS", "BNE", "BEQ", "BNV", "BOV", "BPL", "BMI", "BG", "BL", "BGE", "BLT", "BGT", "BLE", "BR" };
 	const char* m_addsmovs[2] = { "ADDS", "MOVS" };
 	const char* m_pushpull[4] = { "PUSH", "PUSHU", "POP", "POPU" };
-	const char* m_shifts[3] = { "ASL", "ASR", "LSR" };
 	const char* m_dwparamsizes[4] = { ".b", "invalid", ".w", ".dw" };
 
 	std::string get_bittext(int bit);
