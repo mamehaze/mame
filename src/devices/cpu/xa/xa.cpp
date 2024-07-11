@@ -573,7 +573,6 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 {
 	const int size = op & 0x08;
 	const u8 op2 = m_program->read_byte(m_pc++);
-	const char** regnames = size ? m_regnames16 : m_regnames8;
 
 	switch (op & 0x07)
 	{
@@ -612,7 +611,7 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 				case 0x6: or_word_indrd_rs(rd, rs); break;
 				case 0x7: xor_word_indrd_rs(rd, rs); break;
 				case 0x8: mov_word_indrd_rs(rd, rs); break;
-				default: fatalerror("UNK_ALUOP.w [%s], %s", m_regnames16[rd], regnames[rs]); // ALUOP.w [Rd], Rs
+				default: fatalerror("UNK_ALUOP.w [%s], %s", m_regnames16[rd], m_regnames16[rs]); // ALUOP.w [Rd], Rs
 				}
 			}
 			else
@@ -628,7 +627,7 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 				case 0x6: or_byte_indrd_rs(rd, rs); break;
 				case 0x7: xor_byte_indrd_rs(rd, rs); break;
 				case 0x8: mov_byte_indrd_rs(rd, rs); break;
-				default: fatalerror("UNK_ALUOP.b [%s], %s", m_regnames16[rd], regnames[rs]); // ALUOP.b [Rd], Rs
+				default: fatalerror("UNK_ALUOP.b [%s], %s", m_regnames16[rd], m_regnames8[rs]); // ALUOP.b [Rd], Rs
 				}
 			}
 		}
@@ -655,7 +654,7 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 				case 0x6: or_word_rd_indrsinc(rd, rs); break;
 				case 0x7: xor_word_rd_indrsinc(rd, rs); break;
 				case 0x8: mov_word_rd_indrsinc(rd, rs); break;
-				default: fatalerror("UNK_ALUOP.w %s, [%s+]", regnames[rd], m_regnames16[rs]); // ALUOP.w Rd, [Rs+]
+				default: fatalerror("UNK_ALUOP.w %s, [%s+]", m_regnames16[rd], m_regnames16[rs]); // ALUOP.w Rd, [Rs+]
 				}
 			}
 			else
@@ -671,7 +670,7 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 				case 0x6: or_byte_rd_indrsinc(rd, rs); break;
 				case 0x7: xor_byte_rd_indrsinc(rd, rs); break;
 				case 0x8: mov_byte_rd_indrsinc(rd, rs); break;
-				default: fatalerror("UNK_ALUOP.b %s, [%s+]", regnames[rd], m_regnames16[rs]); // ALUOP.b Rd, [Rs+]
+				default: fatalerror("UNK_ALUOP.b %s, [%s+]", m_regnames8[rd], m_regnames16[rs]); // ALUOP.b Rd, [Rs+]
 				}
 			}
 		}
@@ -693,7 +692,7 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 				case 0x6: or_word_indrdinc_rs(rd, rs); break;
 				case 0x7: xor_word_indrdinc_rs(rd, rs); break;
 				case 0x8: mov_word_indrdinc_rs(rd, rs); break;
-				default: fatalerror("UNK_ALUOP.w [%s+], %s", m_regnames16[rd], regnames[rs]); // ALUOP.w [Rd+], Rs
+				default: fatalerror("UNK_ALUOP.w [%s+], %s", m_regnames16[rd], m_regnames16[rs]); // ALUOP.w [Rd+], Rs
 				}
 			}
 			else
@@ -709,7 +708,7 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 				case 0x6: or_byte_indrdinc_rs(rd, rs); break;
 				case 0x7: xor_byte_indrdinc_rs(rd, rs); break;
 				case 0x8: mov_byte_indrdinc_rs(rd, rs); break;
-				default: fatalerror("UNK_ALUOP.b [%s+], %s", m_regnames16[rd], regnames[rs]); // ALUOP.b [Rd+], Rs
+				default: fatalerror("UNK_ALUOP.b [%s+], %s", m_regnames16[rd], m_regnames8[rs]); // ALUOP.b [Rd+], Rs
 				}
 			}
 		}
@@ -738,7 +737,7 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 				case 0x6: or_word_rd_rsoff8(rd, rs, offset8); break;
 				case 0x7: xor_word_rd_rsoff8(rd, rs, offset8); break;
 				case 0x8: mov_word_rd_rsoff8(rd, rs, offset8); break;
-				default: fatalerror("UNK_ALUOP.w %s, [%s+#$%02x]", regnames[rd], m_regnames16[rs], offset8); // ALUOP.w Rd, [Rs+off8]
+				default: fatalerror("UNK_ALUOP.w %s, [%s+#$%02x]", m_regnames16[rd], m_regnames16[rs], offset8); // ALUOP.w Rd, [Rs+off8]
 				}
 			}
 			else
@@ -754,7 +753,7 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 				case 0x6: or_byte_rd_rsoff8(rd, rs, offset8); break;
 				case 0x7: xor_byte_rd_rsoff8(rd, rs, offset8); break;
 				case 0x8: mov_byte_rd_rsoff8(rd, rs, offset8); break;
-				default: fatalerror("UNK_ALUOP.b %s, [%s+#$%02x]", regnames[rd], m_regnames16[rs], offset8); // ALUOP.b Rd, [Rs+off8]
+				default: fatalerror("UNK_ALUOP.b %s, [%s+#$%02x]", m_regnames8[rd], m_regnames16[rs], offset8); // ALUOP.b Rd, [Rs+off8]
 				}
 			}
 		}
@@ -776,7 +775,7 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 				case 0x6: or_word_rdoff8_rs(rd, offset8, rs); break;
 				case 0x7: xor_word_rdoff8_rs(rd, offset8, rs); break;
 				case 0x8: mov_word_rdoff8_rs(rd, offset8, rs); break;
-				default: fatalerror("UNK_ALUOP.w [%s+#$%02x], %s", m_regnames16[rd], offset8, regnames[rs]); // ALUOP.w [Rd+off8], Rs
+				default: fatalerror("UNK_ALUOP.w [%s+#$%02x], %s", m_regnames16[rd], offset8, m_regnames16[rs]); // ALUOP.w [Rd+off8], Rs
 				}
 			}
 			else
@@ -792,7 +791,7 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 				case 0x6: or_byte_rdoff8_rs(rd, offset8, rs); break;
 				case 0x7: xor_byte_rdoff8_rs(rd, offset8, rs); break;
 				case 0x8: mov_byte_rdoff8_rs(rd, offset8, rs); break;
-				default: fatalerror("UNK_ALUOP.b [%s+#$%02x], %s", m_regnames16[rd], offset8, regnames[rs]); // ALUOP.b [Rd+off8], Rs
+				default: fatalerror("UNK_ALUOP.b [%s+#$%02x], %s", m_regnames16[rd], offset8, m_regnames8[rs]); // ALUOP.b [Rd+off8], Rs
 				}
 			}
 		}
@@ -823,7 +822,7 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 				case 0x6: or_word_rd_rsoff16(rd, rs, offset16); break;
 				case 0x7: xor_word_rd_rsoff16(rd, rs, offset16); break;
 				case 0x8: mov_word_rd_rsoff16(rd, rs, offset16); break;
-				default: fatalerror("UNK_ALUOP.w %s, [%s+#$%04x]", regnames[rd], m_regnames16[rs], offset16); // ALUOP.w Rd, [Rs+off16]
+				default: fatalerror("UNK_ALUOP.w %s, [%s+#$%04x]", m_regnames16[rd], m_regnames16[rs], offset16); // ALUOP.w Rd, [Rs+off16]
 				}
 			}
 			else
@@ -839,7 +838,7 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 				case 0x6: or_byte_rd_rsoff16(rd, rs, offset16); break;
 				case 0x7: xor_byte_rd_rsoff16(rd, rs, offset16); break;
 				case 0x8: mov_byte_rd_rsoff16(rd, rs, offset16); break;
-				default: fatalerror("UNK_ALUOP.b %s, [%s+#$%04x]", regnames[rd], m_regnames16[rs], offset16); // ALUOP.b Rd, [Rs+off16]
+				default: fatalerror("UNK_ALUOP.b %s, [%s+#$%04x]", m_regnames8[rd], m_regnames16[rs], offset16); // ALUOP.b Rd, [Rs+off16]
 				}
 			}
 		}
@@ -861,7 +860,7 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 				case 0x6: or_word_rdoff16_rs(rd, offset16, rs); break;
 				case 0x7: xor_word_rdoff16_rs(rd, offset16, rs); break;
 				case 0x8: mov_word_rdoff16_rs(rd, offset16, rs); break;
-				default: fatalerror("UNK_ALUOP.w [%s+#$%04x], %s", m_regnames16[rd], offset16, regnames[rs]); // ALUOP.w [Rd+off16], Rs
+				default: fatalerror("UNK_ALUOP.w [%s+#$%04x], %s", m_regnames16[rd], offset16, m_regnames16[rs]); // ALUOP.w [Rd+off16], Rs
 				}
 			}
 			else
@@ -877,7 +876,7 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 				case 0x6: or_byte_rdoff16_rs(rd, offset16, rs); break;
 				case 0x7: xor_byte_rdoff16_rs(rd, offset16, rs); break;
 				case 0x8: mov_byte_rdoff16_rs(rd, offset16, rs); break;
-				default: fatalerror("UNK_ALUOP.b [%s+#$%04x], %s", m_regnames16[rd], offset16, regnames[rs]); // ALUOP.b [Rd+off16], Rs
+				default: fatalerror("UNK_ALUOP.b [%s+#$%04x], %s", m_regnames16[rd], offset16, m_regnames8[rs]); // ALUOP.b [Rd+off16], Rs
 				}
 			}
 		}
@@ -906,7 +905,7 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 				case 0x6: or_word_rd_direct(rd, direct); break;
 				case 0x7: xor_word_rd_direct(rd, direct); break;
 				case 0x8: mov_word_rd_direct(rd, direct); break;
-				default: fatalerror("UNK_ALUOP.w %s, %s", regnames[rd], get_directtext(direct)); // ALUOP.w Rd, Direct
+				default: fatalerror("UNK_ALUOP.w %s, %s", m_regnames16[rd], get_directtext(direct)); // ALUOP.w Rd, Direct
 				}
 			}
 			else
@@ -922,7 +921,7 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 				case 0x6: or_byte_rd_direct(rd, direct); break;
 				case 0x7: xor_byte_rd_direct(rd, direct); break;
 				case 0x8: mov_byte_rd_direct(rd, direct); break;
-				default: fatalerror("UNK_ALUOP.b %s, %s", regnames[rd], get_directtext(direct)); // ALUOP.b Rd, Direct
+				default: fatalerror("UNK_ALUOP.b %s, %s", m_regnames8[rd], get_directtext(direct)); // ALUOP.b Rd, Direct
 				}
 			}
 		}
@@ -943,7 +942,7 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 				case 0x6: or_word_direct_rs(direct, rs); break;
 				case 0x7: xor_word_direct_rs(direct, rs); break;
 				case 0x8: mov_word_direct_rs(direct, rs); break;
-				default: fatalerror("UNK_ALUOP.w %s, %s", get_directtext(direct), regnames[rs]); // ALUOP.w Direct, Rs
+				default: fatalerror("UNK_ALUOP.w %s, %s", get_directtext(direct), m_regnames16[rs]); // ALUOP.w Direct, Rs
 				}
 			}
 			else
@@ -959,7 +958,7 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 				case 0x6: or_byte_direct_rs(direct, rs); break;
 				case 0x7: xor_byte_direct_rs(direct, rs); break;
 				case 0x8: mov_byte_direct_rs(direct, rs); break;
-				default: fatalerror("UNK_ALUOP.b %s, %s", get_directtext(direct), regnames[rs]); // ALUOP.b Direct, Rs
+				default: fatalerror("UNK_ALUOP.b %s, %s", get_directtext(direct), m_regnames8[rs]); // ALUOP.b Direct, Rs
 				}
 			}
 		}
