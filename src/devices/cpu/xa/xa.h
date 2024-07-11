@@ -573,6 +573,37 @@ private:
 	void xor_byte_direct_rs(u16 direct, u8 rs);
 	void mov_byte_direct_rs(u16 direct, u8 rs);
 
+	///////////////////////////////////
+
+	void movs_word_rd_data4(u8 rd, u8 data4);
+	void movs_byte_rd_data4(u8 rd, u8 data4);
+	void adds_word_rd_data4(u8 rd, u8 data4);
+	void adds_byte_rd_data4(u8 rd, u8 data4);
+
+	void movs_word_indrd_data4(u8 rd, u8 data4);
+	void movs_byte_indrd_data4(u8 rd, u8 data4);
+	void adds_word_indrd_data4(u8 rd, u8 data4);
+	void adds_byte_indrd_data4(u8 rd, u8 data4);
+
+	void movs_word_indrdinc_data4(u8 rd, u8 data4);
+	void movs_byte_indrdinc_data4(u8 rd, u8 data4);
+	void adds_word_indrdinc_data4(u8 rd, u8 data4);
+	void adds_byte_indrdinc_data4(u8 rd, u8 data4);
+
+	void movs_word_indrdoff8_data4(u8 rd, u8 off8, u8 data4);
+	void movs_byte_indrdoff8_data4(u8 rd, u8 off8, u8 data4);
+	void adds_word_indrdoff8_data4(u8 rd, u8 off8, u8 data4);
+	void adds_byte_indrdoff8_data4(u8 rd, u8 off8, u8 data4);
+
+	void movs_word_indrdoff16_data4(u8 rd, u16 off16, u8 data4);
+	void movs_byte_indrdoff16_data4(u8 rd, u16 off16, u8 data4);
+	void adds_word_indrdoff16_data4(u8 rd, u16 off16, u8 data4);
+	void adds_byte_indrdoff16_data4(u8 rd, u16 off16, u8 data4);
+
+	void movs_word_direct_data4(u16 direct, u8 data4);
+	void movs_byte_direct_data4(u16 direct, u8 data4);
+	void adds_word_direct_data4(u16 direct, u8 data4);
+	void adds_byte_direct_data4(u16 direct, u8 data4);
 
 	std::unordered_map<offs_t, const char *> m_names;
 

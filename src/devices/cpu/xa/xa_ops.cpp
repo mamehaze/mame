@@ -477,3 +477,36 @@ void xa_cpu_device::and_byte_direct_rs(u16 direct, u8 rs) { fatalerror("AND.b %s
 void xa_cpu_device::or_byte_direct_rs(u16 direct, u8 rs)  { fatalerror("OR.b %s, %s", get_directtext(direct), m_regnames8[rs]);}
 void xa_cpu_device::xor_byte_direct_rs(u16 direct, u8 rs) { fatalerror("XOR.b %s, %s", get_directtext(direct), m_regnames8[rs]);}
 void xa_cpu_device::mov_byte_direct_rs(u16 direct, u8 rs) { fatalerror("MOV.b %s, %s", get_directtext(direct), m_regnames8[rs]);}
+
+
+
+void xa_cpu_device::movs_word_rd_data4(u8 rd, u8 data4){}
+void xa_cpu_device::movs_byte_rd_data4(u8 rd, u8 data4){}
+void xa_cpu_device::adds_word_rd_data4(u8 rd, u8 data4){}
+void xa_cpu_device::adds_byte_rd_data4(u8 rd, u8 data4){}
+
+void xa_cpu_device::movs_word_indrd_data4(u8 rd, u8 data4){}
+void xa_cpu_device::movs_byte_indrd_data4(u8 rd, u8 data4){}
+void xa_cpu_device::adds_word_indrd_data4(u8 rd, u8 data4){}
+void xa_cpu_device::adds_byte_indrd_data4(u8 rd, u8 data4){}
+
+void xa_cpu_device::movs_word_indrdinc_data4(u8 rd, u8 data4){}
+void xa_cpu_device::movs_byte_indrdinc_data4(u8 rd, u8 data4){}
+void xa_cpu_device::adds_word_indrdinc_data4(u8 rd, u8 data4){}
+void xa_cpu_device::adds_byte_indrdinc_data4(u8 rd, u8 data4){}
+
+void xa_cpu_device::movs_word_indrdoff8_data4(u8 rd, u8 off8, u8 data4){}
+void xa_cpu_device::movs_byte_indrdoff8_data4(u8 rd, u8 off8, u8 data4){}
+void xa_cpu_device::adds_word_indrdoff8_data4(u8 rd, u8 off8, u8 data4){}
+void xa_cpu_device::adds_byte_indrdoff8_data4(u8 rd, u8 off8, u8 data4){}
+
+void xa_cpu_device::movs_word_indrdoff16_data4(u8 rd, u16 off16, u8 data4){}
+void xa_cpu_device::movs_byte_indrdoff16_data4(u8 rd, u16 off16, u8 data4){}
+void xa_cpu_device::adds_word_indrdoff16_data4(u8 rd, u16 off16, u8 data4){}
+void xa_cpu_device::adds_byte_indrdoff16_data4(u8 rd, u16 off16, u8 data4){}
+
+void xa_cpu_device::movs_word_direct_data4(u16 direct, u8 data4){}
+void xa_cpu_device::movs_byte_direct_data4(u16 direct, u8 data4){}
+void xa_cpu_device::adds_word_direct_data4(u16 direct, u8 data4){}
+void xa_cpu_device::adds_byte_direct_data4(u16 direct, u8 data4){}
+

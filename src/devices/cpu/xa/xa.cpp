@@ -558,23 +558,29 @@ void xa_cpu_device::handle_shift(XA_EXECUTE_PARAMS, int shift_type)
 		rd = (op2 & 0xf0) >> 4;
 	}
 
-	if (size == 0x00)
+	switch (shift_type)
 	{
-		switch (shift_type)
-		{
-		case 0x0: fatalerror("ASL%s %s, %d", m_dwparamsizes[size >> 2], m_regnames8[rd], data); break;
-		case 0x1: fatalerror("ASR%s %s, %d", m_dwparamsizes[size >> 2], m_regnames8[rd], data); break;
-		case 0x2: fatalerror("LSR%s %s, %d", m_dwparamsizes[size >> 2], m_regnames8[rd], data); break;
-		}
+	case 0x0:
+	{
+		if (size == 0) fatalerror("ASL.b %s, %d", m_regnames8[rd], data);
+		else if (size == 2) fatalerror("ASL.w %s, %d", m_regnames16[rd], data);
+		else if (size == 3) fatalerror("ASL.dw %s, %d", m_regnames16[rd], data);
+		else fatalerror("ASL.invalid %s, %d", m_regnames16[rd], data);
 	}
-	else
+	case 0x1:
 	{
-		switch (shift_type)
-		{
-		case 0x0: fatalerror("ASL%s %s, %d", m_dwparamsizes[size >> 2], m_regnames16[rd], data); break;
-		case 0x1: fatalerror("ASR%s %s, %d", m_dwparamsizes[size >> 2], m_regnames16[rd], data); break;
-		case 0x2: fatalerror("LSR%s %s, %d", m_dwparamsizes[size >> 2], m_regnames16[rd], data); break;
-		}
+		if (size == 0) fatalerror("ASR.b %s, %d", m_regnames8[rd], data);
+		else if (size == 2) fatalerror("ASR.w %s, %d", m_regnames16[rd], data);
+		else if (size == 3) fatalerror("ASR.dw %s, %d", m_regnames16[rd], data);
+		else fatalerror("ASR.invalid %s, %d", m_regnames16[rd], data);
+	}
+	case 0x2:
+	{
+		if (size == 0) fatalerror("LSR.b %s, %d", m_regnames8[rd], data);
+		else if (size == 2) fatalerror("LSR.w %s, %d", m_regnames16[rd], data);
+		else if (size == 3) fatalerror("LSR.dw %s, %d", m_regnames16[rd], data);
+		else fatalerror("LSR.invalid %s, %d", m_regnames16[rd], data);
+	}
 	}
 }
 
@@ -1353,7 +1359,7 @@ void xa_cpu_device::handle_adds_movs(XA_EXECUTE_PARAMS, int which)
 
 		if (which)
 		{
-			if (size) // MOVS.w [Rd], #data4
+			if (size) // MOVS.w [Rd+], #data4
 			{
 				printf("%s.w [%s+], %s\n", m_addsmovs[which], m_regnames16[rd], show_expanded_data4(data4, size).c_str());
 				u16 data = util::sext(data4, 4);
@@ -1364,18 +1370,18 @@ void xa_cpu_device::handle_adds_movs(XA_EXECUTE_PARAMS, int which)
 				set_reg16(rd, regval);
 
 			}
-			else  // MOVS.b [Rd], #data4
+			else  // MOVS.b [Rd+], #data4
 			{
 				fatalerror("%s.b [%s+], %s", m_addsmovs[which], m_regnames16[rd], show_expanded_data4(data4, size));
 			}
 		}
 		else
 		{
-			if (size) // ADDS.w [Rd], #data4
+			if (size) // ADDS.w [Rd+], #data4
 			{
 				fatalerror("%s.w [%s+], %s", m_addsmovs[which], m_regnames16[rd], show_expanded_data4(data4, size));
 			}
-			else // ADDS.b [Rd], #data4
+			else // ADDS.b [Rd+], #data4
 			{
 				fatalerror("%s.b [%s+], %s", m_addsmovs[which], m_regnames16[rd], show_expanded_data4(data4, size));
 			}
