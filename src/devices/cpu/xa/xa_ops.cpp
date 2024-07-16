@@ -682,7 +682,19 @@ void xa_cpu_device::pushu_word_direct(u16 direct) { fatalerror("PUSHU.w %s", get
 void xa_cpu_device::pushu_byte_direct(u16 direct) { fatalerror("PUSHU.b %s", get_directtext(direct)); }
 void xa_cpu_device::push_word_direct(u16 direct) { fatalerror("PUSH.w %s", get_directtext(direct)); }
 void xa_cpu_device::push_byte_direct(u16 direct) { fatalerror("PUSH.b %s", get_directtext(direct)); }
-			
+
 // MOV [Rd+], [Rs+]            Move reg-ind to reg-ind, both pointers autoinc                          2 6         1001 S000  0ddd 0sss
 void xa_cpu_device::mov_word_indrdinc_indrsinc(u8 rd, u8 rs) { fatalerror("MOV.w [%s+], [%s+]", m_regnames16[rd], m_regnames16[rs]); }
 void xa_cpu_device::mov_byte_indrdinc_indrsinc(u8 rd, u8 rs) { fatalerror("MOV.w [%s+], [%s+]", m_regnames16[rd], m_regnames16[rs]); }
+
+void xa_cpu_device::da_rd(u8 rd) { fatalerror( "DA %s", m_regnames8[rd]); }
+void xa_cpu_device::sext_word_rd(u8 rd) { fatalerror("SEXT.w %s", m_regnames16[rd]); }
+void xa_cpu_device::sext_byte_rd(u8 rd) { fatalerror("SEXT.b %s", m_regnames8[rd]); }
+void xa_cpu_device::cpl_word_rd(u8 rd) { fatalerror("CPL.w %s", m_regnames16[rd]); }
+void xa_cpu_device::cpl_byte_rd(u8 rd) { fatalerror("CPL.b %s", m_regnames8[rd]); }
+void xa_cpu_device::neg_word_rd(u8 rd) { fatalerror("NEG.w %sx", m_regnames16[rd]); }
+void xa_cpu_device::neg_byte_rd(u8 rd) { fatalerror("NEG.b %sx", m_regnames8[rd]); }
+void xa_cpu_device::movc_a_apc() { fatalerror( "MOVC A, [A+PC]"); }
+void xa_cpu_device::movc_a_adptr() { fatalerror( "MOVC A, [A+DPTR]"); }
+void xa_cpu_device::mov_rd_usp(u8 rd) { fatalerror( "MOV %s, USP", m_regnames16[rd]); }
+void xa_cpu_device::mov_usp_rs(u8 rs) { fatalerror( "MOV USP, %s", m_regnames16[rs]); }

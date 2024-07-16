@@ -1791,99 +1791,26 @@ void xa_cpu_device::d_g9_subgroup(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	int size = op & 0x08;
-	const char** regnames = size ? m_regnames16 : m_regnames8;
-
 	if ((op2 & 0x0f) < 0x08)
 	{
 		int rd = (op2 & 0x70) >> 4;
 		int rs = (op2 & 0x07);
-		if (size) {	mov_word_indrdinc_indrsinc(rd, rs); } else { mov_byte_indrdinc_indrsinc(rd, rs); }
+		if (size) { mov_word_indrdinc_indrsinc(rd, rs); } else { mov_byte_indrdinc_indrsinc(rd, rs); }
 	}
 	else
 	{
 		switch (op2 & 0x0f)
 		{
-		case 0x08:
-		{
-			int rd = (op2 & 0xf0) >> 4;
-			fatalerror( "DA %s", m_regnames8[rd]);
-			return;
-		}
-		case 0x09:
-		{
-			int rd = (op2 & 0xf0) >> 4;
-			if (size)
-			{
-				fatalerror("SEXT.w %s", regnames[rd]);
-			}
-			else
-			{
-				fatalerror("SEXT.b %s", regnames[rd]);
-			}
-			return;
-		}
-		case 0x0a:
-		{
-			int rd = (op2 & 0xf0) >> 4;
-
-			if (size)
-			{
-				fatalerror("CPL.w %s", regnames[rd]);
-			}
-			else
-			{
-				fatalerror("CPL.b %s", regnames[rd]);
-			}
-			return;
-		}
-		case 0x0b:
-		{
-			int rd = (op2 & 0xf0) >> 4;
-
-			if (size)
-			{
-				fatalerror("NEG.w %sx", regnames[rd]);
-			}
-			else
-			{
-				fatalerror("NEG.b %sx", regnames[rd]);
-			}
-			return;
-		}
-		case 0x0c:
-		{
-			fatalerror( "MOVC A, [A+PC]");
-			return;
-		}
-		case 0x0e:
-		{
-			fatalerror( "MOVC A, [A+DPTR]");
-			return;
-		}
-		case 0x0f:
-		{
-			if (!size)
-			{
-				int rd = (op2 & 0xf0) >> 4;
-				fatalerror( "MOV %s, USP", m_regnames16[rd]);
-			}
-			else
-			{
-				int rs = (op2 & 0xf0) >> 4;
-				fatalerror( "MOV USP, %s", m_regnames16[rs]);
-			}
-			return;
-		}
-		default:
-		{
-			fatalerror( "illegal %02x", op2);
-			return;
-		}
-
+		case 0x08: { int rd = (op2 & 0xf0) >> 4; da_rd(rd); break;  }
+		case 0x09: { int rd = (op2 & 0xf0) >> 4; if (size) { sext_word_rd(rd); } else { sext_byte_rd(rd); } break; }
+		case 0x0a: { int rd = (op2 & 0xf0) >> 4; if (size) { cpl_word_rd(rd); } else { cpl_byte_rd(rd); } break; }
+		case 0x0b: { int rd = (op2 & 0xf0) >> 4; if (size) { neg_word_rd(rd); } else { neg_byte_rd(rd); } break; }
+		case 0x0c: { movc_a_apc(); break; }
+		case 0x0e: { movc_a_adptr(); break; }
+		case 0x0f: { int reg = (op2 & 0xf0) >> 4; if (!size)    { mov_rd_usp(reg); } else { mov_usp_rs(reg); } break; }
+		default: { logerror("illegal %02x", op2); do_nop(); break; }
 		}
 	}
-
-	return;
 }
 
 /*

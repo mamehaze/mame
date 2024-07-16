@@ -701,9 +701,22 @@ private:
 	void pushu_byte_direct(u16 direct);
 	void push_word_direct(u16 direct);
 	void push_byte_direct(u16 direct);
-			
+
 	void mov_word_indrdinc_indrsinc(u8 rd, u8 rs);
 	void mov_byte_indrdinc_indrsinc(u8 rd, u8 rs);
+
+	void da_rd(u8 rd);
+	void sext_word_rd(u8 rd);
+	void sext_byte_rd(u8 rd);
+	void cpl_word_rd(u8 rd);
+	void cpl_byte_rd(u8 rd);
+	void neg_word_rd(u8 rd);
+	void neg_byte_rd(u8 rd);
+	void movc_a_apc();
+	void movc_a_adptr();
+	void mov_rd_usp(u8 rd);
+	void mov_usp_rs(u8 rs);
+
 
 	std::unordered_map<offs_t, const char *> m_names;
 
