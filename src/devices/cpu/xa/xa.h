@@ -690,6 +690,21 @@ private:
 	void movc_word_rd_indrsinc(u8 rd, u8 rs);
 	void movc_byte_rd_indrsinc(u8 rd, u8 rs);
 
+	void djnz_word_rd_rel8(u8 rd, u8 rel8);
+	void djnz_byte_rd_rel8(u8 rd, u8 rel8);
+
+	void popu_word_direct(u16 direct);
+	void popu_byte_direct(u16 direct);
+	void pop_word_direct(u16 direct);
+	void pop_byte_direct(u16 direct);
+	void pushu_word_direct(u16 direct);
+	void pushu_byte_direct(u16 direct);
+	void push_word_direct(u16 direct);
+	void push_byte_direct(u16 direct);
+			
+	void mov_word_indrdinc_indrsinc(u8 rd, u8 rs);
+	void mov_byte_indrdinc_indrsinc(u8 rd, u8 rs);
+
 	std::unordered_map<offs_t, const char *> m_names;
 
 

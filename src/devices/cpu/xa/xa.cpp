@@ -1750,95 +1750,24 @@ DJNZ Rd,rel8                Decrement reg and jump if not zero                  
 void xa_cpu_device::d_pushpop_djnz_subgroup(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
-	const u8 op3 = m_program->read_byte(m_pc++);
 	int size = op & 0x08;
-
-
 	if (op2 & 0x08)
 	{
-		int address = m_pc + ((s8)op3)*2;
+		const u8 rel8 = m_program->read_byte(m_pc++);
 		int rd = (op2 & 0xf0) >> 4;
-		address &= ~1; // must be word aligned
-		const char** regnames = size ? m_regnames16 : m_regnames8;
-
-		if (size) // DJNZ.w Rd, rel8
-		{
-			u16 regval = get_reg16(rd);
-			regval--;
-			set_reg16(rd, regval);
-
-			if (regval != 0)
-			{
-				set_pc_in_current_page(address);
-			}
-		}
-		else // DJNZ.b Rd, rel8
-		{
-			fatalerror("DJNZ.b %s, $%04x", regnames[rd], address);
-		}
-
-		return;
+		if (size) { djnz_word_rd_rel8(rd, rel8); } else { djnz_byte_rd_rel8(rd, rel8); }
 	}
 	else
 	{
+		const u8 op3 = m_program->read_byte(m_pc++);
 		const u16 direct = ((op2 & 0x07) << 8) | op3;
-
 		switch (op2 & 0xf0)
 		{
-		case 0x00:
-		{
-			if (size)
-			{
-				fatalerror("POPU.w %s", get_directtext(direct));
-			}
-			else
-			{
-				fatalerror("POPU.b %s", get_directtext(direct));
-			}
-			break;
-		}
-		case 0x10:
-		{
-			if (size)
-			{
-				fatalerror("POP.w %s", get_directtext(direct));
-			}
-			else
-			{
-				fatalerror("POP.b %s", get_directtext(direct));
-			}
-			break;
-		}
-
-		case 0x20:
-		{
-			if (size)
-			{
-				fatalerror("PUSHU.w %s", get_directtext(direct));
-			}
-			else
-			{
-				fatalerror("PUSHU.b %s", get_directtext(direct));
-			}
-			break;
-		}
-
-		case 0x30:
-		{
-			if (size)
-			{
-				fatalerror("PUSH.w %s", get_directtext(direct));
-			}
-			else
-			{
-				fatalerror("PUSH.b %s", get_directtext(direct));
-			}
-			break;
-		}
-
-		default:
-			fatalerror( "illegal");
-			break;
+		case 0x00: { if (size) { popu_word_direct(direct); } else { popu_byte_direct(direct); } break; }
+		case 0x10: { if (size) { pop_word_direct(direct); } else { pop_byte_direct(direct); } break; }
+		case 0x20: { if (size) { pushu_word_direct(direct); } else { pushu_byte_direct(direct); } break; }
+		case 0x30: { if (size) { push_word_direct(direct); } else { push_byte_direct(direct); } break; }
+		default: logerror("illegal push/pop"); do_nop(); break;
 		}
 	}
 }
@@ -1868,15 +1797,7 @@ void xa_cpu_device::d_g9_subgroup(XA_EXECUTE_PARAMS)
 	{
 		int rd = (op2 & 0x70) >> 4;
 		int rs = (op2 & 0x07);
-
-		if (size)
-		{
-			fatalerror("MOV.w [%s+], [%s+]", m_regnames16[rd], m_regnames16[rs]);
-		}
-		else
-		{
-			fatalerror("MOV.b [%s+], [%s+]", m_regnames16[rd], m_regnames16[rs]);
-		}
+		if (size) {	mov_word_indrdinc_indrsinc(rd, rs); } else { mov_byte_indrdinc_indrsinc(rd, rs); }
 	}
 	else
 	{

@@ -670,3 +670,19 @@ void xa_cpu_device::xch_byte_rd_rs(u8 rd, u8 rs) { fatalerror("XCH.b %s, %s", m_
 void xa_cpu_device::movc_word_rd_indrsinc(u8 rd, u8 rs) { fatalerror("MOVC.w %s, [%s+]\n", m_regnames16[rd], m_regnames16[rs]); }
 void xa_cpu_device::movc_byte_rd_indrsinc(u8 rd, u8 rs) { u16 ptr = get_reg16(rs); u8 data = m_program->read_byte(ptr); ptr++; set_reg16(rs, ptr); do_nz_flags_8(data); set_reg8(rd, data); }
 
+// DJNZ Rd,rel8                Decrement reg and jump if not zero                                      3 8t/5nt    1000 S111  dddd 1000  rrrr rrrr
+void xa_cpu_device::djnz_word_rd_rel8(u8 rd, u8 rel8) { u16 regval = get_reg16(rd); regval--; set_reg16(rd, regval); if (regval != 0) { set_pc_in_current_page(expand_rel8(rel8)); } }
+void xa_cpu_device::djnz_byte_rd_rel8(u8 rd, u8 rel8) { fatalerror("DJNZ.b %s, $%04x", m_regnames8[rd], expand_rel8(rel8)); }
+
+void xa_cpu_device::popu_word_direct(u16 direct) { fatalerror("POPU.w %s", get_directtext(direct)); }
+void xa_cpu_device::popu_byte_direct(u16 direct) { fatalerror("POPU.b %s", get_directtext(direct)); }
+void xa_cpu_device::pop_word_direct(u16 direct) { fatalerror("POP.w %s", get_directtext(direct)); }
+void xa_cpu_device::pop_byte_direct(u16 direct) { fatalerror("POP.b %s", get_directtext(direct)); }
+void xa_cpu_device::pushu_word_direct(u16 direct) { fatalerror("PUSHU.w %s", get_directtext(direct)); }
+void xa_cpu_device::pushu_byte_direct(u16 direct) { fatalerror("PUSHU.b %s", get_directtext(direct)); }
+void xa_cpu_device::push_word_direct(u16 direct) { fatalerror("PUSH.w %s", get_directtext(direct)); }
+void xa_cpu_device::push_byte_direct(u16 direct) { fatalerror("PUSH.b %s", get_directtext(direct)); }
+			
+// MOV [Rd+], [Rs+]            Move reg-ind to reg-ind, both pointers autoinc                          2 6         1001 S000  0ddd 0sss
+void xa_cpu_device::mov_word_indrdinc_indrsinc(u8 rd, u8 rs) { fatalerror("MOV.w [%s+], [%s+]", m_regnames16[rd], m_regnames16[rs]); }
+void xa_cpu_device::mov_byte_indrdinc_indrsinc(u8 rd, u8 rs) { fatalerror("MOV.w [%s+], [%s+]", m_regnames16[rd], m_regnames16[rs]); }
