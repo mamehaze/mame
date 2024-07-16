@@ -723,3 +723,10 @@ void xa_cpu_device::mov_byte_direct_indrs(u16 direct, u8 rs) { fatalerror("MOV.b
 void xa_cpu_device::mov_word_indrd_direct(u8 rd, u16 direct) { fatalerror("MOV.w [%s], %s", m_regnames16[rd], get_directtext(direct)); }
 void xa_cpu_device::mov_byte_indrd_direct(u8 rd, u16 direct) { fatalerror("MOV.b [%s], %s", m_regnames16[rd], get_directtext(direct)); }
 
+// MOVX [Rd], Rs               Move external data from reg to mem                                      2 6         1010 S111  ssss 1ddd
+void xa_cpu_device::movx_word_indrd_rs(u8 rd, u8 rs) { fatalerror("MOVX.w [%s], %s", m_regnames16[rd], m_regnames16[rs]); }
+void xa_cpu_device::movx_byte_indrd_rs(u8 rd, u8 rs) { fatalerror("MOVX.b [%s], %s", m_regnames16[rd], m_regnames8[rs]); }
+
+// MOVX Rd, [Rs]               Move external data from mem to reg                                      2 6         1010 S111  dddd 0sss
+void xa_cpu_device::movx_word_rd_indrs(u8 rd, u8 rs) { fatalerror("MOVX.w %s, [%s]", m_regnames16[rd], m_regnames16[rs]); }
+void xa_cpu_device::movx_byte_rd_indrs(u8 rd, u8 rs) { fatalerror("MOVX.b %s, [%s]", m_regnames8[rd], m_regnames16[rs]); }

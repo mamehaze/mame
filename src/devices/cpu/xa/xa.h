@@ -733,6 +733,11 @@ private:
 	void mov_word_indrd_direct(u8 rd, u16 direct);
 	void mov_byte_indrd_direct(u8 rd, u16 direct);
 
+	void movx_word_indrd_rs(u8 rd, u8 rs);
+	void movx_byte_indrd_rs(u8 rd, u8 rs);
+
+	void movx_word_rd_indrs(u8 rd, u8 rs);
+	void movx_byte_rd_indrs(u8 rd, u8 rs);
 
 	std::unordered_map<offs_t, const char *> m_names;
 

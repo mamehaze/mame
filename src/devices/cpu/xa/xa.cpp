@@ -2025,35 +2025,17 @@ void xa_cpu_device::d_movx_subgroup(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	int size = op & 0x08;
-	const char** regnames = size ? m_regnames16 : m_regnames8;
-
 	if (op2 & 0x08)
 	{
 		const u8 rs = (op2 & 0xf0) >> 4;
 		const u8 rd = (op2 & 0x07);
-
-		if (size)
-		{
-			fatalerror("MOVX.w [%s], %s", m_regnames16[rd], regnames[rs]);
-		}
-		else
-		{
-			fatalerror("MOVX.b [%s], %s", m_regnames16[rd], regnames[rs]);
-		}
+		if (size) { movx_word_indrd_rs(rd, rs); } else { movx_byte_indrd_rs(rd, rs); }
 	}
 	else
 	{
 		const u8 rd = (op2 & 0xf0) >> 4;
 		const u8 rs = (op2 & 0x07);
-
-		if (size)
-		{
-			fatalerror("MOVX.w %s, [%s]", regnames[rd], m_regnames16[rs]);
-		}
-		else
-		{
-			fatalerror("MOVX.b %s, [%s]", regnames[rd], m_regnames16[rs]);
-		}
+		if (size) { movx_word_rd_indrs(rd, rs); } else { movx_byte_rd_indrs(rd, rs); }
 	}
 }
 
