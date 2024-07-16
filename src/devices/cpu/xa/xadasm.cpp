@@ -6,54 +6,54 @@
 
 const xa_dasm::op_func xa_dasm::s_instruction[256] =
 {
-// group 0	
-&xa_dasm::d_nop,			&xa_dasm::d_add,	&xa_dasm::d_add,		&xa_dasm::d_add,		&xa_dasm::d_add,	&xa_dasm::d_add,	&xa_dasm::d_add,		&xa_dasm::d_push_rlist,
-&xa_dasm::d_bitgroup,		&xa_dasm::d_add,	&xa_dasm::d_add,		&xa_dasm::d_add,		&xa_dasm::d_add,	&xa_dasm::d_add,	&xa_dasm::d_add,		&xa_dasm::d_push_rlist, 
+// group 0
+&xa_dasm::d_nop,            &xa_dasm::d_add,    &xa_dasm::d_add,        &xa_dasm::d_add,        &xa_dasm::d_add,    &xa_dasm::d_add,    &xa_dasm::d_add,        &xa_dasm::d_push_rlist,
+&xa_dasm::d_bitgroup,       &xa_dasm::d_add,    &xa_dasm::d_add,        &xa_dasm::d_add,        &xa_dasm::d_add,    &xa_dasm::d_add,    &xa_dasm::d_add,        &xa_dasm::d_push_rlist,
 // group 1
-&xa_dasm::d_illegal,		&xa_dasm::d_addc,	&xa_dasm::d_addc,		&xa_dasm::d_addc,		&xa_dasm::d_addc,	&xa_dasm::d_addc,	&xa_dasm::d_addc,		&xa_dasm::d_pushu_rlist,
-&xa_dasm::d_illegal,		&xa_dasm::d_addc,	&xa_dasm::d_addc,		&xa_dasm::d_addc,		&xa_dasm::d_addc,	&xa_dasm::d_addc,	&xa_dasm::d_addc,		&xa_dasm::d_pushu_rlist, 
+&xa_dasm::d_illegal,        &xa_dasm::d_addc,   &xa_dasm::d_addc,       &xa_dasm::d_addc,       &xa_dasm::d_addc,   &xa_dasm::d_addc,   &xa_dasm::d_addc,       &xa_dasm::d_pushu_rlist,
+&xa_dasm::d_illegal,        &xa_dasm::d_addc,   &xa_dasm::d_addc,       &xa_dasm::d_addc,       &xa_dasm::d_addc,   &xa_dasm::d_addc,   &xa_dasm::d_addc,       &xa_dasm::d_pushu_rlist,
 // group 2
-&xa_dasm::d_illegal,		&xa_dasm::d_sub,	&xa_dasm::d_sub,		&xa_dasm::d_sub,		&xa_dasm::d_sub,	&xa_dasm::d_sub,	&xa_dasm::d_sub,		&xa_dasm::d_pop_rlist,
-&xa_dasm::d_illegal,		&xa_dasm::d_sub,	&xa_dasm::d_sub,		&xa_dasm::d_sub,		&xa_dasm::d_sub,	&xa_dasm::d_sub,	&xa_dasm::d_sub,		&xa_dasm::d_pop_rlist, 
+&xa_dasm::d_illegal,        &xa_dasm::d_sub,    &xa_dasm::d_sub,        &xa_dasm::d_sub,        &xa_dasm::d_sub,    &xa_dasm::d_sub,    &xa_dasm::d_sub,        &xa_dasm::d_pop_rlist,
+&xa_dasm::d_illegal,        &xa_dasm::d_sub,    &xa_dasm::d_sub,        &xa_dasm::d_sub,        &xa_dasm::d_sub,    &xa_dasm::d_sub,    &xa_dasm::d_sub,        &xa_dasm::d_pop_rlist,
 // group 3
-&xa_dasm::d_illegal,		&xa_dasm::d_subb,	&xa_dasm::d_subb,		&xa_dasm::d_subb,		&xa_dasm::d_subb,	&xa_dasm::d_subb,	&xa_dasm::d_subb,		&xa_dasm::d_popu_rlist,
-&xa_dasm::d_illegal,		&xa_dasm::d_subb,	&xa_dasm::d_subb,		&xa_dasm::d_subb,		&xa_dasm::d_subb,	&xa_dasm::d_subb,	&xa_dasm::d_subb,		&xa_dasm::d_popu_rlist, 
+&xa_dasm::d_illegal,        &xa_dasm::d_subb,   &xa_dasm::d_subb,       &xa_dasm::d_subb,       &xa_dasm::d_subb,   &xa_dasm::d_subb,   &xa_dasm::d_subb,       &xa_dasm::d_popu_rlist,
+&xa_dasm::d_illegal,        &xa_dasm::d_subb,   &xa_dasm::d_subb,       &xa_dasm::d_subb,       &xa_dasm::d_subb,   &xa_dasm::d_subb,   &xa_dasm::d_subb,       &xa_dasm::d_popu_rlist,
 // group 4
-&xa_dasm::d_lea_offset8,	&xa_dasm::d_cmp,	&xa_dasm::d_cmp,		&xa_dasm::d_cmp,		&xa_dasm::d_cmp,	&xa_dasm::d_cmp,	&xa_dasm::d_cmp,		&xa_dasm::d_push_rlist,
-&xa_dasm::d_lea_offset16,	&xa_dasm::d_cmp,	&xa_dasm::d_cmp,		&xa_dasm::d_cmp,		&xa_dasm::d_cmp,	&xa_dasm::d_cmp,	&xa_dasm::d_cmp,		&xa_dasm::d_push_rlist, 
+&xa_dasm::d_lea_offset8,    &xa_dasm::d_cmp,    &xa_dasm::d_cmp,        &xa_dasm::d_cmp,        &xa_dasm::d_cmp,    &xa_dasm::d_cmp,    &xa_dasm::d_cmp,        &xa_dasm::d_push_rlist,
+&xa_dasm::d_lea_offset16,   &xa_dasm::d_cmp,    &xa_dasm::d_cmp,        &xa_dasm::d_cmp,        &xa_dasm::d_cmp,    &xa_dasm::d_cmp,    &xa_dasm::d_cmp,        &xa_dasm::d_push_rlist,
 // group 5
-&xa_dasm::d_xch_type1,		&xa_dasm::d_and,	&xa_dasm::d_and,		&xa_dasm::d_and,		&xa_dasm::d_and,	&xa_dasm::d_and,	&xa_dasm::d_and,		&xa_dasm::d_pushu_rlist,
-&xa_dasm::d_xch_type1,		&xa_dasm::d_and,	&xa_dasm::d_and,		&xa_dasm::d_and,		&xa_dasm::d_and,	&xa_dasm::d_and,	&xa_dasm::d_and,		&xa_dasm::d_pushu_rlist, 
+&xa_dasm::d_xch_type1,      &xa_dasm::d_and,    &xa_dasm::d_and,        &xa_dasm::d_and,        &xa_dasm::d_and,    &xa_dasm::d_and,    &xa_dasm::d_and,        &xa_dasm::d_pushu_rlist,
+&xa_dasm::d_xch_type1,      &xa_dasm::d_and,    &xa_dasm::d_and,        &xa_dasm::d_and,        &xa_dasm::d_and,    &xa_dasm::d_and,    &xa_dasm::d_and,        &xa_dasm::d_pushu_rlist,
 // group 6
-&xa_dasm::d_xch_type2,		&xa_dasm::d_or,		&xa_dasm::d_or,			&xa_dasm::d_or,			&xa_dasm::d_or,		&xa_dasm::d_or,		&xa_dasm::d_or,			&xa_dasm::d_pop_rlist,
-&xa_dasm::d_xch_type2,		&xa_dasm::d_or,		&xa_dasm::d_or,			&xa_dasm::d_or,			&xa_dasm::d_or,		&xa_dasm::d_or,		&xa_dasm::d_or,			&xa_dasm::d_pop_rlist, 
+&xa_dasm::d_xch_type2,      &xa_dasm::d_or,     &xa_dasm::d_or,         &xa_dasm::d_or,         &xa_dasm::d_or,     &xa_dasm::d_or,     &xa_dasm::d_or,         &xa_dasm::d_pop_rlist,
+&xa_dasm::d_xch_type2,      &xa_dasm::d_or,     &xa_dasm::d_or,         &xa_dasm::d_or,         &xa_dasm::d_or,     &xa_dasm::d_or,     &xa_dasm::d_or,         &xa_dasm::d_pop_rlist,
 // group 7
-&xa_dasm::d_illegal,		&xa_dasm::d_xor,	&xa_dasm::d_xor,		&xa_dasm::d_xor,		&xa_dasm::d_xor,	&xa_dasm::d_xor,	&xa_dasm::d_xor,		&xa_dasm::d_popu_rlist,
-&xa_dasm::d_illegal,		&xa_dasm::d_xor,	&xa_dasm::d_xor,		&xa_dasm::d_xor,		&xa_dasm::d_xor,	&xa_dasm::d_xor,	&xa_dasm::d_xor,		&xa_dasm::d_popu_rlist, 
+&xa_dasm::d_illegal,        &xa_dasm::d_xor,    &xa_dasm::d_xor,        &xa_dasm::d_xor,        &xa_dasm::d_xor,    &xa_dasm::d_xor,    &xa_dasm::d_xor,        &xa_dasm::d_popu_rlist,
+&xa_dasm::d_illegal,        &xa_dasm::d_xor,    &xa_dasm::d_xor,        &xa_dasm::d_xor,        &xa_dasm::d_xor,    &xa_dasm::d_xor,    &xa_dasm::d_xor,        &xa_dasm::d_popu_rlist,
 // group 8
-&xa_dasm::d_movc_rd_rsinc,	&xa_dasm::d_mov,	&xa_dasm::d_mov,		&xa_dasm::d_mov,		&xa_dasm::d_mov,	&xa_dasm::d_mov,	&xa_dasm::d_mov,		&xa_dasm::d_pushpop_djnz_subgroup,
-&xa_dasm::d_movc_rd_rsinc,	&xa_dasm::d_mov,	&xa_dasm::d_mov,		&xa_dasm::d_mov,		&xa_dasm::d_mov,	&xa_dasm::d_mov,	&xa_dasm::d_mov,		&xa_dasm::d_pushpop_djnz_subgroup, 
+&xa_dasm::d_movc_rd_rsinc,  &xa_dasm::d_mov,    &xa_dasm::d_mov,        &xa_dasm::d_mov,        &xa_dasm::d_mov,    &xa_dasm::d_mov,    &xa_dasm::d_mov,        &xa_dasm::d_pushpop_djnz_subgroup,
+&xa_dasm::d_movc_rd_rsinc,  &xa_dasm::d_mov,    &xa_dasm::d_mov,        &xa_dasm::d_mov,        &xa_dasm::d_mov,    &xa_dasm::d_mov,    &xa_dasm::d_mov,        &xa_dasm::d_pushpop_djnz_subgroup,
 // group 9
-&xa_dasm::d_g9_subgroup,	&xa_dasm::d_alu,	&xa_dasm::d_alu,		&xa_dasm::d_alu,		&xa_dasm::d_alu,	&xa_dasm::d_alu,	&xa_dasm::d_alu,		&xa_dasm::d_jb_mov_subgroup,
-&xa_dasm::d_g9_subgroup,	&xa_dasm::d_alu,	&xa_dasm::d_alu,		&xa_dasm::d_alu,		&xa_dasm::d_alu,	&xa_dasm::d_alu,	&xa_dasm::d_alu,		&xa_dasm::d_jb_mov_subgroup, 
+&xa_dasm::d_g9_subgroup,    &xa_dasm::d_alu,    &xa_dasm::d_alu,        &xa_dasm::d_alu,        &xa_dasm::d_alu,    &xa_dasm::d_alu,    &xa_dasm::d_alu,        &xa_dasm::d_jb_mov_subgroup,
+&xa_dasm::d_g9_subgroup,    &xa_dasm::d_alu,    &xa_dasm::d_alu,        &xa_dasm::d_alu,        &xa_dasm::d_alu,    &xa_dasm::d_alu,    &xa_dasm::d_alu,        &xa_dasm::d_jb_mov_subgroup,
 // group a
-&xa_dasm::d_movdir,			&xa_dasm::d_adds,	&xa_dasm::d_adds,		&xa_dasm::d_adds,		&xa_dasm::d_adds,	&xa_dasm::d_adds,	&xa_dasm::d_adds,		&xa_dasm::d_movx_subgroup,
-&xa_dasm::d_movdir,			&xa_dasm::d_adds,	&xa_dasm::d_adds,		&xa_dasm::d_adds,		&xa_dasm::d_adds,	&xa_dasm::d_adds,	&xa_dasm::d_adds,		&xa_dasm::d_movx_subgroup, 
+&xa_dasm::d_movdir,         &xa_dasm::d_adds,   &xa_dasm::d_adds,       &xa_dasm::d_adds,       &xa_dasm::d_adds,   &xa_dasm::d_adds,   &xa_dasm::d_adds,       &xa_dasm::d_movx_subgroup,
+&xa_dasm::d_movdir,         &xa_dasm::d_adds,   &xa_dasm::d_adds,       &xa_dasm::d_adds,       &xa_dasm::d_adds,   &xa_dasm::d_adds,   &xa_dasm::d_adds,       &xa_dasm::d_movx_subgroup,
 // group b
-&xa_dasm::d_rr,				&xa_dasm::d_movs,	&xa_dasm::d_movs,		&xa_dasm::d_movs,		&xa_dasm::d_movs,	&xa_dasm::d_movs,	&xa_dasm::d_movs,		&xa_dasm::d_rrc,
-&xa_dasm::d_rr,				&xa_dasm::d_movs,	&xa_dasm::d_movs,		&xa_dasm::d_movs,		&xa_dasm::d_movs,	&xa_dasm::d_movs,	&xa_dasm::d_movs,		&xa_dasm::d_rrc, 
+&xa_dasm::d_rr,             &xa_dasm::d_movs,   &xa_dasm::d_movs,       &xa_dasm::d_movs,       &xa_dasm::d_movs,   &xa_dasm::d_movs,   &xa_dasm::d_movs,       &xa_dasm::d_rrc,
+&xa_dasm::d_rr,             &xa_dasm::d_movs,   &xa_dasm::d_movs,       &xa_dasm::d_movs,       &xa_dasm::d_movs,   &xa_dasm::d_movs,   &xa_dasm::d_movs,       &xa_dasm::d_rrc,
 // group c
-&xa_dasm::d_lsr_fc,			&xa_dasm::d_asl_c,	&xa_dasm::d_asr_c,		&xa_dasm::d_norm,		&xa_dasm::d_lsr_fc,	&xa_dasm::d_asl_c,	&xa_dasm::d_asr_c,		&xa_dasm::d_norm,
-&xa_dasm::d_lsr_fc,			&xa_dasm::d_asl_c,	&xa_dasm::d_asr_c,		&xa_dasm::d_norm,		&xa_dasm::d_lsr_fc,	&xa_dasm::d_asl_c,	&xa_dasm::d_asr_c,		&xa_dasm::d_norm, 
+&xa_dasm::d_lsr_fc,         &xa_dasm::d_asl_c,  &xa_dasm::d_asr_c,      &xa_dasm::d_norm,       &xa_dasm::d_lsr_fc, &xa_dasm::d_asl_c,  &xa_dasm::d_asr_c,      &xa_dasm::d_norm,
+&xa_dasm::d_lsr_fc,         &xa_dasm::d_asl_c,  &xa_dasm::d_asr_c,      &xa_dasm::d_norm,       &xa_dasm::d_lsr_fc, &xa_dasm::d_asl_c,  &xa_dasm::d_asr_c,      &xa_dasm::d_norm,
 // group d
-&xa_dasm::d_lsr_fj,			&xa_dasm::d_asl_j,	&xa_dasm::d_asr_j,		&xa_dasm::d_rl,			&xa_dasm::d_lsr_fj,	&xa_dasm::d_asl_j,	&xa_dasm::d_asr_j,		&xa_dasm::d_rlc,
-&xa_dasm::d_lsr_fj,			&xa_dasm::d_asl_j,	&xa_dasm::d_asr_j,		&xa_dasm::d_rl,			&xa_dasm::d_lsr_fj,	&xa_dasm::d_asl_j,	&xa_dasm::d_asr_j,		&xa_dasm::d_rlc, 
+&xa_dasm::d_lsr_fj,         &xa_dasm::d_asl_j,  &xa_dasm::d_asr_j,      &xa_dasm::d_rl,         &xa_dasm::d_lsr_fj, &xa_dasm::d_asl_j,  &xa_dasm::d_asr_j,      &xa_dasm::d_rlc,
+&xa_dasm::d_lsr_fj,         &xa_dasm::d_asl_j,  &xa_dasm::d_asr_j,      &xa_dasm::d_rl,         &xa_dasm::d_lsr_fj, &xa_dasm::d_asl_j,  &xa_dasm::d_asr_j,      &xa_dasm::d_rlc,
 // group e
-&xa_dasm::d_mulu_b,			&xa_dasm::d_divu_b,	&xa_dasm::d_djnz_cjne,	&xa_dasm::d_cjne_d8,	&xa_dasm::d_mulu_w,	&xa_dasm::d_divu_w,	&xa_dasm::d_mul_w,		&xa_dasm::d_div_w,
-&xa_dasm::d_div_data8,		&xa_dasm::d_div_d16,&xa_dasm::d_djnz_cjne,	&xa_dasm::d_cjne_d16,	&xa_dasm::d_jz_rel8,&xa_dasm::d_divu_d,	&xa_dasm::d_jnz_rel8,	&xa_dasm::d_div_d, 
+&xa_dasm::d_mulu_b,         &xa_dasm::d_divu_b, &xa_dasm::d_djnz_cjne,  &xa_dasm::d_cjne_d8,    &xa_dasm::d_mulu_w, &xa_dasm::d_divu_w, &xa_dasm::d_mul_w,      &xa_dasm::d_div_w,
+&xa_dasm::d_div_data8,      &xa_dasm::d_div_d16,&xa_dasm::d_djnz_cjne,  &xa_dasm::d_cjne_d16,   &xa_dasm::d_jz_rel8,&xa_dasm::d_divu_d, &xa_dasm::d_jnz_rel8,   &xa_dasm::d_div_d,
 // group f
-&xa_dasm::d_branch,			&xa_dasm::d_branch,	&xa_dasm::d_branch,		&xa_dasm::d_branch,		&xa_dasm::d_branch,	&xa_dasm::d_branch,	&xa_dasm::d_branch,		&xa_dasm::d_branch,
-&xa_dasm::d_branch,			&xa_dasm::d_branch,	&xa_dasm::d_branch,		&xa_dasm::d_branch,		&xa_dasm::d_branch,	&xa_dasm::d_branch,	&xa_dasm::d_branch,		&xa_dasm::d_bkpt, 
+&xa_dasm::d_branch,         &xa_dasm::d_branch, &xa_dasm::d_branch,     &xa_dasm::d_branch,     &xa_dasm::d_branch, &xa_dasm::d_branch, &xa_dasm::d_branch,     &xa_dasm::d_branch,
+&xa_dasm::d_branch,         &xa_dasm::d_branch, &xa_dasm::d_branch,     &xa_dasm::d_branch,     &xa_dasm::d_branch, &xa_dasm::d_branch, &xa_dasm::d_branch,     &xa_dasm::d_bkpt,
 };
 
 // SFR names
@@ -68,13 +68,13 @@ const xa_dasm::mem_info xa_dasm::default_names[] = {
 	{  0x411, "TSTAT" },
 	{  0x418, "T2CON" },
 	{  0x419, "T2MOD" },
-	{  0x41F, "WDCON" }, 
-	{  0x420, "S0CON" }, 
-	{  0x421, "S0STAT" }, 
+	{  0x41F, "WDCON" },
+	{  0x420, "S0CON" },
+	{  0x421, "S0STAT" },
 	{  0x424, "S1CON" },
-	{  0x425, "S1STAT" }, 
+	{  0x425, "S1STAT" },
 	{  0x426, "IEL" },
-	{  0x427, "IEH" }, 
+	{  0x427, "IEH" },
 	{  0x42A, "SWR" },
 	{  0x430, "P0" },
 	{  0x431, "P1" },
@@ -105,22 +105,22 @@ const xa_dasm::mem_info xa_dasm::default_names[] = {
 	{  0x462, "S0ADEN" },
 	{  0x464, "S1BUF" },
 	{  0x465, "S1ADDR" },
-	{  0x466, "S1ADEN" }, 
+	{  0x466, "S1ADEN" },
 	{  0x468, "BTRL" },
 	{  0x469, "BTRH" },
 	{  0x46A, "BCR" },
 	{  0x470, "P0CFGA" },
 	{  0x471, "P1CFGA" },
 	{  0x472, "P2CFGA" },
-	{  0x473, "P3CFGA" }, 
+	{  0x473, "P3CFGA" },
 	{  0x47A, "SWE" },
 	{  0x4A0, "IPA0" },
 	{  0x4A1, "IPA1" },
-	{  0x4A2, "IPA2" }, 
+	{  0x4A2, "IPA2" },
 	{  0x4A3, "IPA3" },
 	{  0x4A4, "IPA4" },
-	{  0x4A5, "IPA5" }, 
-	{  0x4F0, "P0CFGB" }, 
+	{  0x4A5, "IPA5" },
+	{  0x4F0, "P0CFGB" },
 	{  0x4F1, "P1CFGB" },
 	{  0x4F2, "P2CFGB" },
 	{  0x4F3, "P3CFGB" },
@@ -605,15 +605,15 @@ int xa_dasm::d_bitgroup(XA_DASM_PARAMS)
 
 	switch (op2 & 0xf0)
 	{
-	case 0x00: util::stream_format(stream, "CLR %s", get_bittext(bit) ); break; 
+	case 0x00: util::stream_format(stream, "CLR %s", get_bittext(bit) ); break;
 	case 0x10: util::stream_format(stream, "SETB %s", get_bittext(bit) ); break;
-	case 0x20: util::stream_format(stream, "MOV C, %s", get_bittext(bit) );	break;
+	case 0x20: util::stream_format(stream, "MOV C, %s", get_bittext(bit) ); break;
 	case 0x30: util::stream_format(stream, "MOV %s, C", get_bittext(bit) ); break;
 	case 0x40: util::stream_format(stream, "ANL C, %s", get_bittext(bit) ); break;
 	case 0x50: util::stream_format(stream, "ANL C, /%s", get_bittext(bit) ); break;
 	case 0x60: util::stream_format(stream, "ORL C, %s", get_bittext(bit) ); break;
 	case 0x70: util::stream_format(stream, "ORL C, /%s", get_bittext(bit) ); break;
-	default:   util::stream_format(stream, "illegal bit op %s", get_bittext(bit) );	break;
+	default:   util::stream_format(stream, "illegal bit op %s", get_bittext(bit) ); break;
 	}
 	return 3;
 }
@@ -809,7 +809,7 @@ AND Rd, [Rs+]               Logical AND reg-ind w/ autoinc to reg               
 AND [Rd+], Rs               Logical AND reg-ind w/ autoinc to reg                                   2 5         0101 S011  ssss 1ddd
 AND direct, Rs              Logical AND reg to mem                                                  3 4         0101 S110  ssss 1DDD  DDDD DDDD
 AND Rd, direct              Logical AND mem to reg                                                  3 4         0101 S110  dddd 0DDD  DDDD DDDD
-*/ 
+*/
 int xa_dasm::d_and(XA_DASM_PARAMS)
 {
 	return handle_alu_type0(XA_CALL_PARAMS, 5);
@@ -828,7 +828,7 @@ int xa_dasm::d_xch_type2(XA_DASM_PARAMS)
 	const u8 rd = (op2 & 0xf0) >> 4;
 	const u8 rs = (op2 & 0x0f);
 
-	util::stream_format(stream, "XCH %s, %s", regnames[rd], regnames[rs]);
+	util::stream_format(stream, "XCH%s %s, %s", size ? ".w" : ".b", regnames[rd], regnames[rs]);
 	return 2;
 }
 
@@ -1029,12 +1029,12 @@ int xa_dasm::d_g9_subgroup(XA_DASM_PARAMS)
 			if (!size)
 			{
 				int rd = (op2 & 0xf0) >> 4;
-				util::stream_format(stream, "MOV %s, USP", m_regnames16[rd]);		 
+				util::stream_format(stream, "MOV %s, USP", m_regnames16[rd]);
 			}
 			else
 			{
 				int rs = (op2 & 0xf0) >> 4;
-				util::stream_format(stream, "MOV USP, %s", m_regnames16[rs]);		 
+				util::stream_format(stream, "MOV USP, %s", m_regnames16[rs]);
 			}
 			return 2;
 		}
@@ -1244,7 +1244,7 @@ int xa_dasm::d_movdir(XA_DASM_PARAMS)
 		{
 			const u8 rd = op2 & (0x70) >> 4;
 			util::stream_format(stream, "MOV%s [%s], %s",  size ? ".w" : ".b", m_regnames16[rd], get_directtext(direct));
-			return 3;	
+			return 3;
 		}
 	}
 
@@ -1293,7 +1293,7 @@ int xa_dasm::d_movx_subgroup(XA_DASM_PARAMS)
 
 /*
 RR Rd, #data4               Rotate right reg by the 4-bit imm value                                 2 a*        1011 S000  dddd iiii
-*/ 
+*/
 int xa_dasm::d_rr(XA_DASM_PARAMS)
 {
 	const u8 op2 = opcodes.r8(pc++);
@@ -1400,7 +1400,7 @@ int xa_dasm::d_asl_c(XA_DASM_PARAMS)
 /*
 ASR Rd, Rs                  Arithmetic shift right dest reg by the count in the src                 2 a*        1100 SS10  dddd ssss
 CALL [Rs]                   Subroutine call ind w/ a reg                                            2 8/5(PZ)   1100 0110  0000 0sss
-*/ 
+*/
 int xa_dasm::d_asr_c(XA_DASM_PARAMS)
 {
 	int size = (op & 0x0c) >> 2;

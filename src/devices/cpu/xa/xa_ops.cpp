@@ -485,7 +485,7 @@ void xa_cpu_device::movs_word_rd_data4(u8 rd, u8 data4) { fatalerror("MOVS.w %s,
 void xa_cpu_device::adds_word_rd_data4(u8 rd, u8 data4) { fatalerror("ADDS.w %s, %s", m_regnames16[rd], show_expanded_data4(data4, 1)); }
 
 // ADDS.b / MOVS.b Rd, #data4
-void xa_cpu_device::movs_byte_rd_data4(u8 rd, u8 data4){ u8 data = util::sext(data4, 4); set_reg8(rd, data);	do_nz_flags_8(data); }
+void xa_cpu_device::movs_byte_rd_data4(u8 rd, u8 data4){ u8 data = util::sext(data4, 4); set_reg8(rd, data);    do_nz_flags_8(data); }
 void xa_cpu_device::adds_byte_rd_data4(u8 rd, u8 data4){ fatalerror("ADDS.b %s, %s", m_regnames8[rd], show_expanded_data4(data4, 0)); }
 
 // ADDS.w / MOVS.w [Rd], #data4
@@ -606,38 +606,38 @@ void xa_cpu_device::norm_word_rd_rs(u8 rd, u8 rs) { fatalerror("NORM.w %s, %d", 
 void xa_cpu_device::norm_dword_rd_rs(u8 rd, u8 rs) { fatalerror("NORM.dw %s, %d", m_regnames16[rd], m_regnames8[rs]); }
 
 
-//MULU.b Rd, Rs 
+//MULU.b Rd, Rs
 void xa_cpu_device::mulu_byte_rd_rs(u8 rd, u8 rs) { fatalerror( "MULU.b %s, %s", m_regnames8[rd], m_regnames8[rs]); }
-//DIVU.b Rd, Rs 
+//DIVU.b Rd, Rs
 void xa_cpu_device::divu_byte_rd_rs(u8 rd, u8 rs) { fatalerror( "DIVU.b %s, %s", m_regnames8[rd], m_regnames8[rs]); }
 //MULU.w Rd, Rs
 void xa_cpu_device::mulu_word_rd_rs(u8 rd, u8 rs) { fatalerror( "MULU.w %s, %s", m_regnames16[rd], m_regnames16[rs]); }
-//DIVU.w Rd, Rs 
+//DIVU.w Rd, Rs
 void xa_cpu_device::divu_word_rd_rs(u8 rd, u8 rs) { fatalerror( "DIVU.w %s, %s", m_regnames16[rd], m_regnames16[rs]); }
 // MUL.w Rd, Rs
 void xa_cpu_device::mul_word_rd_rs(u8 rd, u8 rs) { fatalerror( "MUL.w %s, %s", m_regnames16[rd], m_regnames16[rs]); }
-// DIV.w Rd, Rs  
+// DIV.w Rd, Rs
 void xa_cpu_device::div_word_rd_rs(u8 rd, u8 rs) { fatalerror( "DIV.w %s, %s", m_regnames16[rd], m_regnames16[rs]); }
 
 //DIV.w Rd, #data8
 void xa_cpu_device::div_word_rd_data8(u8 rd, u8 data8) { fatalerror( "DIV.w %s, #$%02x", m_regnames8[rd], data8); }
-//DIVU.b Rd, #data8 
+//DIVU.b Rd, #data8
 void xa_cpu_device::divu_byte_rd_data8(u8 rd, u8 data8) { fatalerror( "DIVU.b %s, #$%02x", m_regnames8[rd], data8); }
-//DIVU.w Rd, #data8 
+//DIVU.w Rd, #data8
 void xa_cpu_device::divu_word_rd_data8(u8 rd, u8 data8) { fatalerror( "DIVU.w %s, #$%02x", m_regnames8[rd], data8); }
-//MULU.b Rd, #data8  
+//MULU.b Rd, #data8
 void xa_cpu_device::mulu_byte_rd_data8(u8 rd, u8 data8) { fatalerror( "MULU.b %s, #$%02x", m_regnames8[rd], data8); }
 
 //MULU.w Rd, #data16
 void xa_cpu_device::mulu_word_rd_data16(u8 rd, u16 data16) { fatalerror( "MULU.w %s, #$%04x", m_regnames16[rd], data16); }
-//DIVU.d Rd, #data16  
+//DIVU.d Rd, #data16
 void xa_cpu_device::divu_dword_rd_data16(u8 rd, u16 data16) { fatalerror( "DIVU.d %s, #$%04x", m_regnames16[rd], data16); }
-//MUL.w Rd, #data16   
+//MUL.w Rd, #data16
 void xa_cpu_device::mul_word_rd_data16(u8 rd, u16 data16) { fatalerror( "MUL.w %s, #$%04x", m_regnames16[rd], data16); }
-//DIV.d Rd, #data16   
+//DIV.d Rd, #data16
 void xa_cpu_device::div_dword_rd_data16(u8 rd, u16 data16) { fatalerror( "DIV.d %s, #$%04x", m_regnames16[rd], data16); }
 
-//DIVU.d Rd, Rs  
+//DIVU.d Rd, Rs
 void xa_cpu_device::divu_dword_rd_rs(u8 rd, u8 rs) { fatalerror( "DIVU.d %s, %s", m_regnames16[rd], m_regnames16[rs]); }
 //DIV.d Rd, Rs
 void xa_cpu_device::div_dword_rd_rs(u8 rd, u8 rs) { fatalerror( "DIV.d %s, %s", m_regnames16[rd], m_regnames16[rs]); }
@@ -658,8 +658,15 @@ void xa_cpu_device::lea_word_rd_rs_off8(u8 rd, u8 rs, u8 offs8) { fatalerror("LE
 // LEA Rd, Rs+offset16         Load 16-bit effective address w/ 16-bit offs to reg                     4 3         0100 1000  0ddd 0sss  oooo oooo  oooo oooo
 void xa_cpu_device::lea_word_rd_rs_off16(u8 rd, u8 rs, u16 offs16) { fatalerror( "LEA %s, %s+#$%04x", m_regnames16[rd], m_regnames16[rs], offs16); }
 
-// XCH.w Rd, [Rs]                Exchange contents of a reg-ind address w/ a reg                         2 6         0101 S000  dddd 0sss
+// XCH Rd, [Rs]                Exchange contents of a reg-ind address w/ a reg                         2 6         0101 S000  dddd 0sss
 void xa_cpu_device::xch_word_rd_indrs(u8 rd, u8 rs) { fatalerror("XCH.w %s, [%s]", m_regnames16[rd], m_regnames16[rs]); }
-
-// XCH.b Rd, [Rs]                Exchange contents of a reg-ind address w/ a reg                         2 6         0101 S000  dddd 0sss
 void xa_cpu_device::xch_byte_rd_indrs(u8 rd, u8 rs) { fatalerror("XCH.b %s, [%s]", m_regnames8[rd], m_regnames16[rs]); }
+
+// XCH Rd, Rs                  Exchange contents of two regs                                           2 5         0110 S000  dddd ssss
+void xa_cpu_device::xch_word_rd_rs(u8 rd, u8 rs) { fatalerror("XCH.w %s, %s", m_regnames16[rd], m_regnames16[rs]); }
+void xa_cpu_device::xch_byte_rd_rs(u8 rd, u8 rs) { fatalerror("XCH.b %s, %s", m_regnames8[rd], m_regnames8[rs]); }
+
+// MOVC Rd, [Rs+]              Move data from WS:Rs address of code mem to reg w/ autoinc              2 4         1000 S000  dddd 0sss
+void xa_cpu_device::movc_word_rd_indrsinc(u8 rd, u8 rs) { fatalerror("MOVC.w %s, [%s+]\n", m_regnames16[rd], m_regnames16[rs]); }
+void xa_cpu_device::movc_byte_rd_indrsinc(u8 rd, u8 rs) { u16 ptr = get_reg16(rs); u8 data = m_program->read_byte(ptr); ptr++; set_reg16(rs, ptr); do_nz_flags_8(data); set_reg8(rd, data); }
+

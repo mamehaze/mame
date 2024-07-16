@@ -684,7 +684,11 @@ private:
 
 	void xch_word_rd_indrs(u8 rd, u8 rs);
 	void xch_byte_rd_indrs(u8 rd, u8 rs);
+	void xch_word_rd_rs(u8 rd, u8 rs);
+	void xch_byte_rd_rs(u8 rd, u8 rs);
 
+	void movc_word_rd_indrsinc(u8 rd, u8 rs);
+	void movc_byte_rd_indrsinc(u8 rd, u8 rs);
 
 	std::unordered_map<offs_t, const char *> m_names;
 

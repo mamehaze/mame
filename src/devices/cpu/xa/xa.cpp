@@ -158,54 +158,54 @@ device_memory_interface::space_config_vector xa_cpu_device::memory_space_config(
 
 const xa_cpu_device::op_func xa_cpu_device::s_instruction[256] =
 {
-// group 0	
-&xa_cpu_device::d_nop,			&xa_cpu_device::d_add,	&xa_cpu_device::d_add,		&xa_cpu_device::d_add,		&xa_cpu_device::d_add,	&xa_cpu_device::d_add,	&xa_cpu_device::d_add,		&xa_cpu_device::d_push_rlist,
-&xa_cpu_device::d_bitgroup,		&xa_cpu_device::d_add,	&xa_cpu_device::d_add,		&xa_cpu_device::d_add,		&xa_cpu_device::d_add,	&xa_cpu_device::d_add,	&xa_cpu_device::d_add,		&xa_cpu_device::d_push_rlist, 
+// group 0
+&xa_cpu_device::d_nop,          &xa_cpu_device::d_add,  &xa_cpu_device::d_add,      &xa_cpu_device::d_add,      &xa_cpu_device::d_add,  &xa_cpu_device::d_add,  &xa_cpu_device::d_add,      &xa_cpu_device::d_push_rlist,
+&xa_cpu_device::d_bitgroup,     &xa_cpu_device::d_add,  &xa_cpu_device::d_add,      &xa_cpu_device::d_add,      &xa_cpu_device::d_add,  &xa_cpu_device::d_add,  &xa_cpu_device::d_add,      &xa_cpu_device::d_push_rlist,
 // group 1
-&xa_cpu_device::d_illegal,		&xa_cpu_device::d_addc,	&xa_cpu_device::d_addc,		&xa_cpu_device::d_addc,		&xa_cpu_device::d_addc,	&xa_cpu_device::d_addc,	&xa_cpu_device::d_addc,		&xa_cpu_device::d_pushu_rlist,
-&xa_cpu_device::d_illegal,		&xa_cpu_device::d_addc,	&xa_cpu_device::d_addc,		&xa_cpu_device::d_addc,		&xa_cpu_device::d_addc,	&xa_cpu_device::d_addc,	&xa_cpu_device::d_addc,		&xa_cpu_device::d_pushu_rlist, 
+&xa_cpu_device::d_illegal,      &xa_cpu_device::d_addc, &xa_cpu_device::d_addc,     &xa_cpu_device::d_addc,     &xa_cpu_device::d_addc, &xa_cpu_device::d_addc, &xa_cpu_device::d_addc,     &xa_cpu_device::d_pushu_rlist,
+&xa_cpu_device::d_illegal,      &xa_cpu_device::d_addc, &xa_cpu_device::d_addc,     &xa_cpu_device::d_addc,     &xa_cpu_device::d_addc, &xa_cpu_device::d_addc, &xa_cpu_device::d_addc,     &xa_cpu_device::d_pushu_rlist,
 // group 2
-&xa_cpu_device::d_illegal,		&xa_cpu_device::d_sub,	&xa_cpu_device::d_sub,		&xa_cpu_device::d_sub,		&xa_cpu_device::d_sub,	&xa_cpu_device::d_sub,	&xa_cpu_device::d_sub,		&xa_cpu_device::d_pop_rlist,
-&xa_cpu_device::d_illegal,		&xa_cpu_device::d_sub,	&xa_cpu_device::d_sub,		&xa_cpu_device::d_sub,		&xa_cpu_device::d_sub,	&xa_cpu_device::d_sub,	&xa_cpu_device::d_sub,		&xa_cpu_device::d_pop_rlist, 
+&xa_cpu_device::d_illegal,      &xa_cpu_device::d_sub,  &xa_cpu_device::d_sub,      &xa_cpu_device::d_sub,      &xa_cpu_device::d_sub,  &xa_cpu_device::d_sub,  &xa_cpu_device::d_sub,      &xa_cpu_device::d_pop_rlist,
+&xa_cpu_device::d_illegal,      &xa_cpu_device::d_sub,  &xa_cpu_device::d_sub,      &xa_cpu_device::d_sub,      &xa_cpu_device::d_sub,  &xa_cpu_device::d_sub,  &xa_cpu_device::d_sub,      &xa_cpu_device::d_pop_rlist,
 // group 3
-&xa_cpu_device::d_illegal,		&xa_cpu_device::d_subb,	&xa_cpu_device::d_subb,		&xa_cpu_device::d_subb,		&xa_cpu_device::d_subb,	&xa_cpu_device::d_subb,	&xa_cpu_device::d_subb,		&xa_cpu_device::d_popu_rlist,
-&xa_cpu_device::d_illegal,		&xa_cpu_device::d_subb,	&xa_cpu_device::d_subb,		&xa_cpu_device::d_subb,		&xa_cpu_device::d_subb,	&xa_cpu_device::d_subb,	&xa_cpu_device::d_subb,		&xa_cpu_device::d_popu_rlist, 
+&xa_cpu_device::d_illegal,      &xa_cpu_device::d_subb, &xa_cpu_device::d_subb,     &xa_cpu_device::d_subb,     &xa_cpu_device::d_subb, &xa_cpu_device::d_subb, &xa_cpu_device::d_subb,     &xa_cpu_device::d_popu_rlist,
+&xa_cpu_device::d_illegal,      &xa_cpu_device::d_subb, &xa_cpu_device::d_subb,     &xa_cpu_device::d_subb,     &xa_cpu_device::d_subb, &xa_cpu_device::d_subb, &xa_cpu_device::d_subb,     &xa_cpu_device::d_popu_rlist,
 // group 4
-&xa_cpu_device::d_lea_offset8,	&xa_cpu_device::d_cmp,	&xa_cpu_device::d_cmp,		&xa_cpu_device::d_cmp,		&xa_cpu_device::d_cmp,	&xa_cpu_device::d_cmp,	&xa_cpu_device::d_cmp,		&xa_cpu_device::d_push_rlist,
-&xa_cpu_device::d_lea_offset16,	&xa_cpu_device::d_cmp,	&xa_cpu_device::d_cmp,		&xa_cpu_device::d_cmp,		&xa_cpu_device::d_cmp,	&xa_cpu_device::d_cmp,	&xa_cpu_device::d_cmp,		&xa_cpu_device::d_push_rlist, 
+&xa_cpu_device::d_lea_offset8,  &xa_cpu_device::d_cmp,  &xa_cpu_device::d_cmp,      &xa_cpu_device::d_cmp,      &xa_cpu_device::d_cmp,  &xa_cpu_device::d_cmp,  &xa_cpu_device::d_cmp,      &xa_cpu_device::d_push_rlist,
+&xa_cpu_device::d_lea_offset16, &xa_cpu_device::d_cmp,  &xa_cpu_device::d_cmp,      &xa_cpu_device::d_cmp,      &xa_cpu_device::d_cmp,  &xa_cpu_device::d_cmp,  &xa_cpu_device::d_cmp,      &xa_cpu_device::d_push_rlist,
 // group 5
-&xa_cpu_device::d_xch_type1,		&xa_cpu_device::d_and,	&xa_cpu_device::d_and,		&xa_cpu_device::d_and,		&xa_cpu_device::d_and,	&xa_cpu_device::d_and,	&xa_cpu_device::d_and,		&xa_cpu_device::d_pushu_rlist,
-&xa_cpu_device::d_xch_type1,		&xa_cpu_device::d_and,	&xa_cpu_device::d_and,		&xa_cpu_device::d_and,		&xa_cpu_device::d_and,	&xa_cpu_device::d_and,	&xa_cpu_device::d_and,		&xa_cpu_device::d_pushu_rlist, 
+&xa_cpu_device::d_xch_type1,        &xa_cpu_device::d_and,  &xa_cpu_device::d_and,      &xa_cpu_device::d_and,      &xa_cpu_device::d_and,  &xa_cpu_device::d_and,  &xa_cpu_device::d_and,      &xa_cpu_device::d_pushu_rlist,
+&xa_cpu_device::d_xch_type1,        &xa_cpu_device::d_and,  &xa_cpu_device::d_and,      &xa_cpu_device::d_and,      &xa_cpu_device::d_and,  &xa_cpu_device::d_and,  &xa_cpu_device::d_and,      &xa_cpu_device::d_pushu_rlist,
 // group 6
-&xa_cpu_device::d_xch_type2,		&xa_cpu_device::d_or,		&xa_cpu_device::d_or,			&xa_cpu_device::d_or,			&xa_cpu_device::d_or,		&xa_cpu_device::d_or,		&xa_cpu_device::d_or,			&xa_cpu_device::d_pop_rlist,
-&xa_cpu_device::d_xch_type2,		&xa_cpu_device::d_or,		&xa_cpu_device::d_or,			&xa_cpu_device::d_or,			&xa_cpu_device::d_or,		&xa_cpu_device::d_or,		&xa_cpu_device::d_or,			&xa_cpu_device::d_pop_rlist, 
+&xa_cpu_device::d_xch_type2,        &xa_cpu_device::d_or,       &xa_cpu_device::d_or,           &xa_cpu_device::d_or,           &xa_cpu_device::d_or,       &xa_cpu_device::d_or,       &xa_cpu_device::d_or,           &xa_cpu_device::d_pop_rlist,
+&xa_cpu_device::d_xch_type2,        &xa_cpu_device::d_or,       &xa_cpu_device::d_or,           &xa_cpu_device::d_or,           &xa_cpu_device::d_or,       &xa_cpu_device::d_or,       &xa_cpu_device::d_or,           &xa_cpu_device::d_pop_rlist,
 // group 7
-&xa_cpu_device::d_illegal,		&xa_cpu_device::d_xor,	&xa_cpu_device::d_xor,		&xa_cpu_device::d_xor,		&xa_cpu_device::d_xor,	&xa_cpu_device::d_xor,	&xa_cpu_device::d_xor,		&xa_cpu_device::d_popu_rlist,
-&xa_cpu_device::d_illegal,		&xa_cpu_device::d_xor,	&xa_cpu_device::d_xor,		&xa_cpu_device::d_xor,		&xa_cpu_device::d_xor,	&xa_cpu_device::d_xor,	&xa_cpu_device::d_xor,		&xa_cpu_device::d_popu_rlist, 
+&xa_cpu_device::d_illegal,      &xa_cpu_device::d_xor,  &xa_cpu_device::d_xor,      &xa_cpu_device::d_xor,      &xa_cpu_device::d_xor,  &xa_cpu_device::d_xor,  &xa_cpu_device::d_xor,      &xa_cpu_device::d_popu_rlist,
+&xa_cpu_device::d_illegal,      &xa_cpu_device::d_xor,  &xa_cpu_device::d_xor,      &xa_cpu_device::d_xor,      &xa_cpu_device::d_xor,  &xa_cpu_device::d_xor,  &xa_cpu_device::d_xor,      &xa_cpu_device::d_popu_rlist,
 // group 8
-&xa_cpu_device::d_movc_rd_rsinc,	&xa_cpu_device::d_mov,	&xa_cpu_device::d_mov,		&xa_cpu_device::d_mov,		&xa_cpu_device::d_mov,	&xa_cpu_device::d_mov,	&xa_cpu_device::d_mov,		&xa_cpu_device::d_pushpop_djnz_subgroup,
-&xa_cpu_device::d_movc_rd_rsinc,	&xa_cpu_device::d_mov,	&xa_cpu_device::d_mov,		&xa_cpu_device::d_mov,		&xa_cpu_device::d_mov,	&xa_cpu_device::d_mov,	&xa_cpu_device::d_mov,		&xa_cpu_device::d_pushpop_djnz_subgroup, 
+&xa_cpu_device::d_movc_rd_rsinc,    &xa_cpu_device::d_mov,  &xa_cpu_device::d_mov,      &xa_cpu_device::d_mov,      &xa_cpu_device::d_mov,  &xa_cpu_device::d_mov,  &xa_cpu_device::d_mov,      &xa_cpu_device::d_pushpop_djnz_subgroup,
+&xa_cpu_device::d_movc_rd_rsinc,    &xa_cpu_device::d_mov,  &xa_cpu_device::d_mov,      &xa_cpu_device::d_mov,      &xa_cpu_device::d_mov,  &xa_cpu_device::d_mov,  &xa_cpu_device::d_mov,      &xa_cpu_device::d_pushpop_djnz_subgroup,
 // group 9
-&xa_cpu_device::d_g9_subgroup,	&xa_cpu_device::d_alu,	&xa_cpu_device::d_alu,		&xa_cpu_device::d_alu,		&xa_cpu_device::d_alu,	&xa_cpu_device::d_alu,	&xa_cpu_device::d_alu,		&xa_cpu_device::d_jb_mov_subgroup,
-&xa_cpu_device::d_g9_subgroup,	&xa_cpu_device::d_alu,	&xa_cpu_device::d_alu,		&xa_cpu_device::d_alu,		&xa_cpu_device::d_alu,	&xa_cpu_device::d_alu,	&xa_cpu_device::d_alu,		&xa_cpu_device::d_jb_mov_subgroup, 
+&xa_cpu_device::d_g9_subgroup,  &xa_cpu_device::d_alu,  &xa_cpu_device::d_alu,      &xa_cpu_device::d_alu,      &xa_cpu_device::d_alu,  &xa_cpu_device::d_alu,  &xa_cpu_device::d_alu,      &xa_cpu_device::d_jb_mov_subgroup,
+&xa_cpu_device::d_g9_subgroup,  &xa_cpu_device::d_alu,  &xa_cpu_device::d_alu,      &xa_cpu_device::d_alu,      &xa_cpu_device::d_alu,  &xa_cpu_device::d_alu,  &xa_cpu_device::d_alu,      &xa_cpu_device::d_jb_mov_subgroup,
 // group a
-&xa_cpu_device::d_movdir,			&xa_cpu_device::d_adds,	&xa_cpu_device::d_adds,		&xa_cpu_device::d_adds,		&xa_cpu_device::d_adds,	&xa_cpu_device::d_adds,	&xa_cpu_device::d_adds,		&xa_cpu_device::d_movx_subgroup,
-&xa_cpu_device::d_movdir,			&xa_cpu_device::d_adds,	&xa_cpu_device::d_adds,		&xa_cpu_device::d_adds,		&xa_cpu_device::d_adds,	&xa_cpu_device::d_adds,	&xa_cpu_device::d_adds,		&xa_cpu_device::d_movx_subgroup, 
+&xa_cpu_device::d_movdir,           &xa_cpu_device::d_adds, &xa_cpu_device::d_adds,     &xa_cpu_device::d_adds,     &xa_cpu_device::d_adds, &xa_cpu_device::d_adds, &xa_cpu_device::d_adds,     &xa_cpu_device::d_movx_subgroup,
+&xa_cpu_device::d_movdir,           &xa_cpu_device::d_adds, &xa_cpu_device::d_adds,     &xa_cpu_device::d_adds,     &xa_cpu_device::d_adds, &xa_cpu_device::d_adds, &xa_cpu_device::d_adds,     &xa_cpu_device::d_movx_subgroup,
 // group b
-&xa_cpu_device::d_rr,				&xa_cpu_device::d_movs,	&xa_cpu_device::d_movs,		&xa_cpu_device::d_movs,		&xa_cpu_device::d_movs,	&xa_cpu_device::d_movs,	&xa_cpu_device::d_movs,		&xa_cpu_device::d_rrc,
-&xa_cpu_device::d_rr,				&xa_cpu_device::d_movs,	&xa_cpu_device::d_movs,		&xa_cpu_device::d_movs,		&xa_cpu_device::d_movs,	&xa_cpu_device::d_movs,	&xa_cpu_device::d_movs,		&xa_cpu_device::d_rrc, 
+&xa_cpu_device::d_rr,               &xa_cpu_device::d_movs, &xa_cpu_device::d_movs,     &xa_cpu_device::d_movs,     &xa_cpu_device::d_movs, &xa_cpu_device::d_movs, &xa_cpu_device::d_movs,     &xa_cpu_device::d_rrc,
+&xa_cpu_device::d_rr,               &xa_cpu_device::d_movs, &xa_cpu_device::d_movs,     &xa_cpu_device::d_movs,     &xa_cpu_device::d_movs, &xa_cpu_device::d_movs, &xa_cpu_device::d_movs,     &xa_cpu_device::d_rrc,
 // group c
-&xa_cpu_device::d_lsr_fc,			&xa_cpu_device::d_asl_c,	&xa_cpu_device::d_asr_c,		&xa_cpu_device::d_norm,		&xa_cpu_device::d_lsr_fc,	&xa_cpu_device::d_asl_c,	&xa_cpu_device::d_asr_c,		&xa_cpu_device::d_norm,
-&xa_cpu_device::d_lsr_fc,			&xa_cpu_device::d_asl_c,	&xa_cpu_device::d_asr_c,		&xa_cpu_device::d_norm,		&xa_cpu_device::d_lsr_fc,	&xa_cpu_device::d_asl_c,	&xa_cpu_device::d_asr_c,		&xa_cpu_device::d_norm, 
+&xa_cpu_device::d_lsr_fc,           &xa_cpu_device::d_asl_c,    &xa_cpu_device::d_asr_c,        &xa_cpu_device::d_norm,     &xa_cpu_device::d_lsr_fc,   &xa_cpu_device::d_asl_c,    &xa_cpu_device::d_asr_c,        &xa_cpu_device::d_norm,
+&xa_cpu_device::d_lsr_fc,           &xa_cpu_device::d_asl_c,    &xa_cpu_device::d_asr_c,        &xa_cpu_device::d_norm,     &xa_cpu_device::d_lsr_fc,   &xa_cpu_device::d_asl_c,    &xa_cpu_device::d_asr_c,        &xa_cpu_device::d_norm,
 // group d
-&xa_cpu_device::d_lsr_fj,			&xa_cpu_device::d_asl_j,	&xa_cpu_device::d_asr_j,		&xa_cpu_device::d_rl,			&xa_cpu_device::d_lsr_fj,	&xa_cpu_device::d_asl_j,	&xa_cpu_device::d_asr_j,		&xa_cpu_device::d_rlc,
-&xa_cpu_device::d_lsr_fj,			&xa_cpu_device::d_asl_j,	&xa_cpu_device::d_asr_j,		&xa_cpu_device::d_rl,			&xa_cpu_device::d_lsr_fj,	&xa_cpu_device::d_asl_j,	&xa_cpu_device::d_asr_j,		&xa_cpu_device::d_rlc, 
+&xa_cpu_device::d_lsr_fj,           &xa_cpu_device::d_asl_j,    &xa_cpu_device::d_asr_j,        &xa_cpu_device::d_rl,           &xa_cpu_device::d_lsr_fj,   &xa_cpu_device::d_asl_j,    &xa_cpu_device::d_asr_j,        &xa_cpu_device::d_rlc,
+&xa_cpu_device::d_lsr_fj,           &xa_cpu_device::d_asl_j,    &xa_cpu_device::d_asr_j,        &xa_cpu_device::d_rl,           &xa_cpu_device::d_lsr_fj,   &xa_cpu_device::d_asl_j,    &xa_cpu_device::d_asr_j,        &xa_cpu_device::d_rlc,
 // group e
-&xa_cpu_device::d_mulu_b,			&xa_cpu_device::d_divu_b,	&xa_cpu_device::d_djnz_cjne,	&xa_cpu_device::d_cjne_d8,	&xa_cpu_device::d_mulu_w,	&xa_cpu_device::d_divu_w,	&xa_cpu_device::d_mul_w,		&xa_cpu_device::d_div_w,
-&xa_cpu_device::d_div_data8,		&xa_cpu_device::d_div_d16,&xa_cpu_device::d_djnz_cjne,	&xa_cpu_device::d_cjne_d16,	&xa_cpu_device::d_jz_rel8,&xa_cpu_device::d_divu_d,	&xa_cpu_device::d_jnz_rel8,	&xa_cpu_device::d_div_d, 
+&xa_cpu_device::d_mulu_b,           &xa_cpu_device::d_divu_b,   &xa_cpu_device::d_djnz_cjne,    &xa_cpu_device::d_cjne_d8,  &xa_cpu_device::d_mulu_w,   &xa_cpu_device::d_divu_w,   &xa_cpu_device::d_mul_w,        &xa_cpu_device::d_div_w,
+&xa_cpu_device::d_div_data8,        &xa_cpu_device::d_div_d16,&xa_cpu_device::d_djnz_cjne,  &xa_cpu_device::d_cjne_d16, &xa_cpu_device::d_jz_rel8,&xa_cpu_device::d_divu_d, &xa_cpu_device::d_jnz_rel8, &xa_cpu_device::d_div_d,
 // group f
-&xa_cpu_device::d_branch,			&xa_cpu_device::d_branch,	&xa_cpu_device::d_branch,		&xa_cpu_device::d_branch,		&xa_cpu_device::d_branch,	&xa_cpu_device::d_branch,	&xa_cpu_device::d_branch,		&xa_cpu_device::d_branch,
-&xa_cpu_device::d_branch,			&xa_cpu_device::d_branch,	&xa_cpu_device::d_branch,		&xa_cpu_device::d_branch,		&xa_cpu_device::d_branch,	&xa_cpu_device::d_branch,	&xa_cpu_device::d_branch,		&xa_cpu_device::d_bkpt, 
+&xa_cpu_device::d_branch,           &xa_cpu_device::d_branch,   &xa_cpu_device::d_branch,       &xa_cpu_device::d_branch,       &xa_cpu_device::d_branch,   &xa_cpu_device::d_branch,   &xa_cpu_device::d_branch,       &xa_cpu_device::d_branch,
+&xa_cpu_device::d_branch,           &xa_cpu_device::d_branch,   &xa_cpu_device::d_branch,       &xa_cpu_device::d_branch,       &xa_cpu_device::d_branch,   &xa_cpu_device::d_branch,   &xa_cpu_device::d_branch,       &xa_cpu_device::d_bkpt,
 };
 
 // SFR names
@@ -220,13 +220,13 @@ const xa_cpu_device::mem_info xa_cpu_device::default_names[] = {
 	{  0x411, "TSTAT" },
 	{  0x418, "T2CON" },
 	{  0x419, "T2MOD" },
-	{  0x41F, "WDCON" }, 
-	{  0x420, "S0CON" }, 
-	{  0x421, "S0STAT" }, 
+	{  0x41F, "WDCON" },
+	{  0x420, "S0CON" },
+	{  0x421, "S0STAT" },
 	{  0x424, "S1CON" },
-	{  0x425, "S1STAT" }, 
+	{  0x425, "S1STAT" },
 	{  0x426, "IEL" },
-	{  0x427, "IEH" }, 
+	{  0x427, "IEH" },
 	{  0x42A, "SWR" },
 	{  0x430, "P0" },
 	{  0x431, "P1" },
@@ -257,22 +257,22 @@ const xa_cpu_device::mem_info xa_cpu_device::default_names[] = {
 	{  0x462, "S0ADEN" },
 	{  0x464, "S1BUF" },
 	{  0x465, "S1ADDR" },
-	{  0x466, "S1ADEN" }, 
+	{  0x466, "S1ADEN" },
 	{  0x468, "BTRL" },
 	{  0x469, "BTRH" },
 	{  0x46A, "BCR" },
 	{  0x470, "P0CFGA" },
 	{  0x471, "P1CFGA" },
 	{  0x472, "P2CFGA" },
-	{  0x473, "P3CFGA" }, 
+	{  0x473, "P3CFGA" },
 	{  0x47A, "SWE" },
 	{  0x4A0, "IPA0" },
 	{  0x4A1, "IPA1" },
-	{  0x4A2, "IPA2" }, 
+	{  0x4A2, "IPA2" },
 	{  0x4A3, "IPA3" },
 	{  0x4A4, "IPA4" },
-	{  0x4A5, "IPA5" }, 
-	{  0x4F0, "P0CFGB" }, 
+	{  0x4A5, "IPA5" },
+	{  0x4F0, "P0CFGB" },
 	{  0x4F1, "P1CFGB" },
 	{  0x4F2, "P2CFGB" },
 	{  0x4F3, "P3CFGB" },
@@ -425,7 +425,7 @@ void xa_cpu_device::set_reg16(int reg, u16 data)
 			else
 				m_SSP = data;
 
-			return;		
+			return;
 		}
 
 		// do we need to calculate parity bit (in PSW51) on all R4 writes (as R4 as backwards compatibility with accumulator)
@@ -612,7 +612,7 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 	{
 		const u8 rs = (op2 & 0x0f);
 		const u8 rd = (op2 & 0xf0) >> 4;
-		if (size) { aluop_word_rd_rs(alu_op, rd, rs); }	else { aluop_byte_rd_rs(alu_op, rd, rs); }
+		if (size) { aluop_word_rd_rs(alu_op, rd, rs); } else { aluop_byte_rd_rs(alu_op, rd, rs); }
 		return;
 	}
 
@@ -1452,7 +1452,7 @@ void xa_cpu_device::d_bitgroup(XA_EXECUTE_PARAMS)
 	{
 	case 0x00: clr_bit(bit); break;
 	case 0x10: setb_bit(bit); break;
-	case 0x20: mov_c_bit(bit);	break;
+	case 0x20: mov_c_bit(bit);  break;
 	case 0x30: mov_bit_c(bit); break;
 	case 0x40: anl_c_bit(bit); break;
 	case 0x50: anl_c_notbit(bit); break;
@@ -1635,14 +1635,7 @@ void xa_cpu_device::d_xch_type1(XA_EXECUTE_PARAMS)
 	const u8 rd = (op2 & 0xf0) >> 4;
 	const u8 rs = (op2 & 0x07);
 
-	if (size)
-	{
-		xch_word_rd_indrs(rd, rs);
-	}
-	else
-	{
-		xch_byte_rd_indrs(rd, rs);
-	}
+	if (size) { xch_word_rd_indrs(rd, rs); } else { xch_byte_rd_indrs(rd, rs); }
 }
 
 /*
@@ -1657,7 +1650,7 @@ AND Rd, [Rs+]               Logical AND reg-ind w/ autoinc to reg               
 AND [Rd+], Rs               Logical AND reg-ind w/ autoinc to reg                                   2 5         0101 S011  ssss 1ddd
 AND direct, Rs              Logical AND reg to mem                                                  3 4         0101 S110  ssss 1DDD  DDDD DDDD
 AND Rd, direct              Logical AND mem to reg                                                  3 4         0101 S110  dddd 0DDD  DDDD DDDD
-*/ 
+*/
 void xa_cpu_device::d_and(XA_EXECUTE_PARAMS)
 {
 	handle_alu_type0(XA_EXECUTE_CALL_PARAMS, 5);
@@ -1672,11 +1665,9 @@ void xa_cpu_device::d_xch_type2(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	int size = op & 0x08;
-	const char** regnames = size ? m_regnames16 : m_regnames8;
 	const u8 rd = (op2 & 0xf0) >> 4;
 	const u8 rs = (op2 & 0x0f);
-
-	fatalerror( "XCH %s, %s", regnames[rd], regnames[rs]);
+	if (size) { xch_word_rd_rs(rd, rs); } else { xch_byte_rd_rs(rd, rs); }
 }
 
 /*
@@ -1726,24 +1717,9 @@ void xa_cpu_device::d_movc_rd_rsinc(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	int size = op & 0x08;
-
 	int rd = (op2 & 0xf0) >> 4;
 	int rs = (op2 & 0x07);
-	const char** regnames = size ? m_regnames16 : m_regnames8;
-
-	if (size) // MOVC.w Rd, [Rs+]
-	{
-		fatalerror("MOVC.w %s, [%s+]\n", regnames[rd], m_regnames16[rs]);
-	}
-	else // MOVC.b Rd, [Rs+]
-	{
-		u16 ptr = get_reg16(rs);
-		u8 data = m_program->read_byte(ptr);
-		ptr++;
-		set_reg16(rs, ptr);
-		do_nz_flags_8(data);
-		set_reg8(rd, data);
-	}
+	if (size) { movc_word_rd_indrsinc(rd, rs); } else { movc_byte_rd_indrsinc(rd, rs); }
 }
 
 /*
@@ -1968,12 +1944,12 @@ void xa_cpu_device::d_g9_subgroup(XA_EXECUTE_PARAMS)
 			if (!size)
 			{
 				int rd = (op2 & 0xf0) >> 4;
-				fatalerror( "MOV %s, USP", m_regnames16[rd]);		 
+				fatalerror( "MOV %s, USP", m_regnames16[rd]);
 			}
 			else
 			{
 				int rs = (op2 & 0xf0) >> 4;
-				fatalerror( "MOV USP, %s", m_regnames16[rs]);		 
+				fatalerror( "MOV USP, %s", m_regnames16[rs]);
 			}
 			return;
 		}
@@ -2205,7 +2181,7 @@ void xa_cpu_device::d_movdir(XA_EXECUTE_PARAMS)
 			{
 				fatalerror("MOV.b [%s], %s", m_regnames16[rd], get_directtext(direct));
 			}
-			return;	
+			return;
 		}
 	}
 }
@@ -2267,7 +2243,7 @@ void xa_cpu_device::d_movx_subgroup(XA_EXECUTE_PARAMS)
 
 /*
 RR Rd, #data4               Rotate right reg by the 4-bit imm value                                 2 a*        1011 S000  dddd iiii
-*/ 
+*/
 void xa_cpu_device::d_rr(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
@@ -2383,7 +2359,7 @@ void xa_cpu_device::d_asl_c(XA_EXECUTE_PARAMS)
 /*
 ASR Rd, Rs                  Arithmetic shift right dest reg by the count in the src                 2 a*        1100 SS10  dddd ssss
 CALL [Rs]                   Subroutine call ind w/ a reg                                            2 8/5(PZ)   1100 0110  0000 0sss
-*/ 
+*/
 void xa_cpu_device::d_asr_c(XA_EXECUTE_PARAMS)
 {
 	int size = (op & 0x0c) >> 2;
@@ -2662,7 +2638,7 @@ void xa_cpu_device::d_div_data8(XA_EXECUTE_PARAMS)
 
 	switch (op2 & 0x0f)
 	{
-	case 0x00: { mulu_byte_rd_data8(rd, data8);	break; }
+	case 0x00: { mulu_byte_rd_data8(rd, data8); break; }
 	case 0x01: { divu_byte_rd_data8(rd, data8); break; }
 	case 0x03: { divu_word_rd_data8(rd, data8); break; }
 	case 0x0b: { div_word_rd_data8(rd, data8);break; }
