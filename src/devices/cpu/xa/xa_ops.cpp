@@ -527,3 +527,52 @@ void xa_cpu_device::adds_word_direct_data4(u16 direct, u8 data4){ fatalerror("AD
 void xa_cpu_device::movs_byte_direct_data4(u16 direct, u8 data4){ u8  data = util::sext(data4, 4); do_nz_flags_8(data);  write_direct8(direct, data); }
 void xa_cpu_device::adds_byte_direct_data4(u16 direct, u8 data4){ fatalerror("ADDS.b %s, %s\n", get_directtext(direct), show_expanded_data4(data4, 0)); }
 
+// CALL rel16
+void xa_cpu_device::call_rel16(u16 rel16) { int address = m_pc + ((s16)rel16)*2; address &= ~1; push_word_to_stack(m_pc); set_pc_in_current_page(address); }
+
+
+// BCC rel8                    Branch if the carry flag is clear                                       2 6t/3nt    1111 0000  rrrr rrrr
+void xa_cpu_device::bcc_rel8(u8 rel8) { fatalerror("BCC %04x\n", expand_rel8(rel8)); }
+
+// BCS rel8                    Branch if the carry flag is set                                         2 6t/3nt    1111 0001  rrrr rrrr
+void xa_cpu_device::bcs_rel8(u8 rel8) { fatalerror("BCS %04x\n", expand_rel8(rel8)); }
+
+// BNE rel8                    Branch if the zero flag is not set                                      2 6t/3nt    1111 0010  rrrr rrrr
+void xa_cpu_device::bne_rel8(u8 rel8) { fatalerror("BNE %04x\n", expand_rel8(rel8)); }
+
+// BEQ rel8                    Branch if the zero flag is set                                          2 6t/3nt    1111 0011  rrrr rrrr
+void xa_cpu_device::beq_rel8(u8 rel8) { if (get_z_flag()) { set_pc_in_current_page(expand_rel8(rel8)); } }
+
+// BNV rel8                    Branch if overflow flag is clear                                        2 6t/3nt    1111 0100  rrrr rrrr
+void xa_cpu_device::bnv_rel8(u8 rel8) { fatalerror("BNV %04x\n", expand_rel8(rel8)); }
+
+// BOV rel8                    Branch if overflow flag is set                                          2 6t/3nt    1111 0101  rrrr rrrr
+void xa_cpu_device::bov_rel8(u8 rel8) { fatalerror("BOV %04x\n", expand_rel8(rel8)); }
+
+// BPL rel8                    Branch if the negative flag is clear                                    2 6t/3nt    1111 0110  rrrr rrrr
+void xa_cpu_device::bpl_rel8(u8 rel8) { fatalerror("BPL %04x\n", expand_rel8(rel8)); }
+
+// BMI rel8                    Branch if the negative flag is set                                      2 6t/3nt    1111 0111  rrrr rrrr
+void xa_cpu_device::bmi_rel8(u8 rel8) { fatalerror("BMI %04x\n", expand_rel8(rel8)); }
+
+// BG rel8                     Branch if greater than (unsigned)                                       2 6t/3nt    1111 1000  rrrr rrrr
+void xa_cpu_device::bg_rel8(u8 rel8) { fatalerror("BG %04x\n", expand_rel8(rel8)); }
+
+// BL rel8                     Branch if less than or equal to (unsigned)                              2 6t/3nt    1111 1001  rrrr rrrr
+void xa_cpu_device::bl_rel8(u8 rel8) { fatalerror("BL %04x\n", expand_rel8(rel8)); }
+
+// BGE rel8                    Branch if greater than or equal to (signed)                             2 6t/3nt    1111 1010  rrrr rrrr
+void xa_cpu_device::bge_rel8(u8 rel8) { fatalerror("BGE %04x\n", expand_rel8(rel8)); }
+
+// BLT rel8                    Branch if less than (signed)                                            2 6t/3nt    1111 1011  rrrr rrrr
+void xa_cpu_device::blt_rel8(u8 rel8) { fatalerror("BLT %04x\n", expand_rel8(rel8)); }
+
+// BGT rel8                    Branch if greater than (signed)                                         2 6t/3nt    1111 1100  rrrr rrrr
+void xa_cpu_device::bgt_rel8(u8 rel8) { fatalerror("BGT %04x\n", expand_rel8(rel8)); }
+
+// BLE rel8                    Branch if less than or equal to (signed)                                2 6t/3nt    1111 1101  rrrr rrrr
+void xa_cpu_device::ble_rel8(u8 rel8) { fatalerror("BLE %04x\n", expand_rel8(rel8)); }
+
+// BR rel8                     Short unconditional branch                                              2 6         1111 1110  rrrr rrrr
+void xa_cpu_device::br_rel8(u8 rel8) { fatalerror("BR %04x\n", expand_rel8(rel8)); }
+

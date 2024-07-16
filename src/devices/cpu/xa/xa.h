@@ -92,6 +92,8 @@ private:
 
 	u8 sfr_WDCON_r();
 
+	u16 expand_rel8(u8 rel8);
+
 	void do_nz_flags_16(u16 data);
 	void do_nz_flags_8(u8 data);
 
@@ -603,6 +605,24 @@ private:
 	void movs_byte_direct_data4(u16 direct, u8 data4);
 	void adds_word_direct_data4(u16 direct, u8 data4);
 	void adds_byte_direct_data4(u16 direct, u8 data4);
+
+	void call_rel16(u16 rel16);
+
+	void bcc_rel8(u8 rel8);
+	void bcs_rel8(u8 rel8);
+	void bne_rel8(u8 rel8);
+	void beq_rel8(u8 rel8);
+	void bnv_rel8(u8 rel8);
+	void bov_rel8(u8 rel8);
+	void bpl_rel8(u8 rel8);
+	void bmi_rel8(u8 rel8);
+	void bg_rel8(u8 rel8);
+	void bl_rel8(u8 rel8);
+	void bge_rel8(u8 rel8);
+	void blt_rel8(u8 rel8);
+	void bgt_rel8(u8 rel8);
+	void ble_rel8(u8 rel8);
+	void br_rel8(u8 rel8);
 
 	std::unordered_map<offs_t, const char *> m_names;
 

@@ -285,6 +285,15 @@ void xa_cpu_device::add_names(const mem_info *info)
 		m_names[info[i].addr] = info[i].name;
 }
 
+
+u16 xa_cpu_device::expand_rel8(u8 rel8)
+{
+	int address = m_pc + ((s8)rel8) * 2;
+	address &= ~1; // must be word aligned
+	return address;
+}
+
+
 void xa_cpu_device::do_nz_flags_16(u16 data)
 {
 	if (data & 0x8000)
@@ -2353,14 +2362,8 @@ void xa_cpu_device::d_asl_c(XA_EXECUTE_PARAMS)
 	{
 		const u8 op2 = m_program->read_byte(m_pc++);
 		const u8 op3 = m_program->read_byte(m_pc++);
-		u16 offset = (op2 << 8) | op3;
-		int address = m_pc + ((s16)offset)*2;
-		address &= ~1; // must be word aligned
-		printf( "CALL $%04x", address);
-
-		push_word_to_stack(m_pc);
-		set_pc_in_current_page(address);
-
+		u16 rel16 = (op2 << 8) | op3;
+		call_rel16(rel16);
 		return;
 	}
 	else
@@ -2855,29 +2858,28 @@ BGT rel8                    Branch if greater than (signed)                     
 BLE rel8                    Branch if less than or equal to (signed)                                2 6t/3nt    1111 1101  rrrr rrrr
 BR rel8                     Short unconditional branch                                              2 6         1111 1110  rrrr rrrr
 */
+
 void xa_cpu_device::d_branch(XA_EXECUTE_PARAMS)
 {
-	const u8 op2 = m_program->read_byte(m_pc++);
-	int address = m_pc + ((s8)op2) * 2;
-	address &= ~1; // must be word aligned
-
-
+	const u8 rel8 = m_program->read_byte(m_pc++);
 	switch (op & 0x0f)
 	{
-	case 0x03: // BEQ
-	{
-		if (get_z_flag())
-		{
-			set_pc_in_current_page(address);
-		}
-		break;
-	}
-
-	default:
-	{
-		fatalerror("%s $%04x", m_branches[op & 0xf], address);
-		break;
-	}
+	case 0x00: bcc_rel8(rel8); break;
+	case 0x01: bcs_rel8(rel8); break;
+	case 0x02: bne_rel8(rel8); break;
+	case 0x03: beq_rel8(rel8); break;
+	case 0x04: bnv_rel8(rel8); break;
+	case 0x05: bov_rel8(rel8); break;
+	case 0x06: bpl_rel8(rel8); break;
+	case 0x07: bmi_rel8(rel8); break;
+	case 0x08: bg_rel8(rel8); break;
+	case 0x09: bl_rel8(rel8); break;
+	case 0x0a: bge_rel8(rel8); break;
+	case 0x0b: blt_rel8(rel8); break;
+	case 0x0c: bgt_rel8(rel8); break;
+	case 0x0d: ble_rel8(rel8); break;
+	case 0x0e: br_rel8(rel8); break;
+	case 0x0f: fatalerror("Illegal branch type"); break;
 	}
 }
 
