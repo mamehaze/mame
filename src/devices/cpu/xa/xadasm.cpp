@@ -1575,17 +1575,19 @@ int xa_dasm::d_djnz_cjne(XA_DASM_PARAMS)
 	const u8 op2 = opcodes.r8(pc++);
 	const u8 op3 = opcodes.r8(pc++);
 	const u8 op4 = opcodes.r8(pc++);
+	int size = op & 0x08;
+
 	int address = pc + ((s8)op4)*2;
 	address &= ~1; // must be word aligned
 	const u16 direct = ((op2 & 0x07) << 8) | op3;
 	if (op2 & 0x08)
 	{
-		util::stream_format(stream, "DJNZ %s, $%04x", get_directtext(direct), address);
+		util::stream_format(stream, "DJNZ%s %s, $%04x", size ? ".w" : ".b", get_directtext(direct), address);
 	}
 	else
 	{
 		int rd = (op2 & 0xf0) >> 4;
-		util::stream_format(stream, "CJNE %s, %s, $%04x", m_regnames16[rd], get_directtext(direct), address);
+		util::stream_format(stream, "CJNE%s %s, %s, $%04x", size ? ".w" : ".b", m_regnames16[rd], get_directtext(direct), address);
 	}
 	return 4;
 }

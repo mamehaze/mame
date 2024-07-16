@@ -747,3 +747,10 @@ void xa_cpu_device::rl_byte_rd_data4(u8 rd, u8 data4) { fatalerror("RL.b %d, %d"
 void xa_cpu_device::rlc_word_rd_data4(u8 rd, u8 data4) { fatalerror( "RLC.w Rd, %d", m_regnames16[rd], data4); }
 void xa_cpu_device::rlc_byte_rd_data4(u8 rd, u8 data4) { fatalerror( "RLC.b Rd, %d", m_regnames8[rd], data4); }
 
+// FCALL addr24                Far call (full 24-bit address space)                                    4 12/8(PZ)  1100 0100  aaaa aaaa  AAAA AAAA  AAAA AAAA
+
+// CALL [Rs]                   Subroutine call ind w/ a reg                                            2 8/5(PZ)   1100 0110  0000 0sss
+
+// FJMP addr24                 Far jump (full 24-bit address space)                                    4 6         1101 0100  aaaa aaaa  AAAA AAAA  AAAA AAAA
+
+// JMP rel16                   Long unconditional branch                                               3 6         1101 0101  rrrr rrrr  rrrr rrrr

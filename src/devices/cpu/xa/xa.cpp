@@ -2093,11 +2093,8 @@ void xa_cpu_device::d_lsr_fc(XA_EXECUTE_PARAMS)
 		const u8 op2 = m_program->read_byte(m_pc++);
 		const u8 op3 = m_program->read_byte(m_pc++);
 		const u8 op4 = m_program->read_byte(m_pc++);
-
 		const u32 addr = (op2 << 8) | op3 | (op4 << 16);
-
 		fatalerror("FCALL $%06x", addr);
-		return;
 	}
 	else
 	{
@@ -2107,7 +2104,6 @@ void xa_cpu_device::d_lsr_fc(XA_EXECUTE_PARAMS)
 		if (size == 0) lsr_byte_rd_rs(rd, rs);
 		else if (size == 2) lsr_word_rd_rs(rd, rs);
 		else if (size == 3) lsr_dword_rd_rs(rd, rs);
-		return;
 	}
 }
 
@@ -2124,7 +2120,6 @@ void xa_cpu_device::d_asl_c(XA_EXECUTE_PARAMS)
 		const u8 op3 = m_program->read_byte(m_pc++);
 		u16 rel16 = (op2 << 8) | op3;
 		call_rel16(rel16);
-		return;
 	}
 	else
 	{
@@ -2134,7 +2129,6 @@ void xa_cpu_device::d_asl_c(XA_EXECUTE_PARAMS)
 		if (size == 0) asl_byte_rd_rs(rd, rs);
 		else if (size == 2) asl_word_rd_rs(rd, rs);
 		else if (size == 3) asl_dword_rd_rs(rd, rs);
-		return;
 	}
 }
 
@@ -2150,7 +2144,6 @@ void xa_cpu_device::d_asr_c(XA_EXECUTE_PARAMS)
 		const u8 op2 = m_program->read_byte(m_pc++);
 		const u8 rs = op2 & 0x07;
 		fatalerror("CALL [%s]", m_regnames16[rs]);
-		return;
 	}
 	else
 	{
@@ -2160,7 +2153,6 @@ void xa_cpu_device::d_asr_c(XA_EXECUTE_PARAMS)
 		if (size == 0) asr_byte_rd_rs(rd, rs);
 		else if (size == 2) asr_word_rd_rs(rd, rs);
 		else if (size == 3) asr_dword_rd_rs(rd, rs);
-		return;
 	}
 }
 
@@ -2173,8 +2165,7 @@ void xa_cpu_device::d_norm(XA_EXECUTE_PARAMS)
 	if (size == 0x01)
 	{
 		const u8 op2 = m_program->read_byte(m_pc++);
-		fatalerror("illegal %02x", op2);
-		return;
+		logerror("illegal %02x", op2); do_nop();
 	}
 	else
 	{
@@ -2184,7 +2175,6 @@ void xa_cpu_device::d_norm(XA_EXECUTE_PARAMS)
 		if (size == 0) norm_byte_rd_rs(rd, rs);
 		else if (size == 2) norm_word_rd_rs(rd, rs);
 		else if (size == 3) norm_dword_rd_rs(rd, rs);
-		return;
 	}
 }
 
@@ -2205,7 +2195,6 @@ void xa_cpu_device::d_lsr_fj(XA_EXECUTE_PARAMS)
 		const u8 op4 = m_program->read_byte(m_pc++);
 		const u32 addr = (op2 << 8) | op3 | (op4 << 16);
 		fatalerror( "FJMP $%06x", addr);
-		return;
 	}
 	else
 	{
@@ -2229,7 +2218,6 @@ void xa_cpu_device::d_asl_j(XA_EXECUTE_PARAMS)
 		int address = m_pc + ((s16)offset)*2;
 		address &= ~1; // must be word aligned
 		fatalerror( "JMP $%04x", address);
-		return;
 	}
 	else
 	{
@@ -2307,17 +2295,33 @@ void xa_cpu_device::d_djnz_cjne(XA_EXECUTE_PARAMS)
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 op3 = m_program->read_byte(m_pc++);
 	const u8 op4 = m_program->read_byte(m_pc++);
+	int size = op & 0x08;
+
 	int address = m_pc + ((s8)op4)*2;
 	address &= ~1; // must be word aligned
 	const u16 direct = ((op2 & 0x07) << 8) | op3;
 	if (op2 & 0x08)
 	{
-		fatalerror( "DJNZ %s, $%04x", get_directtext(direct), address);
+		if (size)
+		{
+			fatalerror("DJNZ.w %s, $%04x", get_directtext(direct), address);
+		}
+		else
+		{
+			fatalerror("DJNZ.b %s, $%04x", get_directtext(direct), address);
+		}
 	}
 	else
 	{
 		int rd = (op2 & 0xf0) >> 4;
-		fatalerror( "CJNE %s, %s, $%04x", m_regnames16[rd], get_directtext(direct), address);
+		if (size)
+		{
+			fatalerror("CJNE.w %s, %s, $%04x", m_regnames16[rd], get_directtext(direct), address);
+		}
+		else
+		{
+			fatalerror("CJNE.b %s, %s, $%04x", m_regnames16[rd], get_directtext(direct), address);
+		}
 	}
 }
 
