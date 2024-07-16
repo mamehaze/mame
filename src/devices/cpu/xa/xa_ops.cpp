@@ -641,3 +641,25 @@ void xa_cpu_device::div_dword_rd_data16(u8 rd, u16 data16) { fatalerror( "DIV.d 
 void xa_cpu_device::divu_dword_rd_rs(u8 rd, u8 rs) { fatalerror( "DIVU.d %s, %s", m_regnames16[rd], m_regnames16[rs]); }
 //DIV.d Rd, Rs
 void xa_cpu_device::div_dword_rd_rs(u8 rd, u8 rs) { fatalerror( "DIV.d %s, %s", m_regnames16[rd], m_regnames16[rs]); }
+
+
+void xa_cpu_device::clr_bit(u8 bit) { fatalerror( "CLR %s", get_bittext(bit) ); }
+void xa_cpu_device::setb_bit(u8 bit) { fatalerror( "SETB %s", get_bittext(bit) ); }
+void xa_cpu_device::mov_c_bit(u8 bit) { fatalerror( "MOV C, %s", get_bittext(bit) ); }
+void xa_cpu_device::mov_bit_c(u8 bit) { fatalerror( "MOV %s, C", get_bittext(bit) ); }
+void xa_cpu_device::anl_c_bit(u8 bit) { fatalerror( "ANL C, %s", get_bittext(bit) ); }
+void xa_cpu_device::anl_c_notbit(u8 bit) { fatalerror( "ANL C, /%s", get_bittext(bit) ); }
+void xa_cpu_device::orl_c_bit(u8 bit) { fatalerror( "ORL C, %s", get_bittext(bit) ); }
+void xa_cpu_device::orl_c_notbit(u8 bit) { fatalerror( "ORL C, /%s", get_bittext(bit) ); }
+
+// LEA Rd, Rs+offset8          Load 16-bit effective address w/ 8-bit offs to reg                      3 3         0100 0000  0ddd 0sss  oooo oooo
+void xa_cpu_device::lea_word_rd_rs_off8(u8 rd, u8 rs, u8 offs8) { fatalerror("LEA %s, %s+#$%02x", m_regnames16[rd], m_regnames16[rs], offs8); }
+
+// LEA Rd, Rs+offset16         Load 16-bit effective address w/ 16-bit offs to reg                     4 3         0100 1000  0ddd 0sss  oooo oooo  oooo oooo
+void xa_cpu_device::lea_word_rd_rs_off16(u8 rd, u8 rs, u16 offs16) { fatalerror( "LEA %s, %s+#$%04x", m_regnames16[rd], m_regnames16[rs], offs16); }
+
+// XCH.w Rd, [Rs]                Exchange contents of a reg-ind address w/ a reg                         2 6         0101 S000  dddd 0sss
+void xa_cpu_device::xch_word_rd_indrs(u8 rd, u8 rs) { fatalerror("XCH.w %s, [%s]", m_regnames16[rd], m_regnames16[rs]); }
+
+// XCH.b Rd, [Rs]                Exchange contents of a reg-ind address w/ a reg                         2 6         0101 S000  dddd 0sss
+void xa_cpu_device::xch_byte_rd_indrs(u8 rd, u8 rs) { fatalerror("XCH.b %s, [%s]", m_regnames8[rd], m_regnames16[rs]); }

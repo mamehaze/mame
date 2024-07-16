@@ -1450,14 +1450,14 @@ void xa_cpu_device::d_bitgroup(XA_EXECUTE_PARAMS)
 
 	switch (op2 & 0xf0)
 	{
-	case 0x00: fatalerror( "CLR %s", get_bittext(bit) ); break; 
-	case 0x10: fatalerror( "SETB %s", get_bittext(bit) ); break;
-	case 0x20: fatalerror( "MOV C, %s", get_bittext(bit) );	break;
-	case 0x30: fatalerror( "MOV %s, C", get_bittext(bit) ); break;
-	case 0x40: fatalerror( "ANL C, %s", get_bittext(bit) ); break;
-	case 0x50: fatalerror( "ANL C, /%s", get_bittext(bit) ); break;
-	case 0x60: fatalerror( "ORL C, %s", get_bittext(bit) ); break;
-	case 0x70: fatalerror( "ORL C, /%s", get_bittext(bit) ); break;
+	case 0x00: clr_bit(bit); break;
+	case 0x10: setb_bit(bit); break;
+	case 0x20: mov_c_bit(bit);	break;
+	case 0x30: mov_bit_c(bit); break;
+	case 0x40: anl_c_bit(bit); break;
+	case 0x50: anl_c_notbit(bit); break;
+	case 0x60: orl_c_bit(bit); break;
+	case 0x70: orl_c_notbit(bit); break;
 	default:   logerror( "illegal bit op %s", get_bittext(bit) ); do_nop(); break;
 	}
 	return;
@@ -1585,12 +1585,10 @@ LEA Rd, Rs+offset8          Load 16-bit effective address w/ 8-bit offs to reg  
 void xa_cpu_device::d_lea_offset8(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
-	const u8 op3 = m_program->read_byte(m_pc++);
+	const u8 offs8 = m_program->read_byte(m_pc++);
 	const u8 rd = (op2 & 0x70) >> 4;
 	const u8 rs = (op2 & 0x07);
-
-	fatalerror( "LEA %s, %s+#$%02x", m_regnames16[rd], m_regnames16[rs], op3);
-	return;
+	lea_word_rd_rs_off8(rd, rs, offs8);
 }
 
 /*
@@ -1603,10 +1601,8 @@ void xa_cpu_device::d_lea_offset16(XA_EXECUTE_PARAMS)
 	const u8 op4 = m_program->read_byte(m_pc++);
 	const u8 rd = (op2 & 0x70) >> 4;
 	const u8 rs = (op2 & 0x07);
-	const u16 offset = (op3 << 8) | op4;
-
-	fatalerror( "LEA %s, %s+#$%04x ", m_regnames16[rd], m_regnames16[rs], offset);
-	return;
+	const u16 offs16 = (op3 << 8) | op4;
+	lea_word_rd_rs_off16(rd, rs, offs16);
 }
 
 /*
@@ -1636,17 +1632,16 @@ void xa_cpu_device::d_xch_type1(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	int size = op & 0x08;
-	const char** regnames = size ? m_regnames16 : m_regnames8;
 	const u8 rd = (op2 & 0xf0) >> 4;
 	const u8 rs = (op2 & 0x07);
 
 	if (size)
 	{
-		fatalerror("XCH.w %s, [%s]", regnames[rd], m_regnames16[rs]);
+		xch_word_rd_indrs(rd, rs);
 	}
 	else
 	{
-		fatalerror("XCH.b %s, [%s]", regnames[rd], m_regnames16[rs]);
+		xch_byte_rd_indrs(rd, rs);
 	}
 }
 

@@ -670,6 +670,21 @@ private:
 	void divu_dword_rd_rs(u8 rd, u8 rs);
 	void div_dword_rd_rs(u8 rd, u8 rs);
 
+	void clr_bit(u8 bit);
+	void setb_bit(u8 bit);
+	void mov_c_bit(u8 bit);
+	void mov_bit_c(u8 bit);
+	void anl_c_bit(u8 bit);
+	void anl_c_notbit(u8 bit);
+	void orl_c_bit(u8 bit);
+	void orl_c_notbit(u8 bit);
+
+	void lea_word_rd_rs_off8(u8 rd, u8 rs, u8 offs8);
+	void lea_word_rd_rs_off16(u8 rd, u8 rs, u16 offs16);
+
+	void xch_word_rd_indrs(u8 rd, u8 rs);
+	void xch_byte_rd_indrs(u8 rd, u8 rs);
+
 
 	std::unordered_map<offs_t, const char *> m_names;
 
