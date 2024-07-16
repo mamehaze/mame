@@ -1965,14 +1965,7 @@ void xa_cpu_device::d_jb_mov_subgroup(XA_EXECUTE_PARAMS)
 		int direct_dst = ((op2 & 0x70) << 4) | op3;
 		int direct_src = ((op2 & 0x07) << 8) | op4;
 		int size = op & 0x08;
-		if (size)
-		{
-			fatalerror("MOV.w %s, %s", get_directtext(direct_dst), get_directtext(direct_src));
-		}
-		else
-		{
-			fatalerror("MOV.b %s, %s", get_directtext(direct_dst), get_directtext(direct_src));
-		}
+		if (size) {	mov_word_direct_direct(direct_dst, direct_src); } else { mov_byte_direct_direct(direct_dst, direct_src); }
 	}
 }
 
@@ -1994,47 +1987,19 @@ void xa_cpu_device::d_movdir(XA_EXECUTE_PARAMS)
 	if (op2 & 0x08)
 	{
 		const u8 rd = op2 & (0xf0) >> 4;
-		const char** regnames = size ? m_regnames16 : m_regnames8;
-
-		if (size)
-		{
-			fatalerror("XCH.w %s, %s", regnames[rd], get_directtext(direct));
-		}
-		else
-		{
-			fatalerror("XCH.b %s, %s", regnames[rd], get_directtext(direct));
-		}
-		return;
+		if (size) { xch_word_rd_direct(rd, direct); } else { xch_byte_rd_direct(rd, direct); }
 	}
 	else
 	{
 		if (op2 & 0x80)
 		{
 			const u8 rs = op2 & (0x70) >> 4;
-
-			if (size)
-			{
-				fatalerror("MOV.w %s, [%s]", get_directtext(direct), m_regnames16[rs]);
-			}
-			else
-			{
-				fatalerror("MOV.b %s, [%s]", get_directtext(direct), m_regnames16[rs]);
-			}
-			return;
+			if (size) {	mov_word_direct_indrs(direct, rs); } else {	mov_byte_direct_indrs(direct, rs); }
 		}
 		else
 		{
 			const u8 rd = op2 & (0x70) >> 4;
-
-			if (size)
-			{
-				fatalerror("MOV.w [%s], %s", m_regnames16[rd], get_directtext(direct));
-			}
-			else
-			{
-				fatalerror("MOV.b [%s], %s", m_regnames16[rd], get_directtext(direct));
-			}
-			return;
+			if (size) { mov_word_indrd_direct(rd, direct); } else { mov_byte_indrd_direct(rd, direct); }
 		}
 	}
 }

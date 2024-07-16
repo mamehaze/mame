@@ -685,7 +685,7 @@ void xa_cpu_device::push_byte_direct(u16 direct) { fatalerror("PUSH.b %s", get_d
 
 // MOV [Rd+], [Rs+]            Move reg-ind to reg-ind, both pointers autoinc                          2 6         1001 S000  0ddd 0sss
 void xa_cpu_device::mov_word_indrdinc_indrsinc(u8 rd, u8 rs) { fatalerror("MOV.w [%s+], [%s+]", m_regnames16[rd], m_regnames16[rs]); }
-void xa_cpu_device::mov_byte_indrdinc_indrsinc(u8 rd, u8 rs) { fatalerror("MOV.w [%s+], [%s+]", m_regnames16[rd], m_regnames16[rs]); }
+void xa_cpu_device::mov_byte_indrdinc_indrsinc(u8 rd, u8 rs) { fatalerror("MOV.b [%s+], [%s+]", m_regnames16[rd], m_regnames16[rs]); }
 
 void xa_cpu_device::da_rd(u8 rd) { fatalerror( "DA %s", m_regnames8[rd]); }
 void xa_cpu_device::sext_word_rd(u8 rd) { fatalerror("SEXT.w %s", m_regnames16[rd]); }
@@ -707,4 +707,19 @@ void xa_cpu_device::jb_bit_rel8(u16 bit, u8 rel8) { fatalerror( "JB %s, $%02x", 
 void xa_cpu_device::jnb_bit_rel8(u16 bit, u8 rel8) { fatalerror( "JNB %s, $%02x", get_bittext(bit), expand_rel8(rel8) ); }
 void xa_cpu_device::jbc_bit_rel8(u16 bit, u8 rel8) { fatalerror( "JBC %s, $%02x", get_bittext(bit), expand_rel8(rel8) ); }
 
+// MOV direct, direct          Move mem to mem                                                         4 4         1001 S111  0DDD 0ddd  DDDD DDDD  dddd dddd
+void xa_cpu_device::mov_word_direct_direct(u16 direct_d, u16 direct_s) { fatalerror("MOV.w %s, %s", get_directtext(direct_d), get_directtext(direct_s)); }
+void xa_cpu_device::mov_byte_direct_direct(u16 direct_d, u16 direct_s) { fatalerror("MOV.b %s, %s", get_directtext(direct_d), get_directtext(direct_s)); }
+
+// XCH Rd, direct              Exchange contents of mem w/ a reg                                       3 6         1010 S000  dddd 1DDD  DDDD DDDD
+void xa_cpu_device::xch_word_rd_direct(u8 rd, u16 direct) { fatalerror("XCH.w %s, %s", m_regnames16[rd], get_directtext(direct)); }
+void xa_cpu_device::xch_byte_rd_direct(u8 rd, u16 direct) { fatalerror("XCH.b %s, %s", m_regnames8[rd], get_directtext(direct)); }
+
+// MOV direct, [Rs]            Move reg-ind to mem                                                     3 4         1010 S000  1sss 0DDD  DDDD DDDD
+void xa_cpu_device::mov_word_direct_indrs(u16 direct, u8 rs) { fatalerror("MOV.w %s, [%s]", get_directtext(direct), m_regnames16[rs]); }
+void xa_cpu_device::mov_byte_direct_indrs(u16 direct, u8 rs) { fatalerror("MOV.b %s, [%s]", get_directtext(direct), m_regnames16[rs]); }
+
+// MOV [Rd], direct            Move mem to reg-ind                                                     3 4         1010 S000  0ddd 0DDD  DDDD DDDD
+void xa_cpu_device::mov_word_indrd_direct(u8 rd, u16 direct) { fatalerror("MOV.w [%s], %s", m_regnames16[rd], get_directtext(direct)); }
+void xa_cpu_device::mov_byte_indrd_direct(u8 rd, u16 direct) { fatalerror("MOV.b [%s], %s", m_regnames16[rd], get_directtext(direct)); }
 

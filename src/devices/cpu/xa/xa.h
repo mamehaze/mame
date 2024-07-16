@@ -721,6 +721,18 @@ private:
 	void jnb_bit_rel8(u16 bit, u8 rel8);
 	void jbc_bit_rel8(u16 bit, u8 rel8);
 
+	void mov_word_direct_direct(u16 direct1, u16 direct2);
+	void mov_byte_direct_direct(u16 direct1, u16 direct2);
+
+	void xch_word_rd_direct(u8 rd, u16 direct);
+	void xch_byte_rd_direct(u8 rd, u16 direct);
+
+	void mov_word_direct_indrs(u16 direct, u8 rs);
+	void mov_byte_direct_indrs(u16 direct, u8 rs);
+
+	void mov_word_indrd_direct(u8 rd, u16 direct);
+	void mov_byte_indrd_direct(u8 rd, u16 direct);
+
 
 	std::unordered_map<offs_t, const char *> m_names;
 
