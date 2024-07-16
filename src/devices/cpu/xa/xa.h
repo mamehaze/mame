@@ -739,6 +739,20 @@ private:
 	void movx_word_rd_indrs(u8 rd, u8 rs);
 	void movx_byte_rd_indrs(u8 rd, u8 rs);
 
+	void rr_word_rd_data4(u8 rd, u8 data4);
+	void rr_byte_rd_data4(u8 rd, u8 data4);
+
+	void rrc_word_rd_data4(u8 rd, u8 data4);
+	void rrc_byte_rd_data4(u8 rd, u8 data4);
+
+	void rl_word_rd_data4(u8 rd, u8 data4);
+	void rl_byte_rd_data4(u8 rd, u8 data4);
+
+	void rlc_word_rd_data4(u8 rd, u8 data4);
+	void rlc_byte_rd_data4(u8 rd, u8 data4);
+
+
+
 	std::unordered_map<offs_t, const char *> m_names;
 
 

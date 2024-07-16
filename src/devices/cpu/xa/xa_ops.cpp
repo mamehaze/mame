@@ -730,3 +730,20 @@ void xa_cpu_device::movx_byte_indrd_rs(u8 rd, u8 rs) { fatalerror("MOVX.b [%s], 
 // MOVX Rd, [Rs]               Move external data from mem to reg                                      2 6         1010 S111  dddd 0sss
 void xa_cpu_device::movx_word_rd_indrs(u8 rd, u8 rs) { fatalerror("MOVX.w %s, [%s]", m_regnames16[rd], m_regnames16[rs]); }
 void xa_cpu_device::movx_byte_rd_indrs(u8 rd, u8 rs) { fatalerror("MOVX.b %s, [%s]", m_regnames8[rd], m_regnames16[rs]); }
+
+//RR Rd, #data4               Rotate right reg by the 4-bit imm value                                 2 a*        1011 S000  dddd iiii
+void xa_cpu_device::rr_word_rd_data4(u8 rd, u8 data4) { fatalerror("RR.w %s, %d", m_regnames16[rd], data4); }
+void xa_cpu_device::rr_byte_rd_data4(u8 rd, u8 data4) { fatalerror("RR.b %s, %d", m_regnames8[rd], data4); }
+
+//RRC Rd, #data4              Rotate right reg though carry by the 4-bit imm value                    2 a*        1011 S111  dddd iiii
+void xa_cpu_device::rrc_word_rd_data4(u8 rd, u8 data4) { fatalerror("RRC.w %s, %d", m_regnames16[rd], data4); }
+void xa_cpu_device::rrc_byte_rd_data4(u8 rd, u8 data4) { fatalerror("RRC.b %s, %d", m_regnames8[rd], data4); }
+
+//RL Rd, #data4               Rotate left reg by the 4-bit imm value                                  2 a*        1101 S011  dddd iiii
+void xa_cpu_device::rl_word_rd_data4(u8 rd, u8 data4) { fatalerror("RL.w %d, %d", m_regnames16[rd], data4); }
+void xa_cpu_device::rl_byte_rd_data4(u8 rd, u8 data4) { fatalerror("RL.b %d, %d", m_regnames8[rd], data4); }
+
+//RLC Rd, #data4              Rotate left reg though carry by the 4-bit imm value                     2 a*        1101 S111  dddd iiii
+void xa_cpu_device::rlc_word_rd_data4(u8 rd, u8 data4) { fatalerror( "RLC.w Rd, %d", m_regnames16[rd], data4); }
+void xa_cpu_device::rlc_byte_rd_data4(u8 rd, u8 data4) { fatalerror( "RLC.b Rd, %d", m_regnames8[rd], data4); }
+

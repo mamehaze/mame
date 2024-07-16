@@ -1951,7 +1951,7 @@ void xa_cpu_device::d_jb_mov_subgroup(XA_EXECUTE_PARAMS)
 
 	if (op2 & 0x80)
 	{
-        int bit = ((op2 & 0x03) << 8) | op3;
+		int bit = ((op2 & 0x03) << 8) | op3;
 		switch (op2 & 0x70)
 		{
 		case 0x00: jb_bit_rel8(bit, op4); break;
@@ -1965,7 +1965,7 @@ void xa_cpu_device::d_jb_mov_subgroup(XA_EXECUTE_PARAMS)
 		int direct_dst = ((op2 & 0x70) << 4) | op3;
 		int direct_src = ((op2 & 0x07) << 8) | op4;
 		int size = op & 0x08;
-		if (size) {	mov_word_direct_direct(direct_dst, direct_src); } else { mov_byte_direct_direct(direct_dst, direct_src); }
+		if (size) { mov_word_direct_direct(direct_dst, direct_src); } else { mov_byte_direct_direct(direct_dst, direct_src); }
 	}
 }
 
@@ -1994,7 +1994,7 @@ void xa_cpu_device::d_movdir(XA_EXECUTE_PARAMS)
 		if (op2 & 0x80)
 		{
 			const u8 rs = op2 & (0x70) >> 4;
-			if (size) {	mov_word_direct_indrs(direct, rs); } else {	mov_byte_direct_indrs(direct, rs); }
+			if (size) { mov_word_direct_indrs(direct, rs); } else { mov_byte_direct_indrs(direct, rs); }
 		}
 		else
 		{
@@ -2048,18 +2048,9 @@ void xa_cpu_device::d_rr(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	int size = op & 0x08;
-	const char** regnames = size ? m_regnames16 : m_regnames8;
 	const u8 rd = (op2 & 0xf0) >> 4;
 	const u8 data = rd & 0x0f;
-
-	if (size)
-	{
-		fatalerror("RR.w %s, %d", regnames[rd], data);
-	}
-	else
-	{
-		fatalerror("RR.b %s, %d", regnames[rd], data);
-	}
+	if (size) { rr_word_rd_data4(rd, data); } else { rr_byte_rd_data4(rd, data); }
 }
 
 /*
@@ -2082,18 +2073,9 @@ void xa_cpu_device::d_rrc(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	int size = op & 0x08;
-	const char** regnames = size ? m_regnames16 : m_regnames8;
 	const u8 rd = (op2 & 0xf0) >> 4;
 	const u8 data = rd & 0x0f;
-
-	if (size)
-	{
-		fatalerror("RRC.w %s, %d", regnames[rd], data);
-	}
-	else
-	{
-		fatalerror("RRC.b %s, %d", regnames[rd], data);
-	}
+	if (size) { rrc_word_rd_data4(rd, data); } else { rrc_byte_rd_data4(rd, data); }
 }
 
 
@@ -2297,18 +2279,9 @@ void xa_cpu_device::d_rl(XA_EXECUTE_PARAMS)
 {
 	int size = op & 0x08;
 	const u8 op2 = m_program->read_byte(m_pc++);
-	const char** regnames = size ? m_regnames16 : m_regnames8;
 	const u8 rd = (op2 & 0xf0) >> 4;
 	const u8 data4 = (op2 & 0x0f);
-
-	if (size)
-	{
-		fatalerror("RL.w %d, %d", regnames[rd], data4);
-	}
-	else
-	{
-		fatalerror("RL.b %d, %d", regnames[rd], data4);
-	}
+	if (size) { rl_word_rd_data4(rd, data4); } else { rl_byte_rd_data4(rd, data4); }
 }
 
 /*
@@ -2318,18 +2291,9 @@ void xa_cpu_device::d_rlc(XA_EXECUTE_PARAMS)
 {
 	int size = op & 0x08;
 	const u8 op2 = m_program->read_byte(m_pc++);
-	const char** regnames = size ? m_regnames16 : m_regnames8;
 	const u8 rd = (op2 & 0xf0) >> 4;
 	const u8 data4 = (op2 & 0x0f);
-
-	if (size)
-	{
-		fatalerror( "RLC.w Rd, %d", regnames[rd], data4);
-	}
-	else
-	{
-		fatalerror( "RLC.b Rd, %d", regnames[rd], data4);
-	}
+	if (size) { rlc_word_rd_data4(rd, data4); } else { rlc_byte_rd_data4(rd, data4); }
 }
 
 // -------------------------------------- Group e --------------------------------------
