@@ -2346,16 +2346,17 @@ void xa_cpu_device::d_lsr_fc(XA_EXECUTE_PARAMS)
 
 		const u32 addr = (op2 << 8) | op3 | (op4 << 16);
 
-		fatalerror( "FCALL $%06x", addr);
+		fatalerror("FCALL $%06x", addr);
 		return;
 	}
 	else
 	{
 		const u8 op2 = m_program->read_byte(m_pc++);
-		const char** regnames = ((size != 0) ? m_regnames16 : m_regnames8);
 		const u8 rd = (op2 & 0xf0) >> 4;
 		const u8 rs = (op2 & 0x0f);
-		fatalerror( "LSR %s, %s", regnames[rd], m_regnames8[rs]); // m_regnames8 or regnames for last param?
+		if (size == 0) lsr_byte_rd_rs(rd, rs);
+		else if (size == 2) lsr_word_rd_rs(rd, rs);
+		else if (size == 3) lsr_dword_rd_rs(rd, rs);
 		return;
 	}
 }
@@ -2378,10 +2379,11 @@ void xa_cpu_device::d_asl_c(XA_EXECUTE_PARAMS)
 	else
 	{
 		const u8 op2 = m_program->read_byte(m_pc++);
-		const char** regnames = ((size != 0) ? m_regnames16 : m_regnames8);
 		const u8 rd = (op2 & 0xf0) >> 4;
 		const u8 rs = (op2 & 0x0f);
-		fatalerror( "ASL %s, %s", regnames[rd], m_regnames8[rs]); // m_regnames8 or regnames for last param? (check 03D4 in superkds)
+		if (size == 0) asl_byte_rd_rs(rd, rs);
+		else if (size == 2) asl_word_rd_rs(rd, rs);
+		else if (size == 3) asl_dword_rd_rs(rd, rs);
 		return;
 	}
 }
@@ -2397,16 +2399,17 @@ void xa_cpu_device::d_asr_c(XA_EXECUTE_PARAMS)
 	{
 		const u8 op2 = m_program->read_byte(m_pc++);
 		const u8 rs = op2 & 0x07;
-		fatalerror( "CALL [%s]", m_regnames16[rs]);
+		fatalerror("CALL [%s]", m_regnames16[rs]);
 		return;
 	}
 	else
 	{
 		const u8 op2 = m_program->read_byte(m_pc++);
-		const char** regnames = ((size != 0) ? m_regnames16 : m_regnames8);
 		const u8 rd = (op2 & 0xf0) >> 4;
 		const u8 rs = (op2 & 0x0f);
-		fatalerror( "ASR %s, %s", regnames[rd], m_regnames8[rs]); // m_regnames8 or regnames for last param?
+		if (size == 0) asr_byte_rd_rs(rd, rs);
+		else if (size == 2) asr_word_rd_rs(rd, rs);
+		else if (size == 3) asr_dword_rd_rs(rd, rs);
 		return;
 	}
 }
@@ -2416,11 +2419,11 @@ NORM Rd, Rs                 Logical shift left dest reg by the value in the src 
 */
 void xa_cpu_device::d_norm(XA_EXECUTE_PARAMS)
 {
-	int size = (op & 0x0c)>>2;
+	int size = (op & 0x0c) >> 2;
 	if (size == 0x01)
 	{
 		const u8 op2 = m_program->read_byte(m_pc++);
-		fatalerror( "illegal %02x", op2);
+		fatalerror("illegal %02x", op2);
 		return;
 	}
 	else
@@ -2428,12 +2431,9 @@ void xa_cpu_device::d_norm(XA_EXECUTE_PARAMS)
 		const u8 op2 = m_program->read_byte(m_pc++);
 		int rd = (op2 & 0xf0) >> 4;
 		int rs = (op2 & 0x0f);
-		// doesn't have a #data5 mode like the other shifts?
-
-		if (size == 0) fatalerror("NORM.b %s, %s", m_regnames8[rd], m_regnames8[rs]);
-		else if (size == 2) fatalerror("NORM.w %s, %s", m_regnames16[rd], m_regnames8[rs]);
-		else if (size == 3) fatalerror("NORM.dw %s, %s", m_regnames16[rd], m_regnames8[rs]);
-		else fatalerror("NORM.illegal %s, %s", m_regnames16[rd], m_regnames8[rs]);
+		if (size == 0) norm_byte_rd_rs(rd, rs);
+		else if (size == 2) norm_word_rd_rs(rd, rs);
+		else if (size == 3) norm_dword_rd_rs(rd, rs);
 		return;
 	}
 }

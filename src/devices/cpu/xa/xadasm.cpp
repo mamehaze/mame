@@ -1374,8 +1374,8 @@ CALL rel16                  Relative call (range +/- 64K)                       
 */
 int xa_dasm::d_asl_c(XA_DASM_PARAMS)
 {
-	int size = op & 0x0c;
-	if (size == 0x04)
+	int size = (op & 0x0c) >> 2;
+	if (size == 0x01)
 	{
 		const u8 op2 = opcodes.r8(pc++);
 		const u8 op3 = opcodes.r8(pc++);
@@ -1391,7 +1391,7 @@ int xa_dasm::d_asl_c(XA_DASM_PARAMS)
 		const char** regnames = ((size != 0) ? m_regnames16 : m_regnames8);
 		const u8 rd = (op2 & 0xf0) >> 4;
 		const u8 rs = (op2 & 0x0f);
-		util::stream_format(stream, "ASL %s, %s", regnames[rd], m_regnames8[rs]); // m_regnames8 or regnames for last param? (check 03D4 in superkds)
+		util::stream_format(stream, "ASL%s %s, %s", m_dwparamsizes[size], regnames[rd], m_regnames8[rs]); // m_regnames8 or regnames for last param? (check 03D4 in superkds)
 		return 2;
 	}
 	return 1;
@@ -1403,8 +1403,8 @@ CALL [Rs]                   Subroutine call ind w/ a reg                        
 */ 
 int xa_dasm::d_asr_c(XA_DASM_PARAMS)
 {
-	int size = op & 0x0c;
-	if (size == 0x04)
+	int size = (op & 0x0c) >> 2;
+	if (size == 0x01)
 	{
 		const u8 op2 = opcodes.r8(pc++);
 		const u8 rs = op2 & 0x07;
@@ -1417,7 +1417,7 @@ int xa_dasm::d_asr_c(XA_DASM_PARAMS)
 		const char** regnames = ((size != 0) ? m_regnames16 : m_regnames8);
 		const u8 rd = (op2 & 0xf0) >> 4;
 		const u8 rs = (op2 & 0x0f);
-		util::stream_format(stream, "ASR %s, %s", regnames[rd], m_regnames8[rs]); // m_regnames8 or regnames for last param?
+		util::stream_format(stream, "ASR%s %s, %s", m_dwparamsizes[size], regnames[rd], m_regnames8[rs]); // m_regnames8 or regnames for last param?
 		return 2;
 	}
 	return 1;
@@ -1428,8 +1428,8 @@ NORM Rd, Rs                 Logical shift left dest reg by the value in the src 
 */
 int xa_dasm::d_norm(XA_DASM_PARAMS)
 {
-	int size = op & 0x0c;
-	if (size == 0x04)
+	int size = (op & 0x0c) >> 2;
+	if (size == 0x01)
 	{
 		const u8 op2 = opcodes.r8(pc++);
 		util::stream_format(stream, "illegal %02x", op2);
@@ -1441,8 +1441,7 @@ int xa_dasm::d_norm(XA_DASM_PARAMS)
 		int rd = (op2 & 0xf0) >> 4;
 		int rs = (op2 & 0x0f);
 		const char** regnames = ((size != 0) ? m_regnames16 : m_regnames8);
-		// doesn't have a #data5 mode like the other shifts?
-		util::stream_format(stream, "NORM%s %s, %s", m_dwparamsizes[size >> 2], regnames[rd], m_regnames8[rs]); // m_regnames8 or regnames for last param?
+		util::stream_format(stream, "NORM%s %s, %s", m_dwparamsizes[size], regnames[rd], m_regnames8[rs]); // m_regnames8 or regnames for last param?
 		return 2;
 	}
 	return 2;
@@ -1457,8 +1456,8 @@ FJMP addr24                 Far jump (full 24-bit address space)                
 */
 int xa_dasm::d_lsr_fj(XA_DASM_PARAMS)
 {
-	int size = op & 0x0c;
-	if (size == 0x04)
+	int size = (op & 0x0c) >> 2;
+	if (size == 0x01)
 	{
 		const u8 op2 = opcodes.r8(pc++);
 		const u8 op3 = opcodes.r8(pc++);

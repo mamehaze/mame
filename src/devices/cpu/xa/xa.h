@@ -635,6 +635,24 @@ private:
 	void lsr_word_rd_imm4(u8 rd, u8 amount);
 	void lsr_dword_rd_imm5(u8 rd, u8 amount);
 
+	void asl_byte_rd_rs(u8 rd, u8 rs);
+	void asl_word_rd_rs(u8 rd, u8 rs);
+	void asl_dword_rd_rs(u8 rd, u8 rs);
+
+	void asr_byte_rd_rs(u8 rd, u8 rs);
+	void asr_word_rd_rs(u8 rd, u8 rs);
+	void asr_dword_rd_rs(u8 rd, u8 rs);
+
+	void lsr_byte_rd_rs(u8 rd, u8 rs);
+	void lsr_word_rd_rs(u8 rd, u8 rs);
+	void lsr_dword_rd_rs(u8 rd, u8 rs);
+
+	void norm_byte_rd_rs(u8 rd, u8 rs);
+	void norm_word_rd_rs(u8 rd, u8 rs);
+	void norm_dword_rd_rs(u8 rd, u8 rs);
+
+
+
 	std::unordered_map<offs_t, const char *> m_names;
 
 

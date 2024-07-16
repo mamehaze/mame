@@ -588,3 +588,19 @@ void xa_cpu_device::lsr_byte_rd_imm4(u8 rd, u8 amount) { fatalerror("LSR.b %s, %
 void xa_cpu_device::lsr_word_rd_imm4(u8 rd, u8 amount) { fatalerror("LSR.w %s, %d", m_regnames16[rd], amount); }
 void xa_cpu_device::lsr_dword_rd_imm5(u8 rd, u8 amount) { fatalerror("LSR.dw %s, %d", m_regnames16[rd], amount); }
 
+void xa_cpu_device::asl_byte_rd_rs(u8 rd, u8 rs) { fatalerror("ASL.b %s, %d", m_regnames8[rd], m_regnames8[rs]); }
+void xa_cpu_device::asl_word_rd_rs(u8 rd, u8 rs) { fatalerror("ASL.w %s, %d", m_regnames16[rd], m_regnames8[rs]); }
+void xa_cpu_device::asl_dword_rd_rs(u8 rd, u8 rs) { fatalerror("ASL.dw %s, %d", m_regnames16[rd], m_regnames8[rs]); }
+
+void xa_cpu_device::asr_byte_rd_rs(u8 rd, u8 rs) { fatalerror("ASR.b %s, %d", m_regnames8[rd], m_regnames8[rs]); }
+void xa_cpu_device::asr_word_rd_rs(u8 rd, u8 rs) { fatalerror("ASR.w %s, %d", m_regnames16[rd], m_regnames8[rs]); }
+void xa_cpu_device::asr_dword_rd_rs(u8 rd, u8 rs) { fatalerror("ASR.dw %s, %d", m_regnames16[rd], m_regnames8[rs]); }
+
+void xa_cpu_device::lsr_byte_rd_rs(u8 rd, u8 rs) { fatalerror("LSR.b %s, %d", m_regnames8[rd], m_regnames8[rs]); }
+void xa_cpu_device::lsr_word_rd_rs(u8 rd, u8 rs) { fatalerror("LSR.w %s, %d", m_regnames16[rd], m_regnames8[rs]); }
+void xa_cpu_device::lsr_dword_rd_rs(u8 rd, u8 rs) { fatalerror("LSR.dw %s, %d", m_regnames16[rd], m_regnames8[rs]); }
+
+void xa_cpu_device::norm_byte_rd_rs(u8 rd, u8 rs) { fatalerror("NORM.b %s, %d", m_regnames8[rd], m_regnames8[rs]); }
+void xa_cpu_device::norm_word_rd_rs(u8 rd, u8 rs) { fatalerror("NORM.w %s, %d", m_regnames16[rd], m_regnames8[rs]); }
+void xa_cpu_device::norm_dword_rd_rs(u8 rd, u8 rs) { fatalerror("NORM.dw %s, %d", m_regnames16[rd], m_regnames8[rs]); }
+
