@@ -762,6 +762,12 @@ private:
 	void cjne_word_rd_direct_rel8(u8 rd, u16 direct, u8 rel8);
 	void cjne_byte_rd_direct_rel8(u8 rd, u16 direct, u8 rel8);
 
+	void cjne_indrd_data8_rel8(u8 rd, u8 data8, u8 rel8);
+	void cjne_rd_data8_rel8(u8 rd, u8 data8, u8 rel8);
+
+	void cjne_indrd_data16_rel8(u8 rd, u16 data16, u8 rel8);
+	void cjne_rd_data16_rel8(u8 rd, u16 data16, u8 rel8);
+
 
 	std::unordered_map<offs_t, const char *> m_names;
 

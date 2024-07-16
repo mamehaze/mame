@@ -2451,31 +2451,15 @@ void xa_cpu_device::d_cjne_d8(XA_EXECUTE_PARAMS)
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 op3 = m_program->read_byte(m_pc++);
 	const u8 op4 = m_program->read_byte(m_pc++);
-	int address = m_pc + ((s8)op3)*2;
-	address &= ~1; // must be word aligned
 	if (op2 & 0x08)
 	{
 		const u8 rd = (op2 & 0x70) >> 4;
-		fatalerror( "CJNE [%s], #$%02x, $%04x", m_regnames16[rd], op4, address);
+		cjne_indrd_data8_rel8(rd, op4, op3);
 	}
 	else
 	{
 		const u8 rd = (op2 & 0xf0) >> 4;
-
-		uint8_t regval = get_reg8(rd);
-
-		uint16_t result = regval - op4;
-
-		do_nz_flags_8((u8)result);
-		if (result & 0x0100)
-			set_c_flag();
-		else
-			clear_c_flag();
-
-		if (!get_z_flag())
-		{
-			set_pc_in_current_page(address);
-		}
+		cjne_rd_data8_rel8(rd, op4, op3);
 	}
 }
 
@@ -2490,17 +2474,15 @@ void xa_cpu_device::d_cjne_d16(XA_EXECUTE_PARAMS)
 	const u8 op4 = m_program->read_byte(m_pc++);
 	const u8 op5 = m_program->read_byte(m_pc++);
 	const u16 data = (op4 << 8) | op5;
-	int address = m_pc + ((s8)op3)*2;
-	address &= ~1; // must be word aligned
 	if (op2 & 0x08)
 	{
 		const u8 rd = (op2 & 0x70) >> 4;
-		fatalerror( "CJNE [%s], #$%04x, $%04x", m_regnames16[rd], data, address);
+		cjne_indrd_data16_rel8(rd, data, op3);
 	}
 	else
 	{
 		const u8 rd = (op2 & 0xf0) >> 4;
-		fatalerror( "CJNE %s, #$%04x, $%04x", m_regnames8[rd], data, address);
+		cjne_rd_data16_rel8(rd, data, op3);
 	}
 }
 
