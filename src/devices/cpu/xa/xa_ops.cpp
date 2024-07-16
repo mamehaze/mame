@@ -467,7 +467,7 @@ void xa_cpu_device::or_word_direct_rs(u16 direct, u8 rs)  { fatalerror("OR.w %s,
 void xa_cpu_device::xor_word_direct_rs(u16 direct, u8 rs) { fatalerror("XOR.w %s, %s", get_directtext(direct), m_regnames16[rs]);}
 void xa_cpu_device::mov_word_direct_rs(u16 direct, u8 rs) { fatalerror("MOV.w %s, %s", get_directtext(direct), m_regnames16[rs]);}
 
-	// ALUOP.b Direct, Rs
+// ALUOP.b Direct, Rs
 void xa_cpu_device::add_byte_direct_rs(u16 direct, u8 rs) { fatalerror("ADD.b %s, %s", get_directtext(direct), m_regnames8[rs]);}
 void xa_cpu_device::addc_byte_direct_rs(u16 direct, u8 rs){ fatalerror("ADDC.b %s, %s", get_directtext(direct), m_regnames8[rs]);}
 void xa_cpu_device::sub_byte_direct_rs(u16 direct, u8 rs) { fatalerror("SUB.b %s, %s", get_directtext(direct), m_regnames8[rs]);}
@@ -479,34 +479,51 @@ void xa_cpu_device::xor_byte_direct_rs(u16 direct, u8 rs) { fatalerror("XOR.b %s
 void xa_cpu_device::mov_byte_direct_rs(u16 direct, u8 rs) { fatalerror("MOV.b %s, %s", get_directtext(direct), m_regnames8[rs]);}
 
 
+// ADDS.w / MOVS.w Rd, #data4
+void xa_cpu_device::movs_word_rd_data4(u8 rd, u8 data4) { fatalerror("MOVS.w %s, %s", m_regnames16[rd], show_expanded_data4(data4, 1)); }
+void xa_cpu_device::adds_word_rd_data4(u8 rd, u8 data4) { fatalerror("ADDS.w %s, %s", m_regnames16[rd], show_expanded_data4(data4, 1)); }
 
-void xa_cpu_device::movs_word_rd_data4(u8 rd, u8 data4){}
-void xa_cpu_device::movs_byte_rd_data4(u8 rd, u8 data4){}
-void xa_cpu_device::adds_word_rd_data4(u8 rd, u8 data4){}
-void xa_cpu_device::adds_byte_rd_data4(u8 rd, u8 data4){}
+// ADDS.b / MOVS.b Rd, #data4
+void xa_cpu_device::movs_byte_rd_data4(u8 rd, u8 data4){ u8 data = util::sext(data4, 4); set_reg8(rd, data);	do_nz_flags_8(data); }
+void xa_cpu_device::adds_byte_rd_data4(u8 rd, u8 data4){ fatalerror("ADDS.b %s, %s", m_regnames8[rd], show_expanded_data4(data4, 0)); }
 
-void xa_cpu_device::movs_word_indrd_data4(u8 rd, u8 data4){}
-void xa_cpu_device::movs_byte_indrd_data4(u8 rd, u8 data4){}
-void xa_cpu_device::adds_word_indrd_data4(u8 rd, u8 data4){}
-void xa_cpu_device::adds_byte_indrd_data4(u8 rd, u8 data4){}
+// ADDS.w / MOVS.w [Rd], #data4
+void xa_cpu_device::movs_word_indrd_data4(u8 rd, u8 data4){ fatalerror("MOVS.w [%s], %s", m_regnames16[rd], show_expanded_data4(data4, 1)); }
+void xa_cpu_device::adds_word_indrd_data4(u8 rd, u8 data4){ fatalerror("ADDS.w [%s], %s", m_regnames16[rd], show_expanded_data4(data4, 1)); }
 
-void xa_cpu_device::movs_word_indrdinc_data4(u8 rd, u8 data4){}
-void xa_cpu_device::movs_byte_indrdinc_data4(u8 rd, u8 data4){}
-void xa_cpu_device::adds_word_indrdinc_data4(u8 rd, u8 data4){}
-void xa_cpu_device::adds_byte_indrdinc_data4(u8 rd, u8 data4){}
+// ADDS.b / MOVS.b [Rd], #data4
+void xa_cpu_device::movs_byte_indrd_data4(u8 rd, u8 data4){ fatalerror("MOVS.b [%s], %s", m_regnames16[rd], show_expanded_data4(data4, 0)); }
+void xa_cpu_device::adds_byte_indrd_data4(u8 rd, u8 data4){ fatalerror("ADDS.b [%s], %s", m_regnames16[rd], show_expanded_data4(data4, 0)); }
 
-void xa_cpu_device::movs_word_indrdoff8_data4(u8 rd, u8 off8, u8 data4){}
-void xa_cpu_device::movs_byte_indrdoff8_data4(u8 rd, u8 off8, u8 data4){}
-void xa_cpu_device::adds_word_indrdoff8_data4(u8 rd, u8 off8, u8 data4){}
-void xa_cpu_device::adds_byte_indrdoff8_data4(u8 rd, u8 off8, u8 data4){}
+// ADDS.w / MOVS.w [Rd+], #data4
+void xa_cpu_device::movs_word_indrdinc_data4(u8 rd, u8 data4){ u16 data = util::sext(data4, 4); u16 regval = get_reg16(rd); write_data16(regval, data); regval += 2; do_nz_flags_16(regval); set_reg16(rd, regval); }
+void xa_cpu_device::adds_word_indrdinc_data4(u8 rd, u8 data4){ fatalerror("ADDS.w [%s+], %s", m_regnames16[rd], show_expanded_data4(data4, 1)); }
 
-void xa_cpu_device::movs_word_indrdoff16_data4(u8 rd, u16 off16, u8 data4){}
-void xa_cpu_device::movs_byte_indrdoff16_data4(u8 rd, u16 off16, u8 data4){}
-void xa_cpu_device::adds_word_indrdoff16_data4(u8 rd, u16 off16, u8 data4){}
-void xa_cpu_device::adds_byte_indrdoff16_data4(u8 rd, u16 off16, u8 data4){}
+// ADDS.b / MOVS.w [Rd+], #data4
+void xa_cpu_device::movs_byte_indrdinc_data4(u8 rd, u8 data4){ fatalerror("MOVS.b [%s+], %s", m_regnames16[rd], show_expanded_data4(data4, 0)); }
+void xa_cpu_device::adds_byte_indrdinc_data4(u8 rd, u8 data4){ fatalerror("ADDS.b [%s+], %s", m_regnames16[rd], show_expanded_data4(data4, 0)); }
 
-void xa_cpu_device::movs_word_direct_data4(u16 direct, u8 data4){}
-void xa_cpu_device::movs_byte_direct_data4(u16 direct, u8 data4){}
-void xa_cpu_device::adds_word_direct_data4(u16 direct, u8 data4){}
-void xa_cpu_device::adds_byte_direct_data4(u16 direct, u8 data4){}
+// ADDS.w / MOVS.w [Rd+off8], #data4
+void xa_cpu_device::movs_word_indrdoff8_data4(u8 rd, u8 off8, u8 data4){ fatalerror("MOVS.w [%s+$%02x], %s", m_regnames16[rd], off8, show_expanded_data4(data4, 1)); }
+void xa_cpu_device::adds_word_indrdoff8_data4(u8 rd, u8 off8, u8 data4){ fatalerror("ADDS.w [%s+$%02x], %s", m_regnames16[rd], off8, show_expanded_data4(data4, 1)); }
+
+// ADDS.b / MOVS.b [Rd+off8], #data4
+void xa_cpu_device::movs_byte_indrdoff8_data4(u8 rd, u8 off8, u8 data4){ fatalerror("MOVS.b [%s+$%02x], %s", m_regnames16[rd], off8, show_expanded_data4(data4, 0));  }
+void xa_cpu_device::adds_byte_indrdoff8_data4(u8 rd, u8 off8, u8 data4){ fatalerror("ADDS.b [%s+$%02x], %s", m_regnames16[rd], off8, show_expanded_data4(data4, 0));  }
+
+// ADDS.w / MOVS.w [Rd+off16], #data4
+void xa_cpu_device::movs_word_indrdoff16_data4(u8 rd, u16 off16, u8 data4){ fatalerror("MOVS.w [%s+$%04x], %s", m_regnames16[rd], off16, show_expanded_data4(data4, 1)); }
+void xa_cpu_device::adds_word_indrdoff16_data4(u8 rd, u16 off16, u8 data4){ fatalerror("ADDS.w [%s+$%04x], %s", m_regnames16[rd], off16, show_expanded_data4(data4, 1)); }
+
+// ADDS.b / MOVS.b [Rd+off16], #data4
+void xa_cpu_device::movs_byte_indrdoff16_data4(u8 rd, u16 off16, u8 data4){ fatalerror("MOVS.b [%s+$%04x], %s", m_regnames16[rd], off16, show_expanded_data4(data4, 0)); }
+void xa_cpu_device::adds_byte_indrdoff16_data4(u8 rd, u16 off16, u8 data4){ fatalerror("ADDS.b [%s+$%04x], %s", m_regnames16[rd], off16, show_expanded_data4(data4, 0)); }
+
+// ADDS.w / MOVS.w DIRECT, #data4
+void xa_cpu_device::movs_word_direct_data4(u16 direct, u8 data4){ u16 data = util::sext(data4, 4); do_nz_flags_16(data); write_direct16(direct, data); }
+void xa_cpu_device::adds_word_direct_data4(u16 direct, u8 data4){ fatalerror("ADDS.w %s, %s\n", get_directtext(direct), show_expanded_data4(data4, 0)); }
+
+// ADDS.b / MOVS.b DIRECT, #data4
+void xa_cpu_device::movs_byte_direct_data4(u16 direct, u8 data4){ u8  data = util::sext(data4, 4); do_nz_flags_8(data);  write_direct8(direct, data); }
+void xa_cpu_device::adds_byte_direct_data4(u16 direct, u8 data4){ fatalerror("ADDS.b %s, %s\n", get_directtext(direct), show_expanded_data4(data4, 0)); }
 

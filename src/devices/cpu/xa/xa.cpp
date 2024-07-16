@@ -1286,7 +1286,6 @@ void xa_cpu_device::handle_adds_movs(XA_EXECUTE_PARAMS, int which)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	int size = op & 0x08;
-
 	const u16 data4 = op2 & 0x0f;
 
 	switch (op & 0x07)
@@ -1294,193 +1293,48 @@ void xa_cpu_device::handle_adds_movs(XA_EXECUTE_PARAMS, int which)
 	case 0x01:
 	{
 		int rd = (op2 & 0xf0) >> 4;
-		const char** regnames = size ? m_regnames16 : m_regnames8;
-
-		if (which)
-		{
-			if (size) // MOVS.w Rd, #data4
-			{
-				fatalerror( "%s.w %s, %s", m_addsmovs[which], regnames[rd], show_expanded_data4(data4, size).c_str());
-			}
-			else  // MOVS.b Rd, #data4
-			{
-				//printf( "%s.b %s, %s", m_addsmovs[which], regnames[rd], show_expanded_data4(data4, size).c_str());
-				u8 data = util::sext(data4, 4);
-				set_reg8(rd, data);
-				do_nz_flags_8(data);
-			}
-		}
-		else
-		{
-			if (size) // ADDS.w Rd, #data4
-			{
-				fatalerror( "%s.w %s, %s", m_addsmovs[which], regnames[rd], show_expanded_data4(data4, size));
-			}
-			else // ADDS.b Rd, #data4
-			{
-				fatalerror( "%s.b %s, %s", m_addsmovs[which], regnames[rd], show_expanded_data4(data4, size));
-			}
-		}
+		if (which) { if (size) { movs_word_rd_data4(rd, data4); } else { movs_byte_rd_data4(rd, data4); } }
+		else       { if (size) { adds_word_rd_data4(rd, data4); } else { adds_byte_rd_data4(rd, data4); } }
 		return;
 	}
-
 	case 0x02:
 	{
 		int rd = (op2 & 0x70) >> 4;
-
-		if (which == 1) // MOVS
-		{
-			if (size) // .w
-			{
-				fatalerror("%s.w [%s], %s", m_addsmovs[which], m_regnames16[rd], show_expanded_data4(data4, size));
-			}
-			else // .b
-			{
-				fatalerror("%s.b [%s], %s", m_addsmovs[which], m_regnames16[rd], show_expanded_data4(data4, size));
-			}
-		}
-		else // ADDS
-		{
-			if (size) // .w
-			{
-				fatalerror("%s.w [%s], %s", m_addsmovs[which], m_regnames16[rd], show_expanded_data4(data4, size));
-			}
-			else
-			{
-				fatalerror("%s.b [%s], %s", m_addsmovs[which], m_regnames16[rd], show_expanded_data4(data4, size));
-			}
-		}
+		if (which == 1) { if (size) { movs_word_indrd_data4(rd, data4); } else { movs_byte_indrd_data4(rd, data4); } }
+		else {            if (size) { adds_word_indrd_data4(rd, data4); } else { adds_byte_indrd_data4(rd, data4); } }
 		return;
 	}
-
 	case 0x03:
 	{
 		int rd = (op2 & 0x70) >> 4;
-
-		if (which)
-		{
-			if (size) // MOVS.w [Rd+], #data4
-			{
-				printf("%s.w [%s+], %s\n", m_addsmovs[which], m_regnames16[rd], show_expanded_data4(data4, size).c_str());
-				u16 data = util::sext(data4, 4);
-				u16 regval = get_reg16(rd);
-				write_data16(regval, data);
-				regval += 2;
-				do_nz_flags_16(regval);
-				set_reg16(rd, regval);
-
-			}
-			else  // MOVS.b [Rd+], #data4
-			{
-				fatalerror("%s.b [%s+], %s", m_addsmovs[which], m_regnames16[rd], show_expanded_data4(data4, size));
-			}
-		}
-		else
-		{
-			if (size) // ADDS.w [Rd+], #data4
-			{
-				fatalerror("%s.w [%s+], %s", m_addsmovs[which], m_regnames16[rd], show_expanded_data4(data4, size));
-			}
-			else // ADDS.b [Rd+], #data4
-			{
-				fatalerror("%s.b [%s+], %s", m_addsmovs[which], m_regnames16[rd], show_expanded_data4(data4, size));
-			}
-		}
+		if (which) { if (size) { movs_word_indrdinc_data4(rd, data4); } else { movs_byte_indrdinc_data4(rd, data4); } }
+		else       { if (size) { adds_word_indrdinc_data4(rd, data4); } else { adds_byte_indrdinc_data4(rd, data4); } }
 		return;
 	}
-
 	case 0x04:
 	{
 		int rd = (op2 & 0x70) >> 4;
-		const u8 op3 = m_program->read_byte(m_pc++);
-		if (which == 1) // MOVS
-		{
-			if (size) // .w
-			{
-				fatalerror("%s.w [%s+$%02x], %s", m_addsmovs[which], m_regnames16[rd], op3, show_expanded_data4(data4, size));
-			}
-			else // .b
-			{
-				fatalerror("%s.b [%s+$%02x], %s", m_addsmovs[which], m_regnames16[rd], op3, show_expanded_data4(data4, size));
-			}
-		}
-		else  // ADDS
-		{
-			if (size) // .w
-			{
-				fatalerror("%s.w [%s+$%02x], %s", m_addsmovs[which], m_regnames16[rd], op3, show_expanded_data4(data4, size));
-			}
-			else // .b
-			{
-				fatalerror("%s.b [%s+$%02x], %s", m_addsmovs[which], m_regnames16[rd], op3, show_expanded_data4(data4, size));
-			}
-		}
+		const u8 off8 = m_program->read_byte(m_pc++);
+		if (which == 1) { if (size) { movs_word_indrdoff8_data4(rd, off8, data4); } else { movs_byte_indrdoff8_data4(rd, off8, data4); } }
+		else            { if (size) { adds_word_indrdoff8_data4(rd, off8, data4); } else { adds_byte_indrdoff8_data4(rd, off8, data4); } }
 		return;
 	}
-
 	case 0x05:
 	{
 		int rd = (op2 & 0x70) >> 4;
 		const u8 op3 = m_program->read_byte(m_pc++);
 		const u8 op4 = m_program->read_byte(m_pc++);
-		const int offset = (op3 << 8) | op4;
-		if (which == 1) // MOVS
-		{
-			if (size) // .w
-			{
-				fatalerror("%s.w [%s+$%04x], %s", m_addsmovs[which], m_regnames16[rd], offset, show_expanded_data4(data4, size));
-			}
-			else // .b
-			{
-				fatalerror("%s.b [%s+$%04x], %s", m_addsmovs[which], m_regnames16[rd], offset, show_expanded_data4(data4, size));
-			}
-		}
-		else // ADDS
-		{
-			if (size) // .w
-			{
-				fatalerror("%s.w [%s+$%04x], %s", m_addsmovs[which], m_regnames16[rd], offset, show_expanded_data4(data4, size));
-			}
-			else // .b
-			{
-				fatalerror("%s.b [%s+$%04x], %s", m_addsmovs[which], m_regnames16[rd], offset, show_expanded_data4(data4, size));
-			}
-		}
+		const int off16 = (op3 << 8) | op4;
+		if (which == 1) { if (size) { movs_word_indrdoff16_data4(rd, off16, data4); } else { movs_byte_indrdoff16_data4(rd, off16, data4); } }
+		else            { if (size) { adds_word_indrdoff16_data4(rd, off16, data4); } else { adds_byte_indrdoff16_data4(rd, off16, data4); } }
 		return;
 	}
 	case 0x06:
 	{
 		const u8 op3 = m_program->read_byte(m_pc++);
 		const u16 direct = ((op2 & 0xf0) << 4) | op3;
-
-		if (which == 1) // MOVS
-		{
-			if (size) // .w
-			{
-				u16 data = util::sext(data4, 4);
-				do_nz_flags_16(data);
-				write_direct16(direct, data);
-			}
-			else // .b
-			{
-				u8 data = util::sext(data4, 4);
-				do_nz_flags_8(data);
-				write_direct8(direct, data);
-			}
-			return;
-		}
-		else // ANDS
-		{
-			if (size) // .w
-			{
-				fatalerror("%s.w %s, %s\n", m_addsmovs[which], get_directtext(direct), show_expanded_data4(data4, size));
-			}
-			else // .b
-			{
-				fatalerror("%s.b %s, %s\n", m_addsmovs[which], get_directtext(direct), show_expanded_data4(data4, size));
-			}
-		}
-
+		if (which == 1) { if (size) { movs_word_direct_data4(direct, data4); } else { movs_byte_direct_data4(direct, data4); } }
+		else            { if (size) { adds_word_direct_data4(direct, data4); } else { adds_byte_direct_data4(direct, data4); } }
 		return;
 	}
 	}
