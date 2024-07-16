@@ -748,9 +748,23 @@ void xa_cpu_device::rlc_word_rd_data4(u8 rd, u8 data4) { fatalerror( "RLC.w Rd, 
 void xa_cpu_device::rlc_byte_rd_data4(u8 rd, u8 data4) { fatalerror( "RLC.b Rd, %d", m_regnames8[rd], data4); }
 
 // FCALL addr24                Far call (full 24-bit address space)                                    4 12/8(PZ)  1100 0100  aaaa aaaa  AAAA AAAA  AAAA AAAA
+void xa_cpu_device::fcall_addr24(u32 addr24) { fatalerror("FCALL $%06x", addr24); }
 
 // CALL [Rs]                   Subroutine call ind w/ a reg                                            2 8/5(PZ)   1100 0110  0000 0sss
+void xa_cpu_device::call_indrs(u8 rs) { fatalerror("CALL [%s]", m_regnames16[rs]); }
 
 // FJMP addr24                 Far jump (full 24-bit address space)                                    4 6         1101 0100  aaaa aaaa  AAAA AAAA  AAAA AAAA
+void xa_cpu_device::fjmp_addr24(u32 addr24) { fatalerror( "FJMP $%06x", addr24); }
 
 // JMP rel16                   Long unconditional branch                                               3 6         1101 0101  rrrr rrrr  rrrr rrrr
+void xa_cpu_device::jmp_rel16(u16 rel16) { fatalerror( "JMP $%04x", expand_rel16(rel16)); }
+
+// DJNZ direct,rel8            Decrement mem and jump if not zero                                      4 9t/5nt    1110 S010  0000 1DDD  DDDD DDDD  rrrr rrrr
+
+void xa_cpu_device::djnz_word_direct_rel8(u16 direct, u8 rel8) { fatalerror("DJNZ.w %s, $%04x", get_directtext(direct), expand_rel8(rel8)); }
+void xa_cpu_device::djnz_byte_direct_rel8(u16 direct, u8 rel8) { fatalerror("DJNZ.b %s, $%04x", get_directtext(direct), expand_rel8(rel8)); }
+
+
+// CJNE Rd,direct,rel8         Compare dir byte to reg and jump if not equal                           4 10t/7nt   1110 S010  dddd 0DDD  DDDD DDDD  rrrr rrrr
+void xa_cpu_device::cjne_word_rd_direct_rel8(u8 rd, u16 direct, u8 rel8) { fatalerror("CJNE.w %s, %s, $%04x", m_regnames16[rd], get_directtext(direct), expand_rel8(rel8)); }
+void xa_cpu_device::cjne_byte_rd_direct_rel8(u8 rd, u16 direct, u8 rel8) { fatalerror("CJNE.b %s, %s, $%04x", m_regnames8[rd], get_directtext(direct), expand_rel8(rel8)); }

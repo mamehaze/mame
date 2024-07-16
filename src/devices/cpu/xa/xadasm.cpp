@@ -1587,7 +1587,8 @@ int xa_dasm::d_djnz_cjne(XA_DASM_PARAMS)
 	else
 	{
 		int rd = (op2 & 0xf0) >> 4;
-		util::stream_format(stream, "CJNE%s %s, %s, $%04x", size ? ".w" : ".b", m_regnames16[rd], get_directtext(direct), address);
+		const char** regnames = size ? m_regnames16 : m_regnames8;
+		util::stream_format(stream, "CJNE%s %s, %s, $%04x", size ? ".w" : ".b", regnames[rd], get_directtext(direct), address);
 	}
 	return 4;
 }

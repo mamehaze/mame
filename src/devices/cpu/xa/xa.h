@@ -751,6 +751,16 @@ private:
 	void rlc_word_rd_data4(u8 rd, u8 data4);
 	void rlc_byte_rd_data4(u8 rd, u8 data4);
 
+	void fcall_addr24(u32 addr24);
+	void call_indrs(u8 rs);
+	void fjmp_addr24(u32 addr24);
+	void jmp_rel16(u16 rel16);
+
+	void djnz_word_direct_rel8(u16 direct, u8 rel8);
+	void djnz_byte_direct_rel8(u16 direct, u8 rel8);
+
+	void cjne_word_rd_direct_rel8(u8 rd, u16 direct, u8 rel8);
+	void cjne_byte_rd_direct_rel8(u8 rd, u16 direct, u8 rel8);
 
 
 	std::unordered_map<offs_t, const char *> m_names;
