@@ -1661,10 +1661,10 @@ int xa_dasm::d_div_w(XA_DASM_PARAMS)
 }
 
 /*
-DIV.w Rd, #data8            16x8 signed divide reg w/ imm word                                      3 14        1110 1000  dddd 1011  iiii iiii
+MULU.b Rd, #data8           8X8 unsigned multiply of 8-bit imm data w/ reg                          3 12        1110 1000  dddd 0000  iiii iiii
 DIVU.b Rd, #data8           8X8 unsigned reg divide w/ imm byte                                     3 12        1110 1000  dddd 0001  iiii iiii
 DIVU.w Rd, #data8           16X8 unsigned reg divide w/ imm byte                                    3 12        1110 1000  dddd 0011  iiii iiii
-MULU.b Rd, #data8           8X8 unsigned multiply of 8-bit imm data w/ reg                          3 12        1110 1000  dddd 0000  iiii iiii
+DIV.w Rd, #data8            16x8 signed divide reg w/ imm word                                      3 14        1110 1000  dddd 1011  iiii iiii
 */
 int xa_dasm::d_div_data8(XA_DASM_PARAMS)
 {
@@ -1705,8 +1705,8 @@ int xa_dasm::d_div_data8(XA_DASM_PARAMS)
 
 /*
 MULU.w Rd, #data16          16X16 unsigned multiply 16-bit imm data w/ reg                          4 12        1110 1001  dddd 0000  iiii iiii  iiii iiii
-MUL.w Rd, #data16           16X16 signed multiply 16-bit imm data w/ reg                            4 12        1110 1001  dddd 1000  iiii iiii  iiii iiii
 DIVU.d Rd, #data16          32X16 unsigned double reg divide w/ imm word                            4 22        1110 1001  ddd0 0001  iiii iiii  iiii iiii
+MUL.w Rd, #data16           16X16 signed multiply 16-bit imm data w/ reg                            4 12        1110 1001  dddd 1000  iiii iiii  iiii iiii
 DIV.d Rd, #data16           32x16 signed double reg divide w/ imm word                              4 24        1110 1001  ddd0 1001  iiii iiii  iiii iiii
 */
 int xa_dasm::d_div_d16(XA_DASM_PARAMS)

@@ -2594,7 +2594,7 @@ void xa_cpu_device::d_mulu_b(XA_EXECUTE_PARAMS)
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 rd = (op2 & 0xf0) >> 4;
 	const u8 rs = (op2 & 0x0f);
-	fatalerror( "MULU.b %s, %s", m_regnames8[rd], m_regnames8[rs]);
+	mulu_byte_rd_rs(rd, rs);
 }
 
 /*
@@ -2605,7 +2605,7 @@ void xa_cpu_device::d_divu_b(XA_EXECUTE_PARAMS)
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 rd = (op2 & 0xf0) >> 4;
 	const u8 rs = (op2 & 0x0f);
-	fatalerror( "DIVU.b %s, %s", m_regnames8[rd], m_regnames8[rs]);
+	divu_byte_rd_rs(rd, rs);
 }
 
 /*
@@ -2616,7 +2616,7 @@ void xa_cpu_device::d_mulu_w(XA_EXECUTE_PARAMS)
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 rd = (op2 & 0xf0) >> 4;
 	const u8 rs = (op2 & 0x0f);
-	fatalerror( "MULU.w %s, %s", m_regnames16[rd], m_regnames16[rs]);
+	mulu_word_rd_rs(rd, rs);
 }
 
 /*
@@ -2627,7 +2627,7 @@ void xa_cpu_device::d_divu_w(XA_EXECUTE_PARAMS)
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 rd = (op2 & 0xf0) >> 4;
 	const u8 rs = (op2 & 0x0f);
-	fatalerror( "DIVU.w %s, %s", m_regnames16[rd], m_regnames16[rs]);
+	divu_word_rd_rs(rd, rs);
 }
 
 /*
@@ -2638,7 +2638,7 @@ void xa_cpu_device::d_mul_w(XA_EXECUTE_PARAMS)
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 rd = (op2 & 0xf0) >> 4;
 	const u8 rs = (op2 & 0x0f);
-	fatalerror( "MUL.w %s, %s", m_regnames16[rd], m_regnames16[rs]);
+	mul_word_rd_rs(rd, rs);
 }
 
 /*
@@ -2649,55 +2649,36 @@ void xa_cpu_device::d_div_w(XA_EXECUTE_PARAMS)
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 rd = (op2 & 0xf0) >> 4;
 	const u8 rs = (op2 & 0x0f);
-	fatalerror( "DIV.w %s, %s", m_regnames16[rd], m_regnames16[rs]);
+	div_word_rd_rs(rd, rs);
 }
 
 /*
-DIV.w Rd, #data8            16x8 signed divide reg w/ imm word                                      3 14        1110 1000  dddd 1011  iiii iiii
+MULU.b Rd, #data8           8X8 unsigned multiply of 8-bit imm data w/ reg                          3 12        1110 1000  dddd 0000  iiii iiii
 DIVU.b Rd, #data8           8X8 unsigned reg divide w/ imm byte                                     3 12        1110 1000  dddd 0001  iiii iiii
 DIVU.w Rd, #data8           16X8 unsigned reg divide w/ imm byte                                    3 12        1110 1000  dddd 0011  iiii iiii
-MULU.b Rd, #data8           8X8 unsigned multiply of 8-bit imm data w/ reg                          3 12        1110 1000  dddd 0000  iiii iiii
+DIV.w Rd, #data8            16x8 signed divide reg w/ imm word                                      3 14        1110 1000  dddd 1011  iiii iiii
+
 */
 void xa_cpu_device::d_div_data8(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
-	const u8 op3 = m_program->read_byte(m_pc++);
+	const u8 data8 = m_program->read_byte(m_pc++);
 	const u8 rd = (op2 & 0xf0) >> 4;
 
 	switch (op2 & 0x0f)
 	{
-	case 0x00:
-	{
-		fatalerror( "MULU.b %s, #$%02x", m_regnames8[rd], op3);
-		break;
-	}
-	case 0x01:
-	{
-		fatalerror( "DIVU.b %s, #$%02x", m_regnames8[rd], op3);
-		break;
-	}
-	case 0x03:
-	{
-		fatalerror( "DIVU.w %s, #$%02x", m_regnames8[rd], op3);
-		break;
-	}
-	case 0x0b:
-	{
-		fatalerror( "DIV.w %s, #$%02x", m_regnames8[rd], op3);
-		break;
-	}
-	default:
-	{
-		fatalerror( "illegal %s #$%02x", m_regnames8[rd], op3);
-		break;
-	}
+	case 0x00: { mulu_byte_rd_data8(rd, data8);	break; }
+	case 0x01: { divu_byte_rd_data8(rd, data8); break; }
+	case 0x03: { divu_word_rd_data8(rd, data8); break; }
+	case 0x0b: { div_word_rd_data8(rd, data8);break; }
+	default:   { logerror("illegal mul/div data8 %s #$%02x", m_regnames8[rd], data8); do_nop(); break; }
 	}
 }
 
 /*
 MULU.w Rd, #data16          16X16 unsigned multiply 16-bit imm data w/ reg                          4 12        1110 1001  dddd 0000  iiii iiii  iiii iiii
-MUL.w Rd, #data16           16X16 signed multiply 16-bit imm data w/ reg                            4 12        1110 1001  dddd 1000  iiii iiii  iiii iiii
 DIVU.d Rd, #data16          32X16 unsigned double reg divide w/ imm word                            4 22        1110 1001  ddd0 0001  iiii iiii  iiii iiii
+MUL.w Rd, #data16           16X16 signed multiply 16-bit imm data w/ reg                            4 12        1110 1001  dddd 1000  iiii iiii  iiii iiii
 DIV.d Rd, #data16           32x16 signed double reg divide w/ imm word                              4 24        1110 1001  ddd0 1001  iiii iiii  iiii iiii
 */
 void xa_cpu_device::d_div_d16(XA_EXECUTE_PARAMS)
@@ -2705,39 +2686,14 @@ void xa_cpu_device::d_div_d16(XA_EXECUTE_PARAMS)
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 op3 = m_program->read_byte(m_pc++);
 	const u8 op4 = m_program->read_byte(m_pc++);
-	const u16 data = (op3 << 8) | op4;
+	const u16 data16 = (op3 << 8) | op4;
 	switch (op2 & 0x0f)
 	{
-	case 0x00:
-	{
-		const u8 rd = (op2 & 0xf0) >> 4;
-		fatalerror( "MULU.w %s, #$%04x", m_regnames16[rd], data);
-		break;
-	}
-	case 0x01:
-	{
-		const u8 rd = (op2 & 0xe0) >> 4;
-		fatalerror( "DIVU.d %s, #$%04x", m_regnames16[rd], data);
-		break;
-	}
-	case 0x08:
-	{
-		const u8 rd = (op2 & 0xf0) >> 4;
-		fatalerror( "MUL.w %s, #$%04x", m_regnames16[rd], data);
-		break;
-	}
-	case 0x09:
-	{
-		const u8 rd = (op2 & 0xe0) >> 4;
-		fatalerror( "DIV.d %s, #$%04x", m_regnames16[rd], data);
-		break;
-	}
-	default:
-	{
-		const u8 rd = (op2 & 0xf0) >> 4;
-		fatalerror( "illegal %s, #$%04x", m_regnames16[rd], data);
-		break;
-	}
+	case 0x00: { const u8 rd = (op2 & 0xf0) >> 4; mulu_word_rd_data16(rd, data16); break; }
+	case 0x01: { const u8 rd = (op2 & 0xe0) >> 4; divu_dword_rd_data16(rd, data16); break; }
+	case 0x08: { const u8 rd = (op2 & 0xf0) >> 4; mul_word_rd_data16(rd, data16); break; }
+	case 0x09: { const u8 rd = (op2 & 0xe0) >> 4; div_dword_rd_data16(rd, data16); break; }
+	default:   { const u8 rd = (op2 & 0xf0) >> 4; logerror("illegal mul/div data16 %s, #$%04x", m_regnames16[rd], data16); do_nop();  break; }
 	}
 }
 
@@ -2749,7 +2705,7 @@ void xa_cpu_device::d_divu_d(XA_EXECUTE_PARAMS)
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 rd = (op2 & 0xe0) >> 4;
 	const u8 rs = (op2 & 0x0f);
-	fatalerror( "DIVU.d %s, %s", m_regnames16[rd], m_regnames16[rs]);
+	divu_dword_rd_rs(rd, rs);
 }
 
 /*
@@ -2760,7 +2716,7 @@ void xa_cpu_device::d_div_d(XA_EXECUTE_PARAMS)
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 rd = (op2 & 0xe0) >> 4;
 	const u8 rs = (op2 & 0x0f);
-	fatalerror( "DIV.d %s, %s", m_regnames16[rd], m_regnames16[rs]);
+	div_dword_rd_rs(rd, rs);
 }
 
 /*

@@ -605,3 +605,39 @@ void xa_cpu_device::norm_byte_rd_rs(u8 rd, u8 rs) { fatalerror("NORM.b %s, %d", 
 void xa_cpu_device::norm_word_rd_rs(u8 rd, u8 rs) { fatalerror("NORM.w %s, %d", m_regnames16[rd], m_regnames8[rs]); }
 void xa_cpu_device::norm_dword_rd_rs(u8 rd, u8 rs) { fatalerror("NORM.dw %s, %d", m_regnames16[rd], m_regnames8[rs]); }
 
+
+//MULU.b Rd, Rs 
+void xa_cpu_device::mulu_byte_rd_rs(u8 rd, u8 rs) { fatalerror( "MULU.b %s, %s", m_regnames8[rd], m_regnames8[rs]); }
+//DIVU.b Rd, Rs 
+void xa_cpu_device::divu_byte_rd_rs(u8 rd, u8 rs) { fatalerror( "DIVU.b %s, %s", m_regnames8[rd], m_regnames8[rs]); }
+//MULU.w Rd, Rs
+void xa_cpu_device::mulu_word_rd_rs(u8 rd, u8 rs) { fatalerror( "MULU.w %s, %s", m_regnames16[rd], m_regnames16[rs]); }
+//DIVU.w Rd, Rs 
+void xa_cpu_device::divu_word_rd_rs(u8 rd, u8 rs) { fatalerror( "DIVU.w %s, %s", m_regnames16[rd], m_regnames16[rs]); }
+// MUL.w Rd, Rs
+void xa_cpu_device::mul_word_rd_rs(u8 rd, u8 rs) { fatalerror( "MUL.w %s, %s", m_regnames16[rd], m_regnames16[rs]); }
+// DIV.w Rd, Rs  
+void xa_cpu_device::div_word_rd_rs(u8 rd, u8 rs) { fatalerror( "DIV.w %s, %s", m_regnames16[rd], m_regnames16[rs]); }
+
+//DIV.w Rd, #data8
+void xa_cpu_device::div_word_rd_data8(u8 rd, u8 data8) { fatalerror( "DIV.w %s, #$%02x", m_regnames8[rd], data8); }
+//DIVU.b Rd, #data8 
+void xa_cpu_device::divu_byte_rd_data8(u8 rd, u8 data8) { fatalerror( "DIVU.b %s, #$%02x", m_regnames8[rd], data8); }
+//DIVU.w Rd, #data8 
+void xa_cpu_device::divu_word_rd_data8(u8 rd, u8 data8) { fatalerror( "DIVU.w %s, #$%02x", m_regnames8[rd], data8); }
+//MULU.b Rd, #data8  
+void xa_cpu_device::mulu_byte_rd_data8(u8 rd, u8 data8) { fatalerror( "MULU.b %s, #$%02x", m_regnames8[rd], data8); }
+
+//MULU.w Rd, #data16
+void xa_cpu_device::mulu_word_rd_data16(u8 rd, u16 data16) { fatalerror( "MULU.w %s, #$%04x", m_regnames16[rd], data16); }
+//DIVU.d Rd, #data16  
+void xa_cpu_device::divu_dword_rd_data16(u8 rd, u16 data16) { fatalerror( "DIVU.d %s, #$%04x", m_regnames16[rd], data16); }
+//MUL.w Rd, #data16   
+void xa_cpu_device::mul_word_rd_data16(u8 rd, u16 data16) { fatalerror( "MUL.w %s, #$%04x", m_regnames16[rd], data16); }
+//DIV.d Rd, #data16   
+void xa_cpu_device::div_dword_rd_data16(u8 rd, u16 data16) { fatalerror( "DIV.d %s, #$%04x", m_regnames16[rd], data16); }
+
+//DIVU.d Rd, Rs  
+void xa_cpu_device::divu_dword_rd_rs(u8 rd, u8 rs) { fatalerror( "DIVU.d %s, %s", m_regnames16[rd], m_regnames16[rs]); }
+//DIV.d Rd, Rs
+void xa_cpu_device::div_dword_rd_rs(u8 rd, u8 rs) { fatalerror( "DIV.d %s, %s", m_regnames16[rd], m_regnames16[rs]); }

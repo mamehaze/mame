@@ -653,6 +653,22 @@ private:
 	void norm_word_rd_rs(u8 rd, u8 rs);
 	void norm_dword_rd_rs(u8 rd, u8 rs);
 
+	void mulu_byte_rd_rs(u8 rd, u8 rs);
+	void divu_byte_rd_rs(u8 rd, u8 rs);
+	void mulu_word_rd_rs(u8 rd, u8 rs);
+	void divu_word_rd_rs(u8 rd, u8 rs);
+	void mul_word_rd_rs(u8 rd, u8 rs);
+	void div_word_rd_rs(u8 rd, u8 rs);
+	void div_word_rd_data8(u8 rd, u8 data8);
+	void divu_byte_rd_data8(u8 rd, u8 data8);
+	void divu_word_rd_data8(u8 rd, u8 data8);
+	void mulu_byte_rd_data8(u8 rd, u8 data8);
+	void mulu_word_rd_data16(u8 rd, u16 data16);
+	void mul_word_rd_data16(u8 rd, u16 data16);
+	void divu_dword_rd_data16(u8 rd, u16 data16);
+	void div_dword_rd_data16(u8 rd, u16 data16);
+	void divu_dword_rd_rs(u8 rd, u8 rs);
+	void div_dword_rd_rs(u8 rd, u8 rs);
 
 
 	std::unordered_map<offs_t, const char *> m_names;
