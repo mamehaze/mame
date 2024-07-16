@@ -559,10 +559,10 @@ void xa_cpu_device::d_illegal(XA_EXECUTE_PARAMS)
 
 void xa_cpu_device::handle_shift(XA_EXECUTE_PARAMS, int shift_type)
 {
-	int size = op & 0x0c;
+	int size = (op & 0x0c) >> 2;
 	const u8 op2 = m_program->read_byte(m_pc++);
 	u8 data, rd;
-	if (size == 0x0c)
+	if (size == 0x03)
 	{
 		data = op2 & 0x1f;
 		rd = (op2 & 0xe0) >> 4;
@@ -577,24 +577,27 @@ void xa_cpu_device::handle_shift(XA_EXECUTE_PARAMS, int shift_type)
 	{
 	case 0x0:
 	{
-		if (size == 0) fatalerror("ASL.b %s, %d", m_regnames8[rd], data);
-		else if (size == 2) fatalerror("ASL.w %s, %d", m_regnames16[rd], data);
-		else if (size == 3) fatalerror("ASL.dw %s, %d", m_regnames16[rd], data);
+		if (size == 0) asl_byte_rd_imm4(rd, data);
+		else if (size == 2) asl_word_rd_imm4(rd, data);
+		else if (size == 3) asl_dword_rd_imm5(rd, data);
 		else fatalerror("ASL.invalid %s, %d", m_regnames16[rd], data);
+		break;
 	}
 	case 0x1:
 	{
-		if (size == 0) fatalerror("ASR.b %s, %d", m_regnames8[rd], data);
-		else if (size == 2) fatalerror("ASR.w %s, %d", m_regnames16[rd], data);
-		else if (size == 3) fatalerror("ASR.dw %s, %d", m_regnames16[rd], data);
+		if (size == 0) asr_byte_rd_imm4(rd, data);
+		else if (size == 2) asr_word_rd_imm4(rd, data);
+		else if (size == 3) asr_dword_rd_imm5(rd, data);
 		else fatalerror("ASR.invalid %s, %d", m_regnames16[rd], data);
+		break;
 	}
 	case 0x2:
 	{
-		if (size == 0) fatalerror("LSR.b %s, %d", m_regnames8[rd], data);
-		else if (size == 2) fatalerror("LSR.w %s, %d", m_regnames16[rd], data);
-		else if (size == 3) fatalerror("LSR.dw %s, %d", m_regnames16[rd], data);
+		if (size == 0) lsr_byte_rd_imm4(rd, data);
+		else if (size == 2) lsr_word_rd_imm4(rd, data);
+		else if (size == 3) lsr_dword_rd_imm5(rd, data);
 		else fatalerror("LSR.invalid %s, %d", m_regnames16[rd], data);
+		break;
 	}
 	}
 }
@@ -2334,8 +2337,8 @@ FCALL addr24                Far call (full 24-bit address space)                
 */
 void xa_cpu_device::d_lsr_fc(XA_EXECUTE_PARAMS)
 {
-	int size = op & 0x0c;
-	if (size == 0x04)
+	int size = (op & 0x0c) >> 2;
+	if (size == 0x01)
 	{
 		const u8 op2 = m_program->read_byte(m_pc++);
 		const u8 op3 = m_program->read_byte(m_pc++);
@@ -2363,8 +2366,8 @@ CALL rel16                  Relative call (range +/- 64K)                       
 */
 void xa_cpu_device::d_asl_c(XA_EXECUTE_PARAMS)
 {
-	int size = op & 0x0c;
-	if (size == 0x04)
+	int size = (op & 0x0c) >> 2;
+	if (size == 0x01)
 	{
 		const u8 op2 = m_program->read_byte(m_pc++);
 		const u8 op3 = m_program->read_byte(m_pc++);
@@ -2389,8 +2392,8 @@ CALL [Rs]                   Subroutine call ind w/ a reg                        
 */ 
 void xa_cpu_device::d_asr_c(XA_EXECUTE_PARAMS)
 {
-	int size = op & 0x0c;
-	if (size == 0x04)
+	int size = (op & 0x0c) >> 2;
+	if (size == 0x01)
 	{
 		const u8 op2 = m_program->read_byte(m_pc++);
 		const u8 rs = op2 & 0x07;
@@ -2413,8 +2416,8 @@ NORM Rd, Rs                 Logical shift left dest reg by the value in the src 
 */
 void xa_cpu_device::d_norm(XA_EXECUTE_PARAMS)
 {
-	int size = op & 0x0c;
-	if (size == 0x04)
+	int size = (op & 0x0c)>>2;
+	if (size == 0x01)
 	{
 		const u8 op2 = m_program->read_byte(m_pc++);
 		fatalerror( "illegal %02x", op2);
@@ -2444,8 +2447,8 @@ FJMP addr24                 Far jump (full 24-bit address space)                
 */
 void xa_cpu_device::d_lsr_fj(XA_EXECUTE_PARAMS)
 {
-	int size = op & 0x0c;
-	if (size == 0x04)
+	int size = (op & 0x0c) >> 2;
+	if (size == 0x01)
 	{
 		const u8 op2 = m_program->read_byte(m_pc++);
 		const u8 op3 = m_program->read_byte(m_pc++);
@@ -2467,8 +2470,8 @@ JMP rel16                   Long unconditional branch                           
 */
 void xa_cpu_device::d_asl_j(XA_EXECUTE_PARAMS)
 {
-	int size = op & 0x0c;
-	if (size == 0x04)
+	int size = (op & 0x0c) >> 2;
+	if (size == 0x01)
 	{
 		const u8 op2 = m_program->read_byte(m_pc++);
 		const u8 op3 = m_program->read_byte(m_pc++);
@@ -2497,9 +2500,9 @@ RETI                        Return from interrupt                               
 */
 void xa_cpu_device::d_asr_j(XA_EXECUTE_PARAMS)
 {
-	int size = op & 0x0c;
+	int size = (op & 0x0c) >> 2;
 	const u8 op2 = m_program->read_byte(m_pc++);
-	if (size == 0x04)
+	if (size == 0x01)
 	{
 		switch (op2 & 0xf0)
 		{

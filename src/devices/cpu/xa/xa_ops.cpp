@@ -575,3 +575,16 @@ void xa_cpu_device::ble_rel8(u8 rel8) { fatalerror("BLE %04x\n", expand_rel8(rel
 // BR rel8                     Short unconditional branch                                              2 6         1111 1110  rrrr rrrr
 void xa_cpu_device::br_rel8(u8 rel8) { fatalerror("BR %04x\n", expand_rel8(rel8)); }
 
+// ASL.b Rd, #data4              Logical left shift reg by the 4-bit imm value                           2 a*        1101 SS01  dddd iiii
+void xa_cpu_device::asl_byte_rd_imm4(u8 rd, u8 amount) { fatalerror("ASL.b %s, %d", m_regnames8[rd], amount); }
+void xa_cpu_device::asl_word_rd_imm4(u8 rd, u8 amount) { fatalerror("ASL.w %s, %d", m_regnames16[rd], amount); }
+void xa_cpu_device::asl_dword_rd_imm5(u8 rd, u8 amount) { fatalerror("ASL.dw %s, %d", m_regnames16[rd], amount); }
+
+void xa_cpu_device::asr_byte_rd_imm4(u8 rd, u8 amount) { fatalerror("ASR.b %s, %d", m_regnames8[rd], amount); }
+void xa_cpu_device::asr_word_rd_imm4(u8 rd, u8 amount) { fatalerror("ASR.w %s, %d", m_regnames16[rd], amount); }
+void xa_cpu_device::asr_dword_rd_imm5(u8 rd, u8 amount) { fatalerror("ASR.dw %s, %d", m_regnames16[rd], amount); }
+
+void xa_cpu_device::lsr_byte_rd_imm4(u8 rd, u8 amount) { fatalerror("LSR.b %s, %d", m_regnames8[rd], amount); }
+void xa_cpu_device::lsr_word_rd_imm4(u8 rd, u8 amount) { fatalerror("LSR.w %s, %d", m_regnames16[rd], amount); }
+void xa_cpu_device::lsr_dword_rd_imm5(u8 rd, u8 amount) { fatalerror("LSR.dw %s, %d", m_regnames16[rd], amount); }
+

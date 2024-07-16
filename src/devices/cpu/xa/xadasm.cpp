@@ -183,10 +183,10 @@ int xa_dasm::d_illegal(XA_DASM_PARAMS)
 
 int xa_dasm::handle_shift(XA_DASM_PARAMS, int shift_type)
 {
-	int size = op & 0x0c;
+	int size = (op & 0x0c) >> 2;
 	const u8 op2 = opcodes.r8(pc++);
 	u8 data, rd;
-	if (size == 0x0c)
+	if (size == 0x03)
 	{
 		data = op2 & 0x1f;
 		rd = (op2 & 0xe0) >> 4;
@@ -199,11 +199,11 @@ int xa_dasm::handle_shift(XA_DASM_PARAMS, int shift_type)
 
 	if (size == 0x00)
 	{
-		util::stream_format(stream, "%s%s %s, %d", m_shifts[shift_type], m_dwparamsizes[size >> 2], m_regnames8[rd], data);
+		util::stream_format(stream, "%s%s %s, %d", m_shifts[shift_type], m_dwparamsizes[size], m_regnames8[rd], data);
 	}
 	else
 	{
-		util::stream_format(stream, "%s%s %s, %d", m_shifts[shift_type], m_dwparamsizes[size >> 2], m_regnames16[rd], data);
+		util::stream_format(stream, "%s%s %s, %d", m_shifts[shift_type], m_dwparamsizes[size], m_regnames16[rd], data);
 	}
 
 	return 2;

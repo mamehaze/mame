@@ -623,6 +623,18 @@ private:
 	void ble_rel8(u8 rel8);
 	void br_rel8(u8 rel8);
 
+	void asl_byte_rd_imm4(u8 rd, u8 amount);
+	void asl_word_rd_imm4(u8 rd, u8 amount);
+	void asl_dword_rd_imm5(u8 rd, u8 amount);
+
+	void asr_byte_rd_imm4(u8 rd, u8 amount);
+	void asr_word_rd_imm4(u8 rd, u8 amount);
+	void asr_dword_rd_imm5(u8 rd, u8 amount);
+
+	void lsr_byte_rd_imm4(u8 rd, u8 amount);
+	void lsr_word_rd_imm4(u8 rd, u8 amount);
+	void lsr_dword_rd_imm5(u8 rd, u8 amount);
+
 	std::unordered_map<offs_t, const char *> m_names;
 
 
