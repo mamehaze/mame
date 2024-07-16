@@ -2425,9 +2425,12 @@ void xa_cpu_device::d_norm(XA_EXECUTE_PARAMS)
 		const u8 op2 = m_program->read_byte(m_pc++);
 		int rd = (op2 & 0xf0) >> 4;
 		int rs = (op2 & 0x0f);
-		const char** regnames = ((size != 0) ? m_regnames16 : m_regnames8);
 		// doesn't have a #data5 mode like the other shifts?
-		fatalerror( "NORM%s %s, %s", m_dwparamsizes[size >> 2], regnames[rd], m_regnames8[rs]); // m_regnames8 or regnames for last param?
+
+		if (size == 0) fatalerror("NORM.b %s, %s", m_regnames8[rd], m_regnames8[rs]);
+		else if (size == 2) fatalerror("NORM.w %s, %s", m_regnames16[rd], m_regnames8[rs]);
+		else if (size == 3) fatalerror("NORM.dw %s, %s", m_regnames16[rd], m_regnames8[rs]);
+		else fatalerror("NORM.illegal %s, %s", m_regnames16[rd], m_regnames8[rs]);
 		return;
 	}
 }
