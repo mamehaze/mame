@@ -643,14 +643,14 @@ void xa_cpu_device::divu_dword_rd_rs(u8 rd, u8 rs) { fatalerror( "DIVU.d %s, %s"
 void xa_cpu_device::div_dword_rd_rs(u8 rd, u8 rs) { fatalerror( "DIV.d %s, %s", m_regnames16[rd], m_regnames16[rs]); }
 
 
-void xa_cpu_device::clr_bit(u8 bit) { fatalerror( "CLR %s", get_bittext(bit) ); }
-void xa_cpu_device::setb_bit(u8 bit) { fatalerror( "SETB %s", get_bittext(bit) ); }
-void xa_cpu_device::mov_c_bit(u8 bit) { fatalerror( "MOV C, %s", get_bittext(bit) ); }
-void xa_cpu_device::mov_bit_c(u8 bit) { fatalerror( "MOV %s, C", get_bittext(bit) ); }
-void xa_cpu_device::anl_c_bit(u8 bit) { fatalerror( "ANL C, %s", get_bittext(bit) ); }
-void xa_cpu_device::anl_c_notbit(u8 bit) { fatalerror( "ANL C, /%s", get_bittext(bit) ); }
-void xa_cpu_device::orl_c_bit(u8 bit) { fatalerror( "ORL C, %s", get_bittext(bit) ); }
-void xa_cpu_device::orl_c_notbit(u8 bit) { fatalerror( "ORL C, /%s", get_bittext(bit) ); }
+void xa_cpu_device::clr_bit(u16 bit) { fatalerror( "CLR %s", get_bittext(bit) ); }
+void xa_cpu_device::setb_bit(u16 bit) { fatalerror( "SETB %s", get_bittext(bit) ); }
+void xa_cpu_device::mov_c_bit(u16 bit) { fatalerror( "MOV C, %s", get_bittext(bit) ); }
+void xa_cpu_device::mov_bit_c(u16 bit) { fatalerror( "MOV %s, C", get_bittext(bit) ); }
+void xa_cpu_device::anl_c_bit(u16 bit) { fatalerror( "ANL C, %s", get_bittext(bit) ); }
+void xa_cpu_device::anl_c_notbit(u16 bit) { fatalerror( "ANL C, /%s", get_bittext(bit) ); }
+void xa_cpu_device::orl_c_bit(u16 bit) { fatalerror( "ORL C, %s", get_bittext(bit) ); }
+void xa_cpu_device::orl_c_notbit(u16 bit) { fatalerror( "ORL C, /%s", get_bittext(bit) ); }
 
 // LEA Rd, Rs+offset8          Load 16-bit effective address w/ 8-bit offs to reg                      3 3         0100 0000  0ddd 0sss  oooo oooo
 void xa_cpu_device::lea_word_rd_rs_off8(u8 rd, u8 rs, u8 offs8) { fatalerror("LEA %s, %s+#$%02x", m_regnames16[rd], m_regnames16[rs], offs8); }
@@ -698,3 +698,13 @@ void xa_cpu_device::movc_a_apc() { fatalerror( "MOVC A, [A+PC]"); }
 void xa_cpu_device::movc_a_adptr() { fatalerror( "MOVC A, [A+DPTR]"); }
 void xa_cpu_device::mov_rd_usp(u8 rd) { fatalerror( "MOV %s, USP", m_regnames16[rd]); }
 void xa_cpu_device::mov_usp_rs(u8 rs) { fatalerror( "MOV USP, %s", m_regnames16[rs]); }
+
+//JB bit,rel8                 Jump if bit set                                                         4 10t/6nt   1001 0111  1000 00bb  bbbb bbbb  rrrr rrrr
+//JNB bit,rel8                Jump if bit not set                                                     4 10t/6nt   1001 0111  1010 00bb  bbbb bbbb  rrrr rrrr
+//JBC bit,rel8                Jump if bit set and then clear the bit                                  4 11t/7nt   1001 0111  1100 00bb  bbbb bbbb  rrrr rrrr
+
+void xa_cpu_device::jb_bit_rel8(u16 bit, u8 rel8) { fatalerror( "JB %s, $%02x", get_bittext(bit), expand_rel8(rel8) ); }
+void xa_cpu_device::jnb_bit_rel8(u16 bit, u8 rel8) { fatalerror( "JNB %s, $%02x", get_bittext(bit), expand_rel8(rel8) ); }
+void xa_cpu_device::jbc_bit_rel8(u16 bit, u8 rel8) { fatalerror( "JBC %s, $%02x", get_bittext(bit), expand_rel8(rel8) ); }
+
+

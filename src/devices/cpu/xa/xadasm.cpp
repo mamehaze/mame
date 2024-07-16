@@ -1204,7 +1204,9 @@ int xa_dasm::d_jb_mov_subgroup(XA_DASM_PARAMS)
 	{
 		int direct_dst = ((op2 & 0x70) << 4) | op3;
 		int direct_src = ((op2 & 0x07) << 8) | op4;
-		util::stream_format(stream, "MOV %s, %s", get_directtext(direct_dst), get_directtext(direct_src));
+		int size = op & 0x08;
+
+		util::stream_format(stream, "MOV%s %s, %s", size ? ".w" : ".b", get_directtext(direct_dst), get_directtext(direct_src));
 	}
 
 	return 4;

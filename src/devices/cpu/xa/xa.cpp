@@ -1951,23 +1951,28 @@ void xa_cpu_device::d_jb_mov_subgroup(XA_EXECUTE_PARAMS)
 
 	if (op2 & 0x80)
 	{
-		int address = m_pc + ((s8)op4)*2;
-		int bit = ((op2 & 0x03) << 8) | op3;
-		address &= ~1; // must be word aligned
-
+        int bit = ((op2 & 0x03) << 8) | op3;
 		switch (op2 & 0x70)
 		{
-		case 0x00: fatalerror( "JB %s, $%02x", get_bittext(bit), address ); break;
-		case 0x20: fatalerror( "JNB %s, $%02x", get_bittext(bit), address ); break;
-		case 0x40: fatalerror( "JBC %s, $%02x", get_bittext(bit), address ); break;
-		default:   fatalerror( "illegal %s $%02x", get_bittext(bit), address ); break;
+		case 0x00: jb_bit_rel8(bit, op4); break;
+		case 0x20: jnb_bit_rel8(bit, op4); break;
+		case 0x40: jbc_bit_rel8(bit, op4); break;
+		default:   logerror( "illegal conditional jump %s $%02x", get_bittext(bit), expand_rel8(op4) ); break;
 		}
 	}
 	else
 	{
 		int direct_dst = ((op2 & 0x70) << 4) | op3;
 		int direct_src = ((op2 & 0x07) << 8) | op4;
-		fatalerror( "MOV %s, %s", get_directtext(direct_dst), get_directtext(direct_src));
+		int size = op & 0x08;
+		if (size)
+		{
+			fatalerror("MOV.w %s, %s", get_directtext(direct_dst), get_directtext(direct_src));
+		}
+		else
+		{
+			fatalerror("MOV.b %s, %s", get_directtext(direct_dst), get_directtext(direct_src));
+		}
 	}
 }
 
