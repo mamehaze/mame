@@ -92,6 +92,7 @@ private:
 
 	u8 sfr_WDCON_r();
 
+	u16 expand_rel16(u16 rel16);
 	u16 expand_rel8(u8 rel8);
 
 	void do_nz_flags_16(u16 data);

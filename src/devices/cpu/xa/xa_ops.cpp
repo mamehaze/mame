@@ -528,8 +528,7 @@ void xa_cpu_device::movs_byte_direct_data4(u16 direct, u8 data4){ u8  data = uti
 void xa_cpu_device::adds_byte_direct_data4(u16 direct, u8 data4){ fatalerror("ADDS.b %s, %s\n", get_directtext(direct), show_expanded_data4(data4, 0)); }
 
 // CALL rel16
-void xa_cpu_device::call_rel16(u16 rel16) { int address = m_pc + ((s16)rel16)*2; address &= ~1; push_word_to_stack(m_pc); set_pc_in_current_page(address); }
-
+void xa_cpu_device::call_rel16(u16 rel16) { push_word_to_stack(m_pc); set_pc_in_current_page(expand_rel16(rel16)); }
 
 // BCC rel8                    Branch if the carry flag is clear                                       2 6t/3nt    1111 0000  rrrr rrrr
 void xa_cpu_device::bcc_rel8(u8 rel8) { fatalerror("BCC %04x\n", expand_rel8(rel8)); }

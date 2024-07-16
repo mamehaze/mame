@@ -285,6 +285,12 @@ void xa_cpu_device::add_names(const mem_info *info)
 		m_names[info[i].addr] = info[i].name;
 }
 
+u16 xa_cpu_device::expand_rel16(u16 rel16)
+{
+	int address = m_pc + ((s16)rel16) * 2;
+	address &= ~1; // must be word aligned
+	return address;
+}
 
 u16 xa_cpu_device::expand_rel8(u8 rel8)
 {
