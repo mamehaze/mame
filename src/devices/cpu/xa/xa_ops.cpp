@@ -5,6 +5,7 @@
 #include "xa.h"
 #include "xadasm.h"
 
+void xa_cpu_device::do_nop() { }
 
 void xa_cpu_device::add_byte_rd_data8(u8 rd, u8 data8) { fatalerror( "ADD.b %s, #$%02x (RD, DATA8)", m_regnames8[rd], data8 ); }
 void xa_cpu_device::addc_byte_rd_data8(u8 rd, u8 data8){ fatalerror( "ADDC.b %s, #$%02x (RD, DATA8)", m_regnames8[rd], data8 ); }

@@ -197,6 +197,8 @@ private:
 	void d_branch(XA_EXECUTE_PARAMS);
 	void d_bkpt(XA_EXECUTE_PARAMS);
 
+	void do_nop();
+
 	void add_byte_rd_data8(u8 rd, u8 data8); // used
 	void addc_byte_rd_data8(u8 rd, u8 data8);
 	void sub_byte_rd_data8(u8 rd, u8 data8);
