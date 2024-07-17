@@ -327,6 +327,37 @@ private:
 	void aluop_byte_rd_rs(int alu_op, u8 rd, u8 rs);
 	void aluop_word_rd_indrs(int alu_op, u8 rd, u8 rs);
 	void aluop_byte_rd_indrs(int alu_op, u8 rd, u8 rs);
+	void aluop_word_indrd_rs(int alu_op, u8 rd, u8 rs);
+	void aluop_byte_indrd_rs(int alu_op, u8 rd, u8 rs);
+	void aluop_word_rd_indrsinc(int alu_op, u8 rd, u8 rs);
+	void aluop_byte_rd_indrsinc(int alu_op, u8 rd, u8 rs);
+	void aluop_word_indrdinc_rs(int alu_op, u8 rd, u8 rs);
+	void aluop_byte_indrdinc_rs(int alu_op, u8 rd, u8 rs);
+	void aluop_word_rd_rsoff8(int alu_op, u8 rd, u8 rs, u8 offset8);
+	void aluop_byte_rd_rsoff8(int alu_op, u8 rd, u8 rs, u8 offset8);
+	void aluop_word_rdoff8_rs(int alu_op, u8 rd, u8 offset8, u8 rs);
+	void aluop_byte_rdoff8_rs(int alu_op, u8 rd, u8 offset8, u8 rs);
+	void aluop_word_rsoff16(int alu_op, u8 rd, u8 rs, u16 offset16);
+	void aluop_byte_rsoff16(int alu_op, u8 rd, u8 rs, u16 offset16);
+	void aluop_word_rdoff16_rs(int alu_op, u8 rd, u16 offset16, u8 rs);
+	void aluop_byte_rdoff16_rs(int alu_op, u8 rd, u16 offset16, u8 rs);
+	void aluop_word_rd_direct(int alu_op, u8 rd, u16 direct);
+	void aluop_byte_rd_direct(int alu_op, u8 rd, u16 direct);
+	void aluop_word_direct_rs(int alu_op, u16 direct, u8 rs);
+	void aluop_byte_direct_rs(int alu_op, u16 direct, u8 rs);
+
+	void aluop_byte_rd_data8(int alu_op, u8 rd, u8 data8);
+	void aluop_byte_indrd_data8(int alu_op, u8 rd, u8 data8);
+	void aluop_byte_indrdinc_data8(int alu_op, u8 rd, u8 data8);
+	void aluop_byte_rdoff8_data8(int alu_op, u8 rd, u8 offset8, u8 data8);
+	void aluop_byte_rdoff16_data8(int alu_op, u8 rd, u16 offset16, u8 data8);
+	void aluop_byte_direct_data8(int alu_op, u16 direct, u8 data8);
+	void aluop_byte_rd_data16(int alu_op, u8 rd, u16 data16);
+	void aluop_byte_indrd_data16(int alu_op, u8 rd, u16 data16);
+	void aluop_byte_indrdinc_data16(int alu_op, u8 rd, u16 data16);
+	void aluop_byte_rdoff8_data16(int alu_op, u8 rd, u8 offset8, u16 data16);
+	void aluop_byte_rdoff16_data16(int alu_op, u8 rd, u16 offset16, u16 data16);
+	void aluop_byte_direct_data16(int alu_op, u16 direct, u16 data16);
 
 	// ALUOP.w Rd, Rs
 	void add_word_rd_rs(u8 rd, u8 rs);

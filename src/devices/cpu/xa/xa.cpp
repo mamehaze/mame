@@ -635,15 +635,6 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 				switch (alu_op)
 				{
 				case 0x0: add_word_indrd_rs(rd, rs); break;
-				case 0x1: addc_word_indrd_rs(rd, rs); break;
-				case 0x2: sub_word_indrd_rs(rd, rs); break;
-				case 0x3: subc_word_indrd_rs(rd, rs); break;
-				case 0x4: cmp_word_indrd_rs(rd, rs); break;
-				case 0x5: and_word_indrd_rs(rd, rs); break;
-				case 0x6: or_word_indrd_rs(rd, rs); break;
-				case 0x7: xor_word_indrd_rs(rd, rs); break;
-				case 0x8: mov_word_indrd_rs(rd, rs); break;
-				default: logerror("UNK_ALUOP.w [%s], %s", m_regnames16[rd], m_regnames16[rs]); do_nop(); break;
 				}
 			}
 			else
@@ -651,15 +642,6 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 				switch (alu_op)
 				{
 				case 0x0: add_byte_indrd_rs(rd, rs); break;
-				case 0x1: addc_byte_indrd_rs(rd, rs); break;
-				case 0x2: sub_byte_indrd_rs(rd, rs); break;
-				case 0x3: subc_byte_indrd_rs(rd, rs); break;
-				case 0x4: cmp_byte_indrd_rs(rd, rs); break;
-				case 0x5: and_byte_indrd_rs(rd, rs); break;
-				case 0x6: or_byte_indrd_rs(rd, rs); break;
-				case 0x7: xor_byte_indrd_rs(rd, rs); break;
-				case 0x8: mov_byte_indrd_rs(rd, rs); break;
-				default: logerror("UNK_ALUOP.b [%s], %s", m_regnames16[rd], m_regnames8[rs]); do_nop(); break;
 				}
 			}
 		}
@@ -678,15 +660,6 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 				switch (alu_op)
 				{
 				case 0x0: add_word_rd_indrsinc(rd, rs); break;
-				case 0x1: addc_word_rd_indrsinc(rd, rs); break;
-				case 0x2: sub_word_rd_indrsinc(rd, rs); break;
-				case 0x3: subc_word_rd_indrsinc(rd, rs); break;
-				case 0x4: cmp_word_rd_indrsinc(rd, rs); break;
-				case 0x5: and_word_rd_indrsinc(rd, rs); break;
-				case 0x6: or_word_rd_indrsinc(rd, rs); break;
-				case 0x7: xor_word_rd_indrsinc(rd, rs); break;
-				case 0x8: mov_word_rd_indrsinc(rd, rs); break;
-				default: logerror("UNK_ALUOP.w %s, [%s+]", m_regnames16[rd], m_regnames16[rs]); do_nop(); break;
 				}
 			}
 			else
@@ -694,15 +667,6 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 				switch (alu_op)
 				{
 				case 0x0: add_byte_rd_indrsinc(rd, rs); break;
-				case 0x1: addc_byte_rd_indrsinc(rd, rs); break;
-				case 0x2: sub_byte_rd_indrsinc(rd, rs); break;
-				case 0x3: subc_byte_rd_indrsinc(rd, rs); break;
-				case 0x4: cmp_byte_rd_indrsinc(rd, rs); break;
-				case 0x5: and_byte_rd_indrsinc(rd, rs); break;
-				case 0x6: or_byte_rd_indrsinc(rd, rs); break;
-				case 0x7: xor_byte_rd_indrsinc(rd, rs); break;
-				case 0x8: mov_byte_rd_indrsinc(rd, rs); break;
-				default: logerror("UNK_ALUOP.b %s, [%s+]", m_regnames8[rd], m_regnames16[rs]); do_nop(); break;
 				}
 			}
 		}
@@ -716,15 +680,6 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 				switch (alu_op)
 				{
 				case 0x0: add_word_indrdinc_rs(rd, rs); break;
-				case 0x1: addc_word_indrdinc_rs(rd, rs); break;
-				case 0x2: sub_word_indrdinc_rs(rd, rs); break;
-				case 0x3: subc_word_indrdinc_rs(rd, rs); break;
-				case 0x4: cmp_word_indrdinc_rs(rd, rs); break;
-				case 0x5: and_word_indrdinc_rs(rd, rs); break;
-				case 0x6: or_word_indrdinc_rs(rd, rs); break;
-				case 0x7: xor_word_indrdinc_rs(rd, rs); break;
-				case 0x8: mov_word_indrdinc_rs(rd, rs); break;
-				default: logerror("UNK_ALUOP.w [%s+], %s", m_regnames16[rd], m_regnames16[rs]); do_nop(); break;
 				}
 			}
 			else
@@ -732,15 +687,6 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 				switch (alu_op)
 				{
 				case 0x0: add_byte_indrdinc_rs(rd, rs); break;
-				case 0x1: addc_byte_indrdinc_rs(rd, rs); break;
-				case 0x2: sub_byte_indrdinc_rs(rd, rs); break;
-				case 0x3: subc_byte_indrdinc_rs(rd, rs); break;
-				case 0x4: cmp_byte_indrdinc_rs(rd, rs); break;
-				case 0x5: and_byte_indrdinc_rs(rd, rs); break;
-				case 0x6: or_byte_indrdinc_rs(rd, rs); break;
-				case 0x7: xor_byte_indrdinc_rs(rd, rs); break;
-				case 0x8: mov_byte_indrdinc_rs(rd, rs); break;
-				default: logerror("UNK_ALUOP.b [%s+], %s", m_regnames16[rd], m_regnames8[rs]); do_nop(); break;
 				}
 			}
 		}
@@ -761,15 +707,6 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 				switch (alu_op)
 				{
 				case 0x0: add_word_rd_rsoff8(rd, rs, offset8); break;
-				case 0x1: addc_word_rd_rsoff8(rd, rs, offset8); break;
-				case 0x2: sub_word_rd_rsoff8(rd, rs, offset8); break;
-				case 0x3: subc_word_rd_rsoff8(rd, rs, offset8); break;
-				case 0x4: cmp_word_rd_rsoff8(rd, rs, offset8); break;
-				case 0x5: and_word_rd_rsoff8(rd, rs, offset8); break;
-				case 0x6: or_word_rd_rsoff8(rd, rs, offset8); break;
-				case 0x7: xor_word_rd_rsoff8(rd, rs, offset8); break;
-				case 0x8: mov_word_rd_rsoff8(rd, rs, offset8); break;
-				default: logerror("UNK_ALUOP.w %s, [%s+#$%02x]", m_regnames16[rd], m_regnames16[rs], offset8); do_nop(); break;
 				}
 			}
 			else
@@ -777,15 +714,6 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 				switch (alu_op)
 				{
 				case 0x0: add_byte_rd_rsoff8(rd, rs, offset8); break;
-				case 0x1: addc_byte_rd_rsoff8(rd, rs, offset8); break;
-				case 0x2: sub_byte_rd_rsoff8(rd, rs, offset8); break;
-				case 0x3: subc_byte_rd_rsoff8(rd, rs, offset8); break;
-				case 0x4: cmp_byte_rd_rsoff8(rd, rs, offset8); break;
-				case 0x5: and_byte_rd_rsoff8(rd, rs, offset8); break;
-				case 0x6: or_byte_rd_rsoff8(rd, rs, offset8); break;
-				case 0x7: xor_byte_rd_rsoff8(rd, rs, offset8); break;
-				case 0x8: mov_byte_rd_rsoff8(rd, rs, offset8); break;
-				default: logerror("UNK_ALUOP.b %s, [%s+#$%02x]", m_regnames8[rd], m_regnames16[rs], offset8); do_nop(); break;
 				}
 			}
 		}
@@ -799,15 +727,6 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 				switch (alu_op)
 				{
 				case 0x0: add_word_rdoff8_rs(rd, offset8, rs); break;
-				case 0x1: addc_word_rdoff8_rs(rd, offset8, rs); break;
-				case 0x2: sub_word_rdoff8_rs(rd, offset8, rs); break;
-				case 0x3: subc_word_rdoff8_rs(rd, offset8, rs); break;
-				case 0x4: cmp_word_rdoff8_rs(rd, offset8, rs); break;
-				case 0x5: and_word_rdoff8_rs(rd, offset8, rs); break;
-				case 0x6: or_word_rdoff8_rs(rd, offset8, rs); break;
-				case 0x7: xor_word_rdoff8_rs(rd, offset8, rs); break;
-				case 0x8: mov_word_rdoff8_rs(rd, offset8, rs); break;
-				default: logerror("UNK_ALUOP.w [%s+#$%02x], %s", m_regnames16[rd], offset8, m_regnames16[rs]); do_nop(); break;
 				}
 			}
 			else
@@ -815,15 +734,6 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 				switch (alu_op)
 				{
 				case 0x0: add_byte_rdoff8_rs(rd, offset8, rs); break;
-				case 0x1: addc_byte_rdoff8_rs(rd, offset8, rs); break;
-				case 0x2: sub_byte_rdoff8_rs(rd, offset8, rs); break;
-				case 0x3: subc_byte_rdoff8_rs(rd, offset8, rs); break;
-				case 0x4: cmp_byte_rdoff8_rs(rd, offset8, rs); break;
-				case 0x5: and_byte_rdoff8_rs(rd, offset8, rs); break;
-				case 0x6: or_byte_rdoff8_rs(rd, offset8, rs); break;
-				case 0x7: xor_byte_rdoff8_rs(rd, offset8, rs); break;
-				case 0x8: mov_byte_rdoff8_rs(rd, offset8, rs); break;
-				default: logerror("UNK_ALUOP.b [%s+#$%02x], %s", m_regnames16[rd], offset8, m_regnames8[rs]); do_nop(); break;
 				}
 			}
 		}
@@ -846,15 +756,6 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 				switch (alu_op)
 				{
 				case 0x0: add_word_rd_rsoff16(rd, rs, offset16); break;
-				case 0x1: addc_word_rd_rsoff16(rd, rs, offset16); break;
-				case 0x2: sub_word_rd_rsoff16(rd, rs, offset16); break;
-				case 0x3: subc_word_rd_rsoff16(rd, rs, offset16); break;
-				case 0x4: cmp_word_rd_rsoff16(rd, rs, offset16); break;
-				case 0x5: and_word_rd_rsoff16(rd, rs, offset16); break;
-				case 0x6: or_word_rd_rsoff16(rd, rs, offset16); break;
-				case 0x7: xor_word_rd_rsoff16(rd, rs, offset16); break;
-				case 0x8: mov_word_rd_rsoff16(rd, rs, offset16); break;
-				default: logerror("UNK_ALUOP.w %s, [%s+#$%04x]", m_regnames16[rd], m_regnames16[rs], offset16); do_nop(); break;
 				}
 			}
 			else
@@ -862,15 +763,6 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 				switch (alu_op)
 				{
 				case 0x0: add_byte_rd_rsoff16(rd, rs, offset16); break;
-				case 0x1: addc_byte_rd_rsoff16(rd, rs, offset16); break;
-				case 0x2: sub_byte_rd_rsoff16(rd, rs, offset16); break;
-				case 0x3: subc_byte_rd_rsoff16(rd, rs, offset16); break;
-				case 0x4: cmp_byte_rd_rsoff16(rd, rs, offset16); break;
-				case 0x5: and_byte_rd_rsoff16(rd, rs, offset16); break;
-				case 0x6: or_byte_rd_rsoff16(rd, rs, offset16); break;
-				case 0x7: xor_byte_rd_rsoff16(rd, rs, offset16); break;
-				case 0x8: mov_byte_rd_rsoff16(rd, rs, offset16); break;
-				default: logerror("UNK_ALUOP.b %s, [%s+#$%04x]", m_regnames8[rd], m_regnames16[rs], offset16); do_nop(); break;
 				}
 			}
 		}
@@ -884,15 +776,6 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 				switch (alu_op)
 				{
 				case 0x0: add_word_rdoff16_rs(rd, offset16, rs); break;
-				case 0x1: addc_word_rdoff16_rs(rd, offset16, rs); break;
-				case 0x2: sub_word_rdoff16_rs(rd, offset16, rs); break;
-				case 0x3: subc_word_rdoff16_rs(rd, offset16, rs); break;
-				case 0x4: cmp_word_rdoff16_rs(rd, offset16, rs); break;
-				case 0x5: and_word_rdoff16_rs(rd, offset16, rs); break;
-				case 0x6: or_word_rdoff16_rs(rd, offset16, rs); break;
-				case 0x7: xor_word_rdoff16_rs(rd, offset16, rs); break;
-				case 0x8: mov_word_rdoff16_rs(rd, offset16, rs); break;
-				default: logerror("UNK_ALUOP.w [%s+#$%04x], %s", m_regnames16[rd], offset16, m_regnames16[rs]); do_nop(); break;
 				}
 			}
 			else
@@ -900,15 +783,6 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 				switch (alu_op)
 				{
 				case 0x0: add_byte_rdoff16_rs(rd, offset16, rs); break;
-				case 0x1: addc_byte_rdoff16_rs(rd, offset16, rs); break;
-				case 0x2: sub_byte_rdoff16_rs(rd, offset16, rs); break;
-				case 0x3: subc_byte_rdoff16_rs(rd, offset16, rs); break;
-				case 0x4: cmp_byte_rdoff16_rs(rd, offset16, rs); break;
-				case 0x5: and_byte_rdoff16_rs(rd, offset16, rs); break;
-				case 0x6: or_byte_rdoff16_rs(rd, offset16, rs); break;
-				case 0x7: xor_byte_rdoff16_rs(rd, offset16, rs); break;
-				case 0x8: mov_byte_rdoff16_rs(rd, offset16, rs); break;
-				default: logerror("UNK_ALUOP.b [%s+#$%04x], %s", m_regnames16[rd], offset16, m_regnames8[rs]); do_nop(); break;
 				}
 			}
 		}
@@ -929,15 +803,6 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 				switch (alu_op)
 				{
 				case 0x0: add_word_rd_direct(rd, direct); break;
-				case 0x1: addc_word_rd_direct(rd, direct); break;
-				case 0x2: sub_word_rd_direct(rd, direct); break;
-				case 0x3: subc_word_rd_direct(rd, direct); break;
-				case 0x4: cmp_word_rd_direct(rd, direct); break;
-				case 0x5: and_word_rd_direct(rd, direct); break;
-				case 0x6: or_word_rd_direct(rd, direct); break;
-				case 0x7: xor_word_rd_direct(rd, direct); break;
-				case 0x8: mov_word_rd_direct(rd, direct); break;
-				default: logerror("UNK_ALUOP.w %s, %s", m_regnames16[rd], get_directtext(direct)); do_nop(); break;
 				}
 			}
 			else
@@ -945,15 +810,6 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 				switch (alu_op)
 				{
 				case 0x0: add_byte_rd_direct(rd, direct); break;
-				case 0x1: addc_byte_rd_direct(rd, direct); break;
-				case 0x2: sub_byte_rd_direct(rd, direct); break;
-				case 0x3: subc_byte_rd_direct(rd, direct); break;
-				case 0x4: cmp_byte_rd_direct(rd, direct); break;
-				case 0x5: and_byte_rd_direct(rd, direct); break;
-				case 0x6: or_byte_rd_direct(rd, direct); break;
-				case 0x7: xor_byte_rd_direct(rd, direct); break;
-				case 0x8: mov_byte_rd_direct(rd, direct); break;
-				default: logerror("UNK_ALUOP.b %s, %s", m_regnames8[rd], get_directtext(direct)); do_nop(); break;
 				}
 			}
 		}
@@ -966,15 +822,6 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 				switch (alu_op)
 				{
 				case 0x0: add_word_direct_rs(direct, rs); break;
-				case 0x1: addc_word_direct_rs(direct, rs); break;
-				case 0x2: sub_word_direct_rs(direct, rs); break;
-				case 0x3: subc_word_direct_rs(direct, rs); break;
-				case 0x4: cmp_word_direct_rs(direct, rs); break;
-				case 0x5: and_word_direct_rs(direct, rs); break;
-				case 0x6: or_word_direct_rs(direct, rs); break;
-				case 0x7: xor_word_direct_rs(direct, rs); break;
-				case 0x8: mov_word_direct_rs(direct, rs); break;
-				default: logerror("UNK_ALUOP.w %s, %s", get_directtext(direct), m_regnames16[rs]); do_nop(); break;
 				}
 			}
 			else
@@ -982,15 +829,6 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 				switch (alu_op)
 				{
 				case 0x0: add_byte_direct_rs(direct, rs); break;
-				case 0x1: addc_byte_direct_rs(direct, rs); break;
-				case 0x2: sub_byte_direct_rs(direct, rs); break;
-				case 0x3: subc_byte_direct_rs(direct, rs); break;
-				case 0x4: cmp_byte_direct_rs(direct, rs); break;
-				case 0x5: and_byte_direct_rs(direct, rs); break;
-				case 0x6: or_byte_direct_rs(direct, rs); break;
-				case 0x7: xor_byte_direct_rs(direct, rs); break;
-				case 0x8: mov_byte_direct_rs(direct, rs); break;
-				default: logerror("UNK_ALUOP.b %s, %s", get_directtext(direct), m_regnames8[rs]); do_nop(); break;
 				}
 			}
 		}
@@ -1015,15 +853,6 @@ void xa_cpu_device::handle_alu_type1(XA_EXECUTE_PARAMS, uint8_t op2)
 		switch (alu_op)
 		{
 		case 0x0: add_byte_rd_data8(rd, data8); break;
-		case 0x1: addc_byte_rd_data8(rd, data8); break;
-		case 0x2: sub_byte_rd_data8(rd, data8); break;
-		case 0x3: subc_byte_rd_data8(rd, data8); break;
-		case 0x4: cmp_byte_rd_data8(rd, data8); break;
-		case 0x5: and_byte_rd_data8(rd, data8); break;
-		case 0x6: or_byte_rd_data8(rd, data8); break;
-		case 0x7: xor_byte_rd_data8(rd, data8); break;
-		case 0x8: mov_byte_rd_data8(rd, data8); break;
-		default: logerror( "UNK_ALUOP.b %s, #$%02x", m_regnames8[rd], data8 ); do_nop(); break;
 		}
 		return;
 	}
@@ -1036,15 +865,6 @@ void xa_cpu_device::handle_alu_type1(XA_EXECUTE_PARAMS, uint8_t op2)
 		switch (alu_op)
 		{
 		case 0x0: add_byte_indrd_data8(rd, data8); break;
-		case 0x1: addc_byte_indrd_data8(rd, data8); break;
-		case 0x2: sub_byte_indrd_data8(rd, data8); break;
-		case 0x3: subc_byte_indrd_data8(rd, data8); break;
-		case 0x4: cmp_byte_indrd_data8(rd, data8); break;
-		case 0x5: and_byte_indrd_data8(rd, data8); break;
-		case 0x6: or_byte_indrd_data8(rd, data8); break;
-		case 0x7: xor_byte_indrd_data8(rd, data8); break;
-		case 0x8: mov_byte_indrd_data8(rd, data8); break;
-		default: logerror( "UNK_ALUOP.b [%s], #$%02x", m_regnames16[rd], data8 ); do_nop(); break;
 		}
 		return;
 	}
@@ -1057,15 +877,6 @@ void xa_cpu_device::handle_alu_type1(XA_EXECUTE_PARAMS, uint8_t op2)
 		switch (alu_op)
 		{
 		case 0x0: add_byte_indrdinc_data8(rd, data8); break;
-		case 0x1: addc_byte_indrdinc_data8(rd, data8); break;
-		case 0x2: sub_byte_indrdinc_data8(rd, data8); break;
-		case 0x3: subc_byte_indrdinc_data8(rd, data8); break;
-		case 0x4: cmp_byte_indrdinc_data8(rd, data8); break;
-		case 0x5: and_byte_indrdinc_data8(rd, data8); break;
-		case 0x6: or_byte_indrdinc_data8(rd, data8); break;
-		case 0x7: xor_byte_indrdinc_data8(rd, data8); break;
-		case 0x8: mov_byte_indrdinc_data8(rd, data8); break;
-		default: logerror( "UNK_ALUOP.b [%s+], #$%02x", m_regnames16[rd], data8 ); do_nop(); break;
 		}
 		return;
 	}
@@ -1079,15 +890,6 @@ void xa_cpu_device::handle_alu_type1(XA_EXECUTE_PARAMS, uint8_t op2)
 		switch (alu_op)
 		{
 		case 0x0: add_byte_indrdoff8_data8(rd, offset8, data8); break;
-		case 0x1: addc_byte_indrdoff8_data8(rd, offset8, data8); break;
-		case 0x2: sub_byte_indrdoff8_data8(rd, offset8, data8); break;
-		case 0x3: subc_byte_indrdoff8_data8(rd, offset8, data8); break;
-		case 0x4: cmp_byte_indrdoff8_data8(rd, offset8, data8); break;
-		case 0x5: and_byte_indrdoff8_data8(rd, offset8, data8); break;
-		case 0x6: or_byte_indrdoff8_data8(rd, offset8, data8); break;
-		case 0x7: xor_byte_indrdoff8_data8(rd, offset8, data8); break;
-		case 0x8: mov_byte_indrdoff8_data8(rd, offset8, data8); break;
-		default: logerror( "UNK_ALUOP.b [%s+#$%02x], #$%02x", m_regnames16[rd], offset8, data8 ); do_nop(); break;
 		}
 		return;
 	}
@@ -1103,15 +905,6 @@ void xa_cpu_device::handle_alu_type1(XA_EXECUTE_PARAMS, uint8_t op2)
 		switch (alu_op)
 		{
 		case 0x0: add_byte_indrdoff16_data8(rd, offset16, data8); break;
-		case 0x1: addc_byte_indrdoff16_data8(rd, offset16, data8); break;
-		case 0x2: sub_byte_indrdoff16_data8(rd, offset16, data8); break;
-		case 0x3: subc_byte_indrdoff16_data8(rd, offset16, data8); break;
-		case 0x4: cmp_byte_indrdoff16_data8(rd, offset16, data8); break;
-		case 0x5: and_byte_indrdoff16_data8(rd, offset16, data8); break;
-		case 0x6: or_byte_indrdoff16_data8(rd, offset16, data8); break;
-		case 0x7: xor_byte_indrdoff16_data8(rd, offset16, data8); break;
-		case 0x8: mov_byte_indrdoff16_data8(rd, offset16, data8); break;
-		default: logerror( "UNK_ALUOP.b [%s+#$%04x], #$%02d", m_regnames16[rd], offset16, data8 ); do_nop(); break;
 		}
 		return;
 	}
@@ -1125,15 +918,6 @@ void xa_cpu_device::handle_alu_type1(XA_EXECUTE_PARAMS, uint8_t op2)
 		switch (alu_op)
 		{
 		case 0x0: add_byte_direct_data8(direct, data8); break;
-		case 0x1: addc_byte_direct_data8(direct, data8); break;
-		case 0x2: sub_byte_direct_data8(direct, data8); break;
-		case 0x3: subc_byte_direct_data8(direct, data8); break;
-		case 0x4: cmp_byte_direct_data8(direct, data8); break;
-		case 0x5: and_byte_direct_data8(direct, data8); break;
-		case 0x6: or_byte_direct_data8(direct, data8); break;
-		case 0x7: xor_byte_direct_data8(direct, data8); break;
-		case 0x8: mov_byte_direct_data8(direct, data8); break;
-		default: logerror("UNK_ALUOP.b %s, #$%02x (DIRECT, DATA8)", get_directtext(direct), data8); do_nop(); break;
 		}
 		return;
 	}
@@ -1148,15 +932,6 @@ void xa_cpu_device::handle_alu_type1(XA_EXECUTE_PARAMS, uint8_t op2)
 		switch (alu_op)
 		{
 		case 0x0: add_word_rd_data16(rd, data16); break;
-		case 0x1: addc_word_rd_data16(rd, data16); break;
-		case 0x2: sub_word_rd_data16(rd, data16); break;
-		case 0x3: subc_word_rd_data16(rd, data16); break;
-		case 0x4: cmp_word_rd_data16(rd, data16); break;
-		case 0x5: and_word_rd_data16(rd, data16); break;
-		case 0x6: or_word_rd_data16(rd, data16); break;
-		case 0x7: xor_word_rd_data16(rd, data16); break;
-		case 0x8: mov_word_rd_data16(rd, data16); break;
-		default: logerror("UNK_ALUOP.w %s, #$%04x (RD, DATA16)", m_regnames16[rd], data16); do_nop(); break;
 		}
 		return;
 	}
@@ -1171,15 +946,6 @@ void xa_cpu_device::handle_alu_type1(XA_EXECUTE_PARAMS, uint8_t op2)
 		switch (alu_op)
 		{
 		case 0x0: add_word_indrd_data16(rd, data16); break;
-		case 0x1: addc_word_indrd_data16(rd, data16); break;
-		case 0x2: sub_word_indrd_data16(rd, data16); break;
-		case 0x3: subc_word_indrd_data16(rd, data16); break;
-		case 0x4: cmp_word_indrd_data16(rd, data16); break;
-		case 0x5: and_word_indrd_data16(rd, data16); break;
-		case 0x6: or_word_indrd_data16(rd, data16); break;
-		case 0x7: xor_word_indrd_data16(rd, data16); break;
-		case 0x8: mov_word_indrd_data16(rd, data16); break;
-		default: logerror( "UNK_ALUOP.w [%s], #$%04x", m_regnames16[rd], data16 ); do_nop(); break;
 		}
 		return;
 	}
@@ -1194,15 +960,6 @@ void xa_cpu_device::handle_alu_type1(XA_EXECUTE_PARAMS, uint8_t op2)
 		switch (alu_op)
 		{
 		case 0x0: add_word_indrdinc_data16(rd, data16); break;
-		case 0x1: addc_word_indrdinc_data16(rd, data16); break;
-		case 0x2: sub_word_indrdinc_data16(rd, data16); break;
-		case 0x3: subc_word_indrdinc_data16(rd, data16); break;
-		case 0x4: cmp_word_indrdinc_data16(rd, data16); break;
-		case 0x5: and_word_indrdinc_data16(rd, data16); break;
-		case 0x6: or_word_indrdinc_data16(rd, data16); break;
-		case 0x7: xor_word_indrdinc_data16(rd, data16); break;
-		case 0x8: mov_word_indrdinc_data16(rd, data16); break;
-		default: logerror( "UNK_ALUOP.w [%s+], #$%04x", m_regnames16[rd], data16 ); do_nop(); break;
 		}
 		return;
 	}
@@ -1219,15 +976,6 @@ void xa_cpu_device::handle_alu_type1(XA_EXECUTE_PARAMS, uint8_t op2)
 		switch (alu_op)
 		{
 		case 0x0: add_word_indrdoff8_data16(rd, offset8, data16); break;
-		case 0x1: addc_word_indrdoff8_data16(rd, offset8, data16); break;
-		case 0x2: sub_word_indrdoff8_data16(rd, offset8, data16); break;
-		case 0x3: subc_word_indrdoff8_data16(rd, offset8, data16); break;
-		case 0x4: cmp_word_indrdoff8_data16(rd, offset8, data16); break;
-		case 0x5: and_word_indrdoff8_data16(rd, offset8, data16); break;
-		case 0x6: or_word_indrdoff8_data16(rd, offset8, data16); break;
-		case 0x7: xor_word_indrdoff8_data16(rd, offset8, data16); break;
-		case 0x8: mov_word_indrdoff8_data16(rd, offset8, data16); break;
-		default: logerror( "UNK_ALUOP.w [%s+#$%02x], #$%04x", m_regnames16[rd], offset8, data16 ); do_nop(); break;
 		}
 		return;
 	}
@@ -1245,15 +993,6 @@ void xa_cpu_device::handle_alu_type1(XA_EXECUTE_PARAMS, uint8_t op2)
 		switch (alu_op)
 		{
 		case 0x0: add_word_indrdoff16_data16(rd, offset16, data16); break;
-		case 0x1: addc_word_indrdoff16_data16(rd, offset16, data16); break;
-		case 0x2: sub_word_indrdoff16_data16(rd, offset16, data16); break;
-		case 0x3: subc_word_indrdoff16_data16(rd, offset16, data16); break;
-		case 0x4: cmp_word_indrdoff16_data16(rd, offset16, data16); break;
-		case 0x5: and_word_indrdoff16_data16(rd, offset16, data16); break;
-		case 0x6: or_word_indrdoff16_data16(rd, offset16, data16); break;
-		case 0x7: xor_word_indrdoff16_data16(rd, offset16, data16); break;
-		case 0x8: mov_word_indrdoff16_data16(rd, offset16, data16); break;
-		default: logerror( "UNK_ALUOP.w [%s+#$%04x], #$%04x", m_regnames16[rd], offset16, data16 ); do_nop(); break;
 		}
 		return;
 	}
@@ -1269,15 +1008,6 @@ void xa_cpu_device::handle_alu_type1(XA_EXECUTE_PARAMS, uint8_t op2)
 		switch (alu_op)
 		{
 		case 0x0: add_word_direct_data16(direct, data16); break;
-		case 0x1: addc_word_direct_data16(direct, data16); break;
-		case 0x2: sub_word_direct_data16(direct, data16); break;
-		case 0x3: subc_word_direct_data16(direct, data16); break;
-		case 0x4: cmp_word_direct_data16(direct, data16); break;
-		case 0x5: and_word_direct_data16(direct, data16); break;
-		case 0x6: or_word_direct_data16(direct, data16); break;
-		case 0x7: xor_word_direct_data16(direct, data16); break;
-		case 0x8: mov_word_direct_data16(direct, data16); break;
-		default: logerror( "UNK_ALUOP.w %s, #$%04x", get_directtext(direct), data16 ); do_nop(); break;
 		}
 		return;
 	}
