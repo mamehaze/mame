@@ -2242,14 +2242,14 @@ void xa_cpu_device::d_asr_j(XA_EXECUTE_PARAMS)
 	{
 		switch (op2 & 0xf0)
 		{
-		case 0x10: fatalerror( "RESET"); break;
-		case 0x30: fatalerror( "TRAP %d", op2 & 0x0f); break;
-		case 0x40: fatalerror( "JMP [A+DPTR]"); break;
-		case 0x60: fatalerror( "JMP [[%s+]]", m_regnames16[op2 & 0x07]); break;
-		case 0x70: fatalerror( "JMP [%s]", m_regnames16[op2 & 0x07]); break;
-		case 0x80: fatalerror( "RET"); break;
-		case 0x90: fatalerror( "RTI"); break;
-		default:   fatalerror( "illegal"); break;
+		case 0x10: reset(); break;
+		case 0x30: trap_data4(op2 & 0x0f); break;
+		case 0x40: jmp_ind_adptr(); break;
+		case 0x60: jmp_dblindrs(op2 & 0x07); break;
+		case 0x70: jmp_indrs(op2 & 0x07); break;
+		case 0x80: ret(); break;
+		case 0x90: reti(); break;
+		default:   logerror("illegal"); do_nop(); break;
 		}
 	}
 	else

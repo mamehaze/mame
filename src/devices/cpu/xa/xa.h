@@ -768,6 +768,13 @@ private:
 	void cjne_indrd_data16_rel8(u8 rd, u16 data16, u8 rel8);
 	void cjne_rd_data16_rel8(u8 rd, u16 data16, u8 rel8);
 
+	void reset();
+	void trap_data4(u8 data4);
+	void jmp_ind_adptr();
+	void jmp_dblindrs(u8 rs);
+	void jmp_indrs(u8 rs);
+	void ret();
+	void reti();
 
 	std::unordered_map<offs_t, const char *> m_names;
 

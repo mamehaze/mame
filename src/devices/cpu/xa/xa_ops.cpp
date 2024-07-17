@@ -789,3 +789,24 @@ void xa_cpu_device::cjne_indrd_data16_rel8(u8 rd, u16 data16, u8 rel8) { fataler
 
 // CJNE Rd,#data16,rel8        Compare imm word to reg and jump if not equal                           5 9t/6nt    1110 1011  dddd 0000  rrrr rrrr  iiii iiii  iiii iiii
 void xa_cpu_device::cjne_rd_data16_rel8(u8 rd, u16 data16, u8 rel8) { fatalerror( "CJNE %s, #$%04x, $%04x", m_regnames8[rd], data16, expand_rel8(rel8)); }
+
+// RESET                       Causes a hardware Reset (same as external Reset)                        2 18        1101 0110  0001 0000
+void xa_cpu_device::reset() { fatalerror( "RESET"); }
+
+// TRAP #data4                 Causes 1 of 16 hardware traps to be executed                            2 23/19(PZ) 1101 0110  0011 tttt
+void xa_cpu_device::trap_data4(u8 data4) { fatalerror( "TRAP %d", data4); }
+
+// JMP [A+DPTR]                Jump ind relative to the DPTR                                           2 5         1101 0110  0100 0110
+void xa_cpu_device::jmp_ind_adptr() { fatalerror( "JMP [A+DPTR]"); }
+
+// JMP [[Rs+]]                 Jump double-ind to the address (pointer to a pointer)                   2 8         1101 0110  0110 0sss
+void xa_cpu_device::jmp_dblindrs(u8 rs) { fatalerror( "JMP [[%s+]]", m_regnames16[rs]); }
+
+// JMP [Rs]                    Jump ind to the address in the reg (64K)                                2 7         1101 0110  0111 0sss
+void xa_cpu_device::jmp_indrs(u8 rs) { fatalerror( "JMP [%s]", m_regnames16[rs]); }
+
+// RET                         Return from subroutine                                                  2 8/6(PZ)   1101 0110  1000 0000
+void xa_cpu_device::ret() { fatalerror( "RET"); }
+
+// RETI                        Return from interrupt                                                   2 10/8(PZ)  1101 0110  1001 0000
+void xa_cpu_device::reti() { fatalerror( "RETI"); }
