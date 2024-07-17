@@ -613,7 +613,7 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 		const u8 rs = (op2 & 0x0f);
 		const u8 rd = (op2 & 0xf0) >> 4;
 		if (size) { aluop_word_rd_rs(alu_op, rd, rs); } else { aluop_byte_rd_rs(alu_op, rd, rs); }
-		return;
+		break;
 	}
 
 	case 0x02:
@@ -629,23 +629,9 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 		{
 			const u8 rd = (op2 & 0x07);
 			const u8 rs = (op2 & 0xf0) >> 4;
-
-			if (size)
-			{
-				switch (alu_op)
-				{
-				case 0x0: add_word_indrd_rs(rd, rs); break;
-				}
-			}
-			else
-			{
-				switch (alu_op)
-				{
-				case 0x0: add_byte_indrd_rs(rd, rs); break;
-				}
-			}
+			if (size) { aluop_word_indrd_rs(alu_op, rd, rs); } else { aluop_byte_indrd_rs(alu_op, rd, rs); }
 		}
-		return;
+		break;
 	}
 
 	case 0x03:
@@ -655,42 +641,15 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 		{
 			const u8 rs = (op2 & 0x07);
 			const u8 rd = (op2 & 0xf0) >> 4;
-			if (size)
-			{
-				switch (alu_op)
-				{
-				case 0x0: add_word_rd_indrsinc(rd, rs); break;
-				}
-			}
-			else
-			{
-				switch (alu_op)
-				{
-				case 0x0: add_byte_rd_indrsinc(rd, rs); break;
-				}
-			}
+			if (size) {	aluop_word_rd_indrsinc(alu_op, rd, rs); } else { aluop_byte_rd_indrsinc(alu_op, rd, rs); }
 		}
 		else
 		{
 			const u8 rd = (op2 & 0x07);
 			const u8 rs = (op2 & 0xf0) >> 4;
-
-			if (size)
-			{
-				switch (alu_op)
-				{
-				case 0x0: add_word_indrdinc_rs(rd, rs); break;
-				}
-			}
-			else
-			{
-				switch (alu_op)
-				{
-				case 0x0: add_byte_indrdinc_rs(rd, rs); break;
-				}
-			}
+			if (size) {	aluop_word_indrdinc_rs(alu_op, rd, rs);	} else { aluop_byte_indrdinc_rs(alu_op, rd, rs); }
 		}
-		return;
+		break;
 	}
 
 	case 0x04:
@@ -701,43 +660,15 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 		{
 			const u8 rs = (op2 & 0x07);
 			const u8 rd = (op2 & 0xf0) >> 4;
-
-			if (size)
-			{
-				switch (alu_op)
-				{
-				case 0x0: add_word_rd_rsoff8(rd, rs, offset8); break;
-				}
-			}
-			else
-			{
-				switch (alu_op)
-				{
-				case 0x0: add_byte_rd_rsoff8(rd, rs, offset8); break;
-				}
-			}
+			if (size) {	aluop_word_rd_rsoff8(alu_op, rd, rs, offset8); } else { aluop_byte_rd_rsoff8(alu_op, rd, rs, offset8); }
 		}
 		else
 		{
 			const u8 rd = (op2 & 0x07);
 			const u8 rs = (op2 & 0xf0) >> 4;
-
-			if (size)
-			{
-				switch (alu_op)
-				{
-				case 0x0: add_word_rdoff8_rs(rd, offset8, rs); break;
-				}
-			}
-			else
-			{
-				switch (alu_op)
-				{
-				case 0x0: add_byte_rdoff8_rs(rd, offset8, rs); break;
-				}
-			}
+			if (size) {	aluop_word_rdoff8_rs(alu_op, rd, offset8, rs); } else { aluop_byte_rdoff8_rs(alu_op, rd, offset8, rs); }
 		}
-		return;
+		break;
 	}
 
 	case 0x05:
@@ -750,43 +681,15 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 		{
 			const u8 rs = (op2 & 0x07);
 			const u8 rd = (op2 & 0xf0) >> 4;
-
-			if (size)
-			{
-				switch (alu_op)
-				{
-				case 0x0: add_word_rd_rsoff16(rd, rs, offset16); break;
-				}
-			}
-			else
-			{
-				switch (alu_op)
-				{
-				case 0x0: add_byte_rd_rsoff16(rd, rs, offset16); break;
-				}
-			}
+			if (size) { aluop_word_rsoff16(alu_op, rd, rs, offset16); } else { aluop_byte_rsoff16(alu_op, rd, rs, offset16); }
 		}
 		else
 		{
 			const u8 rd = (op2 & 0x07);
 			const u8 rs = (op2 & 0xf0) >> 4;
-
-			if (size)
-			{
-				switch (alu_op)
-				{
-				case 0x0: add_word_rdoff16_rs(rd, offset16, rs); break;
-				}
-			}
-			else
-			{
-				switch (alu_op)
-				{
-				case 0x0: add_byte_rdoff16_rs(rd, offset16, rs); break;
-				}
-			}
+			if (size) {	aluop_word_rdoff16_rs(alu_op, rd, offset16, rs); } else	{ aluop_byte_rdoff16_rs(alu_op, rd, offset16, rs); }
 		}
-		return;
+		break;
 	}
 
 	case 0x06:
@@ -797,42 +700,14 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 		if (!optype)
 		{
 			const u8 rd = (op2 & 0xf0) >> 4;
-
-			if (size)
-			{
-				switch (alu_op)
-				{
-				case 0x0: add_word_rd_direct(rd, direct); break;
-				}
-			}
-			else
-			{
-				switch (alu_op)
-				{
-				case 0x0: add_byte_rd_direct(rd, direct); break;
-				}
-			}
+			if (size) {	aluop_word_rd_direct(alu_op, rd, direct); } else { aluop_byte_rd_direct(alu_op, rd, direct); }
 		}
 		else
 		{
 			const u8 rs = (op2 & 0xf0) >> 4;
-
-			if (size)
-			{
-				switch (alu_op)
-				{
-				case 0x0: add_word_direct_rs(direct, rs); break;
-				}
-			}
-			else
-			{
-				switch (alu_op)
-				{
-				case 0x0: add_byte_direct_rs(direct, rs); break;
-				}
-			}
+			if (size) { aluop_word_direct_rs(alu_op, direct, rs); } else { aluop_byte_direct_rs(alu_op, direct, rs); }
 		}
-		return;
+		break;
 	}
 
 	}
@@ -849,36 +724,24 @@ void xa_cpu_device::handle_alu_type1(XA_EXECUTE_PARAMS, uint8_t op2)
 	{
 		const u8 data8 = m_program->read_byte(m_pc++);
 		const u8 rd = (op2 & 0xf0) >> 4;
-
-		switch (alu_op)
-		{
-		case 0x0: add_byte_rd_data8(rd, data8); break;
-		}
-		return;
+		aluop_byte_rd_data8(alu_op, rd, data8);
+		break;
 	}
 
 	case 0x02: // ALUOP.b [Rd], data8
 	{
 		const u8 data8 = m_program->read_byte(m_pc++);
 		const u8 rd = (op2 & 0xf0) >> 4;
-
-		switch (alu_op)
-		{
-		case 0x0: add_byte_indrd_data8(rd, data8); break;
-		}
-		return;
+		aluop_byte_indrd_data8(alu_op, rd, data8);
+		break;
 	}
 
 	case 0x03: // ALUOP.b [Rd+], data8
 	{
 		const u8 data8 = m_program->read_byte(m_pc++);
 		const u8 rd = (op2 & 0xf0) >> 4;
-
-		switch (alu_op)
-		{
-		case 0x0: add_byte_indrdinc_data8(rd, data8); break;
-		}
-		return;
+		aluop_byte_indrdinc_data8(alu_op, rd, data8);
+		break;
 	}
 
 	case 0x04: // ALUOP.b [Rd+offs8], data8
@@ -886,12 +749,8 @@ void xa_cpu_device::handle_alu_type1(XA_EXECUTE_PARAMS, uint8_t op2)
 		const u8 offset8 = m_program->read_byte(m_pc++);
 		const u8 data8 = m_program->read_byte(m_pc++);
 		const u8 rd = (op2 & 0xf0) >> 4;
-
-		switch (alu_op)
-		{
-		case 0x0: add_byte_indrdoff8_data8(rd, offset8, data8); break;
-		}
-		return;
+		aluop_byte_rdoff8_data8(alu_op, rd, offset8, data8);
+		break;
 	}
 
 	case 0x05: // ALUOP.b [Rd+offs16], data8
@@ -901,12 +760,8 @@ void xa_cpu_device::handle_alu_type1(XA_EXECUTE_PARAMS, uint8_t op2)
 		const u8 data8 = m_program->read_byte(m_pc++);
 		const u8 rd = (op2 & 0xf0) >> 4;
 		const u16 offset16 = (op3 << 8) | op4;
-
-		switch (alu_op)
-		{
-		case 0x0: add_byte_indrdoff16_data8(rd, offset16, data8); break;
-		}
-		return;
+		aluop_byte_rdoff16_data8(alu_op, rd, offset16, data8);
+		break;
 	}
 
 	case 0x06: // ALUOP.b DIRECT, data8
@@ -914,12 +769,8 @@ void xa_cpu_device::handle_alu_type1(XA_EXECUTE_PARAMS, uint8_t op2)
 		const u8 op3 = m_program->read_byte(m_pc++);
 		const u8 data8 = m_program->read_byte(m_pc++);
 		const u16 direct = ((op2 & 0xf0) << 4) | op3;
-
-		switch (alu_op)
-		{
-		case 0x0: add_byte_direct_data8(direct, data8); break;
-		}
-		return;
+		aluop_byte_direct_data8(alu_op, direct, data8);
+		break;
 	}
 
 	case 0x09: // ALUOP.w Rd, data16
@@ -928,12 +779,8 @@ void xa_cpu_device::handle_alu_type1(XA_EXECUTE_PARAMS, uint8_t op2)
 		const u8 op4 = m_program->read_byte(m_pc++);
 		const u8 rd = (op2 & 0xf0) >> 4;
 		const u16 data16 = (op3 << 8) | op4;
-
-		switch (alu_op)
-		{
-		case 0x0: add_word_rd_data16(rd, data16); break;
-		}
-		return;
+		aluop_byte_rd_data16(alu_op, rd, data16);
+		break;
 	}
 
 	case 0x0a: // ALUOP.w [Rd], data16
@@ -942,12 +789,8 @@ void xa_cpu_device::handle_alu_type1(XA_EXECUTE_PARAMS, uint8_t op2)
 		const u8 op4 = m_program->read_byte(m_pc++);
 		const u8 rd = (op2 & 0xf0) >> 4;
 		const u16 data16 = (op3 << 8) | op4;
-
-		switch (alu_op)
-		{
-		case 0x0: add_word_indrd_data16(rd, data16); break;
-		}
-		return;
+		aluop_byte_indrd_data16(alu_op, rd, data16);
+		break;
 	}
 
 	case 0x0b: // ALUOP.w [Rd+], data16
@@ -956,12 +799,8 @@ void xa_cpu_device::handle_alu_type1(XA_EXECUTE_PARAMS, uint8_t op2)
 		const u8 op4 = m_program->read_byte(m_pc++);
 		const u8 rd = (op2 & 0xf0) >> 4;
 		const u16 data16 = (op3 << 8) | op4;
-
-		switch (alu_op)
-		{
-		case 0x0: add_word_indrdinc_data16(rd, data16); break;
-		}
-		return;
+		aluop_byte_indrdinc_data16(alu_op, rd, data16);
+		break;
 	}
 
 	case 0x0c: // ALPOP.w [Rd+offs8], data16
@@ -972,12 +811,8 @@ void xa_cpu_device::handle_alu_type1(XA_EXECUTE_PARAMS, uint8_t op2)
 		const u8 rd = (op2 & 0xf0) >> 4;
 		const int offset8 = op3;
 		const u16 data16 = (op4 << 8) | op5;
-
-		switch (alu_op)
-		{
-		case 0x0: add_word_indrdoff8_data16(rd, offset8, data16); break;
-		}
-		return;
+		aluop_byte_rdoff8_data16(alu_op, rd, offset8, data16);
+		break;
 	}
 
 	case 0x0d: // ALUOP.w [Rd+offs16], data16
@@ -989,12 +824,8 @@ void xa_cpu_device::handle_alu_type1(XA_EXECUTE_PARAMS, uint8_t op2)
 		const u8 rd = (op2 & 0xf0) >> 4;
 		const int offset16= (op3 << 8) | op4;
 		const u16 data16 = (op5 << 8) | op6;
-
-		switch (alu_op)
-		{
-		case 0x0: add_word_indrdoff16_data16(rd, offset16, data16); break;
-		}
-		return;
+		aluop_byte_rdoff16_data16(alu_op, rd, offset16, data16);
+		break;
 	}
 
 	case 0x0e: // ALUOP.w DIRECT, data16
@@ -1004,15 +835,10 @@ void xa_cpu_device::handle_alu_type1(XA_EXECUTE_PARAMS, uint8_t op2)
 		const u8 op5 = m_program->read_byte(m_pc++);
 		const u16 direct =( (op2 & 0xf0) << 4) | op3;
 		const u16 data16 = (op4 << 8) | op5;
-
-		switch (alu_op)
-		{
-		case 0x0: add_word_direct_data16(direct, data16); break;
-		}
-		return;
+		aluop_byte_direct_data16(alu_op, direct, data16);
+		break;
 	}
 	}
-	return;
 }
 
 std::string xa_cpu_device::show_expanded_data4(u16 data4, int size)
@@ -1041,21 +867,21 @@ void xa_cpu_device::handle_adds_movs(XA_EXECUTE_PARAMS, int which)
 		int rd = (op2 & 0xf0) >> 4;
 		if (which) { if (size) { movs_word_rd_data4(rd, data4); } else { movs_byte_rd_data4(rd, data4); } }
 		else       { if (size) { adds_word_rd_data4(rd, data4); } else { adds_byte_rd_data4(rd, data4); } }
-		return;
+		break;
 	}
 	case 0x02:
 	{
 		int rd = (op2 & 0x70) >> 4;
 		if (which == 1) { if (size) { movs_word_indrd_data4(rd, data4); } else { movs_byte_indrd_data4(rd, data4); } }
 		else {            if (size) { adds_word_indrd_data4(rd, data4); } else { adds_byte_indrd_data4(rd, data4); } }
-		return;
+		break;
 	}
 	case 0x03:
 	{
 		int rd = (op2 & 0x70) >> 4;
 		if (which) { if (size) { movs_word_indrdinc_data4(rd, data4); } else { movs_byte_indrdinc_data4(rd, data4); } }
 		else       { if (size) { adds_word_indrdinc_data4(rd, data4); } else { adds_byte_indrdinc_data4(rd, data4); } }
-		return;
+		break;
 	}
 	case 0x04:
 	{
@@ -1063,7 +889,7 @@ void xa_cpu_device::handle_adds_movs(XA_EXECUTE_PARAMS, int which)
 		const u8 off8 = m_program->read_byte(m_pc++);
 		if (which == 1) { if (size) { movs_word_indrdoff8_data4(rd, off8, data4); } else { movs_byte_indrdoff8_data4(rd, off8, data4); } }
 		else            { if (size) { adds_word_indrdoff8_data4(rd, off8, data4); } else { adds_byte_indrdoff8_data4(rd, off8, data4); } }
-		return;
+		break;
 	}
 	case 0x05:
 	{
@@ -1073,7 +899,7 @@ void xa_cpu_device::handle_adds_movs(XA_EXECUTE_PARAMS, int which)
 		const int off16 = (op3 << 8) | op4;
 		if (which == 1) { if (size) { movs_word_indrdoff16_data4(rd, off16, data4); } else { movs_byte_indrdoff16_data4(rd, off16, data4); } }
 		else            { if (size) { adds_word_indrdoff16_data4(rd, off16, data4); } else { adds_byte_indrdoff16_data4(rd, off16, data4); } }
-		return;
+		break;
 	}
 	case 0x06:
 	{
@@ -1081,7 +907,7 @@ void xa_cpu_device::handle_adds_movs(XA_EXECUTE_PARAMS, int which)
 		const u16 direct = ((op2 & 0xf0) << 4) | op3;
 		if (which == 1) { if (size) { movs_word_direct_data4(direct, data4); } else { movs_byte_direct_data4(direct, data4); } }
 		else            { if (size) { adds_word_direct_data4(direct, data4); } else { adds_byte_direct_data4(direct, data4); } }
-		return;
+		break;
 	}
 	}
 }
