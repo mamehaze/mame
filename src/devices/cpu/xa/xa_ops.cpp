@@ -810,3 +810,9 @@ void xa_cpu_device::ret() { fatalerror( "RET"); }
 
 // RETI                        Return from interrupt                                                   2 10/8(PZ)  1101 0110  1001 0000
 void xa_cpu_device::reti() { fatalerror( "RETI"); }
+
+// JZ rel8                     Jump if accumulator equals zero                                         2 6t/3nt    1110 1100  rrrr rrrr
+void xa_cpu_device::jz_rel8(u8 rel8) { fatalerror( "JZ $%04x", expand_rel8(rel8)); }
+
+// JNZ rel8                    Jump if accumulator not equal zero                                      2 6t/3nt    1110 1110  rrrr rrrr
+void xa_cpu_device::jnz_rel8(u8 rel8) { fatalerror( "JNZ $%04x", expand_rel8(rel8)); }

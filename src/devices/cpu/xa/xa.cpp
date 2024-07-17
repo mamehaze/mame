@@ -2492,9 +2492,7 @@ JZ rel8                     Jump if accumulator equals zero                     
 void xa_cpu_device::d_jz_rel8(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
-	int address = m_pc + ((s8)op2)*2;
-	address &= ~1; // must be word aligned
-	fatalerror( "JZ $%04x", address);
+	jz_rel8(op2);
 }
 
 /*
@@ -2503,9 +2501,7 @@ JNZ rel8                    Jump if accumulator not equal zero                  
 void xa_cpu_device::d_jnz_rel8(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
-	int address = m_pc + ((s8)op2)*2;
-	address &= ~1; // must be word aligned
-	fatalerror( "JNZ $%04x", address);
+	jnz_rel8(op2);
 }
 
 

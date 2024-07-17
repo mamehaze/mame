@@ -776,6 +776,9 @@ private:
 	void ret();
 	void reti();
 
+	void jz_rel8(u8 rel8);
+	void jnz_rel8(u8 rel8);
+
 	std::unordered_map<offs_t, const char *> m_names;
 
 
