@@ -125,7 +125,16 @@ private:
 	void set_reg16(int reg, u16 data);
 
 	void set_pc_in_current_page(u16 addr);
+
+	void push_word_to_user_stack(u16 data);
+	void push_word_to_system_stack(u16 data);
 	void push_word_to_stack(u16 data);
+
+	void push_byte_to_user_stack(u8 data);
+	void push_byte_to_system_stack(u8 data);
+	void push_byte_to_stack(u16 data);
+
+	void push_byte_reglist(u8 op2, int h, bool force_user);
 
 	void write_data16(int address, u16 data);
 

@@ -327,18 +327,53 @@ void xa_cpu_device::do_nz_flags_8(u8 data)
 		clear_z_flag();
 }
 
+void xa_cpu_device::push_word_to_user_stack(u16 data)
+{
+	// should use the segment register as well!
+	m_USP -= 2;
+	m_data->write_word(m_USP, data);
+}
+
+void xa_cpu_device::push_word_to_system_stack(u16 data)
+{
+	m_SSP -= 2;
+	m_data->write_word(m_SSP, data);
+}
+
 void xa_cpu_device::push_word_to_stack(u16 data)
 {
 	if (m_usermode)
 	{
-		// should use the segment register as well!
-		m_USP -= 2;
-		m_data->write_word(m_USP, data);
+		push_word_to_user_stack(data);
 	}
 	else
 	{
-		m_SSP -= 2;
-		m_data->write_word(m_SSP, data);
+		push_word_to_system_stack(data);
+	}
+}
+
+void xa_cpu_device::push_byte_to_user_stack(u8 data)
+{
+	// should use the segment register as well!
+	m_USP -= 2;
+	m_data->write_byte(m_USP, data);
+}
+
+void xa_cpu_device::push_byte_to_system_stack(u8 data)
+{
+	m_SSP -= 2;
+	m_data->write_byte(m_SSP, data);
+}
+
+void xa_cpu_device::push_byte_to_stack(u16 data)
+{
+	if (m_usermode)
+	{
+		push_byte_to_user_stack(data);
+	}
+	else
+	{
+		push_byte_to_system_stack(data);
 	}
 }
 
@@ -948,6 +983,21 @@ std::string xa_cpu_device::get_byte_reglist(u8 op2, int h)
 	return temp;
 }
 
+void xa_cpu_device::push_byte_reglist(u8 op2, int h, bool force_user)
+{
+	for (int i = 7; i >= 0; i--)
+	{
+		int bit = (op2 & (1 << i));
+		if (bit)
+		{
+			u8 regval = get_reg8(i + h ? 8 : 0);
+			if (force_user)
+				push_byte_to_user_stack(regval);
+			else
+				push_byte_to_stack(regval);
+		}
+	}
+}
 void xa_cpu_device::handle_push_rlist(XA_EXECUTE_PARAMS)
 {
 	const u8 h = op & 0x40;

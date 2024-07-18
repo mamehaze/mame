@@ -1388,11 +1388,11 @@ void xa_cpu_device::jnz_rel8(u8 rel8) { fatalerror( "JNZ $%04x", expand_rel8(rel
 
 // PUSH Rlist                  Push regs (b/w) onto the current stack                                  2 b*        0H00 S111  LLLL LLLL
 void xa_cpu_device::push_word_rlist(u8 bitfield, int h) { fatalerror("PUSH.w %s", get_word_reglist(bitfield)); }
-void xa_cpu_device::push_byte_rlist(u8 bitfield, int h) { fatalerror("PUSH.b %s", get_byte_reglist(bitfield, h)); }
+void xa_cpu_device::push_byte_rlist(u8 bitfield, int h) { push_byte_reglist(bitfield, h, false); }
 
 // PUSHU Rlist                 Push regs (b/w) from the user stack                                     2 b*        0H01 S111  LLLL LLLL
 void xa_cpu_device::pushu_word_rlist(u8 bitfield, int h) { fatalerror("PUSHU.w %s", get_word_reglist(bitfield)); }
-void xa_cpu_device::pushu_byte_rlist(u8 bitfield, int h) { fatalerror("PUSHU.b %s", get_byte_reglist(bitfield, h)); }
+void xa_cpu_device::pushu_byte_rlist(u8 bitfield, int h) { push_byte_reglist(bitfield, h, true); }
 
 // POP Rlist                   Pop regs (b/w) from the current stack                                   2 c*        0H10 S111  LLLL LLLL
 void xa_cpu_device::pop_word_rlist(u8 bitfield, int h) { fatalerror("POP.w %s", get_word_reglist(bitfield)); }
