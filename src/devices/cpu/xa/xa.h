@@ -82,11 +82,12 @@ private:
 
 	const char* m_regnames16[16] = { "R0", "R1", "R2", "R3", "R4", "R5", "R6", "R7", "illegal", "illegal", "illegal", "illegal", "illegal", "illegal", "illegal", "illegal" };
 	const char* m_regnames8[16] = { "R0L", "R0H", "R1L", "R1H", "R2L", "R2H", "R3L", "R3H", "R4L", "R4H", "R5L", "R5H", "R6L", "R6H", "R7L", "R7H"};
-	const char* m_pushpull[4] = { "PUSH", "PUSHU", "POP", "POPU" };
 
 	std::string get_bittext(int bit);
 	std::string get_directtext(int bit);
 	std::string show_expanded_data4(u16 data4, int size);
+	std::string get_word_reglist(u8 op2);
+	std::string get_byte_reglist(u8 op2, int h);
 
 	u8 sfr_WDCON_r();
 
@@ -134,7 +135,10 @@ private:
 
 	void handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op);
 	void handle_alu_type1(XA_EXECUTE_PARAMS, uint8_t op2);
-	void handle_pushpop_rlist(XA_EXECUTE_PARAMS, int type);
+	void handle_push_rlist(XA_EXECUTE_PARAMS);
+	void handle_pushu_rlist(XA_EXECUTE_PARAMS);
+	void handle_pop_rlist(XA_EXECUTE_PARAMS);
+	void handle_popu_rlist(XA_EXECUTE_PARAMS);
 	void handle_adds_movs(XA_EXECUTE_PARAMS, int which);
 	void handle_shift(XA_EXECUTE_PARAMS, int shift_type);
 
@@ -809,6 +813,18 @@ private:
 
 	void jz_rel8(u8 rel8);
 	void jnz_rel8(u8 rel8);
+
+	void push_word_rlist(u8 bitfield, int h);
+	void push_byte_rlist(u8 bitfield, int h);
+
+	void pushu_word_rlist(u8 bitfield, int h);
+	void pushu_byte_rlist(u8 bitfield, int h);
+
+	void pop_word_rlist(u8 bitfield, int h);
+	void pop_byte_rlist(u8 bitfield, int h);
+
+	void popu_word_rlist(u8 bitfield, int h);
+	void popu_byte_rlist(u8 bitfield, int h);
 
 	std::unordered_map<offs_t, const char *> m_names;
 

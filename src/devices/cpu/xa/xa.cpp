@@ -912,69 +912,73 @@ void xa_cpu_device::handle_adds_movs(XA_EXECUTE_PARAMS, int which)
 	}
 }
 
-
-void xa_cpu_device::handle_pushpop_rlist(XA_EXECUTE_PARAMS, int type)
+std::string xa_cpu_device::get_word_reglist(u8 op2)
 {
-#if 0
+	std::string temp;
+
+	bool firstbit = true;
+	for (int i = 0; i < 8; i++)
+	{
+		int bit = (op2 & (1 << i));
+
+		if (bit)
+		{
+			temp += util::string_format("%s%s", firstbit ? "" : ",", m_regnames16[i]);
+			firstbit = false;
+		}
+	}
+	return temp;
+}
+
+std::string xa_cpu_device::get_byte_reglist(u8 op2, int h)
+{
+	std::string temp;
+
+	bool firstbit = true;
+	for (int i = 0; i < 8; i++)
+	{
+		int bit = (op2 & (1 << i));
+
+		if (bit)
+		{
+			temp += util::string_format("%s%s", firstbit ? "" : ",", m_regnames8[i + h ? 8 : 0]);
+			firstbit = false;
+		}
+	}
+	return temp;
+}
+
+void xa_cpu_device::handle_push_rlist(XA_EXECUTE_PARAMS)
+{
 	const u8 h = op & 0x40;
 	const u8 size = op & 0x08;
 	const u8 op2 = m_program->read_byte(m_pc++);
-
-	if (size)
-	{
-		// h is ignored?
-		//
-
-		if (size)
-		{
-			// TODO util::stream_format(stream, "%s.w ", m_pushpull[type]);
-		}
-		else
-		{
-			// TODO util::stream_format(stream, "%s.b ", m_pushpull[type]);
-		}
-
-		bool firstbit = true;
-		for (int i = 0; i < 8; i++)
-		{
-			int bit = (op2 & (1 << i));
-
-			if (bit)
-			{
-				// TODO util::stream_format(stream, "%s%s", firstbit ? "" : ",", m_regnames16[i]);
-				firstbit = false;
-			}
-		}
-	}
-	else
-	{
-		if (size)
-		{
-			// TODO util::stream_format(stream, "%s.w ", m_pushpull[type]);
-		}
-		else
-		{
-			// TODO util::stream_format(stream, "%s.b ", m_pushpull[type]);
-		}
-
-		bool firstbit = true;
-		for (int i = 0; i < 8; i++)
-		{
-			int bit = (op2 & (1 << i));
-
-			if (bit)
-			{
-				// TODO util::stream_format(stream, "%s%s", firstbit ? "" : ",", m_regnames8[i + h ? 8 : 0]);
-				firstbit = false;
-			}
-		}
-	}
-#endif
-
-	return;
+	if (size) { push_word_rlist(op2, h); } else { push_byte_rlist(op2, h); }
 }
 
+void xa_cpu_device::handle_pushu_rlist(XA_EXECUTE_PARAMS)
+{
+	const u8 h = op & 0x40;
+	const u8 size = op & 0x08;
+	const u8 op2 = m_program->read_byte(m_pc++);
+	if (size) { pushu_word_rlist(op2, h); } else { pushu_byte_rlist(op2, h); }
+}
 
+void xa_cpu_device::handle_pop_rlist(XA_EXECUTE_PARAMS)
+{
+	const u8 h = op & 0x40;
+	const u8 size = op & 0x08;
+	const u8 op2 = m_program->read_byte(m_pc++);
+	if (size) { pop_word_rlist(op2, h); } else { pop_byte_rlist(op2, h); }
+}
+
+void xa_cpu_device::handle_popu_rlist(XA_EXECUTE_PARAMS)
+{
+	const u8 h = op & 0x40;
+	const u8 size = op & 0x08;
+	const u8 op2 = m_program->read_byte(m_pc++);
+	if (size) { popu_word_rlist(op2, h); } else { popu_byte_rlist(op2, h); }
+}
 
 // -------------------------------------- Group 0 --------------------------------------
 
@@ -1042,7 +1046,8 @@ PUSH Rlist                  Push regs (b/w) onto the current stack              
 */
 void xa_cpu_device::d_push_rlist(XA_EXECUTE_PARAMS)
 {
-	handle_pushpop_rlist(XA_EXECUTE_CALL_PARAMS, 0);
+	// PUSH
+	handle_push_rlist(XA_EXECUTE_CALL_PARAMS);
 }
 
 // -------------------------------------- Group 1 --------------------------------------
@@ -1071,7 +1076,8 @@ PUSHU Rlist                 Push regs (b/w) from the user stack                 
 */
 void xa_cpu_device::d_pushu_rlist(XA_EXECUTE_PARAMS)
 {
-	handle_pushpop_rlist(XA_EXECUTE_CALL_PARAMS, 1);
+	// PUSHU
+	handle_pushu_rlist(XA_EXECUTE_CALL_PARAMS);
 }
 
 
@@ -1100,7 +1106,8 @@ POP Rlist                   Pop regs (b/w) from the current stack               
 */
 void xa_cpu_device::d_pop_rlist(XA_EXECUTE_PARAMS)
 {
-	handle_pushpop_rlist(XA_EXECUTE_CALL_PARAMS, 2);
+	// POP
+	handle_pop_rlist(XA_EXECUTE_CALL_PARAMS);
 }
 
 
@@ -1129,7 +1136,8 @@ POPU Rlist                  Pop regs (b/w) from the user stack                  
 */
 void xa_cpu_device::d_popu_rlist(XA_EXECUTE_PARAMS)
 {
-	handle_pushpop_rlist(XA_EXECUTE_CALL_PARAMS, 3);
+	// POPU
+	handle_popu_rlist(XA_EXECUTE_CALL_PARAMS);
 }
 
 

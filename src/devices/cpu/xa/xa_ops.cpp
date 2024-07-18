@@ -1316,3 +1316,19 @@ void xa_cpu_device::jz_rel8(u8 rel8) { fatalerror( "JZ $%04x", expand_rel8(rel8)
 
 // JNZ rel8                    Jump if accumulator not equal zero                                      2 6t/3nt    1110 1110  rrrr rrrr
 void xa_cpu_device::jnz_rel8(u8 rel8) { fatalerror( "JNZ $%04x", expand_rel8(rel8)); }
+
+// PUSH Rlist                  Push regs (b/w) onto the current stack                                  2 b*        0H00 S111  LLLL LLLL
+void xa_cpu_device::push_word_rlist(u8 bitfield, int h) { fatalerror("PUSH.w %s", get_word_reglist(bitfield)); }
+void xa_cpu_device::push_byte_rlist(u8 bitfield, int h) { fatalerror("PUSH.b %s", get_byte_reglist(bitfield, h)); }
+
+// PUSHU Rlist                 Push regs (b/w) from the user stack                                     2 b*        0H01 S111  LLLL LLLL
+void xa_cpu_device::pushu_word_rlist(u8 bitfield, int h) { fatalerror("PUSHU.w %s", get_word_reglist(bitfield)); }
+void xa_cpu_device::pushu_byte_rlist(u8 bitfield, int h) { fatalerror("PUSHU.b %s", get_byte_reglist(bitfield, h)); }
+
+// POP Rlist                   Pop regs (b/w) from the current stack                                   2 c*        0H10 S111  LLLL LLLL
+void xa_cpu_device::pop_word_rlist(u8 bitfield, int h) { fatalerror("POP.w %s", get_word_reglist(bitfield)); }
+void xa_cpu_device::pop_byte_rlist(u8 bitfield, int h) { fatalerror("POP.b %s", get_byte_reglist(bitfield, h)); }
+
+// POPU Rlist                  Pop regs (b/w) from the user stack                                      2 c*        0H11 S111  LLLL LLLL
+void xa_cpu_device::popu_word_rlist(u8 bitfield, int h) { fatalerror("POPU.w %s", get_word_reglist(bitfield)); }
+void xa_cpu_device::popu_byte_rlist(u8 bitfield, int h) { fatalerror("POPU.b %s", get_byte_reglist(bitfield, h)); }
