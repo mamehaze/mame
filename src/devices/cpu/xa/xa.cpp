@@ -2181,6 +2181,11 @@ void xa_cpu_device::device_reset()
 
 	m_usermode = true;
 
+	m_nflag = 0;
+	m_zflag = 0;
+	m_cflag = 0;
+	m_vflag = 0;
+	m_acflag = 0;
 }
 
 /*****************************************************************************/

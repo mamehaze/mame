@@ -7,6 +7,37 @@
 
 void xa_cpu_device::do_nop() { }
 
+u8 xa_cpu_device::do_subc_8(u8 val1, u8 val2)
+{
+	return do_sub_8_helper(val1, val2, get_c_flag());
+}
+
+u8 xa_cpu_device::do_sub_8(u8 val1, u8 val2)
+{
+	return do_sub_8_helper(val1, val2, 0);
+}
+
+u8 xa_cpu_device::do_sub_8_helper(u8 val1, u8 val2, u8 c)
+{
+	u16 result = val1 - (val2 + c);
+	s16 result1 = (s8)val1 - (s8)(val2 + c);
+	u16 result3 = (val1 & 0x0f) - ((val2 & 0x0f) + c);
+	do_nz_flags_8((u8)result);
+	if (result & 0x100) set_c_flag(); else clear_c_flag();
+	if (result3 & 0x10) set_ac_flag(); else clear_ac_flag();
+	if ((result1 < -128 || result1 > 127)) set_v_flag(); else clear_v_flag();
+	return (u8)result;
+}
+
+u8 xa_cpu_device::do_cjne_8_helper(u8 val1, u8 val2)
+{
+	u16 result = val1 - val2;
+	do_nz_flags_8((u8)result);
+	if (result & 0x100) set_c_flag(); else clear_c_flag();
+	return (u8)result;
+}
+
+
 // ALUOP.b Rd, data8
 void xa_cpu_device::aluop_byte_rd_data8(int alu_op, u8 rd, u8 data8)
 {
@@ -1272,17 +1303,7 @@ void xa_cpu_device::cjne_byte_rd_direct_rel8(u8 rd, u16 direct, u8 rel8) { fatal
 void xa_cpu_device::cjne_indrd_data8_rel8(u8 rd, u8 data8, u8 rel8) { fatalerror( "CJNE [%s], #$%02x, $%04x", m_regnames16[rd], data8, expand_rel8(rel8));}
 
 // CJNE Rd,#data8,rel8         Compare imm byte to reg and jump if not equal                           4 9t/6nt    1110 0011  dddd 0000  rrrr rrrr  iiii iiii
-void xa_cpu_device::cjne_rd_data8_rel8(u8 rd, u8 data8, u8 rel8)
-{
-	uint8_t regval = get_reg8(rd);
-	uint16_t result = regval - data8;
-	do_nz_flags_8((u8)result);
-	if (result & 0x0100)
-		set_c_flag();
-	else
-		clear_c_flag();
-	if (!get_z_flag()) { set_pc_in_current_page(expand_rel8(rel8)); }
-}
+void xa_cpu_device::cjne_rd_data8_rel8(u8 rd, u8 data8, u8 rel8) { uint8_t regval = get_reg8(rd); do_cjne_8_helper(regval, data8); if (!get_z_flag()) { set_pc_in_current_page(expand_rel8(rel8)); } }
 
 // CJNE [Rd],#data16,rel8      Compare imm word to reg-ind and jump if not equal                       5 10t/7nt   1110 1011  0ddd 1000  rrrr rrrr  iiii iiii  iiii iiii
 void xa_cpu_device::cjne_indrd_data16_rel8(u8 rd, u16 data16, u8 rel8) { fatalerror( "CJNE [%s], #$%04x, $%04x", m_regnames16[rd], data16, expand_rel8(rel8));}

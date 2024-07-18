@@ -109,6 +109,14 @@ private:
 	void set_c_flag()  { m_cflag = 1; }
 	void clear_c_flag() { m_cflag = 0; }
 
+	uint8_t get_v_flag() { return m_vflag; }
+	void set_v_flag()  { m_vflag = 1; }
+	void clear_v_flag() { m_vflag = 0; }
+
+	uint8_t get_ac_flag() { return m_acflag; }
+	void set_ac_flag()  { m_acflag = 1; }
+	void clear_ac_flag() { m_acflag = 0; }
+
 
 	uint8_t get_reg8(int reg);
 	void set_reg8(int reg, u8 data);
@@ -132,6 +140,11 @@ private:
 	void write_direct16(u16 addr, u16 data);
 	u8 read_direct8(u16 addr);
 	void write_direct8(u16 addr, u8 data);
+
+	u8 do_sub_8(u8 val1, u8 val2);
+	u8 do_subc_8(u8 val1, u8 val2);
+	u8 do_sub_8_helper(u8 val1, u8 val2, u8 c);
+	u8 do_cjne_8_helper(u8 val1, u8 val2);
 
 	void handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op);
 	void handle_alu_type1(XA_EXECUTE_PARAMS, uint8_t op2);
@@ -835,7 +848,7 @@ private:
 	uint8_t m_nflag;
 	uint8_t m_vflag;
 	uint8_t m_cflag;
-	uint8_t m_ac_flag;
+	uint8_t m_acflag;
 	uint8_t m_sm_flag;
 	uint8_t m_tm_flag;
 	uint8_t m_p_flag;
