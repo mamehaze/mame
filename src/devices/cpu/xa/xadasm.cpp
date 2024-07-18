@@ -327,7 +327,7 @@ int xa_dasm::handle_alu_type0(XA_DASM_PARAMS, int alu_op)
 
 
 
-int xa_dasm::handle_alu_type1(XA_DASM_PARAMS, uint8_t op2)
+int xa_dasm::handle_alu_type1(XA_DASM_PARAMS, u8 op2)
 {
 	int alu_op = op2 & 0x0f;
 	switch (op & 0x0f)

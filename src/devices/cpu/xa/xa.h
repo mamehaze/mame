@@ -6,7 +6,7 @@
 
 #pragma once
 
-#define XA_EXECUTE_PARAMS uint8_t op
+#define XA_EXECUTE_PARAMS u8 op
 #define XA_EXECUTE_CALL_PARAMS op
 
 enum {
@@ -97,28 +97,28 @@ private:
 	void do_nz_flags_16(u16 data);
 	void do_nz_flags_8(u8 data);
 
-	uint8_t get_n_flag() { return m_nflag; }
+	u8 get_n_flag() { return m_nflag; }
 	void set_n_flag() { m_nflag = 1; }
 	void clear_n_flag() { m_nflag = 0; }
 
-	uint8_t get_z_flag() { return m_zflag; }
+	u8 get_z_flag() { return m_zflag; }
 	void set_z_flag()  { m_zflag = 1; }
 	void clear_z_flag() { m_zflag = 0; }
 
-	uint8_t get_c_flag() { return m_cflag; }
+	u8 get_c_flag() { return m_cflag; }
 	void set_c_flag()  { m_cflag = 1; }
 	void clear_c_flag() { m_cflag = 0; }
 
-	uint8_t get_v_flag() { return m_vflag; }
+	u8 get_v_flag() { return m_vflag; }
 	void set_v_flag()  { m_vflag = 1; }
 	void clear_v_flag() { m_vflag = 0; }
 
-	uint8_t get_ac_flag() { return m_acflag; }
+	u8 get_ac_flag() { return m_acflag; }
 	void set_ac_flag()  { m_acflag = 1; }
 	void clear_ac_flag() { m_acflag = 0; }
 
 
-	uint8_t get_reg8(int reg);
+	u8 get_reg8(int reg);
 	void set_reg8(int reg, u8 data);
 
 	u16 get_reg16(int reg);
@@ -142,12 +142,21 @@ private:
 	void write_direct8(u16 addr, u8 data);
 
 	u8 do_sub_8(u8 val1, u8 val2);
-	u8 do_subc_8(u8 val1, u8 val2);
+	u8 do_subb_8(u8 val1, u8 val2);
 	u8 do_sub_8_helper(u8 val1, u8 val2, u8 c);
+
+	u8 do_add_8(u8 val1, u8 val2);
+	u8 do_addc_8(u8 val1, u8 val2);
+	u8 do_add_8_helper(u8 val1, u8 val2, u8 c);
+
+	u8 do_xor_8(u8 val1, u8 val2);
+	u8 do_or_8(u8 val1, u8 val2);
+	u8 do_and_8(u8 val1, u8 val2);
+
 	u8 do_cjne_8_helper(u8 val1, u8 val2);
 
 	void handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op);
-	void handle_alu_type1(XA_EXECUTE_PARAMS, uint8_t op2);
+	void handle_alu_type1(XA_EXECUTE_PARAMS, u8 op2);
 	void handle_push_rlist(XA_EXECUTE_PARAMS);
 	void handle_pushu_rlist(XA_EXECUTE_PARAMS);
 	void handle_pop_rlist(XA_EXECUTE_PARAMS);
@@ -219,7 +228,7 @@ private:
 	void add_byte_rd_data8(u8 rd, u8 data8); // used
 	void addc_byte_rd_data8(u8 rd, u8 data8);
 	void sub_byte_rd_data8(u8 rd, u8 data8);
-	void subc_byte_rd_data8(u8 rd, u8 data8);
+	void subb_byte_rd_data8(u8 rd, u8 data8);
 	void cmp_byte_rd_data8(u8 rd, u8 data8);
 	void and_byte_rd_data8(u8 rd, u8 data8);
 	void or_byte_rd_data8(u8 rd, u8 data8);
@@ -229,7 +238,7 @@ private:
 	void add_byte_indrd_data8(u8 rd, u8 data8); // used
 	void addc_byte_indrd_data8(u8 rd, u8 data8);
 	void sub_byte_indrd_data8(u8 rd, u8 data8);
-	void subc_byte_indrd_data8(u8 rd, u8 data8);
+	void subb_byte_indrd_data8(u8 rd, u8 data8);
 	void cmp_byte_indrd_data8(u8 rd, u8 data8);
 	void and_byte_indrd_data8(u8 rd, u8 data8);
 	void or_byte_indrd_data8(u8 rd, u8 data8);
@@ -239,7 +248,7 @@ private:
 	void add_byte_indrdinc_data8(u8 rd, u8 data8); // used
 	void addc_byte_indrdinc_data8(u8 rd, u8 data8);
 	void sub_byte_indrdinc_data8(u8 rd, u8 data8);
-	void subc_byte_indrdinc_data8(u8 rd, u8 data8);
+	void subb_byte_indrdinc_data8(u8 rd, u8 data8);
 	void cmp_byte_indrdinc_data8(u8 rd, u8 data8);
 	void and_byte_indrdinc_data8(u8 rd, u8 data8);
 	void or_byte_indrdinc_data8(u8 rd, u8 data8);
@@ -249,7 +258,7 @@ private:
 	void add_byte_indrdoff8_data8(u8 rd, u8 offset8, u8 data8); // used
 	void addc_byte_indrdoff8_data8(u8 rd, u8 offset8, u8 data8);
 	void sub_byte_indrdoff8_data8(u8 rd, u8 offset8, u8 data8);
-	void subc_byte_indrdoff8_data8(u8 rd, u8 offset8, u8 data8);
+	void subb_byte_indrdoff8_data8(u8 rd, u8 offset8, u8 data8);
 	void cmp_byte_indrdoff8_data8(u8 rd, u8 offset8, u8 data8);
 	void and_byte_indrdoff8_data8(u8 rd, u8 offset8, u8 data8);
 	void or_byte_indrdoff8_data8(u8 rd, u8 offset8, u8 data8);
@@ -259,7 +268,7 @@ private:
 	void add_byte_indrdoff16_data8(u8 rd, u16 offset16, u8 data8); // used
 	void addc_byte_indrdoff16_data8(u8 rd, u16 offset16, u8 data8);
 	void sub_byte_indrdoff16_data8(u8 rd, u16 offset16, u8 data8);
-	void subc_byte_indrdoff16_data8(u8 rd, u16 offset16, u8 data8);
+	void subb_byte_indrdoff16_data8(u8 rd, u16 offset16, u8 data8);
 	void cmp_byte_indrdoff16_data8(u8 rd, u16 offset16, u8 data8);
 	void and_byte_indrdoff16_data8(u8 rd, u16 offset16, u8 data8);
 	void or_byte_indrdoff16_data8(u8 rd, u16 offset16, u8 data8);
@@ -269,7 +278,7 @@ private:
 	void add_byte_direct_data8(u16 direct, u8 data8); // used
 	void addc_byte_direct_data8(u16 direct, u8 data8);
 	void sub_byte_direct_data8(u16 direct, u8 data8);
-	void subc_byte_direct_data8(u16 direct, u8 data8);
+	void subb_byte_direct_data8(u16 direct, u8 data8);
 	void cmp_byte_direct_data8(u16 direct, u8 data8);
 	void and_byte_direct_data8(u16 direct, u8 data8);
 	void or_byte_direct_data8(u16 direct, u8 data8);
@@ -281,7 +290,7 @@ private:
 	void add_word_rd_data16(u8 rd, u16 data16); // used
 	void addc_word_rd_data16(u8 rd, u16 data16);
 	void sub_word_rd_data16(u8 rd, u16 data16);
-	void subc_word_rd_data16(u8 rd, u16 data16);
+	void subb_word_rd_data16(u8 rd, u16 data16);
 	void cmp_word_rd_data16(u8 rd, u16 data16);
 	void and_word_rd_data16(u8 rd, u16 data16);
 	void or_word_rd_data16(u8 rd, u16 data16);
@@ -291,7 +300,7 @@ private:
 	void add_word_indrd_data16(u8 rd, u16 data16); // used
 	void addc_word_indrd_data16(u8 rd, u16 data16);
 	void sub_word_indrd_data16(u8 rd, u16 data16);
-	void subc_word_indrd_data16(u8 rd, u16 data16);
+	void subb_word_indrd_data16(u8 rd, u16 data16);
 	void cmp_word_indrd_data16(u8 rd, u16 data16);
 	void and_word_indrd_data16(u8 rd, u16 data16);
 	void or_word_indrd_data16(u8 rd, u16 data16);
@@ -301,7 +310,7 @@ private:
 	void add_word_indrdinc_data16(u8 rd, u16 data16); // used
 	void addc_word_indrdinc_data16(u8 rd, u16 data16);
 	void sub_word_indrdinc_data16(u8 rd, u16 data16);
-	void subc_word_indrdinc_data16(u8 rd, u16 data16);
+	void subb_word_indrdinc_data16(u8 rd, u16 data16);
 	void cmp_word_indrdinc_data16(u8 rd, u16 data16);
 	void and_word_indrdinc_data16(u8 rd, u16 data16);
 	void or_word_indrdinc_data16(u8 rd, u16 data16);
@@ -311,7 +320,7 @@ private:
 	void add_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16); // used
 	void addc_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16);
 	void sub_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16);
-	void subc_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16);
+	void subb_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16);
 	void cmp_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16);
 	void and_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16);
 	void or_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16);
@@ -321,7 +330,7 @@ private:
 	void add_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16); // used
 	void addc_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16);
 	void sub_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16);
-	void subc_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16);
+	void subb_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16);
 	void cmp_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16);
 	void and_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16);
 	void or_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16);
@@ -331,7 +340,7 @@ private:
 	void add_word_direct_data16(u16 direct, u16 data16); // used
 	void addc_word_direct_data16(u16 direct, u16 data16);
 	void sub_word_direct_data16(u16 direct, u16 data16);
-	void subc_word_direct_data16(u16 direct, u16 data16);
+	void subb_word_direct_data16(u16 direct, u16 data16);
 	void cmp_word_direct_data16(u16 direct, u16 data16);
 	void and_word_direct_data16(u16 direct, u16 data16);
 	void or_word_direct_data16(u16 direct, u16 data16);
@@ -380,7 +389,7 @@ private:
 	void add_word_rd_rs(u8 rd, u8 rs);
 	void addc_word_rd_rs(u8 rd, u8 rs);
 	void sub_word_rd_rs(u8 rd, u8 rs);
-	void subc_word_rd_rs(u8 rd, u8 rs);
+	void subb_word_rd_rs(u8 rd, u8 rs);
 	void cmp_word_rd_rs(u8 rd, u8 rs);
 	void and_word_rd_rs(u8 rd, u8 rs);
 	void or_word_rd_rs(u8 rd, u8 rs);
@@ -391,7 +400,7 @@ private:
 	void add_byte_rd_rs(u8 rd, u8 rs);
 	void addc_byte_rd_rs(u8 rd, u8 rs);
 	void sub_byte_rd_rs(u8 rd, u8 rs);
-	void subc_byte_rd_rs(u8 rd, u8 rs);
+	void subb_byte_rd_rs(u8 rd, u8 rs);
 	void cmp_byte_rd_rs(u8 rd, u8 rs);
 	void and_byte_rd_rs(u8 rd, u8 rs);
 	void or_byte_rd_rs(u8 rd, u8 rs);
@@ -402,7 +411,7 @@ private:
 	void add_word_rd_indrs(u8 rd, u8 rs);
 	void addc_word_rd_indrs(u8 rd, u8 rs);
 	void sub_word_rd_indrs(u8 rd, u8 rs);
-	void subc_word_rd_indrs(u8 rd, u8 rs);
+	void subb_word_rd_indrs(u8 rd, u8 rs);
 	void cmp_word_rd_indrs(u8 rd, u8 rs);
 	void and_word_rd_indrs(u8 rd, u8 rs);
 	void or_word_rd_indrs(u8 rd, u8 rs);
@@ -413,7 +422,7 @@ private:
 	void add_byte_rd_indrs(u8 rd, u8 rs);
 	void addc_byte_rd_indrs(u8 rd, u8 rs);
 	void sub_byte_rd_indrs(u8 rd, u8 rs);
-	void subc_byte_rd_indrs(u8 rd, u8 rs);
+	void subb_byte_rd_indrs(u8 rd, u8 rs);
 	void cmp_byte_rd_indrs(u8 rd, u8 rs);
 	void and_byte_rd_indrs(u8 rd, u8 rs);
 	void or_byte_rd_indrs(u8 rd, u8 rs);
@@ -424,7 +433,7 @@ private:
 	void add_word_indrd_rs(u8 rd, u8 rs);
 	void addc_word_indrd_rs(u8 rd, u8 rs);
 	void sub_word_indrd_rs(u8 rd, u8 rs);
-	void subc_word_indrd_rs(u8 rd, u8 rs);
+	void subb_word_indrd_rs(u8 rd, u8 rs);
 	void cmp_word_indrd_rs(u8 rd, u8 rs);
 	void and_word_indrd_rs(u8 rd, u8 rs);
 	void or_word_indrd_rs(u8 rd, u8 rs);
@@ -436,7 +445,7 @@ private:
 	void add_byte_indrd_rs(u8 rd, u8 rs);
 	void addc_byte_indrd_rs(u8 rd, u8 rs);
 	void sub_byte_indrd_rs(u8 rd, u8 rs);
-	void subc_byte_indrd_rs(u8 rd, u8 rs);
+	void subb_byte_indrd_rs(u8 rd, u8 rs);
 	void cmp_byte_indrd_rs(u8 rd, u8 rs);
 	void and_byte_indrd_rs(u8 rd, u8 rs);
 	void or_byte_indrd_rs(u8 rd, u8 rs);
@@ -447,7 +456,7 @@ private:
 	void add_word_rd_indrsinc(u8 rd, u8 rs);
 	void addc_word_rd_indrsinc(u8 rd, u8 rs);
 	void sub_word_rd_indrsinc(u8 rd, u8 rs);
-	void subc_word_rd_indrsinc(u8 rd, u8 rs);
+	void subb_word_rd_indrsinc(u8 rd, u8 rs);
 	void cmp_word_rd_indrsinc(u8 rd, u8 rs);
 	void and_word_rd_indrsinc(u8 rd, u8 rs);
 	void or_word_rd_indrsinc(u8 rd, u8 rs);
@@ -458,7 +467,7 @@ private:
 	void add_byte_rd_indrsinc(u8 rd, u8 rs);
 	void addc_byte_rd_indrsinc(u8 rd, u8 rs);
 	void sub_byte_rd_indrsinc(u8 rd, u8 rs);
-	void subc_byte_rd_indrsinc(u8 rd, u8 rs);
+	void subb_byte_rd_indrsinc(u8 rd, u8 rs);
 	void cmp_byte_rd_indrsinc(u8 rd, u8 rs);
 	void and_byte_rd_indrsinc(u8 rd, u8 rs);
 	void or_byte_rd_indrsinc(u8 rd, u8 rs);
@@ -469,7 +478,7 @@ private:
 	void add_word_indrdinc_rs(u8 rd, u8 rs);
 	void addc_word_indrdinc_rs(u8 rd, u8 rs);
 	void sub_word_indrdinc_rs(u8 rd, u8 rs);
-	void subc_word_indrdinc_rs(u8 rd, u8 rs);
+	void subb_word_indrdinc_rs(u8 rd, u8 rs);
 	void cmp_word_indrdinc_rs(u8 rd, u8 rs);
 	void and_word_indrdinc_rs(u8 rd, u8 rs);
 	void or_word_indrdinc_rs(u8 rd, u8 rs);
@@ -481,7 +490,7 @@ private:
 	void add_byte_indrdinc_rs(u8 rd, u8 rs);
 	void addc_byte_indrdinc_rs(u8 rd, u8 rs);
 	void sub_byte_indrdinc_rs(u8 rd, u8 rs);
-	void subc_byte_indrdinc_rs(u8 rd, u8 rs);
+	void subb_byte_indrdinc_rs(u8 rd, u8 rs);
 	void cmp_byte_indrdinc_rs(u8 rd, u8 rs);
 	void and_byte_indrdinc_rs(u8 rd, u8 rs);
 	void or_byte_indrdinc_rs(u8 rd, u8 rs);
@@ -493,7 +502,7 @@ private:
 	void add_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
 	void addc_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
 	void sub_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
-	void subc_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
+	void subb_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
 	void cmp_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
 	void and_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
 	void or_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
@@ -504,7 +513,7 @@ private:
 	void add_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
 	void addc_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
 	void sub_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
-	void subc_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
+	void subb_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
 	void cmp_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
 	void and_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
 	void or_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8);
@@ -515,7 +524,7 @@ private:
 	void add_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
 	void addc_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
 	void sub_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
-	void subc_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
+	void subb_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
 	void cmp_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
 	void and_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
 	void or_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
@@ -527,7 +536,7 @@ private:
 	void add_byte_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
 	void addc_byte_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
 	void sub_byte_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
-	void subc_byte_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
+	void subb_byte_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
 	void cmp_byte_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
 	void and_byte_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
 	void or_byte_rdoff8_rs(u8 rd, u8 offset8, u8 rs);
@@ -539,7 +548,7 @@ private:
 	void add_word_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
 	void addc_word_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
 	void sub_word_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
-	void subc_word_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
+	void subb_word_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
 	void cmp_word_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
 	void and_word_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
 	void or_word_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
@@ -550,7 +559,7 @@ private:
 	void add_byte_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
 	void addc_byte_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
 	void sub_byte_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
-	void subc_byte_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
+	void subb_byte_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
 	void cmp_byte_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
 	void and_byte_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
 	void or_byte_rd_rsoff16(u8 rd, u8 rs, u16 offset16);
@@ -561,7 +570,7 @@ private:
 	void add_word_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
 	void addc_word_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
 	void sub_word_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
-	void subc_word_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
+	void subb_word_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
 	void cmp_word_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
 	void and_word_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
 	void or_word_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
@@ -572,7 +581,7 @@ private:
 	void add_byte_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
 	void addc_byte_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
 	void sub_byte_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
-	void subc_byte_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
+	void subb_byte_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
 	void cmp_byte_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
 	void and_byte_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
 	void or_byte_rdoff16_rs(u8 rd, u16 offset16, u8 rs);
@@ -583,7 +592,7 @@ private:
 	void add_word_rd_direct(u8 rd, u16 direct);
 	void addc_word_rd_direct(u8 rd, u16 direct);
 	void sub_word_rd_direct(u8 rd, u16 direct);
-	void subc_word_rd_direct(u8 rd, u16 direct);
+	void subb_word_rd_direct(u8 rd, u16 direct);
 	void cmp_word_rd_direct(u8 rd, u16 direct);
 	void and_word_rd_direct(u8 rd, u16 direct);
 	void or_word_rd_direct(u8 rd, u16 direct);
@@ -594,7 +603,7 @@ private:
 	void add_byte_rd_direct(u8 rd, u16 direct);
 	void addc_byte_rd_direct(u8 rd, u16 direct);
 	void sub_byte_rd_direct(u8 rd, u16 direct);
-	void subc_byte_rd_direct(u8 rd, u16 direct);
+	void subb_byte_rd_direct(u8 rd, u16 direct);
 	void cmp_byte_rd_direct(u8 rd, u16 direct);
 	void and_byte_rd_direct(u8 rd, u16 direct);
 	void or_byte_rd_direct(u8 rd, u16 direct);
@@ -605,7 +614,7 @@ private:
 	void add_word_direct_rs(u16 direct, u8 rs);
 	void addc_word_direct_rs(u16 direct, u8 rs);
 	void sub_word_direct_rs(u16 direct, u8 rs);
-	void subc_word_direct_rs(u16 direct, u8 rs);
+	void subb_word_direct_rs(u16 direct, u8 rs);
 	void cmp_word_direct_rs(u16 direct, u8 rs);
 	void and_word_direct_rs(u16 direct, u8 rs);
 	void or_word_direct_rs(u16 direct, u8 rs);
@@ -616,7 +625,7 @@ private:
 	void add_byte_direct_rs(u16 direct, u8 rs);
 	void addc_byte_direct_rs(u16 direct, u8 rs);
 	void sub_byte_direct_rs(u16 direct, u8 rs);
-	void subc_byte_direct_rs(u16 direct, u8 rs);
+	void subb_byte_direct_rs(u16 direct, u8 rs);
 	void cmp_byte_direct_rs(u16 direct, u8 rs);
 	void and_byte_direct_rs(u16 direct, u8 rs);
 	void or_byte_direct_rs(u16 direct, u8 rs);
@@ -842,34 +851,34 @@ private:
 	std::unordered_map<offs_t, const char *> m_names;
 
 
-	uint8_t m_im;
-	uint8_t m_rs;
-	uint8_t m_zflag;
-	uint8_t m_nflag;
-	uint8_t m_vflag;
-	uint8_t m_cflag;
-	uint8_t m_acflag;
-	uint8_t m_sm_flag;
-	uint8_t m_tm_flag;
-	uint8_t m_p_flag;
-	uint8_t m_f0_flag;
-	uint8_t m_f1_flag;
+	u8 m_im;
+	u8 m_rs;
+	u8 m_zflag;
+	u8 m_nflag;
+	u8 m_vflag;
+	u8 m_cflag;
+	u8 m_acflag;
+	u8 m_sm_flag;
+	u8 m_tm_flag;
+	u8 m_p_flag;
+	u8 m_f0_flag;
+	u8 m_f1_flag;
 
 	uint32_t m_pc;
 
 	bool m_usermode;
 
-	uint16_t m_USP; // user stack pointer
-	uint16_t m_SSP; // system stack pointer
+	u16 m_USP; // user stack pointer
+	u16 m_SSP; // system stack pointer
 
-	uint8_t m_WDCON;
-	uint8_t m_SCR;
+	u8 m_WDCON;
+	u8 m_SCR;
 
 	// 16-bit regs R0-R3 can have 4 selectable banks, R4-R7 are global
 	// for 8-bit use each register can be seen as High and Low parts
 	// R4 when split is R4H and R4L, R4L acts as ACC from i8051 for compatibility, R4H acts as B
 	// R6H is DPH, R6L is DPL
-	uint16_t m_regs[(4 * 4) + 4];
+	u16 m_regs[(4 * 4) + 4];
 
 	address_space *m_program;
 	address_space *m_data;

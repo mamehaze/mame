@@ -7,7 +7,7 @@
 
 void xa_cpu_device::do_nop() { }
 
-u8 xa_cpu_device::do_subc_8(u8 val1, u8 val2)
+u8 xa_cpu_device::do_subb_8(u8 val1, u8 val2)
 {
 	return do_sub_8_helper(val1, val2, get_c_flag());
 }
@@ -22,12 +22,60 @@ u8 xa_cpu_device::do_sub_8_helper(u8 val1, u8 val2, u8 c)
 	u16 result = val1 - (val2 + c);
 	s16 result1 = (s8)val1 - (s8)(val2 + c);
 	u16 result3 = (val1 & 0x0f) - ((val2 & 0x0f) + c);
-	do_nz_flags_8((u8)result);
 	if (result & 0x100) set_c_flag(); else clear_c_flag();
 	if (result3 & 0x10) set_ac_flag(); else clear_ac_flag();
 	if ((result1 < -128 || result1 > 127)) set_v_flag(); else clear_v_flag();
+
+	do_nz_flags_8((u8)result);
 	return (u8)result;
 }
+
+u8 xa_cpu_device::do_addc_8(u8 val1, u8 val2)
+{
+	return do_add_8_helper(val1, val2, get_c_flag());
+}
+
+u8 xa_cpu_device::do_add_8(u8 val1, u8 val2)
+{
+	return do_add_8_helper(val1, val2, 0);
+}
+
+
+u8 xa_cpu_device::do_add_8_helper(u8 val1, u8 val2, u8 c)
+{
+	u16 result = val1 + val2 + c;
+	s16 result1 = (s8)val1 + (s8)val2 + c;
+	u16 result3 = (val1 & 0x0f) + (val2 & 0x0f) + c;
+	if (result & 0x100) set_c_flag(); else clear_c_flag();
+	if (result3 & 0x10) set_ac_flag(); else clear_ac_flag();
+	if ((result1 < -128 || result1 > 127)) set_v_flag(); else clear_v_flag();
+
+	do_nz_flags_8((u8)result);
+	return (u8)result;
+}
+
+u8 xa_cpu_device::do_xor_8(u8 val1, u8 val2)
+{
+	u8 result = val1 ^ val2;
+	do_nz_flags_8(result);
+	return result;
+}
+
+u8 xa_cpu_device::do_or_8(u8 val1, u8 val2)
+{
+	u8 result = val1 | val2;
+	do_nz_flags_8(result);
+	return result;
+}
+
+u8 xa_cpu_device::do_and_8(u8 val1, u8 val2)
+{
+	u8 result = val1 & val2;
+	do_nz_flags_8(result);
+	return result;
+}
+
+
 
 u8 xa_cpu_device::do_cjne_8_helper(u8 val1, u8 val2)
 {
@@ -46,7 +94,7 @@ void xa_cpu_device::aluop_byte_rd_data8(int alu_op, u8 rd, u8 data8)
 	case 0x0: add_byte_rd_data8(rd, data8); break;
 	case 0x1: addc_byte_rd_data8(rd, data8); break;
 	case 0x2: sub_byte_rd_data8(rd, data8); break;
-	case 0x3: subc_byte_rd_data8(rd, data8); break;
+	case 0x3: subb_byte_rd_data8(rd, data8); break;
 	case 0x4: cmp_byte_rd_data8(rd, data8); break;
 	case 0x5: and_byte_rd_data8(rd, data8); break;
 	case 0x6: or_byte_rd_data8(rd, data8); break;
@@ -56,15 +104,15 @@ void xa_cpu_device::aluop_byte_rd_data8(int alu_op, u8 rd, u8 data8)
 	}
 }
 
-void xa_cpu_device::add_byte_rd_data8(u8 rd, u8 data8) { fatalerror( "ADD.b %s, #$%02x (RD, DATA8)", m_regnames8[rd], data8 ); }
-void xa_cpu_device::addc_byte_rd_data8(u8 rd, u8 data8){ fatalerror( "ADDC.b %s, #$%02x (RD, DATA8)", m_regnames8[rd], data8 ); }
-void xa_cpu_device::sub_byte_rd_data8(u8 rd, u8 data8) { fatalerror( "SUB.b %s, #$%02x (RD, DATA8)", m_regnames8[rd], data8 ); }
-void xa_cpu_device::subc_byte_rd_data8(u8 rd, u8 data8){ fatalerror( "SUBC.b %s, #$%02x (RD, DATA8)", m_regnames8[rd], data8 ); }
-void xa_cpu_device::cmp_byte_rd_data8(u8 rd, u8 data8) { fatalerror( "CMP.b %s, #$%02x (RD, DATA8)", m_regnames8[rd], data8 ); }
-void xa_cpu_device::and_byte_rd_data8(u8 rd, u8 data8) { fatalerror( "AND.b %s, #$%02x (RD, DATA8)", m_regnames8[rd], data8 ); }
-void xa_cpu_device::or_byte_rd_data8(u8 rd, u8 data8)  { fatalerror( "OR.b %s, #$%02x (RD, DATA8)", m_regnames8[rd], data8 ); }
-void xa_cpu_device::xor_byte_rd_data8(u8 rd, u8 data8) { fatalerror( "XOR.b %s, #$%02x (RD, DATA8)", m_regnames8[rd], data8 ); }
-void xa_cpu_device::mov_byte_rd_data8(u8 rd, u8 data8) { fatalerror( "MOV.b %s, #$%02x (RD, DATA8)", m_regnames8[rd], data8 ); }
+void xa_cpu_device::add_byte_rd_data8(u8 rd, u8 data8) { u8 rdval = get_reg8(rd); u8 result = do_add_8(rdval, data8); set_reg8(rd, result); }
+void xa_cpu_device::addc_byte_rd_data8(u8 rd, u8 data8){ u8 rdval = get_reg8(rd); u8 result = do_addc_8(rdval, data8); set_reg8(rd, result); }
+void xa_cpu_device::sub_byte_rd_data8(u8 rd, u8 data8) { u8 rdval = get_reg8(rd); u8 result = do_sub_8(rdval, data8); set_reg8(rd, result); }
+void xa_cpu_device::subb_byte_rd_data8(u8 rd, u8 data8){ u8 rdval = get_reg8(rd); u8 result = do_subb_8(rdval, data8); set_reg8(rd, result); }
+void xa_cpu_device::cmp_byte_rd_data8(u8 rd, u8 data8) { u8 rdval = get_reg8(rd); do_sub_8(rdval, data8); }
+void xa_cpu_device::and_byte_rd_data8(u8 rd, u8 data8) { u8 rdval = get_reg8(rd); u8 result = do_and_8(rdval, data8); set_reg8(rd, result); }
+void xa_cpu_device::or_byte_rd_data8(u8 rd, u8 data8)  { u8 rdval = get_reg8(rd); u8 result = do_or_8(rdval, data8); set_reg8(rd, result); }
+void xa_cpu_device::xor_byte_rd_data8(u8 rd, u8 data8) { u8 rdval = get_reg8(rd); u8 result = do_xor_8(rdval, data8); set_reg8(rd, result); }
+void xa_cpu_device::mov_byte_rd_data8(u8 rd, u8 data8) { u8 result = data8; do_nz_flags_8(result); set_reg8(rd, result); }
 
 // ------------------------------------------
 
@@ -76,7 +124,7 @@ void xa_cpu_device::aluop_byte_indrd_data8(int alu_op, u8 rd, u8 data8)
 	case 0x0: add_byte_indrd_data8(rd, data8); break;
 	case 0x1: addc_byte_indrd_data8(rd, data8); break;
 	case 0x2: sub_byte_indrd_data8(rd, data8); break;
-	case 0x3: subc_byte_indrd_data8(rd, data8); break;
+	case 0x3: subb_byte_indrd_data8(rd, data8); break;
 	case 0x4: cmp_byte_indrd_data8(rd, data8); break;
 	case 0x5: and_byte_indrd_data8(rd, data8); break;
 	case 0x6: or_byte_indrd_data8(rd, data8); break;
@@ -88,7 +136,7 @@ void xa_cpu_device::aluop_byte_indrd_data8(int alu_op, u8 rd, u8 data8)
 void xa_cpu_device::add_byte_indrd_data8(u8 rd, u8 data8) { fatalerror( "ADD.b [%s], #$%02x ([RD], DATA8)", m_regnames16[rd], data8 ); }
 void xa_cpu_device::addc_byte_indrd_data8(u8 rd, u8 data8){ fatalerror( "ADDC.b [%s], #$%02x ([RD], DATA8)", m_regnames16[rd], data8 ); }
 void xa_cpu_device::sub_byte_indrd_data8(u8 rd, u8 data8) { fatalerror( "SUB.b [%s], #$%02x ([RD], DATA8)", m_regnames16[rd], data8 ); }
-void xa_cpu_device::subc_byte_indrd_data8(u8 rd, u8 data8){ fatalerror( "SUBC.b [%s], #$%02x ([RD], DATA8)", m_regnames16[rd], data8 ); }
+void xa_cpu_device::subb_byte_indrd_data8(u8 rd, u8 data8){ fatalerror( "SUBB.b [%s], #$%02x ([RD], DATA8)", m_regnames16[rd], data8 ); }
 void xa_cpu_device::cmp_byte_indrd_data8(u8 rd, u8 data8) { fatalerror( "CMP.b [%s], #$%02x ([RD], DATA8)", m_regnames16[rd], data8 ); }
 void xa_cpu_device::and_byte_indrd_data8(u8 rd, u8 data8) { fatalerror( "AND.b [%s], #$%02x ([RD], DATA8)", m_regnames16[rd], data8 ); }
 void xa_cpu_device::or_byte_indrd_data8(u8 rd, u8 data8)  { fatalerror( "OR.b [%s], #$%02x ([RD], DATA8)", m_regnames16[rd], data8 ); }
@@ -104,7 +152,7 @@ void xa_cpu_device::aluop_byte_indrdinc_data8(int alu_op, u8 rd, u8 data8)
 	case 0x0: add_byte_indrdinc_data8(rd, data8); break;
 	case 0x1: addc_byte_indrdinc_data8(rd, data8); break;
 	case 0x2: sub_byte_indrdinc_data8(rd, data8); break;
-	case 0x3: subc_byte_indrdinc_data8(rd, data8); break;
+	case 0x3: subb_byte_indrdinc_data8(rd, data8); break;
 	case 0x4: cmp_byte_indrdinc_data8(rd, data8); break;
 	case 0x5: and_byte_indrdinc_data8(rd, data8); break;
 	case 0x6: or_byte_indrdinc_data8(rd, data8); break;
@@ -116,7 +164,7 @@ void xa_cpu_device::aluop_byte_indrdinc_data8(int alu_op, u8 rd, u8 data8)
 void xa_cpu_device::add_byte_indrdinc_data8(u8 rd, u8 data8) { fatalerror( "ADD.b [%s+], #$%02x ([RD+], DATA8)", m_regnames16[rd], data8 ); }
 void xa_cpu_device::addc_byte_indrdinc_data8(u8 rd, u8 data8){ fatalerror( "ADDC.b [%s+], #$%02x ([RD+], DATA8)", m_regnames16[rd], data8 ); }
 void xa_cpu_device::sub_byte_indrdinc_data8(u8 rd, u8 data8) { fatalerror( "SUB.b [%s+], #$%02x ([RD+], DATA8)", m_regnames16[rd], data8 ); }
-void xa_cpu_device::subc_byte_indrdinc_data8(u8 rd, u8 data8){ fatalerror( "SUBC.b [%s+], #$%02x ([RD+], DATA8)", m_regnames16[rd], data8 ); }
+void xa_cpu_device::subb_byte_indrdinc_data8(u8 rd, u8 data8){ fatalerror( "SUBB.b [%s+], #$%02x ([RD+], DATA8)", m_regnames16[rd], data8 ); }
 void xa_cpu_device::cmp_byte_indrdinc_data8(u8 rd, u8 data8) { fatalerror( "CMP.b [%s+], #$%02x ([RD+], DATA8)", m_regnames16[rd], data8 ); }
 void xa_cpu_device::and_byte_indrdinc_data8(u8 rd, u8 data8) { fatalerror( "AND.b [%s+], #$%02x ([RD+], DATA8)", m_regnames16[rd], data8 ); }
 void xa_cpu_device::or_byte_indrdinc_data8(u8 rd, u8 data8)  { fatalerror( "OR.b [%s+], #$%02x ([RD+], DATA8)", m_regnames16[rd], data8 ); }
@@ -132,7 +180,7 @@ void xa_cpu_device::aluop_byte_rdoff8_data8(int alu_op, u8 rd, u8 offset8, u8 da
 	case 0x0: add_byte_indrdoff8_data8(rd, offset8, data8); break;
 	case 0x1: addc_byte_indrdoff8_data8(rd, offset8, data8); break;
 	case 0x2: sub_byte_indrdoff8_data8(rd, offset8, data8); break;
-	case 0x3: subc_byte_indrdoff8_data8(rd, offset8, data8); break;
+	case 0x3: subb_byte_indrdoff8_data8(rd, offset8, data8); break;
 	case 0x4: cmp_byte_indrdoff8_data8(rd, offset8, data8); break;
 	case 0x5: and_byte_indrdoff8_data8(rd, offset8, data8); break;
 	case 0x6: or_byte_indrdoff8_data8(rd, offset8, data8); break;
@@ -144,7 +192,7 @@ void xa_cpu_device::aluop_byte_rdoff8_data8(int alu_op, u8 rd, u8 offset8, u8 da
 void xa_cpu_device::add_byte_indrdoff8_data8(u8 rd, u8 offset8, u8 data8) { fatalerror( "ADD.b [%s+#$%02x], #$%02x ([RD+offs8], DATA8)", m_regnames16[rd], offset8, data8 ); }
 void xa_cpu_device::addc_byte_indrdoff8_data8(u8 rd, u8 offset8, u8 data8){ fatalerror( "ADDC.b [%s+#$%02x], #$%02x ([RD+offs8], DATA8)", m_regnames16[rd], offset8, data8 ); }
 void xa_cpu_device::sub_byte_indrdoff8_data8(u8 rd, u8 offset8, u8 data8) { fatalerror( "SUB.b [%s+#$%02x], #$%02x ([RD+offs8], DATA8)", m_regnames16[rd], offset8, data8 ); }
-void xa_cpu_device::subc_byte_indrdoff8_data8(u8 rd, u8 offset8, u8 data8){ fatalerror( "SUBC.b [%s+#$%02x], #$%02x ([RD+offs8], DATA8)", m_regnames16[rd], offset8, data8 ); }
+void xa_cpu_device::subb_byte_indrdoff8_data8(u8 rd, u8 offset8, u8 data8){ fatalerror( "SUBB.b [%s+#$%02x], #$%02x ([RD+offs8], DATA8)", m_regnames16[rd], offset8, data8 ); }
 void xa_cpu_device::cmp_byte_indrdoff8_data8(u8 rd, u8 offset8, u8 data8) { fatalerror( "CMP.b [%s+#$%02x], #$%02x ([RD+offs8], DATA8)", m_regnames16[rd], offset8, data8 ); }
 void xa_cpu_device::and_byte_indrdoff8_data8(u8 rd, u8 offset8, u8 data8) { fatalerror( "AND.b [%s+#$%02x], #$%02x ([RD+offs8], DATA8)", m_regnames16[rd], offset8, data8 ); }
 void xa_cpu_device::or_byte_indrdoff8_data8(u8 rd, u8 offset8, u8 data8)  { fatalerror( "OR.b [%s+#$%02x], #$%02x ([RD+offs8], DATA8)", m_regnames16[rd], offset8, data8 ); }
@@ -160,7 +208,7 @@ void xa_cpu_device::aluop_byte_rdoff16_data8(int alu_op, u8 rd, u16 offset16, u8
 	case 0x0: add_byte_indrdoff16_data8(rd, offset16, data8); break;
 	case 0x1: addc_byte_indrdoff16_data8(rd, offset16, data8); break;
 	case 0x2: sub_byte_indrdoff16_data8(rd, offset16, data8); break;
-	case 0x3: subc_byte_indrdoff16_data8(rd, offset16, data8); break;
+	case 0x3: subb_byte_indrdoff16_data8(rd, offset16, data8); break;
 	case 0x4: cmp_byte_indrdoff16_data8(rd, offset16, data8); break;
 	case 0x5: and_byte_indrdoff16_data8(rd, offset16, data8); break;
 	case 0x6: or_byte_indrdoff16_data8(rd, offset16, data8); break;
@@ -172,7 +220,7 @@ void xa_cpu_device::aluop_byte_rdoff16_data8(int alu_op, u8 rd, u16 offset16, u8
 void xa_cpu_device::add_byte_indrdoff16_data8(u8 rd, u16 offset16, u8 data8) { fatalerror( "ADD.b [%s+#$%04x], #$%02x ([RD+offs16], DATA8)", m_regnames16[rd], offset16, data8 ); }
 void xa_cpu_device::addc_byte_indrdoff16_data8(u8 rd, u16 offset16, u8 data8){ fatalerror( "ADDC.b [%s+#$%04x], #$%02x ([RD+offs16], DATA8)", m_regnames16[rd], offset16, data8 ); }
 void xa_cpu_device::sub_byte_indrdoff16_data8(u8 rd, u16 offset16, u8 data8) { fatalerror( "SUB.b [%s+#$%04x], #$%02x ([RD+offs16], DATA8)", m_regnames16[rd], offset16, data8 ); }
-void xa_cpu_device::subc_byte_indrdoff16_data8(u8 rd, u16 offset16, u8 data8){ fatalerror( "SUBC.b [%s+#$%04x], #$%02x ([RD+offs16], DATA8)", m_regnames16[rd], offset16, data8 ); }
+void xa_cpu_device::subb_byte_indrdoff16_data8(u8 rd, u16 offset16, u8 data8){ fatalerror( "SUBB.b [%s+#$%04x], #$%02x ([RD+offs16], DATA8)", m_regnames16[rd], offset16, data8 ); }
 void xa_cpu_device::cmp_byte_indrdoff16_data8(u8 rd, u16 offset16, u8 data8) { fatalerror( "CMP.b [%s+#$%04x], #$%02x ([RD+offs16], DATA8)", m_regnames16[rd], offset16, data8 ); }
 void xa_cpu_device::and_byte_indrdoff16_data8(u8 rd, u16 offset16, u8 data8) { fatalerror( "AND.b [%s+#$%04x], #$%02x ([RD+offs16], DATA8)", m_regnames16[rd], offset16, data8 ); }
 void xa_cpu_device::or_byte_indrdoff16_data8(u8 rd, u16 offset16, u8 data8)  { fatalerror( "OR.b [%s+#$%04x], #$%02x ([RD+offs16], DATA8)", m_regnames16[rd], offset16, data8 ); }
@@ -188,7 +236,7 @@ void xa_cpu_device::aluop_byte_direct_data8(int alu_op, u16 direct, u8 data8)
 	case 0x0: add_byte_direct_data8(direct, data8); break;
 	case 0x1: addc_byte_direct_data8(direct, data8); break;
 	case 0x2: sub_byte_direct_data8(direct, data8); break;
-	case 0x3: subc_byte_direct_data8(direct, data8); break;
+	case 0x3: subb_byte_direct_data8(direct, data8); break;
 	case 0x4: cmp_byte_direct_data8(direct, data8); break;
 	case 0x5: and_byte_direct_data8(direct, data8); break;
 	case 0x6: or_byte_direct_data8(direct, data8); break;
@@ -200,7 +248,7 @@ void xa_cpu_device::aluop_byte_direct_data8(int alu_op, u16 direct, u8 data8)
 void xa_cpu_device::add_byte_direct_data8(u16 direct, u8 data8) { fatalerror("ADD.b %s, #$%02x (DIRECT, DATA8)", get_directtext(direct), data8); }
 void xa_cpu_device::addc_byte_direct_data8(u16 direct, u8 data8){ fatalerror("ADDC.b %s, #$%02x (DIRECT, DATA8)", get_directtext(direct), data8);}
 void xa_cpu_device::sub_byte_direct_data8(u16 direct, u8 data8) { fatalerror("SUB.b %s, #$%02x (DIRECT, DATA8)", get_directtext(direct), data8); }
-void xa_cpu_device::subc_byte_direct_data8(u16 direct, u8 data8){ fatalerror("SUBC.b %s, #$%02x (DIRECT, DATA8)", get_directtext(direct), data8);}
+void xa_cpu_device::subb_byte_direct_data8(u16 direct, u8 data8){ fatalerror("SUBB.b %s, #$%02x (DIRECT, DATA8)", get_directtext(direct), data8);}
 void xa_cpu_device::cmp_byte_direct_data8(u16 direct, u8 data8) { fatalerror("CMP.b %s, #$%02x (DIRECT, DATA8)", get_directtext(direct), data8); }
 
 void xa_cpu_device::and_byte_direct_data8(u16 direct, u8 data8)
@@ -230,7 +278,7 @@ void xa_cpu_device::aluop_byte_rd_data16(int alu_op, u8 rd, u16 data16)
 	case 0x0: add_word_rd_data16(rd, data16); break;
 	case 0x1: addc_word_rd_data16(rd, data16); break;
 	case 0x2: sub_word_rd_data16(rd, data16); break;
-	case 0x3: subc_word_rd_data16(rd, data16); break;
+	case 0x3: subb_word_rd_data16(rd, data16); break;
 	case 0x4: cmp_word_rd_data16(rd, data16); break;
 	case 0x5: and_word_rd_data16(rd, data16); break;
 	case 0x6: or_word_rd_data16(rd, data16); break;
@@ -242,7 +290,7 @@ void xa_cpu_device::aluop_byte_rd_data16(int alu_op, u8 rd, u16 data16)
 void xa_cpu_device::add_word_rd_data16(u8 rd, u16 data16) { fatalerror("ADD.w %s, #$%04x (RD, DATA16)", m_regnames16[rd], data16); }
 void xa_cpu_device::addc_word_rd_data16(u8 rd, u16 data16){ fatalerror("ADDC.w %s, #$%04x (RD, DATA16)", m_regnames16[rd], data16); }
 void xa_cpu_device::sub_word_rd_data16(u8 rd, u16 data16) { fatalerror("SUB.w %s, #$%04x (RD, DATA16)", m_regnames16[rd], data16); }
-void xa_cpu_device::subc_word_rd_data16(u8 rd, u16 data16){ fatalerror("SUBC.w %s, #$%04x (RD, DATA16)", m_regnames16[rd], data16); }
+void xa_cpu_device::subb_word_rd_data16(u8 rd, u16 data16){ fatalerror("SUBB.w %s, #$%04x (RD, DATA16)", m_regnames16[rd], data16); }
 void xa_cpu_device::cmp_word_rd_data16(u8 rd, u16 data16) { fatalerror("CMP.w % s, #$ % 04x(RD, DATA16)", m_regnames16[rd], data16); }
 void xa_cpu_device::and_word_rd_data16(u8 rd, u16 data16) { fatalerror("AND.w %s, #$%04x (RD, DATA16)", m_regnames16[rd], data16); }
 void xa_cpu_device::or_word_rd_data16(u8 rd, u16 data16)  { fatalerror("OR.w %s, #$%04x (RD, DATA16)", m_regnames16[rd], data16); }
@@ -262,7 +310,7 @@ void xa_cpu_device::aluop_byte_indrd_data16(int alu_op, u8 rd, u16 data16)
 	case 0x0: add_word_indrd_data16(rd, data16); break;
 	case 0x1: addc_word_indrd_data16(rd, data16); break;
 	case 0x2: sub_word_indrd_data16(rd, data16); break;
-	case 0x3: subc_word_indrd_data16(rd, data16); break;
+	case 0x3: subb_word_indrd_data16(rd, data16); break;
 	case 0x4: cmp_word_indrd_data16(rd, data16); break;
 	case 0x5: and_word_indrd_data16(rd, data16); break;
 	case 0x6: or_word_indrd_data16(rd, data16); break;
@@ -274,7 +322,7 @@ void xa_cpu_device::aluop_byte_indrd_data16(int alu_op, u8 rd, u16 data16)
 void xa_cpu_device::add_word_indrd_data16(u8 rd, u16 data16) { fatalerror( "ADD.w [%s], #$%04x ([RD], DATA16)", m_regnames16[rd], data16); }
 void xa_cpu_device::addc_word_indrd_data16(u8 rd, u16 data16){ fatalerror( "ADDC.w [%s], #$%04x ([RD], DATA16)", m_regnames16[rd], data16); }
 void xa_cpu_device::sub_word_indrd_data16(u8 rd, u16 data16) { fatalerror( "SUB.w [%s], #$%04x ([RD], DATA16)", m_regnames16[rd], data16); }
-void xa_cpu_device::subc_word_indrd_data16(u8 rd, u16 data16){ fatalerror( "SUBC.w [%s], #$%04x ([RD], DATA16)", m_regnames16[rd], data16); }
+void xa_cpu_device::subb_word_indrd_data16(u8 rd, u16 data16){ fatalerror( "SUBB.w [%s], #$%04x ([RD], DATA16)", m_regnames16[rd], data16); }
 void xa_cpu_device::cmp_word_indrd_data16(u8 rd, u16 data16) { fatalerror( "CMP.w [%s], #$%04x ([RD], DATA16)", m_regnames16[rd], data16); }
 void xa_cpu_device::and_word_indrd_data16(u8 rd, u16 data16) { fatalerror( "AND.w [%s], #$%04x ([RD], DATA16)", m_regnames16[rd], data16); }
 void xa_cpu_device::or_word_indrd_data16(u8 rd, u16 data16)  { fatalerror( "OR.w [%s], #$%04x ([RD], DATA16)", m_regnames16[rd], data16); }
@@ -289,7 +337,7 @@ void xa_cpu_device::aluop_byte_indrdinc_data16(int alu_op, u8 rd, u16 data16)
 	case 0x0: add_word_indrdinc_data16(rd, data16); break;
 	case 0x1: addc_word_indrdinc_data16(rd, data16); break;
 	case 0x2: sub_word_indrdinc_data16(rd, data16); break;
-	case 0x3: subc_word_indrdinc_data16(rd, data16); break;
+	case 0x3: subb_word_indrdinc_data16(rd, data16); break;
 	case 0x4: cmp_word_indrdinc_data16(rd, data16); break;
 	case 0x5: and_word_indrdinc_data16(rd, data16); break;
 	case 0x6: or_word_indrdinc_data16(rd, data16); break;
@@ -301,7 +349,7 @@ void xa_cpu_device::aluop_byte_indrdinc_data16(int alu_op, u8 rd, u16 data16)
 void xa_cpu_device::add_word_indrdinc_data16(u8 rd, u16 data16) { fatalerror( "ADD.w [%s+], #$%04x ([RD+], DATA16)", m_regnames16[rd], data16); }
 void xa_cpu_device::addc_word_indrdinc_data16(u8 rd, u16 data16){ fatalerror( "ADDC.w [%s+], #$%04x ([RD+], DATA16)", m_regnames16[rd], data16); }
 void xa_cpu_device::sub_word_indrdinc_data16(u8 rd, u16 data16) { fatalerror( "SUB.w [%s+], #$%04x ([RD+], DATA16)", m_regnames16[rd], data16); }
-void xa_cpu_device::subc_word_indrdinc_data16(u8 rd, u16 data16){ fatalerror( "SUBC.w [%s+], #$%04x ([RD+], DATA16)", m_regnames16[rd], data16); }
+void xa_cpu_device::subb_word_indrdinc_data16(u8 rd, u16 data16){ fatalerror( "SUBB.w [%s+], #$%04x ([RD+], DATA16)", m_regnames16[rd], data16); }
 void xa_cpu_device::cmp_word_indrdinc_data16(u8 rd, u16 data16) { fatalerror( "CMP.w [%s+], #$%04x ([RD+], DATA16)", m_regnames16[rd], data16); }
 void xa_cpu_device::and_word_indrdinc_data16(u8 rd, u16 data16) { fatalerror( "AND.w [%s+], #$%04x ([RD+], DATA16)", m_regnames16[rd], data16); }
 void xa_cpu_device::or_word_indrdinc_data16(u8 rd, u16 data16)  { fatalerror( "OR.w [%s+], #$%04x ([RD+], DATA16)", m_regnames16[rd], data16); }
@@ -316,7 +364,7 @@ void xa_cpu_device::aluop_byte_rdoff8_data16(int alu_op, u8 rd, u8 offset8, u16 
 	case 0x0: add_word_indrdoff8_data16(rd, offset8, data16); break;
 	case 0x1: addc_word_indrdoff8_data16(rd, offset8, data16); break;
 	case 0x2: sub_word_indrdoff8_data16(rd, offset8, data16); break;
-	case 0x3: subc_word_indrdoff8_data16(rd, offset8, data16); break;
+	case 0x3: subb_word_indrdoff8_data16(rd, offset8, data16); break;
 	case 0x4: cmp_word_indrdoff8_data16(rd, offset8, data16); break;
 	case 0x5: and_word_indrdoff8_data16(rd, offset8, data16); break;
 	case 0x6: or_word_indrdoff8_data16(rd, offset8, data16); break;
@@ -328,7 +376,7 @@ void xa_cpu_device::aluop_byte_rdoff8_data16(int alu_op, u8 rd, u8 offset8, u16 
 void xa_cpu_device::add_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16) { fatalerror( "ADD.w [%s+#$%02x], #$%04x ([RD+offs8], DATA16)", m_regnames16[rd], offset8, data16); }
 void xa_cpu_device::addc_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16){ fatalerror( "ADDC.w [%s+#$%02x], #$%04x ([RD+offs8], DATA16)", m_regnames16[rd], offset8, data16); }
 void xa_cpu_device::sub_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16) { fatalerror( "SUB.w [%s+#$%02x], #$%04x ([RD+offs8], DATA16)", m_regnames16[rd], offset8, data16); }
-void xa_cpu_device::subc_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16){ fatalerror( "SUBC.w [%s+#$%02x], #$%04x ([RD+offs8], DATA16)", m_regnames16[rd], offset8, data16); }
+void xa_cpu_device::subb_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16){ fatalerror( "SUBB.w [%s+#$%02x], #$%04x ([RD+offs8], DATA16)", m_regnames16[rd], offset8, data16); }
 void xa_cpu_device::cmp_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16) { fatalerror( "CMP.w [%s+#$%02x], #$%04x ([RD+offs8], DATA16)", m_regnames16[rd], offset8, data16); }
 void xa_cpu_device::and_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16) { fatalerror( "AND.w [%s+#$%02x], #$%04x ([RD+offs8], DATA16)", m_regnames16[rd], offset8, data16); }
 void xa_cpu_device::or_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16)  { fatalerror( "OR.w [%s+#$%02x], #$%04x ([RD+offs8], DATA16)", m_regnames16[rd], offset8, data16); }
@@ -343,7 +391,7 @@ void xa_cpu_device::aluop_byte_rdoff16_data16(int alu_op, u8 rd, u16 offset16, u
 	case 0x0: add_word_indrdoff16_data16(rd, offset16, data16); break;
 	case 0x1: addc_word_indrdoff16_data16(rd, offset16, data16); break;
 	case 0x2: sub_word_indrdoff16_data16(rd, offset16, data16); break;
-	case 0x3: subc_word_indrdoff16_data16(rd, offset16, data16); break;
+	case 0x3: subb_word_indrdoff16_data16(rd, offset16, data16); break;
 	case 0x4: cmp_word_indrdoff16_data16(rd, offset16, data16); break;
 	case 0x5: and_word_indrdoff16_data16(rd, offset16, data16); break;
 	case 0x6: or_word_indrdoff16_data16(rd, offset16, data16); break;
@@ -355,7 +403,7 @@ void xa_cpu_device::aluop_byte_rdoff16_data16(int alu_op, u8 rd, u16 offset16, u
 void xa_cpu_device::add_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16) { fatalerror( "ADD.w [%s+#$%04x], #$%04x ([RD+offs16], DATA16)", m_regnames16[rd], offset16, data16); }
 void xa_cpu_device::addc_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16){ fatalerror( "ADDC.w [%s+#$%04x], #$%04x ([RD+offs16], DATA16)", m_regnames16[rd], offset16, data16); }
 void xa_cpu_device::sub_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16) { fatalerror( "SUB.w [%s+#$%04x], #$%04x ([RD+offs16], DATA16)", m_regnames16[rd], offset16, data16); }
-void xa_cpu_device::subc_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16){ fatalerror( "SUBC.w [%s+#$%04x], #$%04x ([RD+offs16], DATA16)", m_regnames16[rd], offset16, data16); }
+void xa_cpu_device::subb_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16){ fatalerror( "SUBB.w [%s+#$%04x], #$%04x ([RD+offs16], DATA16)", m_regnames16[rd], offset16, data16); }
 void xa_cpu_device::cmp_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16) { fatalerror( "CMP.w [%s+#$%04x], #$%04x ([RD+offs16], DATA16)", m_regnames16[rd], offset16, data16); }
 void xa_cpu_device::and_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16) { fatalerror( "AND.w [%s+#$%04x], #$%04x ([RD+offs16], DATA16)", m_regnames16[rd], offset16, data16); }
 void xa_cpu_device::or_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16)  { fatalerror( "OR.w [%s+#$%04x], #$%04x ([RD+offs16], DATA16)", m_regnames16[rd], offset16, data16); }
@@ -370,7 +418,7 @@ void xa_cpu_device::aluop_byte_direct_data16(int alu_op, u16 direct, u16 data16)
 	case 0x0: add_word_direct_data16(direct, data16); break;
 	case 0x1: addc_word_direct_data16(direct, data16); break;
 	case 0x2: sub_word_direct_data16(direct, data16); break;
-	case 0x3: subc_word_direct_data16(direct, data16); break;
+	case 0x3: subb_word_direct_data16(direct, data16); break;
 	case 0x4: cmp_word_direct_data16(direct, data16); break;
 	case 0x5: and_word_direct_data16(direct, data16); break;
 	case 0x6: or_word_direct_data16(direct, data16); break;
@@ -382,7 +430,7 @@ void xa_cpu_device::aluop_byte_direct_data16(int alu_op, u16 direct, u16 data16)
 void xa_cpu_device::add_word_direct_data16(u16 direct, u16 data16) { fatalerror( "ADD.w %s, #$%04x (DIRECT, DATA16)", get_directtext(direct), data16); }
 void xa_cpu_device::addc_word_direct_data16(u16 direct, u16 data16){ fatalerror( "ADDC.w %s, #$%04x (DIRECT, DATA16)", get_directtext(direct), data16); }
 void xa_cpu_device::sub_word_direct_data16(u16 direct, u16 data16) { fatalerror( "SUB.w %s, #$%04x (DIRECT, DATA16)", get_directtext(direct), data16); }
-void xa_cpu_device::subc_word_direct_data16(u16 direct, u16 data16){ fatalerror( "SUBC.w %s, #$%04x (DIRECT, DATA16)", get_directtext(direct), data16); }
+void xa_cpu_device::subb_word_direct_data16(u16 direct, u16 data16){ fatalerror( "SUBB.w %s, #$%04x (DIRECT, DATA16)", get_directtext(direct), data16); }
 void xa_cpu_device::cmp_word_direct_data16(u16 direct, u16 data16) { fatalerror( "CMP.w %s, #$%04x (DIRECT, DATA16)", get_directtext(direct), data16); }
 void xa_cpu_device::and_word_direct_data16(u16 direct, u16 data16) { fatalerror( "AND.w %s, #$%04x (DIRECT, DATA16)", get_directtext(direct), data16); }
 void xa_cpu_device::or_word_direct_data16(u16 direct, u16 data16)  { fatalerror( "OR.w %s, #$%04x (DIRECT, DATA16)", get_directtext(direct), data16); }
@@ -402,7 +450,7 @@ void xa_cpu_device::aluop_word_rd_rs(int alu_op, u8 rd, u8 rs)
 	case 0x0: add_word_rd_rs(rd, rs); break;
 	case 0x1: addc_word_rd_rs(rd, rs); break;
 	case 0x2: sub_word_rd_rs(rd, rs); break;
-	case 0x3: subc_word_rd_rs(rd, rs); break;
+	case 0x3: subb_word_rd_rs(rd, rs); break;
 	case 0x4: cmp_word_rd_rs(rd, rs); break;
 	case 0x5: and_word_rd_rs(rd, rs); break;
 	case 0x6: or_word_rd_rs(rd, rs); break;
@@ -414,7 +462,7 @@ void xa_cpu_device::aluop_word_rd_rs(int alu_op, u8 rd, u8 rs)
 void xa_cpu_device::add_word_rd_rs(u8 rd, u8 rs) { fatalerror("ADD.w %s, %s", m_regnames16[rd], m_regnames16[rs]); }
 void xa_cpu_device::addc_word_rd_rs(u8 rd, u8 rs){ fatalerror("ADDC.w %s, %s", m_regnames16[rd], m_regnames16[rs]);}
 void xa_cpu_device::sub_word_rd_rs(u8 rd, u8 rs) { fatalerror("SUB.w %s, %s", m_regnames16[rd], m_regnames16[rs]);}
-void xa_cpu_device::subc_word_rd_rs(u8 rd, u8 rs){ fatalerror("SUBC.w %s, %s", m_regnames16[rd], m_regnames16[rs]);}
+void xa_cpu_device::subb_word_rd_rs(u8 rd, u8 rs){ fatalerror("SUBB.w %s, %s", m_regnames16[rd], m_regnames16[rs]);}
 void xa_cpu_device::cmp_word_rd_rs(u8 rd, u8 rs) { fatalerror("CMP.w %s, %s", m_regnames16[rd], m_regnames16[rs]);}
 void xa_cpu_device::and_word_rd_rs(u8 rd, u8 rs) { fatalerror("AND.w %s, %s", m_regnames16[rd], m_regnames16[rs]);}
 void xa_cpu_device::or_word_rd_rs(u8 rd, u8 rs)  { fatalerror("OR.w %s, %s", m_regnames16[rd], m_regnames16[rs]);}
@@ -430,7 +478,7 @@ void xa_cpu_device::aluop_byte_rd_rs(int alu_op, u8 rd, u8 rs)
 	case 0x0: add_byte_rd_rs(rd, rs); break;
 	case 0x1: addc_byte_rd_rs(rd, rs); break;
 	case 0x2: sub_byte_rd_rs(rd, rs); break;
-	case 0x3: subc_byte_rd_rs(rd, rs); break;
+	case 0x3: subb_byte_rd_rs(rd, rs); break;
 	case 0x4: cmp_byte_rd_rs(rd, rs); break;
 	case 0x5: and_byte_rd_rs(rd, rs); break;
 	case 0x6: or_byte_rd_rs(rd, rs); break;
@@ -442,7 +490,7 @@ void xa_cpu_device::aluop_byte_rd_rs(int alu_op, u8 rd, u8 rs)
 void xa_cpu_device::add_byte_rd_rs(u8 rd, u8 rs) { fatalerror("ADD.b %s, %s", m_regnames8[rd], m_regnames8[rs]); }
 void xa_cpu_device::addc_byte_rd_rs(u8 rd, u8 rs){ fatalerror("ADDC.b %s, %s", m_regnames8[rd], m_regnames8[rs]);}
 void xa_cpu_device::sub_byte_rd_rs(u8 rd, u8 rs) { fatalerror("SUB.b %s, %s", m_regnames8[rd], m_regnames8[rs]);}
-void xa_cpu_device::subc_byte_rd_rs(u8 rd, u8 rs){ fatalerror("SUBC.b %s, %s", m_regnames8[rd], m_regnames8[rs]);}
+void xa_cpu_device::subb_byte_rd_rs(u8 rd, u8 rs){ fatalerror("SUBB.b %s, %s", m_regnames8[rd], m_regnames8[rs]);}
 void xa_cpu_device::cmp_byte_rd_rs(u8 rd, u8 rs) { fatalerror("CMP.b %s, %s", m_regnames8[rd], m_regnames8[rs]);}
 void xa_cpu_device::and_byte_rd_rs(u8 rd, u8 rs) { fatalerror("AND.b %s, %s", m_regnames8[rd], m_regnames8[rs]);}
 void xa_cpu_device::or_byte_rd_rs(u8 rd, u8 rs)  { fatalerror("OR.b %s, %s", m_regnames8[rd], m_regnames8[rs]);}
@@ -458,7 +506,7 @@ void xa_cpu_device::aluop_word_rd_indrs(int alu_op, u8 rd, u8 rs)
 	case 0x0: add_word_rd_indrs(rd, rs); break;
 	case 0x1: addc_word_rd_indrs(rd, rs); break;
 	case 0x2: sub_word_rd_indrs(rd, rs); break;
-	case 0x3: subc_word_rd_indrs(rd, rs); break;
+	case 0x3: subb_word_rd_indrs(rd, rs); break;
 	case 0x4: cmp_word_rd_indrs(rd, rs); break;
 	case 0x5: and_word_rd_indrs(rd, rs); break;
 	case 0x6: or_word_rd_indrs(rd, rs); break;
@@ -470,7 +518,7 @@ void xa_cpu_device::aluop_word_rd_indrs(int alu_op, u8 rd, u8 rs)
 void xa_cpu_device::add_word_rd_indrs(u8 rd, u8 rs) { fatalerror("ADD.w %s, [%s]", m_regnames16[rd], m_regnames16[rs]);}
 void xa_cpu_device::addc_word_rd_indrs(u8 rd, u8 rs){ fatalerror("ADDC.w %s, [%s]", m_regnames16[rd], m_regnames16[rs]);}
 void xa_cpu_device::sub_word_rd_indrs(u8 rd, u8 rs) { fatalerror("SUB.w %s, [%s]", m_regnames16[rd], m_regnames16[rs]);}
-void xa_cpu_device::subc_word_rd_indrs(u8 rd, u8 rs){ fatalerror("SUBC.w %s, [%s]", m_regnames16[rd], m_regnames16[rs]);}
+void xa_cpu_device::subb_word_rd_indrs(u8 rd, u8 rs){ fatalerror("SUBB.w %s, [%s]", m_regnames16[rd], m_regnames16[rs]);}
 void xa_cpu_device::cmp_word_rd_indrs(u8 rd, u8 rs) { fatalerror("CMP.w %s, [%s]", m_regnames16[rd], m_regnames16[rs]);}
 void xa_cpu_device::and_word_rd_indrs(u8 rd, u8 rs) { fatalerror("AND.w %s, [%s]", m_regnames16[rd], m_regnames16[rs]);}
 void xa_cpu_device::or_word_rd_indrs(u8 rd, u8 rs)  { fatalerror("OR.w %s, [%s]", m_regnames16[rd], m_regnames16[rs]);}
@@ -486,7 +534,7 @@ void xa_cpu_device::aluop_byte_rd_indrs(int alu_op, u8 rd, u8 rs)
 	case 0x0: add_byte_rd_indrs(rd, rs); break;
 	case 0x1: addc_byte_rd_indrs(rd, rs); break;
 	case 0x2: sub_byte_rd_indrs(rd, rs); break;
-	case 0x3: subc_byte_rd_indrs(rd, rs); break;
+	case 0x3: subb_byte_rd_indrs(rd, rs); break;
 	case 0x4: cmp_byte_rd_indrs(rd, rs); break;
 	case 0x5: and_byte_rd_indrs(rd, rs); break;
 	case 0x6: or_byte_rd_indrs(rd, rs); break;
@@ -498,7 +546,7 @@ void xa_cpu_device::aluop_byte_rd_indrs(int alu_op, u8 rd, u8 rs)
 void xa_cpu_device::add_byte_rd_indrs(u8 rd, u8 rs) { fatalerror("ADD.b %s, [%s]", m_regnames8[rd], m_regnames16[rs]);}
 void xa_cpu_device::addc_byte_rd_indrs(u8 rd, u8 rs){ fatalerror("ADDC.b %s, [%s]", m_regnames8[rd], m_regnames16[rs]);}
 void xa_cpu_device::sub_byte_rd_indrs(u8 rd, u8 rs) { fatalerror("SUB.b %s, [%s]", m_regnames8[rd], m_regnames16[rs]);}
-void xa_cpu_device::subc_byte_rd_indrs(u8 rd, u8 rs){ fatalerror("SUBC.b %s, [%s]", m_regnames8[rd], m_regnames16[rs]);}
+void xa_cpu_device::subb_byte_rd_indrs(u8 rd, u8 rs){ fatalerror("SUBB.b %s, [%s]", m_regnames8[rd], m_regnames16[rs]);}
 void xa_cpu_device::cmp_byte_rd_indrs(u8 rd, u8 rs) { fatalerror("CMP.b %s, [%s]", m_regnames8[rd], m_regnames16[rs]);}
 void xa_cpu_device::and_byte_rd_indrs(u8 rd, u8 rs) { fatalerror("AND.b %s, [%s]", m_regnames8[rd], m_regnames16[rs]);}
 void xa_cpu_device::or_byte_rd_indrs(u8 rd, u8 rs)  { fatalerror("OR.b %s, [%s]", m_regnames8[rd], m_regnames16[rs]);}
@@ -514,7 +562,7 @@ void xa_cpu_device::aluop_word_indrd_rs(int alu_op, u8 rd, u8 rs)
 	case 0x0: add_word_indrd_rs(rd, rs); break;
 	case 0x1: addc_word_indrd_rs(rd, rs); break;
 	case 0x2: sub_word_indrd_rs(rd, rs); break;
-	case 0x3: subc_word_indrd_rs(rd, rs); break;
+	case 0x3: subb_word_indrd_rs(rd, rs); break;
 	case 0x4: cmp_word_indrd_rs(rd, rs); break;
 	case 0x5: and_word_indrd_rs(rd, rs); break;
 	case 0x6: or_word_indrd_rs(rd, rs); break;
@@ -527,7 +575,7 @@ void xa_cpu_device::aluop_word_indrd_rs(int alu_op, u8 rd, u8 rs)
 void xa_cpu_device::add_word_indrd_rs(u8 rd, u8 rs) { fatalerror("ADD.w [%s], %s", m_regnames16[rd], m_regnames16[rs]);}
 void xa_cpu_device::addc_word_indrd_rs(u8 rd, u8 rs){ fatalerror("ADDC.w [%s], %s", m_regnames16[rd], m_regnames16[rs]);}
 void xa_cpu_device::sub_word_indrd_rs(u8 rd, u8 rs) { fatalerror("SUB.w [%s], %s", m_regnames16[rd], m_regnames16[rs]);}
-void xa_cpu_device::subc_word_indrd_rs(u8 rd, u8 rs){ fatalerror("SUBC.w [%s], %s", m_regnames16[rd], m_regnames16[rs]);}
+void xa_cpu_device::subb_word_indrd_rs(u8 rd, u8 rs){ fatalerror("SUBB.w [%s], %s", m_regnames16[rd], m_regnames16[rs]);}
 void xa_cpu_device::cmp_word_indrd_rs(u8 rd, u8 rs) { fatalerror("CMP.w [%s], %s", m_regnames16[rd], m_regnames16[rs]);}
 void xa_cpu_device::and_word_indrd_rs(u8 rd, u8 rs) { fatalerror("AND.w [%s], %s", m_regnames16[rd], m_regnames16[rs]);}
 void xa_cpu_device::or_word_indrd_rs(u8 rd, u8 rs)  { fatalerror("OR.w [%s], %s", m_regnames16[rd], m_regnames16[rs]);}
@@ -543,7 +591,7 @@ void xa_cpu_device::aluop_byte_indrd_rs(int alu_op, u8 rd, u8 rs)
 	case 0x0: add_byte_indrd_rs(rd, rs); break;
 	case 0x1: addc_byte_indrd_rs(rd, rs); break;
 	case 0x2: sub_byte_indrd_rs(rd, rs); break;
-	case 0x3: subc_byte_indrd_rs(rd, rs); break;
+	case 0x3: subb_byte_indrd_rs(rd, rs); break;
 	case 0x4: cmp_byte_indrd_rs(rd, rs); break;
 	case 0x5: and_byte_indrd_rs(rd, rs); break;
 	case 0x6: or_byte_indrd_rs(rd, rs); break;
@@ -555,7 +603,7 @@ void xa_cpu_device::aluop_byte_indrd_rs(int alu_op, u8 rd, u8 rs)
 void xa_cpu_device::add_byte_indrd_rs(u8 rd, u8 rs) { fatalerror("ADD.b [%s], %s", m_regnames16[rd], m_regnames8[rs]);}
 void xa_cpu_device::addc_byte_indrd_rs(u8 rd, u8 rs){ fatalerror("ADDC.b [%s], %s", m_regnames16[rd], m_regnames8[rs]);}
 void xa_cpu_device::sub_byte_indrd_rs(u8 rd, u8 rs) { fatalerror("SUB.b [%s], %s", m_regnames16[rd], m_regnames8[rs]);}
-void xa_cpu_device::subc_byte_indrd_rs(u8 rd, u8 rs){ fatalerror("SUBC.b [%s], %s", m_regnames16[rd], m_regnames8[rs]);}
+void xa_cpu_device::subb_byte_indrd_rs(u8 rd, u8 rs){ fatalerror("SUBB.b [%s], %s", m_regnames16[rd], m_regnames8[rs]);}
 void xa_cpu_device::cmp_byte_indrd_rs(u8 rd, u8 rs) { fatalerror("CMP.b [%s], %s", m_regnames16[rd], m_regnames8[rs]);}
 void xa_cpu_device::and_byte_indrd_rs(u8 rd, u8 rs) { fatalerror("AND.b [%s], %s", m_regnames16[rd], m_regnames8[rs]);}
 void xa_cpu_device::or_byte_indrd_rs(u8 rd, u8 rs)  { fatalerror("OR.b [%s], %s", m_regnames16[rd], m_regnames8[rs]);}
@@ -570,7 +618,7 @@ void xa_cpu_device::aluop_word_rd_indrsinc(int alu_op, u8 rd, u8 rs)
 	case 0x0: add_word_rd_indrsinc(rd, rs); break;
 	case 0x1: addc_word_rd_indrsinc(rd, rs); break;
 	case 0x2: sub_word_rd_indrsinc(rd, rs); break;
-	case 0x3: subc_word_rd_indrsinc(rd, rs); break;
+	case 0x3: subb_word_rd_indrsinc(rd, rs); break;
 	case 0x4: cmp_word_rd_indrsinc(rd, rs); break;
 	case 0x5: and_word_rd_indrsinc(rd, rs); break;
 	case 0x6: or_word_rd_indrsinc(rd, rs); break;
@@ -582,7 +630,7 @@ void xa_cpu_device::aluop_word_rd_indrsinc(int alu_op, u8 rd, u8 rs)
 void xa_cpu_device::add_word_rd_indrsinc(u8 rd, u8 rs) { fatalerror("ADD.w %s, [%s+]", m_regnames16[rd], m_regnames16[rs]);}
 void xa_cpu_device::addc_word_rd_indrsinc(u8 rd, u8 rs){ fatalerror("ADDC.w %s, [%s+]", m_regnames16[rd], m_regnames16[rs]);}
 void xa_cpu_device::sub_word_rd_indrsinc(u8 rd, u8 rs) { fatalerror("SUB.w %s, [%s+]", m_regnames16[rd], m_regnames16[rs]);}
-void xa_cpu_device::subc_word_rd_indrsinc(u8 rd, u8 rs){ fatalerror("SUBC.w %s, [%s+]", m_regnames16[rd], m_regnames16[rs]);}
+void xa_cpu_device::subb_word_rd_indrsinc(u8 rd, u8 rs){ fatalerror("SUBB.w %s, [%s+]", m_regnames16[rd], m_regnames16[rs]);}
 void xa_cpu_device::cmp_word_rd_indrsinc(u8 rd, u8 rs) { fatalerror("CMP.w %s, [%s+]", m_regnames16[rd], m_regnames16[rs]);}
 void xa_cpu_device::and_word_rd_indrsinc(u8 rd, u8 rs) { fatalerror("AND.w %s, [%s+]", m_regnames16[rd], m_regnames16[rs]);}
 void xa_cpu_device::or_word_rd_indrsinc(u8 rd, u8 rs)  { fatalerror("OR.w %s, [%s+]", m_regnames16[rd], m_regnames16[rs]);}
@@ -597,7 +645,7 @@ void xa_cpu_device::aluop_byte_rd_indrsinc(int alu_op, u8 rd, u8 rs)
 	case 0x0: add_byte_rd_indrsinc(rd, rs); break;
 	case 0x1: addc_byte_rd_indrsinc(rd, rs); break;
 	case 0x2: sub_byte_rd_indrsinc(rd, rs); break;
-	case 0x3: subc_byte_rd_indrsinc(rd, rs); break;
+	case 0x3: subb_byte_rd_indrsinc(rd, rs); break;
 	case 0x4: cmp_byte_rd_indrsinc(rd, rs); break;
 	case 0x5: and_byte_rd_indrsinc(rd, rs); break;
 	case 0x6: or_byte_rd_indrsinc(rd, rs); break;
@@ -610,7 +658,7 @@ void xa_cpu_device::aluop_byte_rd_indrsinc(int alu_op, u8 rd, u8 rs)
 void xa_cpu_device::add_byte_rd_indrsinc(u8 rd, u8 rs) { fatalerror("ADD.b %s, [%s+]", m_regnames8[rd], m_regnames16[rs]);}
 void xa_cpu_device::addc_byte_rd_indrsinc(u8 rd, u8 rs){ fatalerror("ADDC.b %s, [%s+]", m_regnames8[rd], m_regnames16[rs]);}
 void xa_cpu_device::sub_byte_rd_indrsinc(u8 rd, u8 rs) { fatalerror("SUB.b %s, [%s+]", m_regnames8[rd], m_regnames16[rs]);}
-void xa_cpu_device::subc_byte_rd_indrsinc(u8 rd, u8 rs){ fatalerror("SUBC.b %s, [%s+]", m_regnames8[rd], m_regnames16[rs]);}
+void xa_cpu_device::subb_byte_rd_indrsinc(u8 rd, u8 rs){ fatalerror("SUBB.b %s, [%s+]", m_regnames8[rd], m_regnames16[rs]);}
 void xa_cpu_device::cmp_byte_rd_indrsinc(u8 rd, u8 rs) { fatalerror("CMP.b %s, [%s+]", m_regnames8[rd], m_regnames16[rs]);}
 void xa_cpu_device::and_byte_rd_indrsinc(u8 rd, u8 rs) { fatalerror("AND.b %s, [%s+]", m_regnames8[rd], m_regnames16[rs]);}
 void xa_cpu_device::or_byte_rd_indrsinc(u8 rd, u8 rs)  { fatalerror("OR.b %s, [%s+]", m_regnames8[rd], m_regnames16[rs]);}
@@ -625,7 +673,7 @@ void xa_cpu_device::aluop_word_indrdinc_rs(int alu_op, u8 rd, u8 rs)
 	case 0x0: add_word_indrdinc_rs(rd, rs); break;
 	case 0x1: addc_word_indrdinc_rs(rd, rs); break;
 	case 0x2: sub_word_indrdinc_rs(rd, rs); break;
-	case 0x3: subc_word_indrdinc_rs(rd, rs); break;
+	case 0x3: subb_word_indrdinc_rs(rd, rs); break;
 	case 0x4: cmp_word_indrdinc_rs(rd, rs); break;
 	case 0x5: and_word_indrdinc_rs(rd, rs); break;
 	case 0x6: or_word_indrdinc_rs(rd, rs); break;
@@ -638,7 +686,7 @@ void xa_cpu_device::aluop_word_indrdinc_rs(int alu_op, u8 rd, u8 rs)
 void xa_cpu_device::add_word_indrdinc_rs(u8 rd, u8 rs) { fatalerror("ADD.w [%s+], %s", m_regnames16[rd], m_regnames16[rs]);}
 void xa_cpu_device::addc_word_indrdinc_rs(u8 rd, u8 rs){ fatalerror("ADDC.w [%s+], %s", m_regnames16[rd], m_regnames16[rs]);}
 void xa_cpu_device::sub_word_indrdinc_rs(u8 rd, u8 rs) { fatalerror("SUB.w [%s+], %s", m_regnames16[rd], m_regnames16[rs]);}
-void xa_cpu_device::subc_word_indrdinc_rs(u8 rd, u8 rs){ fatalerror("SUBC.w [%s+], %s", m_regnames16[rd], m_regnames16[rs]);}
+void xa_cpu_device::subb_word_indrdinc_rs(u8 rd, u8 rs){ fatalerror("SUBB.w [%s+], %s", m_regnames16[rd], m_regnames16[rs]);}
 void xa_cpu_device::cmp_word_indrdinc_rs(u8 rd, u8 rs) { fatalerror("CMP.w [%s+], %s", m_regnames16[rd], m_regnames16[rs]);}
 void xa_cpu_device::and_word_indrdinc_rs(u8 rd, u8 rs) { fatalerror("AND.w [%s+], %s", m_regnames16[rd], m_regnames16[rs]);}
 void xa_cpu_device::or_word_indrdinc_rs(u8 rd, u8 rs)  { fatalerror("OR.w [%s+], %s", m_regnames16[rd], m_regnames16[rs]);}
@@ -654,7 +702,7 @@ void xa_cpu_device::aluop_byte_indrdinc_rs(int alu_op, u8 rd, u8 rs)
 	case 0x0: add_byte_indrdinc_rs(rd, rs); break;
 	case 0x1: addc_byte_indrdinc_rs(rd, rs); break;
 	case 0x2: sub_byte_indrdinc_rs(rd, rs); break;
-	case 0x3: subc_byte_indrdinc_rs(rd, rs); break;
+	case 0x3: subb_byte_indrdinc_rs(rd, rs); break;
 	case 0x4: cmp_byte_indrdinc_rs(rd, rs); break;
 	case 0x5: and_byte_indrdinc_rs(rd, rs); break;
 	case 0x6: or_byte_indrdinc_rs(rd, rs); break;
@@ -666,7 +714,7 @@ void xa_cpu_device::aluop_byte_indrdinc_rs(int alu_op, u8 rd, u8 rs)
 void xa_cpu_device::add_byte_indrdinc_rs(u8 rd, u8 rs) { fatalerror("ADD.b [%s+], %s", m_regnames16[rd], m_regnames8[rs]);}
 void xa_cpu_device::addc_byte_indrdinc_rs(u8 rd, u8 rs){ fatalerror("ADDC.b [%s+], %s", m_regnames16[rd], m_regnames8[rs]);}
 void xa_cpu_device::sub_byte_indrdinc_rs(u8 rd, u8 rs) { fatalerror("SUB.b [%s+], %s", m_regnames16[rd], m_regnames8[rs]);}
-void xa_cpu_device::subc_byte_indrdinc_rs(u8 rd, u8 rs){ fatalerror("SUBC.b [%s+], %s", m_regnames16[rd], m_regnames8[rs]);}
+void xa_cpu_device::subb_byte_indrdinc_rs(u8 rd, u8 rs){ fatalerror("SUBB.b [%s+], %s", m_regnames16[rd], m_regnames8[rs]);}
 void xa_cpu_device::cmp_byte_indrdinc_rs(u8 rd, u8 rs) { fatalerror("CMP.b [%s+], %s", m_regnames16[rd], m_regnames8[rs]);}
 void xa_cpu_device::and_byte_indrdinc_rs(u8 rd, u8 rs) { fatalerror("AND.b [%s+], %s", m_regnames16[rd], m_regnames8[rs]);}
 void xa_cpu_device::or_byte_indrdinc_rs(u8 rd, u8 rs)  { fatalerror("OR.b [%s+], %s", m_regnames16[rd], m_regnames8[rs]);}
@@ -682,7 +730,7 @@ void xa_cpu_device::aluop_word_rd_rsoff8(int alu_op, u8 rd, u8 rs, u8 offset8)
 	case 0x0: add_word_rd_rsoff8(rd, rs, offset8); break;
 	case 0x1: addc_word_rd_rsoff8(rd, rs, offset8); break;
 	case 0x2: sub_word_rd_rsoff8(rd, rs, offset8); break;
-	case 0x3: subc_word_rd_rsoff8(rd, rs, offset8); break;
+	case 0x3: subb_word_rd_rsoff8(rd, rs, offset8); break;
 	case 0x4: cmp_word_rd_rsoff8(rd, rs, offset8); break;
 	case 0x5: and_word_rd_rsoff8(rd, rs, offset8); break;
 	case 0x6: or_word_rd_rsoff8(rd, rs, offset8); break;
@@ -695,7 +743,7 @@ void xa_cpu_device::aluop_word_rd_rsoff8(int alu_op, u8 rd, u8 rs, u8 offset8)
 void xa_cpu_device::add_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8) { fatalerror("ADD.w %s, [%s+#$%02x]", m_regnames16[rd], m_regnames16[rs], offset8);}
 void xa_cpu_device::addc_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8){ fatalerror("ADDC.w %s, [%s+#$%02x]", m_regnames16[rd], m_regnames16[rs], offset8);}
 void xa_cpu_device::sub_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8) { fatalerror("SUB.w %s, [%s+#$%02x]", m_regnames16[rd], m_regnames16[rs], offset8);}
-void xa_cpu_device::subc_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8){ fatalerror("SUBC.w %s, [%s+#$%02x]", m_regnames16[rd], m_regnames16[rs], offset8);}
+void xa_cpu_device::subb_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8){ fatalerror("SUBB.w %s, [%s+#$%02x]", m_regnames16[rd], m_regnames16[rs], offset8);}
 void xa_cpu_device::cmp_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8) { fatalerror("CMP.w %s, [%s+#$%02x]", m_regnames16[rd], m_regnames16[rs], offset8);}
 void xa_cpu_device::and_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8) { fatalerror("AND.w %s, [%s+#$%02x]", m_regnames16[rd], m_regnames16[rs], offset8);}
 void xa_cpu_device::or_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8)  { fatalerror("OR.w %s, [%s+#$%02x]", m_regnames16[rd], m_regnames16[rs], offset8);}
@@ -710,7 +758,7 @@ void xa_cpu_device::aluop_byte_rd_rsoff8(int alu_op, u8 rd, u8 rs, u8 offset8)
 	case 0x0: add_byte_rd_rsoff8(rd, rs, offset8); break;
 	case 0x1: addc_byte_rd_rsoff8(rd, rs, offset8); break;
 	case 0x2: sub_byte_rd_rsoff8(rd, rs, offset8); break;
-	case 0x3: subc_byte_rd_rsoff8(rd, rs, offset8); break;
+	case 0x3: subb_byte_rd_rsoff8(rd, rs, offset8); break;
 	case 0x4: cmp_byte_rd_rsoff8(rd, rs, offset8); break;
 	case 0x5: and_byte_rd_rsoff8(rd, rs, offset8); break;
 	case 0x6: or_byte_rd_rsoff8(rd, rs, offset8); break;
@@ -723,7 +771,7 @@ void xa_cpu_device::aluop_byte_rd_rsoff8(int alu_op, u8 rd, u8 rs, u8 offset8)
 void xa_cpu_device::add_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8) { fatalerror("ADD.b %s, [%s+#$%02x]", m_regnames8[rd], m_regnames16[rs], offset8);}
 void xa_cpu_device::addc_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8){ fatalerror("ADDC.b %s, [%s+#$%02x]", m_regnames8[rd], m_regnames16[rs], offset8);}
 void xa_cpu_device::sub_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8) { fatalerror("SUB.b %s, [%s+#$%02x]", m_regnames8[rd], m_regnames16[rs], offset8);}
-void xa_cpu_device::subc_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8){ fatalerror("SUBC.b %s, [%s+#$%02x]", m_regnames8[rd], m_regnames16[rs], offset8);}
+void xa_cpu_device::subb_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8){ fatalerror("SUBB.b %s, [%s+#$%02x]", m_regnames8[rd], m_regnames16[rs], offset8);}
 void xa_cpu_device::cmp_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8) { fatalerror("CMP.b %s, [%s+#$%02x]", m_regnames8[rd], m_regnames16[rs], offset8);}
 void xa_cpu_device::and_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8) { fatalerror("AND.b %s, [%s+#$%02x]", m_regnames8[rd], m_regnames16[rs], offset8);}
 void xa_cpu_device::or_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8)  { fatalerror("OR.b %s, [%s+#$%02x]", m_regnames8[rd], m_regnames16[rs], offset8);}
@@ -738,7 +786,7 @@ void xa_cpu_device::aluop_word_rdoff8_rs(int alu_op, u8 rd, u8 offset8, u8 rs)
 	case 0x0: add_word_rdoff8_rs(rd, offset8, rs); break;
 	case 0x1: addc_word_rdoff8_rs(rd, offset8, rs); break;
 	case 0x2: sub_word_rdoff8_rs(rd, offset8, rs); break;
-	case 0x3: subc_word_rdoff8_rs(rd, offset8, rs); break;
+	case 0x3: subb_word_rdoff8_rs(rd, offset8, rs); break;
 	case 0x4: cmp_word_rdoff8_rs(rd, offset8, rs); break;
 	case 0x5: and_word_rdoff8_rs(rd, offset8, rs); break;
 	case 0x6: or_word_rdoff8_rs(rd, offset8, rs); break;
@@ -751,7 +799,7 @@ void xa_cpu_device::aluop_word_rdoff8_rs(int alu_op, u8 rd, u8 offset8, u8 rs)
 void xa_cpu_device::add_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs) { fatalerror("ADD.w [%s+#$%02x], %s", m_regnames16[rd], offset8, m_regnames16[rs]);}
 void xa_cpu_device::addc_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs){ fatalerror("ADDC.w [%s+#$%02x], %s", m_regnames16[rd], offset8, m_regnames16[rs]);}
 void xa_cpu_device::sub_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs) { fatalerror("SUB.w [%s+#$%02x], %s", m_regnames16[rd], offset8, m_regnames16[rs]);}
-void xa_cpu_device::subc_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs){ fatalerror("SUBC.w [%s+#$%02x], %s", m_regnames16[rd], offset8, m_regnames16[rs]);}
+void xa_cpu_device::subb_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs){ fatalerror("SUBB.w [%s+#$%02x], %s", m_regnames16[rd], offset8, m_regnames16[rs]);}
 void xa_cpu_device::cmp_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs) { fatalerror("CMP.w [%s+#$%02x], %s", m_regnames16[rd], offset8, m_regnames16[rs]);}
 void xa_cpu_device::and_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs) { fatalerror("AND.w [%s+#$%02x], %s", m_regnames16[rd], offset8, m_regnames16[rs]);}
 void xa_cpu_device::or_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs)  { fatalerror("OR.w [%s+#$%02x], %s", m_regnames16[rd], offset8, m_regnames16[rs]);}
@@ -767,7 +815,7 @@ void xa_cpu_device::aluop_byte_rdoff8_rs(int alu_op, u8 rd, u8 offset8, u8 rs)
 	case 0x0: add_byte_rdoff8_rs(rd, offset8, rs); break;
 	case 0x1: addc_byte_rdoff8_rs(rd, offset8, rs); break;
 	case 0x2: sub_byte_rdoff8_rs(rd, offset8, rs); break;
-	case 0x3: subc_byte_rdoff8_rs(rd, offset8, rs); break;
+	case 0x3: subb_byte_rdoff8_rs(rd, offset8, rs); break;
 	case 0x4: cmp_byte_rdoff8_rs(rd, offset8, rs); break;
 	case 0x5: and_byte_rdoff8_rs(rd, offset8, rs); break;
 	case 0x6: or_byte_rdoff8_rs(rd, offset8, rs); break;
@@ -780,7 +828,7 @@ void xa_cpu_device::aluop_byte_rdoff8_rs(int alu_op, u8 rd, u8 offset8, u8 rs)
 void xa_cpu_device::add_byte_rdoff8_rs(u8 rd, u8 offset8, u8 rs) { fatalerror("ADD.b [%s+#$%02x], %s", m_regnames16[rd], offset8, m_regnames8[rs]);}
 void xa_cpu_device::addc_byte_rdoff8_rs(u8 rd, u8 offset8, u8 rs){ fatalerror("ADDC.b [%s+#$%02x], %s", m_regnames16[rd], offset8, m_regnames8[rs]);}
 void xa_cpu_device::sub_byte_rdoff8_rs(u8 rd, u8 offset8, u8 rs) { fatalerror("SUB.b [%s+#$%02x], %s", m_regnames16[rd], offset8, m_regnames8[rs]);}
-void xa_cpu_device::subc_byte_rdoff8_rs(u8 rd, u8 offset8, u8 rs){ fatalerror("SUBC.b [%s+#$%02x], %s", m_regnames16[rd], offset8, m_regnames8[rs]);}
+void xa_cpu_device::subb_byte_rdoff8_rs(u8 rd, u8 offset8, u8 rs){ fatalerror("SUBB.b [%s+#$%02x], %s", m_regnames16[rd], offset8, m_regnames8[rs]);}
 void xa_cpu_device::cmp_byte_rdoff8_rs(u8 rd, u8 offset8, u8 rs) { fatalerror("CMP.b [%s+#$%02x], %s", m_regnames16[rd], offset8, m_regnames8[rs]);}
 void xa_cpu_device::and_byte_rdoff8_rs(u8 rd, u8 offset8, u8 rs) { fatalerror("AND.b [%s+#$%02x], %s", m_regnames16[rd], offset8, m_regnames8[rs]);}
 void xa_cpu_device::or_byte_rdoff8_rs(u8 rd, u8 offset8, u8 rs)  { fatalerror("OR.b [%s+#$%02x], %s", m_regnames16[rd], offset8, m_regnames8[rs]);}
@@ -796,7 +844,7 @@ void xa_cpu_device::aluop_word_rsoff16(int alu_op, u8 rd, u8 rs, u16 offset16)
 	case 0x0: add_word_rd_rsoff16(rd, rs, offset16); break;
 	case 0x1: addc_word_rd_rsoff16(rd, rs, offset16); break;
 	case 0x2: sub_word_rd_rsoff16(rd, rs, offset16); break;
-	case 0x3: subc_word_rd_rsoff16(rd, rs, offset16); break;
+	case 0x3: subb_word_rd_rsoff16(rd, rs, offset16); break;
 	case 0x4: cmp_word_rd_rsoff16(rd, rs, offset16); break;
 	case 0x5: and_word_rd_rsoff16(rd, rs, offset16); break;
 	case 0x6: or_word_rd_rsoff16(rd, rs, offset16); break;
@@ -808,7 +856,7 @@ void xa_cpu_device::aluop_word_rsoff16(int alu_op, u8 rd, u8 rs, u16 offset16)
 void xa_cpu_device::add_word_rd_rsoff16(u8 rd, u8 rs, u16 offset16) { fatalerror("ADD.w %s, [%s+#$%04x]", m_regnames16[rd], m_regnames16[rs], offset16);}
 void xa_cpu_device::addc_word_rd_rsoff16(u8 rd, u8 rs, u16 offset16){ fatalerror("ADDC.w %s, [%s+#$%04x]", m_regnames16[rd], m_regnames16[rs], offset16);}
 void xa_cpu_device::sub_word_rd_rsoff16(u8 rd, u8 rs, u16 offset16) { fatalerror("SUB.w %s, [%s+#$%04x]", m_regnames16[rd], m_regnames16[rs], offset16);}
-void xa_cpu_device::subc_word_rd_rsoff16(u8 rd, u8 rs, u16 offset16){ fatalerror("SUBC.w %s, [%s+#$%04x]", m_regnames16[rd], m_regnames16[rs], offset16);}
+void xa_cpu_device::subb_word_rd_rsoff16(u8 rd, u8 rs, u16 offset16){ fatalerror("SUBB.w %s, [%s+#$%04x]", m_regnames16[rd], m_regnames16[rs], offset16);}
 void xa_cpu_device::cmp_word_rd_rsoff16(u8 rd, u8 rs, u16 offset16) { fatalerror("CMP.w %s, [%s+#$%04x]", m_regnames16[rd], m_regnames16[rs], offset16);}
 void xa_cpu_device::and_word_rd_rsoff16(u8 rd, u8 rs, u16 offset16) { fatalerror("AND.w %s, [%s+#$%04x]", m_regnames16[rd], m_regnames16[rs], offset16);}
 void xa_cpu_device::or_word_rd_rsoff16(u8 rd, u8 rs, u16 offset16)  { fatalerror("OR.w %s, [%s+#$%04x]", m_regnames16[rd], m_regnames16[rs], offset16);}
@@ -823,7 +871,7 @@ void xa_cpu_device::aluop_byte_rsoff16(int alu_op, u8 rd, u8 rs, u16 offset16)
 	case 0x0: add_byte_rd_rsoff16(rd, rs, offset16); break;
 	case 0x1: addc_byte_rd_rsoff16(rd, rs, offset16); break;
 	case 0x2: sub_byte_rd_rsoff16(rd, rs, offset16); break;
-	case 0x3: subc_byte_rd_rsoff16(rd, rs, offset16); break;
+	case 0x3: subb_byte_rd_rsoff16(rd, rs, offset16); break;
 	case 0x4: cmp_byte_rd_rsoff16(rd, rs, offset16); break;
 	case 0x5: and_byte_rd_rsoff16(rd, rs, offset16); break;
 	case 0x6: or_byte_rd_rsoff16(rd, rs, offset16); break;
@@ -836,7 +884,7 @@ void xa_cpu_device::aluop_byte_rsoff16(int alu_op, u8 rd, u8 rs, u16 offset16)
 void xa_cpu_device::add_byte_rd_rsoff16(u8 rd, u8 rs, u16 offset16) { fatalerror("ADD.b %s, [%s+#$%04x]", m_regnames8[rd], m_regnames16[rs], offset16);}
 void xa_cpu_device::addc_byte_rd_rsoff16(u8 rd, u8 rs, u16 offset16){ fatalerror("ADDC.b %s, [%s+#$%04x]", m_regnames8[rd], m_regnames16[rs], offset16);}
 void xa_cpu_device::sub_byte_rd_rsoff16(u8 rd, u8 rs, u16 offset16) { fatalerror("SUB.b %s, [%s+#$%04x]", m_regnames8[rd], m_regnames16[rs], offset16);}
-void xa_cpu_device::subc_byte_rd_rsoff16(u8 rd, u8 rs, u16 offset16){ fatalerror("SUBC.b %s, [%s+#$%04x]", m_regnames8[rd], m_regnames16[rs], offset16);}
+void xa_cpu_device::subb_byte_rd_rsoff16(u8 rd, u8 rs, u16 offset16){ fatalerror("SUBB.b %s, [%s+#$%04x]", m_regnames8[rd], m_regnames16[rs], offset16);}
 void xa_cpu_device::cmp_byte_rd_rsoff16(u8 rd, u8 rs, u16 offset16) { fatalerror("CMP.b %s, [%s+#$%04x]", m_regnames8[rd], m_regnames16[rs], offset16);}
 void xa_cpu_device::and_byte_rd_rsoff16(u8 rd, u8 rs, u16 offset16) { fatalerror("AND.b %s, [%s+#$%04x]", m_regnames8[rd], m_regnames16[rs], offset16);}
 void xa_cpu_device::or_byte_rd_rsoff16(u8 rd, u8 rs, u16 offset16)  { fatalerror("OR.b %s, [%s+#$%04x]", m_regnames8[rd], m_regnames16[rs], offset16);}
@@ -851,7 +899,7 @@ void xa_cpu_device::aluop_word_rdoff16_rs(int alu_op, u8 rd, u16 offset16, u8 rs
 	case 0x0: add_word_rdoff16_rs(rd, offset16, rs); break;
 	case 0x1: addc_word_rdoff16_rs(rd, offset16, rs); break;
 	case 0x2: sub_word_rdoff16_rs(rd, offset16, rs); break;
-	case 0x3: subc_word_rdoff16_rs(rd, offset16, rs); break;
+	case 0x3: subb_word_rdoff16_rs(rd, offset16, rs); break;
 	case 0x4: cmp_word_rdoff16_rs(rd, offset16, rs); break;
 	case 0x5: and_word_rdoff16_rs(rd, offset16, rs); break;
 	case 0x6: or_word_rdoff16_rs(rd, offset16, rs); break;
@@ -863,7 +911,7 @@ void xa_cpu_device::aluop_word_rdoff16_rs(int alu_op, u8 rd, u16 offset16, u8 rs
 void xa_cpu_device::add_word_rdoff16_rs(u8 rd, u16 offset16, u8 rs) { fatalerror("ADD.w [%s+#$%04x], %s", m_regnames16[rd], offset16, m_regnames16[rs]);}
 void xa_cpu_device::addc_word_rdoff16_rs(u8 rd, u16 offset16, u8 rs){ fatalerror("ADDC.w [%s+#$%04x], %s", m_regnames16[rd], offset16, m_regnames16[rs]);}
 void xa_cpu_device::sub_word_rdoff16_rs(u8 rd, u16 offset16, u8 rs) { fatalerror("SUB.w [%s+#$%04x], %s", m_regnames16[rd], offset16, m_regnames16[rs]);}
-void xa_cpu_device::subc_word_rdoff16_rs(u8 rd, u16 offset16, u8 rs){ fatalerror("SUBC.w [%s+#$%04x], %s", m_regnames16[rd], offset16, m_regnames16[rs]);}
+void xa_cpu_device::subb_word_rdoff16_rs(u8 rd, u16 offset16, u8 rs){ fatalerror("SUBB.w [%s+#$%04x], %s", m_regnames16[rd], offset16, m_regnames16[rs]);}
 void xa_cpu_device::cmp_word_rdoff16_rs(u8 rd, u16 offset16, u8 rs) { fatalerror("CMP.w [%s+#$%04x], %s", m_regnames16[rd], offset16, m_regnames16[rs]);}
 void xa_cpu_device::and_word_rdoff16_rs(u8 rd, u16 offset16, u8 rs) { fatalerror("AND.w [%s+#$%04x], %s", m_regnames16[rd], offset16, m_regnames16[rs]);}
 void xa_cpu_device::or_word_rdoff16_rs(u8 rd, u16 offset16, u8 rs)  { fatalerror("OR.w [%s+#$%04x], %s", m_regnames16[rd], offset16, m_regnames16[rs]);}
@@ -878,7 +926,7 @@ void xa_cpu_device::aluop_byte_rdoff16_rs(int alu_op, u8 rd, u16 offset16, u8 rs
 	case 0x0: add_byte_rdoff16_rs(rd, offset16, rs); break;
 	case 0x1: addc_byte_rdoff16_rs(rd, offset16, rs); break;
 	case 0x2: sub_byte_rdoff16_rs(rd, offset16, rs); break;
-	case 0x3: subc_byte_rdoff16_rs(rd, offset16, rs); break;
+	case 0x3: subb_byte_rdoff16_rs(rd, offset16, rs); break;
 	case 0x4: cmp_byte_rdoff16_rs(rd, offset16, rs); break;
 	case 0x5: and_byte_rdoff16_rs(rd, offset16, rs); break;
 	case 0x6: or_byte_rdoff16_rs(rd, offset16, rs); break;
@@ -891,7 +939,7 @@ void xa_cpu_device::aluop_byte_rdoff16_rs(int alu_op, u8 rd, u16 offset16, u8 rs
 void xa_cpu_device::add_byte_rdoff16_rs(u8 rd, u16 offset16, u8 rs) { fatalerror("ADD.b [%s+#$%04x], %s", m_regnames16[rd], offset16, m_regnames8[rs]);}
 void xa_cpu_device::addc_byte_rdoff16_rs(u8 rd, u16 offset16, u8 rs){ fatalerror("ADDC.b [%s+#$%04x], %s", m_regnames16[rd], offset16, m_regnames8[rs]);}
 void xa_cpu_device::sub_byte_rdoff16_rs(u8 rd, u16 offset16, u8 rs) { fatalerror("SUB.b [%s+#$%04x], %s", m_regnames16[rd], offset16, m_regnames8[rs]);}
-void xa_cpu_device::subc_byte_rdoff16_rs(u8 rd, u16 offset16, u8 rs){ fatalerror("SUBC.b [%s+#$%04x], %s", m_regnames16[rd], offset16, m_regnames8[rs]);}
+void xa_cpu_device::subb_byte_rdoff16_rs(u8 rd, u16 offset16, u8 rs){ fatalerror("SUBB.b [%s+#$%04x], %s", m_regnames16[rd], offset16, m_regnames8[rs]);}
 void xa_cpu_device::cmp_byte_rdoff16_rs(u8 rd, u16 offset16, u8 rs) { fatalerror("CMP.b [%s+#$%04x], %s", m_regnames16[rd], offset16, m_regnames8[rs]);}
 void xa_cpu_device::and_byte_rdoff16_rs(u8 rd, u16 offset16, u8 rs) { fatalerror("AND.b [%s+#$%04x], %s", m_regnames16[rd], offset16, m_regnames8[rs]);}
 void xa_cpu_device::or_byte_rdoff16_rs(u8 rd, u16 offset16, u8 rs)  { fatalerror("OR.b [%s+#$%04x], %s", m_regnames16[rd], offset16, m_regnames8[rs]);}
@@ -906,7 +954,7 @@ void xa_cpu_device::aluop_word_rd_direct(int alu_op, u8 rd, u16 direct)
 	case 0x0: add_word_rd_direct(rd, direct); break;
 	case 0x1: addc_word_rd_direct(rd, direct); break;
 	case 0x2: sub_word_rd_direct(rd, direct); break;
-	case 0x3: subc_word_rd_direct(rd, direct); break;
+	case 0x3: subb_word_rd_direct(rd, direct); break;
 	case 0x4: cmp_word_rd_direct(rd, direct); break;
 	case 0x5: and_word_rd_direct(rd, direct); break;
 	case 0x6: or_word_rd_direct(rd, direct); break;
@@ -919,7 +967,7 @@ void xa_cpu_device::aluop_word_rd_direct(int alu_op, u8 rd, u16 direct)
 void xa_cpu_device::add_word_rd_direct(u8 rd, u16 direct) { fatalerror("ADD.w %s, %s", m_regnames16[rd], get_directtext(direct));}
 void xa_cpu_device::addc_word_rd_direct(u8 rd, u16 direct){ fatalerror("ADDC.w %s, %s", m_regnames16[rd], get_directtext(direct));}
 void xa_cpu_device::sub_word_rd_direct(u8 rd, u16 direct) { fatalerror("SUB.w %s, %s", m_regnames16[rd], get_directtext(direct));}
-void xa_cpu_device::subc_word_rd_direct(u8 rd, u16 direct){ fatalerror("SUBC.w %s, %s", m_regnames16[rd], get_directtext(direct));}
+void xa_cpu_device::subb_word_rd_direct(u8 rd, u16 direct){ fatalerror("SUBB.w %s, %s", m_regnames16[rd], get_directtext(direct));}
 void xa_cpu_device::cmp_word_rd_direct(u8 rd, u16 direct) { fatalerror("CMP.w %s, %s", m_regnames16[rd], get_directtext(direct));}
 void xa_cpu_device::and_word_rd_direct(u8 rd, u16 direct) { fatalerror("AND.w %s, %s", m_regnames16[rd], get_directtext(direct));}
 void xa_cpu_device::or_word_rd_direct(u8 rd, u16 direct)  { fatalerror("OR.w %s, %s", m_regnames16[rd], get_directtext(direct));}
@@ -934,7 +982,7 @@ void xa_cpu_device::aluop_byte_rd_direct(int alu_op, u8 rd, u16 direct)
 	case 0x0: add_byte_rd_direct(rd, direct); break;
 	case 0x1: addc_byte_rd_direct(rd, direct); break;
 	case 0x2: sub_byte_rd_direct(rd, direct); break;
-	case 0x3: subc_byte_rd_direct(rd, direct); break;
+	case 0x3: subb_byte_rd_direct(rd, direct); break;
 	case 0x4: cmp_byte_rd_direct(rd, direct); break;
 	case 0x5: and_byte_rd_direct(rd, direct); break;
 	case 0x6: or_byte_rd_direct(rd, direct); break;
@@ -947,7 +995,7 @@ void xa_cpu_device::aluop_byte_rd_direct(int alu_op, u8 rd, u16 direct)
 void xa_cpu_device::add_byte_rd_direct(u8 rd, u16 direct) { fatalerror("ADD.b %s, %s", m_regnames8[rd], get_directtext(direct));}
 void xa_cpu_device::addc_byte_rd_direct(u8 rd, u16 direct){ fatalerror("ADDC.b %s, %s", m_regnames8[rd], get_directtext(direct));}
 void xa_cpu_device::sub_byte_rd_direct(u8 rd, u16 direct) { fatalerror("SUB.b %s, %s", m_regnames8[rd], get_directtext(direct));}
-void xa_cpu_device::subc_byte_rd_direct(u8 rd, u16 direct){ fatalerror("SUBC.b %s, %s", m_regnames8[rd], get_directtext(direct));}
+void xa_cpu_device::subb_byte_rd_direct(u8 rd, u16 direct){ fatalerror("SUBB.b %s, %s", m_regnames8[rd], get_directtext(direct));}
 void xa_cpu_device::cmp_byte_rd_direct(u8 rd, u16 direct) { fatalerror("CMP.b %s, %s", m_regnames8[rd], get_directtext(direct));}
 void xa_cpu_device::and_byte_rd_direct(u8 rd, u16 direct) { fatalerror("AND.b %s, %s", m_regnames8[rd], get_directtext(direct));}
 void xa_cpu_device::or_byte_rd_direct(u8 rd, u16 direct)  { fatalerror("OR.b %s, %s", m_regnames8[rd], get_directtext(direct));}
@@ -962,7 +1010,7 @@ void xa_cpu_device::aluop_word_direct_rs(int alu_op, u16 direct, u8 rs)
 	case 0x0: add_word_direct_rs(direct, rs); break;
 	case 0x1: addc_word_direct_rs(direct, rs); break;
 	case 0x2: sub_word_direct_rs(direct, rs); break;
-	case 0x3: subc_word_direct_rs(direct, rs); break;
+	case 0x3: subb_word_direct_rs(direct, rs); break;
 	case 0x4: cmp_word_direct_rs(direct, rs); break;
 	case 0x5: and_word_direct_rs(direct, rs); break;
 	case 0x6: or_word_direct_rs(direct, rs); break;
@@ -975,7 +1023,7 @@ void xa_cpu_device::aluop_word_direct_rs(int alu_op, u16 direct, u8 rs)
 void xa_cpu_device::add_word_direct_rs(u16 direct, u8 rs) { fatalerror("ADD.w %s, %s", get_directtext(direct), m_regnames16[rs]);}
 void xa_cpu_device::addc_word_direct_rs(u16 direct, u8 rs){ fatalerror("ADDC.w %s, %s", get_directtext(direct), m_regnames16[rs]);}
 void xa_cpu_device::sub_word_direct_rs(u16 direct, u8 rs) { fatalerror("SUB.w %s, %s", get_directtext(direct), m_regnames16[rs]);}
-void xa_cpu_device::subc_word_direct_rs(u16 direct, u8 rs){ fatalerror("SUBC.w %s, %s", get_directtext(direct), m_regnames16[rs]);}
+void xa_cpu_device::subb_word_direct_rs(u16 direct, u8 rs){ fatalerror("SUBB.w %s, %s", get_directtext(direct), m_regnames16[rs]);}
 void xa_cpu_device::cmp_word_direct_rs(u16 direct, u8 rs) { fatalerror("CMP.w %s, %s", get_directtext(direct), m_regnames16[rs]);}
 void xa_cpu_device::and_word_direct_rs(u16 direct, u8 rs) { fatalerror("AND.w %s, %s", get_directtext(direct), m_regnames16[rs]);}
 void xa_cpu_device::or_word_direct_rs(u16 direct, u8 rs)  { fatalerror("OR.w %s, %s", get_directtext(direct), m_regnames16[rs]);}
@@ -990,7 +1038,7 @@ void xa_cpu_device::aluop_byte_direct_rs(int alu_op, u16 direct, u8 rs)
 	case 0x0: add_byte_direct_rs(direct, rs); break;
 	case 0x1: addc_byte_direct_rs(direct, rs); break;
 	case 0x2: sub_byte_direct_rs(direct, rs); break;
-	case 0x3: subc_byte_direct_rs(direct, rs); break;
+	case 0x3: subb_byte_direct_rs(direct, rs); break;
 	case 0x4: cmp_byte_direct_rs(direct, rs); break;
 	case 0x5: and_byte_direct_rs(direct, rs); break;
 	case 0x6: or_byte_direct_rs(direct, rs); break;
@@ -1003,7 +1051,7 @@ void xa_cpu_device::aluop_byte_direct_rs(int alu_op, u16 direct, u8 rs)
 void xa_cpu_device::add_byte_direct_rs(u16 direct, u8 rs) { fatalerror("ADD.b %s, %s", get_directtext(direct), m_regnames8[rs]);}
 void xa_cpu_device::addc_byte_direct_rs(u16 direct, u8 rs){ fatalerror("ADDC.b %s, %s", get_directtext(direct), m_regnames8[rs]);}
 void xa_cpu_device::sub_byte_direct_rs(u16 direct, u8 rs) { fatalerror("SUB.b %s, %s", get_directtext(direct), m_regnames8[rs]);}
-void xa_cpu_device::subc_byte_direct_rs(u16 direct, u8 rs){ fatalerror("SUBC.b %s, %s", get_directtext(direct), m_regnames8[rs]);}
+void xa_cpu_device::subb_byte_direct_rs(u16 direct, u8 rs){ fatalerror("SUBB.b %s, %s", get_directtext(direct), m_regnames8[rs]);}
 void xa_cpu_device::cmp_byte_direct_rs(u16 direct, u8 rs) { fatalerror("CMP.b %s, %s", get_directtext(direct), m_regnames8[rs]);}
 void xa_cpu_device::and_byte_direct_rs(u16 direct, u8 rs) { fatalerror("AND.b %s, %s", get_directtext(direct), m_regnames8[rs]);}
 void xa_cpu_device::or_byte_direct_rs(u16 direct, u8 rs)  { fatalerror("OR.b %s, %s", get_directtext(direct), m_regnames8[rs]);}
@@ -1303,7 +1351,7 @@ void xa_cpu_device::cjne_byte_rd_direct_rel8(u8 rd, u16 direct, u8 rel8) { fatal
 void xa_cpu_device::cjne_indrd_data8_rel8(u8 rd, u8 data8, u8 rel8) { fatalerror( "CJNE [%s], #$%02x, $%04x", m_regnames16[rd], data8, expand_rel8(rel8));}
 
 // CJNE Rd,#data8,rel8         Compare imm byte to reg and jump if not equal                           4 9t/6nt    1110 0011  dddd 0000  rrrr rrrr  iiii iiii
-void xa_cpu_device::cjne_rd_data8_rel8(u8 rd, u8 data8, u8 rel8) { uint8_t regval = get_reg8(rd); do_cjne_8_helper(regval, data8); if (!get_z_flag()) { set_pc_in_current_page(expand_rel8(rel8)); } }
+void xa_cpu_device::cjne_rd_data8_rel8(u8 rd, u8 data8, u8 rel8) { u8 regval = get_reg8(rd); do_cjne_8_helper(regval, data8); if (!get_z_flag()) { set_pc_in_current_page(expand_rel8(rel8)); } }
 
 // CJNE [Rd],#data16,rel8      Compare imm word to reg-ind and jump if not equal                       5 10t/7nt   1110 1011  0ddd 1000  rrrr rrrr  iiii iiii  iiii iiii
 void xa_cpu_device::cjne_indrd_data16_rel8(u8 rd, u16 data16, u8 rel8) { fatalerror( "CJNE [%s], #$%04x, $%04x", m_regnames16[rd], data16, expand_rel8(rel8));}

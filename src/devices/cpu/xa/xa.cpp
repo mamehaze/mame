@@ -342,7 +342,7 @@ void xa_cpu_device::push_word_to_stack(u16 data)
 	}
 }
 
-uint8_t xa_cpu_device::get_reg8(int reg)
+u8 xa_cpu_device::get_reg8(int reg)
 {
 	int high = reg & 1;
 
@@ -715,7 +715,7 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 
 
 
-void xa_cpu_device::handle_alu_type1(XA_EXECUTE_PARAMS, uint8_t op2)
+void xa_cpu_device::handle_alu_type1(XA_EXECUTE_PARAMS, u8 op2)
 {
 	int alu_op = op2 & 0x0f;
 	switch (op & 0x0f)
@@ -2195,7 +2195,7 @@ void xa_cpu_device::execute_run()
 	while (m_icount > 0)
 	{
 		debugger_instruction_hook(m_pc);
-		uint8_t op = m_program->read_byte(m_pc++);
+		u8 op = m_program->read_byte(m_pc++);
 		(this->*s_instruction[op])(XA_EXECUTE_CALL_PARAMS);
 	}
 }
