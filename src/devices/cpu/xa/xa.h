@@ -136,11 +136,21 @@ private:
 	void push_word_to_system_stack(u16 data);
 	void push_word_to_stack(u16 data);
 
+	u16 pull_word_from_user_stack();
+	u16 pull_word_from_system_stack();
+	u16 pull_word_from_stack();
+
 	void push_byte_to_user_stack(u8 data);
 	void push_byte_to_system_stack(u8 data);
 	void push_byte_to_stack(u16 data);
 
 	void push_byte_reglist(u8 op2, int h, bool force_user);
+
+	u8 pull_byte_from_user_stack();
+	u8 pull_byte_from_system_stack();
+	u8 pull_byte_from_stack();
+
+	void pull_byte_reglist(u8 op2, int h, bool force_user);
 
 	void write_data8(int address, u8 data);
 	void write_data16(int address, u16 data);

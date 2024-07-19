@@ -5,6 +5,9 @@
 #include "xa.h"
 #include "xadasm.h"
 
+#define get_address get_reg16
+#define set_address set_reg16
+
 u8 xa_cpu_device::do_subb_8(u8 val1, u8 val2)
 {
 	return do_sub_8_helper(val1, val2, get_c_flag());
@@ -745,7 +748,7 @@ void xa_cpu_device::cmp_byte_indrdinc_rs(u8 rd, u8 rs) { fatalerror("CMP.b [%s+]
 void xa_cpu_device::and_byte_indrdinc_rs(u8 rd, u8 rs) { fatalerror("AND.b [%s+], %s", m_regnames16[rd], m_regnames8[rs]);}
 void xa_cpu_device::or_byte_indrdinc_rs(u8 rd, u8 rs)  { fatalerror("OR.b [%s+], %s", m_regnames16[rd], m_regnames8[rs]);}
 void xa_cpu_device::xor_byte_indrdinc_rs(u8 rd, u8 rs) { fatalerror("XOR.b [%s+], %s", m_regnames16[rd], m_regnames8[rs]);}
-void xa_cpu_device::mov_byte_indrdinc_rs(u8 rd, u8 rs) { u16 address = get_reg16(rd); u8 result = get_reg8(rs); write_data8(address, result); address++; do_nz_flags_8(result); set_reg16(rd, address); cy(4); }
+void xa_cpu_device::mov_byte_indrdinc_rs(u8 rd, u8 rs) { u16 address = get_address(rd); u8 result = get_reg8(rs); write_data8(address, result); address++; do_nz_flags_8(result); set_address(rd, address); cy(4); }
 
 
 // ALUOP.w Rd, [Rs+off8]
@@ -1100,8 +1103,8 @@ void xa_cpu_device::adds_word_indrd_data4(u8 rd, u8 data4){ fatalerror("ADDS.w [
 void xa_cpu_device::adds_byte_indrd_data4(u8 rd, u8 data4){ fatalerror("ADDS.b [%s], %s", m_regnames16[rd], show_expanded_data4(data4, 0)); }
 
 // MOVS [Rd+], #data4          Move 4-bit sign-extended imm data to reg-ind w/ autoinc                 2 4         1011 S011  0ddd iiii
-void xa_cpu_device::movs_word_indrdinc_data4(u8 rd, u8 data4) { u16 data = util::sext(data4, 4); u16 regval = get_reg16(rd); write_data16(regval, data); regval += 2; do_nz_flags_16(regval); set_reg16(rd, regval); cy(4); }
-void xa_cpu_device::movs_byte_indrdinc_data4(u8 rd, u8 data4){ fatalerror("MOVS.b [%s+], %s", m_regnames16[rd], show_expanded_data4(data4, 0)); }
+void xa_cpu_device::movs_word_indrdinc_data4(u8 rd, u8 data4) { u16 data = util::sext(data4, 4); u16 address = get_address(rd); write_data16(address, data); address += 2; do_nz_flags_16(data); set_address(rd, address); cy(4); }
+void xa_cpu_device::movs_byte_indrdinc_data4(u8 rd, u8 data4) { u8 data  = util::sext(data4, 4); u16 address = get_address(rd); write_data8(address, data);  address++;    do_nz_flags_8(data);  set_address(rd, address); cy(4); }
 // ADDS [Rd+], #data4          Add 4-bit signed imm data to reg-ind w/ autoinc                         2 5         1010 S011  0ddd iiii
 void xa_cpu_device::adds_word_indrdinc_data4(u8 rd, u8 data4){ fatalerror("ADDS.w [%s+], %s", m_regnames16[rd], show_expanded_data4(data4, 1)); }
 void xa_cpu_device::adds_byte_indrdinc_data4(u8 rd, u8 data4){ fatalerror("ADDS.b [%s+], %s", m_regnames16[rd], show_expanded_data4(data4, 0)); }
@@ -1128,7 +1131,7 @@ void xa_cpu_device::adds_word_direct_data4(u16 direct, u8 data4){ fatalerror("AD
 void xa_cpu_device::adds_byte_direct_data4(u16 direct, u8 data4){ fatalerror("ADDS.b %s, %s\n", get_directtext(direct), show_expanded_data4(data4, 0)); }
 
 // CALL rel16                  Relative call (range +/- 64K)                                           3 7/4(PZ)   1100 0101  rrrr rrrr  rrrr rrrr
-void xa_cpu_device::call_rel16(u16 rel16) {	push_word_to_stack(m_pc); set_pc_in_current_page(expand_rel16(rel16)); if (m_pagezeromode) { cy(4); } else { cy(7); } }
+void xa_cpu_device::call_rel16(u16 rel16) { if (m_pagezeromode) { push_word_to_stack(m_pc); set_pc_in_current_page(expand_rel16(rel16)); cy(4); } else { cy(7); fatalerror("CALL rel16 not in pagezero mode"); } }
 
 // BCC rel8                    Branch if the carry flag is clear                                       2 6t/3nt    1111 0000  rrrr rrrr
 void xa_cpu_device::bcc_rel8(u8 rel8) { fatalerror("BCC %04x\n", expand_rel8(rel8)); }
@@ -1173,7 +1176,7 @@ void xa_cpu_device::bgt_rel8(u8 rel8) { fatalerror("BGT %04x\n", expand_rel8(rel
 void xa_cpu_device::ble_rel8(u8 rel8) { fatalerror("BLE %04x\n", expand_rel8(rel8)); }
 
 // BR rel8                     Short unconditional branch                                              2 6         1111 1110  rrrr rrrr
-void xa_cpu_device::br_rel8(u8 rel8) { fatalerror("BR %04x\n", expand_rel8(rel8)); }
+void xa_cpu_device::br_rel8(u8 rel8) { set_pc_in_current_page(expand_rel8(rel8)); cy(6); }
 
 // ASL.b Rd, #data4              Logical left shift reg by the 4-bit imm value                           2 a*        1101 SS01  dddd iiii
 void xa_cpu_device::asl_byte_rd_imm4(u8 rd, u8 amount) { fatalerror("ASL.b %s, %d", m_regnames8[rd], amount); }
@@ -1267,7 +1270,7 @@ void xa_cpu_device::xch_byte_rd_rs(u8 rd, u8 rs) { fatalerror("XCH.b %s, %s", m_
 
 // MOVC Rd, [Rs+]              Move data from WS:Rs address of code mem to reg w/ autoinc              2 4         1000 S000  dddd 0sss
 void xa_cpu_device::movc_word_rd_indrsinc(u8 rd, u8 rs) { fatalerror("MOVC.w %s, [%s+]\n", m_regnames16[rd], m_regnames16[rs]); }
-void xa_cpu_device::movc_byte_rd_indrsinc(u8 rd, u8 rs) { u16 ptr = get_reg16(rs); u8 data = m_program->read_byte(ptr); ptr++; set_reg16(rs, ptr); do_nz_flags_8(data); set_reg8(rd, data); cy(4); }
+void xa_cpu_device::movc_byte_rd_indrsinc(u8 rd, u8 rs) { u16 address = get_address(rs); u8 data = m_program->read_byte(address); address++; set_address(rs, address); do_nz_flags_8(data); set_reg8(rd, data); cy(4); }
 
 // DJNZ Rd,rel8                Decrement reg and jump if not zero                                      3 8t/5nt    1000 S111  dddd 1000  rrrr rrrr
 void xa_cpu_device::djnz_word_rd_rel8(u8 rd, u8 rel8) { u16 regval = get_reg16(rd);	regval--; do_nz_flags_16(regval); set_reg16(rd, regval); if (get_z_flag() == 0) { set_pc_in_current_page(expand_rel8(rel8)); cy(8); } else { cy(5); } }
@@ -1395,7 +1398,19 @@ void xa_cpu_device::jmp_dblindrs(u8 rs) { fatalerror( "JMP [[%s+]]", m_regnames1
 void xa_cpu_device::jmp_indrs(u8 rs) { fatalerror( "JMP [%s]", m_regnames16[rs]); }
 
 // RET                         Return from subroutine                                                  2 8/6(PZ)   1101 0110  1000 0000
-void xa_cpu_device::ret() { fatalerror( "RET"); }
+void xa_cpu_device::ret() {
+	if (m_pagezeromode)
+	{
+		u16 addr = pull_word_from_stack();
+		set_pc_in_current_page(addr);
+		cy(6);
+	}
+	else
+	{
+		cy(8);
+		fatalerror("RET not in pagezero mode");
+	}
+}
 
 // RETI                        Return from interrupt                                                   2 10/8(PZ)  1101 0110  1001 0000
 void xa_cpu_device::reti() { fatalerror( "RETI"); }
@@ -1416,8 +1431,8 @@ void xa_cpu_device::pushu_byte_rlist(u8 bitfield, int h) { push_byte_reglist(bit
 
 // POP Rlist                   Pop regs (b/w) from the current stack                                   2 c*        0H10 S111  LLLL LLLL
 void xa_cpu_device::pop_word_rlist(u8 bitfield, int h) { fatalerror("POP.w %s", get_word_reglist(bitfield)); }
-void xa_cpu_device::pop_byte_rlist(u8 bitfield, int h) { fatalerror("POP.b %s", get_byte_reglist(bitfield, h)); }
+void xa_cpu_device::pop_byte_rlist(u8 bitfield, int h) { cy(2); pull_byte_reglist(bitfield, h, false); }
 
 // POPU Rlist                  Pop regs (b/w) from the user stack                                      2 c*        0H11 S111  LLLL LLLL
 void xa_cpu_device::popu_word_rlist(u8 bitfield, int h) { fatalerror("POPU.w %s", get_word_reglist(bitfield)); }
-void xa_cpu_device::popu_byte_rlist(u8 bitfield, int h) { fatalerror("POPU.b %s", get_byte_reglist(bitfield, h)); }
+void xa_cpu_device::popu_byte_rlist(u8 bitfield, int h) { cy(2); pull_byte_reglist(bitfield, h, true); }

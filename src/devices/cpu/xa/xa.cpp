@@ -363,6 +363,37 @@ void xa_cpu_device::push_word_to_stack(u16 data)
 	}
 }
 
+u16 xa_cpu_device::pull_word_from_user_stack()
+{
+	// should use the segment register as well!
+	u16 data = m_data->read_word(m_USP);
+	m_USP += 2;
+	return data;
+}
+
+u16 xa_cpu_device::pull_word_from_system_stack()
+{
+	u16 data = m_data->read_word(m_SSP);
+	m_SSP += 2;
+	return data;
+}
+
+
+u16 xa_cpu_device::pull_word_from_stack()
+{
+	if (m_usermode)
+	{
+		return pull_word_from_user_stack();
+	}
+	else
+	{
+		return pull_word_from_system_stack();
+	}
+}
+
+
+
+
 void xa_cpu_device::push_byte_to_user_stack(u8 data)
 {
 	// should use the segment register as well!
@@ -387,6 +418,34 @@ void xa_cpu_device::push_byte_to_stack(u16 data)
 		push_byte_to_system_stack(data);
 	}
 }
+
+u8 xa_cpu_device::pull_byte_from_user_stack()
+{
+	// should use the segment register as well!
+	u8 data = m_data->read_byte(m_USP);
+	m_USP += 2;
+	return data;
+}
+
+u8 xa_cpu_device::pull_byte_from_system_stack()
+{
+	u8 data = m_data->read_byte(m_SSP);
+	m_SSP += 2;
+	return data;
+}
+
+u8 xa_cpu_device::pull_byte_from_stack()
+{
+	if (m_usermode)
+	{
+		return pull_byte_from_user_stack();
+	}
+	else
+	{
+		return pull_byte_from_system_stack();
+	}
+}
+
 
 u8 xa_cpu_device::get_reg8(int reg)
 {
@@ -1015,6 +1074,26 @@ void xa_cpu_device::push_byte_reglist(u8 op2, int h, bool force_user)
 		}
 	}
 }
+
+void xa_cpu_device::pull_byte_reglist(u8 op2, int h, bool force_user)
+{
+	for (int i = 0; i < 8; i++)
+	{
+		int bit = (op2 & (1 << i));
+		if (bit)
+		{
+			u8 stackval;
+			if (force_user)
+				stackval = pull_byte_from_user_stack();
+			else
+				stackval = pull_byte_from_stack();
+
+			set_reg8(i + h ? 8 : 0, stackval);
+			cy(2);
+		}
+	}
+}
+
 void xa_cpu_device::handle_push_rlist(XA_EXECUTE_PARAMS)
 {
 	const u8 h = op & 0x40;
