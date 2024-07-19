@@ -881,6 +881,7 @@ private:
 	uint32_t m_pc;
 
 	bool m_usermode;
+	u8 m_pagezeromode;
 
 	u16 m_USP; // user stack pointer
 	u16 m_SSP; // system stack pointer

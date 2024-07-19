@@ -102,6 +102,7 @@ void xa_cpu_device::sfr_SCR_w(u8 data)
 
 	printf("write %02x to SCR\n", data);
 	m_SCR = data;
+	m_pagezeromode = (data & 1);
 }
 
 void xa_cpu_device::sfr_WFEED1_w(u8 data)
@@ -2236,6 +2237,8 @@ void xa_cpu_device::device_reset()
 	m_cflag = 0;
 	m_vflag = 0;
 	m_acflag = 0;
+
+	m_pagezeromode = 1;
 }
 
 /*****************************************************************************/
