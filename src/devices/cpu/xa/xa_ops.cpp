@@ -1261,7 +1261,7 @@ void xa_cpu_device::movc_word_rd_indrsinc(u8 rd, u8 rs) { fatalerror("MOVC.w %s,
 void xa_cpu_device::movc_byte_rd_indrsinc(u8 rd, u8 rs) { u16 ptr = get_reg16(rs); u8 data = m_program->read_byte(ptr); ptr++; set_reg16(rs, ptr); do_nz_flags_8(data); set_reg8(rd, data); cy(4); }
 
 // DJNZ Rd,rel8                Decrement reg and jump if not zero                                      3 8t/5nt    1000 S111  dddd 1000  rrrr rrrr
-void xa_cpu_device::djnz_word_rd_rel8(u8 rd, u8 rel8) { u16 regval = get_reg16(rd);	regval--; do_nz_flags_16(regval); set_reg16(rd, regval); if (get_z_flag()) { set_pc_in_current_page(expand_rel8(rel8)); cy(8); } else { cy(5); } }
+void xa_cpu_device::djnz_word_rd_rel8(u8 rd, u8 rel8) { u16 regval = get_reg16(rd);	regval--; do_nz_flags_16(regval); set_reg16(rd, regval); if (get_z_flag() == 0) { set_pc_in_current_page(expand_rel8(rel8)); cy(8); } else { cy(5); } }
 void xa_cpu_device::djnz_byte_rd_rel8(u8 rd, u8 rel8) { fatalerror("DJNZ.b %s, $%04x", m_regnames8[rd], expand_rel8(rel8)); }
 
 void xa_cpu_device::popu_word_direct(u16 direct) { fatalerror("POPU.w %s", get_directtext(direct)); }
@@ -1399,7 +1399,7 @@ void xa_cpu_device::jnz_rel8(u8 rel8) { fatalerror( "JNZ $%04x", expand_rel8(rel
 
 // PUSH Rlist                  Push regs (b/w) onto the current stack                                  2 b*        0H00 S111  LLLL LLLL
 void xa_cpu_device::push_word_rlist(u8 bitfield, int h) { fatalerror("PUSH.w %s", get_word_reglist(bitfield)); }
-void xa_cpu_device::push_byte_rlist(u8 bitfield, int h) { push_byte_reglist(bitfield, h, false); }
+void xa_cpu_device::push_byte_rlist(u8 bitfield, int h) { cy(2); push_byte_reglist(bitfield, h, false); }
 
 // PUSHU Rlist                 Push regs (b/w) from the user stack                                     2 b*        0H01 S111  LLLL LLLL
 void xa_cpu_device::pushu_word_rlist(u8 bitfield, int h) { fatalerror("PUSHU.w %s", get_word_reglist(bitfield)); }

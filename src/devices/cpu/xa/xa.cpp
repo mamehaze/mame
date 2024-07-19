@@ -996,6 +996,7 @@ void xa_cpu_device::push_byte_reglist(u8 op2, int h, bool force_user)
 				push_byte_to_user_stack(regval);
 			else
 				push_byte_to_stack(regval);
+			cy(2);
 		}
 	}
 }
