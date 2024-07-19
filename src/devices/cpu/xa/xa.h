@@ -43,7 +43,7 @@ public:
 	xa_cpu_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
 
 protected:
-	xa_cpu_device(const machine_config& mconfig, device_type type, const char* tag, device_t* owner, uint32_t clock, address_map_constructor prg_map);
+	xa_cpu_device(const machine_config& mconfig, device_type type, const char* tag, device_t* owner, uint32_t clock, address_map_constructor prg_map, address_map_constructor dat_map);
 
 	virtual void device_start() override;
 	virtual void device_reset() override;
@@ -59,6 +59,7 @@ protected:
 
 private:
 	void internal_map(address_map &map);
+	void internal_data_map(address_map &map);
 	void data_map(address_map &map);
 	void sfr_map(address_map &map);
 
@@ -141,6 +142,7 @@ private:
 
 	void push_byte_reglist(u8 op2, int h, bool force_user);
 
+	void write_data8(int address, u8 data);
 	void write_data16(int address, u16 data);
 
 	void sfr_PSWL_w(u8 data);
@@ -908,6 +910,7 @@ public:
 
 private:
 	void mx10exa_internal_map(address_map &map);
+	void mx10exa_internal_data_map(address_map &map);
 
 };
 

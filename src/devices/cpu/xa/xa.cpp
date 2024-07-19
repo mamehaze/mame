@@ -20,10 +20,10 @@ DEFINE_DEVICE_TYPE(MX10EXA, mx10exa_cpu_device, "mx10exa", "Philips MX10EXA")
 
 
 
-xa_cpu_device::xa_cpu_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, uint32_t clock, address_map_constructor prg_map)
+xa_cpu_device::xa_cpu_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, uint32_t clock, address_map_constructor prg_map, address_map_constructor dat_map)
 	: cpu_device(mconfig, type, tag, owner, clock)
 	, m_program_config("program", ENDIANNESS_LITTLE, 16, 24, 0, prg_map)
-	, m_data_config("data", ENDIANNESS_LITTLE, 16, 24, 0, address_map_constructor(FUNC(xa_cpu_device::data_map), this))
+	, m_data_config("data", ENDIANNESS_LITTLE, 16, 24, 0, dat_map)
 	, m_sfr_config("sfr", ENDIANNESS_LITTLE, 8, 11, 0, address_map_constructor(FUNC(xa_cpu_device::sfr_map), this))
 	, m_pc(0)
 	, m_program(nullptr)
@@ -35,13 +35,13 @@ xa_cpu_device::xa_cpu_device(const machine_config &mconfig, device_type type, co
 }
 
 xa_cpu_device::xa_cpu_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
-	: xa_cpu_device(mconfig, XA, tag, owner, clock, address_map_constructor(FUNC(xa_cpu_device::internal_map), this))
+	: xa_cpu_device(mconfig, XA, tag, owner, clock, address_map_constructor(FUNC(xa_cpu_device::internal_map), this), address_map_constructor(FUNC(xa_cpu_device::internal_data_map), this))
 {
 }
 
 
 mx10exa_cpu_device::mx10exa_cpu_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
-	: xa_cpu_device(mconfig, MX10EXA, tag, owner, clock, address_map_constructor(FUNC(mx10exa_cpu_device::mx10exa_internal_map), this))
+	: xa_cpu_device(mconfig, MX10EXA, tag, owner, clock, address_map_constructor(FUNC(mx10exa_cpu_device::mx10exa_internal_map), this), address_map_constructor(FUNC(mx10exa_cpu_device::mx10exa_internal_data_map), this))
 {
 }
 
@@ -144,6 +144,16 @@ void mx10exa_cpu_device::mx10exa_internal_map(address_map &map)
 {
 	map(0x000000, 0x00ffff).rom();
 }
+
+void xa_cpu_device::internal_data_map(address_map &map)
+{
+}
+
+void mx10exa_cpu_device::mx10exa_internal_data_map(address_map &map)
+{
+	map(0x000000, 0x0007ff).ram();
+}
+
 
 
 device_memory_interface::space_config_vector xa_cpu_device::memory_space_config() const
@@ -505,6 +515,11 @@ u16 xa_cpu_device::get_reg16(int reg)
 		fatalerror("get_reg16 with reg %d\n", reg);
 		return 0;
 	}
+}
+
+void xa_cpu_device::write_data8(int address, u8 data)
+{
+	m_data->write_byte(address, data);
 }
 
 void xa_cpu_device::write_data16(int address, u16 data)

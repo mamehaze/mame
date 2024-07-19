@@ -683,6 +683,16 @@ void xa_cpu_device::xor_byte_rd_indrsinc(u8 rd, u8 rs) { fatalerror("XOR.b %s, [
 void xa_cpu_device::mov_byte_rd_indrsinc(u8 rd, u8 rs) { fatalerror("MOV.b %s, [%s+]", m_regnames8[rd], m_regnames16[rs]);}
 
 // ALUOP.w [Rd+], Rs
+// ALUOP.b [Rd+], Rs
+// ADD [Rd+], Rs               Add reg-ind w/ autoinc to reg                                           2 5         0000 S011  ssss 1ddd
+// ADDC [Rd+], Rs              Add reg-ind w/ autoinc to reg w/ carry                                  2 5         0001 S011  ssss 1ddd
+// SUB [Rd+], Rs               Subtract reg-ind w/ autoinc to reg                                      2 5         0010 S011  ssss 1ddd
+// SUBB [Rd+], Rs              Subtract w/ borrow reg-ind w/ autoinc to reg                            2 5         0011 S011  ssss 1ddd
+// CMP [Rd+], Rs               Compare reg w/ autoinc reg-ind                                          2 5         0100 S011  ssss 1ddd
+// AND [Rd+], Rs               Logical AND reg-ind w/ autoinc to reg                                   2 5         0101 S011  ssss 1ddd
+// OR [Rd+], Rs                Logical OR reg-ind w/ autoinc to reg                                    2 5         0110 S011  ssss 1ddd
+// XOR [Rd+], Rs               Logical XOR reg-ind w/ autoinc to reg                                   2 5         0111 S011  ssss 1ddd
+// MOV [Rd+], Rs               Move reg-ind w/ autoinc to reg                                          2 4         1000 S011  ssss 1ddd
 void xa_cpu_device::aluop_word_indrdinc_rs(int alu_op, u8 rd, u8 rs)
 {
 	switch (alu_op)
@@ -700,18 +710,6 @@ void xa_cpu_device::aluop_word_indrdinc_rs(int alu_op, u8 rd, u8 rs)
 	}
 }
 
-void xa_cpu_device::add_word_indrdinc_rs(u8 rd, u8 rs) { fatalerror("ADD.w [%s+], %s", m_regnames16[rd], m_regnames16[rs]);}
-void xa_cpu_device::addc_word_indrdinc_rs(u8 rd, u8 rs){ fatalerror("ADDC.w [%s+], %s", m_regnames16[rd], m_regnames16[rs]);}
-void xa_cpu_device::sub_word_indrdinc_rs(u8 rd, u8 rs) { fatalerror("SUB.w [%s+], %s", m_regnames16[rd], m_regnames16[rs]);}
-void xa_cpu_device::subb_word_indrdinc_rs(u8 rd, u8 rs){ fatalerror("SUBB.w [%s+], %s", m_regnames16[rd], m_regnames16[rs]);}
-void xa_cpu_device::cmp_word_indrdinc_rs(u8 rd, u8 rs) { fatalerror("CMP.w [%s+], %s", m_regnames16[rd], m_regnames16[rs]);}
-void xa_cpu_device::and_word_indrdinc_rs(u8 rd, u8 rs) { fatalerror("AND.w [%s+], %s", m_regnames16[rd], m_regnames16[rs]);}
-void xa_cpu_device::or_word_indrdinc_rs(u8 rd, u8 rs)  { fatalerror("OR.w [%s+], %s", m_regnames16[rd], m_regnames16[rs]);}
-void xa_cpu_device::xor_word_indrdinc_rs(u8 rd, u8 rs) { fatalerror("XOR.w [%s+], %s", m_regnames16[rd], m_regnames16[rs]);}
-void xa_cpu_device::mov_word_indrdinc_rs(u8 rd, u8 rs) { fatalerror("MOV.w [%s+], %s", m_regnames16[rd], m_regnames16[rs]);}
-
-
-// ALUOP.b [Rd+], Rs
 void xa_cpu_device::aluop_byte_indrdinc_rs(int alu_op, u8 rd, u8 rs)
 {
 	switch (alu_op)
@@ -728,6 +726,17 @@ void xa_cpu_device::aluop_byte_indrdinc_rs(int alu_op, u8 rd, u8 rs)
 	default: logerror("UNK_ALUOP.b [%s+], %s", m_regnames16[rd], m_regnames8[rs]); do_nop(); break;
 	}
 }
+
+void xa_cpu_device::add_word_indrdinc_rs(u8 rd, u8 rs) { fatalerror("ADD.w [%s+], %s", m_regnames16[rd], m_regnames16[rs]);}
+void xa_cpu_device::addc_word_indrdinc_rs(u8 rd, u8 rs){ fatalerror("ADDC.w [%s+], %s", m_regnames16[rd], m_regnames16[rs]);}
+void xa_cpu_device::sub_word_indrdinc_rs(u8 rd, u8 rs) { fatalerror("SUB.w [%s+], %s", m_regnames16[rd], m_regnames16[rs]);}
+void xa_cpu_device::subb_word_indrdinc_rs(u8 rd, u8 rs){ fatalerror("SUBB.w [%s+], %s", m_regnames16[rd], m_regnames16[rs]);}
+void xa_cpu_device::cmp_word_indrdinc_rs(u8 rd, u8 rs) { fatalerror("CMP.w [%s+], %s", m_regnames16[rd], m_regnames16[rs]);}
+void xa_cpu_device::and_word_indrdinc_rs(u8 rd, u8 rs) { fatalerror("AND.w [%s+], %s", m_regnames16[rd], m_regnames16[rs]);}
+void xa_cpu_device::or_word_indrdinc_rs(u8 rd, u8 rs)  { fatalerror("OR.w [%s+], %s", m_regnames16[rd], m_regnames16[rs]);}
+void xa_cpu_device::xor_word_indrdinc_rs(u8 rd, u8 rs) { fatalerror("XOR.w [%s+], %s", m_regnames16[rd], m_regnames16[rs]);}
+void xa_cpu_device::mov_word_indrdinc_rs(u8 rd, u8 rs) { fatalerror("MOV.w [%s+], %s", m_regnames16[rd], m_regnames16[rs]);}
+
 void xa_cpu_device::add_byte_indrdinc_rs(u8 rd, u8 rs) { fatalerror("ADD.b [%s+], %s", m_regnames16[rd], m_regnames8[rs]);}
 void xa_cpu_device::addc_byte_indrdinc_rs(u8 rd, u8 rs){ fatalerror("ADDC.b [%s+], %s", m_regnames16[rd], m_regnames8[rs]);}
 void xa_cpu_device::sub_byte_indrdinc_rs(u8 rd, u8 rs) { fatalerror("SUB.b [%s+], %s", m_regnames16[rd], m_regnames8[rs]);}
@@ -736,7 +745,7 @@ void xa_cpu_device::cmp_byte_indrdinc_rs(u8 rd, u8 rs) { fatalerror("CMP.b [%s+]
 void xa_cpu_device::and_byte_indrdinc_rs(u8 rd, u8 rs) { fatalerror("AND.b [%s+], %s", m_regnames16[rd], m_regnames8[rs]);}
 void xa_cpu_device::or_byte_indrdinc_rs(u8 rd, u8 rs)  { fatalerror("OR.b [%s+], %s", m_regnames16[rd], m_regnames8[rs]);}
 void xa_cpu_device::xor_byte_indrdinc_rs(u8 rd, u8 rs) { fatalerror("XOR.b [%s+], %s", m_regnames16[rd], m_regnames8[rs]);}
-void xa_cpu_device::mov_byte_indrdinc_rs(u8 rd, u8 rs) { fatalerror("MOV.b [%s+], %s", m_regnames16[rd], m_regnames8[rs]);}
+void xa_cpu_device::mov_byte_indrdinc_rs(u8 rd, u8 rs) { u16 address = get_reg16(rd); u8 result = get_reg8(rs); write_data8(address, result); address++; do_nz_flags_8(result); set_reg16(rd, address); cy(4); }
 
 
 // ALUOP.w Rd, [Rs+off8]
