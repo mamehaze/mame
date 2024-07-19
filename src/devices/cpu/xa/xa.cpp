@@ -636,8 +636,7 @@ u8 xa_cpu::read_direct8(u16 addr)
 {
 	if (addr < 0x400)
 	{
-		fatalerror("read_direct8 %04x\n", addr);
-		return 0;
+		return m_data->read_byte(addr);
 	}
 	else
 	{

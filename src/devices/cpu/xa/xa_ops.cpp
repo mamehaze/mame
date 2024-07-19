@@ -160,6 +160,34 @@ u8 xa_cpu::do_cjne_8_helper(u8 val1, u8 val2)
 	return (u8)result;
 }
 
+
+void xa_cpu::set_bit_8_helper(u16 bit, u8 val)
+{
+	int position = bit & 7;
+
+	if (bit < 0x100)
+	{
+		int reg = ((bit & 0x1ff) >> 3);
+
+		if (reg < 16)
+			fatalerror("set_bit_helper %s.%d", m_regnames8[reg], position);
+		else
+			fatalerror("set_bit_helper ill_REG_%02x.%d", reg, position);
+	}
+	else if (bit < 0x200)
+	{
+		int addr = ((bit & 0x1ff) >> 3) + 0x20;
+		fatalerror("set_bit_helper $%02x.%d", addr, position);
+	}
+
+	int sfr = ((bit & 0x1ff) >> 3);
+	u8 mask = (1 << position) ^ 0xff;
+
+	u8 sfr_val = m_sfr->read_byte(sfr) & mask;
+	sfr_val |= (val << position);
+	m_sfr->write_byte(sfr, sfr_val);
+}
+
 // NOP                         No operation                                                            1 3         0000 0000
 void xa_cpu::do_nop() { cy(3); }
 
@@ -538,7 +566,7 @@ void xa_cpu::cmp_word_direct_data16(u16 direct, u16 data16) { fatalerror( "CMP.w
 void xa_cpu::and_word_direct_data16(u16 direct, u16 data16) { fatalerror( "AND.w %s, #$%04x (DIRECT, DATA16)", get_directtext(direct), data16); }
 void xa_cpu::or_word_direct_data16(u16 direct, u16 data16)  { fatalerror( "OR.w %s, #$%04x (DIRECT, DATA16)", get_directtext(direct), data16); }
 void xa_cpu::xor_word_direct_data16(u16 direct, u16 data16) { fatalerror( "XOR.w %s, #$%04x (DIRECT, DATA16)", get_directtext(direct), data16); }
-void xa_cpu::mov_word_direct_data16(u16 direct, u16 data16) { fatalerror( "MOV.w %s, #$%04x (DIRECT, DATA16)", get_directtext(direct), data16); }
+void xa_cpu::mov_word_direct_data16(u16 direct, u16 data16) { u16 val = data16; do_nz_flags_16(val); write_direct16(direct, val); cy(3); }
 
 // ------------------------------------------
 // ------------------------------------------
@@ -658,6 +686,16 @@ void xa_cpu::mov_byte_rd_indrs(u8 rd, u8 rs) { fatalerror("MOV.b %s, [%s]", m_re
 
 
 // ALUOP.w [Rd], Rs
+// ALUOP.b [Rd], Rs
+// ADD [Rd], Rs                Add reg to reg-ind                                                      2 4         0000 S010  ssss 1ddd
+// ADDC [Rd], Rs               Add reg to reg-ind w/ carry                                             2 4         0001 S010  ssss 1ddd
+// SUB [Rd], Rs                Subtract reg to reg-ind                                                 2 4         0010 S010  ssss 1ddd
+// SUBB [Rd], Rs               Subtract w/ borrow reg to reg-ind                                       2 4         0011 S010  ssss 1ddd
+// CMP [Rd], Rs                Compare reg w/ reg-ind                                                  2 4         0100 S010  ssss 1ddd
+// AND [Rd], Rs                Logical AND reg to reg-ind                                              2 4         0101 S010  ssss 1ddd
+// OR [Rd], Rs                 Logical OR reg to reg-ind                                               2 4         0110 S010  ssss 1ddd
+// XOR [Rd], Rs                Logical XOR reg to reg-ind                                              2 4         0111 S010  ssss 1ddd
+// MOV [Rd], Rs                Move reg to reg-ind                                                     2 3         1000 S010  ssss 1ddd
 void xa_cpu::aluop_word_indrd_rs(int alu_op, u8 rd, u8 rs)
 {
 	switch (alu_op)
@@ -675,18 +713,6 @@ void xa_cpu::aluop_word_indrd_rs(int alu_op, u8 rd, u8 rs)
 	}
 }
 
-void xa_cpu::add_word_indrd_rs(u8 rd, u8 rs) { fatalerror("ADD.w [%s], %s", m_regnames16[rd], m_regnames16[rs]);}
-void xa_cpu::addc_word_indrd_rs(u8 rd, u8 rs){ fatalerror("ADDC.w [%s], %s", m_regnames16[rd], m_regnames16[rs]);}
-void xa_cpu::sub_word_indrd_rs(u8 rd, u8 rs) { fatalerror("SUB.w [%s], %s", m_regnames16[rd], m_regnames16[rs]);}
-void xa_cpu::subb_word_indrd_rs(u8 rd, u8 rs){ fatalerror("SUBB.w [%s], %s", m_regnames16[rd], m_regnames16[rs]);}
-void xa_cpu::cmp_word_indrd_rs(u8 rd, u8 rs) { fatalerror("CMP.w [%s], %s", m_regnames16[rd], m_regnames16[rs]);}
-void xa_cpu::and_word_indrd_rs(u8 rd, u8 rs) { fatalerror("AND.w [%s], %s", m_regnames16[rd], m_regnames16[rs]);}
-void xa_cpu::or_word_indrd_rs(u8 rd, u8 rs)  { fatalerror("OR.w [%s], %s", m_regnames16[rd], m_regnames16[rs]);}
-void xa_cpu::xor_word_indrd_rs(u8 rd, u8 rs) { fatalerror("XOR.w [%s], %s", m_regnames16[rd], m_regnames16[rs]);}
-void xa_cpu::mov_word_indrd_rs(u8 rd, u8 rs) { fatalerror("MOV.w [%s], %s", m_regnames16[rd], m_regnames16[rs]);}
-
-
-// ALUOP.b [Rd], Rs
 void xa_cpu::aluop_byte_indrd_rs(int alu_op, u8 rd, u8 rs)
 {
 	switch (alu_op)
@@ -703,6 +729,17 @@ void xa_cpu::aluop_byte_indrd_rs(int alu_op, u8 rd, u8 rs)
 	default: logerror("UNK_ALUOP.b [%s], %s", m_regnames16[rd], m_regnames8[rs]); do_nop(); break;
 	}
 }
+
+void xa_cpu::add_word_indrd_rs(u8 rd, u8 rs) { fatalerror("ADD.w [%s], %s", m_regnames16[rd], m_regnames16[rs]);}
+void xa_cpu::addc_word_indrd_rs(u8 rd, u8 rs){ fatalerror("ADDC.w [%s], %s", m_regnames16[rd], m_regnames16[rs]);}
+void xa_cpu::sub_word_indrd_rs(u8 rd, u8 rs) { fatalerror("SUB.w [%s], %s", m_regnames16[rd], m_regnames16[rs]);}
+void xa_cpu::subb_word_indrd_rs(u8 rd, u8 rs){ fatalerror("SUBB.w [%s], %s", m_regnames16[rd], m_regnames16[rs]);}
+void xa_cpu::cmp_word_indrd_rs(u8 rd, u8 rs) { fatalerror("CMP.w [%s], %s", m_regnames16[rd], m_regnames16[rs]);}
+void xa_cpu::and_word_indrd_rs(u8 rd, u8 rs) { fatalerror("AND.w [%s], %s", m_regnames16[rd], m_regnames16[rs]);}
+void xa_cpu::or_word_indrd_rs(u8 rd, u8 rs)  { fatalerror("OR.w [%s], %s", m_regnames16[rd], m_regnames16[rs]);}
+void xa_cpu::xor_word_indrd_rs(u8 rd, u8 rs) { fatalerror("XOR.w [%s], %s", m_regnames16[rd], m_regnames16[rs]);}
+void xa_cpu::mov_word_indrd_rs(u8 rd, u8 rs) { u16 val = gr16(rs);	do_nz_flags_8(val);	u16 addr = gr16(rd); wdat16(addr, val);	cy(3); }
+
 void xa_cpu::add_byte_indrd_rs(u8 rd, u8 rs) { fatalerror("ADD.b [%s], %s", m_regnames16[rd], m_regnames8[rs]);}
 void xa_cpu::addc_byte_indrd_rs(u8 rd, u8 rs){ fatalerror("ADDC.b [%s], %s", m_regnames16[rd], m_regnames8[rs]);}
 void xa_cpu::sub_byte_indrd_rs(u8 rd, u8 rs) { fatalerror("SUB.b [%s], %s", m_regnames16[rd], m_regnames8[rs]);}
@@ -835,6 +872,16 @@ void xa_cpu::mov_byte_indrdinc_rs(u8 rd, u8 rs) { u16 address = get_addr(rd); u8
 
 
 // ALUOP.w Rd, [Rs+off8]
+// ALUOP.b Rd, [Rs+off8]
+// ADD Rd, [Rs+offset8]        Add reg-ind w/ 8-bit offs to reg                                        3 6         0000 S100  dddd 0sss  oooo oooo
+// ADDC Rd, [Rs+offset8]       Add reg-ind w/ 8-bit offs to reg w/ carry                               3 6         0001 S100  dddd 0sss  oooo oooo
+// SUB Rd, [Rs+offset8]        Subtract reg-ind w/ 8-bit offs to reg                                   3 6         0010 S100  dddd 0sss  oooo oooo
+// SUBB Rd, [Rs+offset8]       Subtract w/ borrow reg-ind w/ 8-bit offs to reg                         3 6         0011 S100  dddd 0sss  oooo oooo
+// CMP Rd, [Rs+offset8]        Compare reg-ind w/ 8-bit offs w/ reg                                    3 6         0100 S100  dddd 0sss  oooo oooo
+// AND Rd, [Rs+offset8]        Logical AND reg-ind w/ 8-bit offs to reg                                3 6         0101 S100  dddd 0sss  oooo oooo
+// OR Rd, [Rs+offset8]         Logical OR reg-ind w/ 8-bit offs to reg                                 3 6         0110 S100  dddd 0sss  oooo oooo
+// XOR Rd, [Rs+offset8]        Logical XOR reg-ind w/ 8-bit offs to reg                                3 6         0111 S100  dddd 0sss  oooo oooo
+// MOV Rd, [Rs+offset8]        Move reg-ind w/ 8-bit offs to reg                                       3 5         1000 S100  dddd 0sss  oooo oooo
 void xa_cpu::aluop_word_rd_rsoff8(int alu_op, u8 rd, u8 rs, u8 offset8)
 {
 	switch (alu_op)
@@ -851,18 +898,6 @@ void xa_cpu::aluop_word_rd_rsoff8(int alu_op, u8 rd, u8 rs, u8 offset8)
 	default: logerror("UNK_ALUOP.w %s, [%s+#$%02x]", m_regnames16[rd], m_regnames16[rs], offset8); do_nop(); break;
 	}
 }
-
-void xa_cpu::add_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8) { fatalerror("ADD.w %s, [%s+#$%02x]", m_regnames16[rd], m_regnames16[rs], offset8);}
-void xa_cpu::addc_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8){ fatalerror("ADDC.w %s, [%s+#$%02x]", m_regnames16[rd], m_regnames16[rs], offset8);}
-void xa_cpu::sub_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8) { fatalerror("SUB.w %s, [%s+#$%02x]", m_regnames16[rd], m_regnames16[rs], offset8);}
-void xa_cpu::subb_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8){ fatalerror("SUBB.w %s, [%s+#$%02x]", m_regnames16[rd], m_regnames16[rs], offset8);}
-void xa_cpu::cmp_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8) { fatalerror("CMP.w %s, [%s+#$%02x]", m_regnames16[rd], m_regnames16[rs], offset8);}
-void xa_cpu::and_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8) { fatalerror("AND.w %s, [%s+#$%02x]", m_regnames16[rd], m_regnames16[rs], offset8);}
-void xa_cpu::or_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8)  { fatalerror("OR.w %s, [%s+#$%02x]", m_regnames16[rd], m_regnames16[rs], offset8);}
-void xa_cpu::xor_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8) { fatalerror("XOR.w %s, [%s+#$%02x]", m_regnames16[rd], m_regnames16[rs], offset8);}
-void xa_cpu::mov_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8) { fatalerror("MOV.w %s, [%s+#$%02x]", m_regnames16[rd], m_regnames16[rs], offset8);}
-
-// ALUOP.b Rd, [Rs+off8]
 void xa_cpu::aluop_byte_rd_rsoff8(int alu_op, u8 rd, u8 rs, u8 offset8)
 {
 	switch (alu_op)
@@ -880,6 +915,16 @@ void xa_cpu::aluop_byte_rd_rsoff8(int alu_op, u8 rd, u8 rs, u8 offset8)
 	}
 }
 
+void xa_cpu::add_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8) { fatalerror("ADD.w %s, [%s+#$%02x]", m_regnames16[rd], m_regnames16[rs], offset8);}
+void xa_cpu::addc_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8){ fatalerror("ADDC.w %s, [%s+#$%02x]", m_regnames16[rd], m_regnames16[rs], offset8);}
+void xa_cpu::sub_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8) { fatalerror("SUB.w %s, [%s+#$%02x]", m_regnames16[rd], m_regnames16[rs], offset8);}
+void xa_cpu::subb_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8){ fatalerror("SUBB.w %s, [%s+#$%02x]", m_regnames16[rd], m_regnames16[rs], offset8);}
+void xa_cpu::cmp_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8) { fatalerror("CMP.w %s, [%s+#$%02x]", m_regnames16[rd], m_regnames16[rs], offset8);}
+void xa_cpu::and_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8) { fatalerror("AND.w %s, [%s+#$%02x]", m_regnames16[rd], m_regnames16[rs], offset8);}
+void xa_cpu::or_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8)  { fatalerror("OR.w %s, [%s+#$%02x]", m_regnames16[rd], m_regnames16[rs], offset8);}
+void xa_cpu::xor_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8) { fatalerror("XOR.w %s, [%s+#$%02x]", m_regnames16[rd], m_regnames16[rs], offset8);}
+void xa_cpu::mov_word_rd_rsoff8(u8 rd, u8 rs, u8 offset8) { fatalerror("MOV.w %s, [%s+#$%02x]", m_regnames16[rd], m_regnames16[rs], offset8);}
+
 void xa_cpu::add_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8) { fatalerror("ADD.b %s, [%s+#$%02x]", m_regnames8[rd], m_regnames16[rs], offset8);}
 void xa_cpu::addc_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8){ fatalerror("ADDC.b %s, [%s+#$%02x]", m_regnames8[rd], m_regnames16[rs], offset8);}
 void xa_cpu::sub_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8) { fatalerror("SUB.b %s, [%s+#$%02x]", m_regnames8[rd], m_regnames16[rs], offset8);}
@@ -891,6 +936,17 @@ void xa_cpu::xor_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8) { fatalerror("XOR.b %s
 void xa_cpu::mov_byte_rd_rsoff8(u8 rd, u8 rs, u8 offset8) { fatalerror("MOV.b %s, [%s+#$%02x]", m_regnames8[rd], m_regnames16[rs], offset8);}
 
 // ALUOP.w [Rd+off8], Rs
+// ALUOP.b [Rd+off8], Rs
+// 
+// ADD [Rd+offset8], Rs        Add reg to reg-ind w/ 8-bit offs                                        3 6         0000 S100  ssss 1ddd  oooo oooo
+// ADDC [Rd+offset8], Rs       Add reg to reg-ind w/ 8-bit offs w/ carry                               3 6         0001 S100  ssss 1ddd  oooo oooo
+// SUB [Rd+offset8], Rs        Subtract reg to reg-ind w/ 8-bit offs                                   3 6         0010 S100  ssss 1ddd  oooo oooo
+// SUBB [Rd+offset8], Rs       Subtract w/ borrow reg to reg-ind w/ 8-bit offs                         3 6         0011 S100  ssss 1ddd  oooo oooo
+// CMP [Rd+offset8], Rs        Compare reg w/ reg-ind w/ 8-bit offs                                    3 6         0100 S100  ssss 1ddd  oooo oooo
+// AND [Rd+offset8], Rs        Logical AND reg to reg-ind w/ 8-bit offs                                3 6         0101 S100  ssss 1ddd  oooo oooo
+// OR [Rd+offset8], Rs         Logical OR reg to reg-ind w/ 8-bit offs                                 3 6         0110 S100  ssss 1ddd  oooo oooo
+// XOR [Rd+offset8], Rs        Logical XOR reg to reg-ind w/ 8-bit offs                                3 6         0111 S100  ssss 1ddd  oooo oooo
+// MOV [Rd+offset8], Rs        Move reg to reg-ind w/ 8-bit offs                                       3 5         1000 S100  ssss 1ddd  oooo oooo
 void xa_cpu::aluop_word_rdoff8_rs(int alu_op, u8 rd, u8 offset8, u8 rs)
 {
 	switch (alu_op)
@@ -908,18 +964,6 @@ void xa_cpu::aluop_word_rdoff8_rs(int alu_op, u8 rd, u8 offset8, u8 rs)
 	}
 }
 
-void xa_cpu::add_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs) { fatalerror("ADD.w [%s+#$%02x], %s", m_regnames16[rd], offset8, m_regnames16[rs]);}
-void xa_cpu::addc_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs){ fatalerror("ADDC.w [%s+#$%02x], %s", m_regnames16[rd], offset8, m_regnames16[rs]);}
-void xa_cpu::sub_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs) { fatalerror("SUB.w [%s+#$%02x], %s", m_regnames16[rd], offset8, m_regnames16[rs]);}
-void xa_cpu::subb_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs){ fatalerror("SUBB.w [%s+#$%02x], %s", m_regnames16[rd], offset8, m_regnames16[rs]);}
-void xa_cpu::cmp_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs) { fatalerror("CMP.w [%s+#$%02x], %s", m_regnames16[rd], offset8, m_regnames16[rs]);}
-void xa_cpu::and_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs) { fatalerror("AND.w [%s+#$%02x], %s", m_regnames16[rd], offset8, m_regnames16[rs]);}
-void xa_cpu::or_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs)  { fatalerror("OR.w [%s+#$%02x], %s", m_regnames16[rd], offset8, m_regnames16[rs]);}
-void xa_cpu::xor_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs) { fatalerror("XOR.w [%s+#$%02x], %s", m_regnames16[rd], offset8, m_regnames16[rs]);}
-void xa_cpu::mov_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs) { fatalerror("MOV.w [%s+#$%02x], %s", m_regnames16[rd], offset8, m_regnames16[rs]);}
-
-
-// ALUOP.b [Rd+off8], Rs
 void xa_cpu::aluop_byte_rdoff8_rs(int alu_op, u8 rd, u8 offset8, u8 rs)
 {
 	switch (alu_op)
@@ -936,6 +980,16 @@ void xa_cpu::aluop_byte_rdoff8_rs(int alu_op, u8 rd, u8 offset8, u8 rs)
 	default: logerror("UNK_ALUOP.b [%s+#$%02x], %s", m_regnames16[rd], offset8, m_regnames8[rs]); do_nop(); break;
 	}
 }
+
+void xa_cpu::add_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs) { fatalerror("ADD.w [%s+#$%02x], %s", m_regnames16[rd], offset8, m_regnames16[rs]);}
+void xa_cpu::addc_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs){ fatalerror("ADDC.w [%s+#$%02x], %s", m_regnames16[rd], offset8, m_regnames16[rs]);}
+void xa_cpu::sub_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs) { fatalerror("SUB.w [%s+#$%02x], %s", m_regnames16[rd], offset8, m_regnames16[rs]);}
+void xa_cpu::subb_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs){ fatalerror("SUBB.w [%s+#$%02x], %s", m_regnames16[rd], offset8, m_regnames16[rs]);}
+void xa_cpu::cmp_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs) { fatalerror("CMP.w [%s+#$%02x], %s", m_regnames16[rd], offset8, m_regnames16[rs]);}
+void xa_cpu::and_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs) { fatalerror("AND.w [%s+#$%02x], %s", m_regnames16[rd], offset8, m_regnames16[rs]);}
+void xa_cpu::or_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs)  { fatalerror("OR.w [%s+#$%02x], %s", m_regnames16[rd], offset8, m_regnames16[rs]);}
+void xa_cpu::xor_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs) { fatalerror("XOR.w [%s+#$%02x], %s", m_regnames16[rd], offset8, m_regnames16[rs]);}
+void xa_cpu::mov_word_rdoff8_rs(u8 rd, u8 offset8, u8 rs) { u16 val = gr16(rs);	u16 fulloffset = util::sext(offset8, 8); u16 address = get_addr(rd) + fulloffset; do_nz_flags_16(val); wdat16(address, val); cy(5); }
 
 void xa_cpu::add_byte_rdoff8_rs(u8 rd, u8 offset8, u8 rs) { fatalerror("ADD.b [%s+#$%02x], %s", m_regnames16[rd], offset8, m_regnames8[rs]);}
 void xa_cpu::addc_byte_rdoff8_rs(u8 rd, u8 offset8, u8 rs){ fatalerror("ADDC.b [%s+#$%02x], %s", m_regnames16[rd], offset8, m_regnames8[rs]);}
@@ -1059,6 +1113,16 @@ void xa_cpu::xor_byte_rdoff16_rs(u8 rd, u16 offset16, u8 rs) { fatalerror("XOR.b
 void xa_cpu::mov_byte_rdoff16_rs(u8 rd, u16 offset16, u8 rs) { fatalerror("MOV.b [%s+#$%04x], %s", m_regnames16[rd], offset16, m_regnames8[rs]);}
 
 // ALUOP.w Rd, Direct
+// ALUOP.b Rd, Direct
+// ADD Rd, direct              Add mem to reg                                                          3 4         0000 S110  dddd 0DDD  DDDD DDDD
+// ADDC Rd, direct             Add mem to reg w/ carry                                                 3 4         0001 S110  dddd 0DDD  DDDD DDDD
+// SUB Rd, direct              Subtract mem to reg                                                     3 4         0010 S110  dddd 0DDD  DDDD DDDD
+// SUBB Rd, direct             Subtract w/ borrow mem to reg                                           3 4         0011 S110  dddd 0DDD  DDDD DDDD
+// CMP Rd, direct              Compare mem w/ reg                                                      3 4         0100 S110  dddd 0DDD  DDDD DDDD
+// AND Rd, direct              Logical AND mem to reg                                                  3 4         0101 S110  dddd 0DDD  DDDD DDDD
+// OR Rd, direct               Logical OR mem to reg                                                   3 4         0110 S110  dddd 0DDD  DDDD DDDD
+// XOR Rd, direct              Logical XOR mem to reg                                                  3 4         0111 S110  dddd 0DDD  DDDD DDDD
+// MOV Rd, direct              Move mem to reg                                                         3 4         1000 S110  dddd 0DDD  DDDD DDDD
 void xa_cpu::aluop_word_rd_direct(int alu_op, u8 rd, u16 direct)
 {
 	switch (alu_op)
@@ -1076,17 +1140,6 @@ void xa_cpu::aluop_word_rd_direct(int alu_op, u8 rd, u16 direct)
 	}
 }
 
-void xa_cpu::add_word_rd_direct(u8 rd, u16 direct) { fatalerror("ADD.w %s, %s", m_regnames16[rd], get_directtext(direct));}
-void xa_cpu::addc_word_rd_direct(u8 rd, u16 direct){ fatalerror("ADDC.w %s, %s", m_regnames16[rd], get_directtext(direct));}
-void xa_cpu::sub_word_rd_direct(u8 rd, u16 direct) { fatalerror("SUB.w %s, %s", m_regnames16[rd], get_directtext(direct));}
-void xa_cpu::subb_word_rd_direct(u8 rd, u16 direct){ fatalerror("SUBB.w %s, %s", m_regnames16[rd], get_directtext(direct));}
-void xa_cpu::cmp_word_rd_direct(u8 rd, u16 direct) { fatalerror("CMP.w %s, %s", m_regnames16[rd], get_directtext(direct));}
-void xa_cpu::and_word_rd_direct(u8 rd, u16 direct) { fatalerror("AND.w %s, %s", m_regnames16[rd], get_directtext(direct));}
-void xa_cpu::or_word_rd_direct(u8 rd, u16 direct)  { fatalerror("OR.w %s, %s", m_regnames16[rd], get_directtext(direct));}
-void xa_cpu::xor_word_rd_direct(u8 rd, u16 direct) { fatalerror("XOR.w %s, %s", m_regnames16[rd], get_directtext(direct));}
-void xa_cpu::mov_word_rd_direct(u8 rd, u16 direct) { fatalerror("MOV.w %s, %s", m_regnames16[rd], get_directtext(direct));}
-
-// ALUOP.b Rd, Direct
 void xa_cpu::aluop_byte_rd_direct(int alu_op, u8 rd, u16 direct)
 {
 	switch (alu_op)
@@ -1104,6 +1157,16 @@ void xa_cpu::aluop_byte_rd_direct(int alu_op, u8 rd, u16 direct)
 	}
 }
 
+void xa_cpu::add_word_rd_direct(u8 rd, u16 direct) { fatalerror("ADD.w %s, %s", m_regnames16[rd], get_directtext(direct));}
+void xa_cpu::addc_word_rd_direct(u8 rd, u16 direct){ fatalerror("ADDC.w %s, %s", m_regnames16[rd], get_directtext(direct));}
+void xa_cpu::sub_word_rd_direct(u8 rd, u16 direct) { fatalerror("SUB.w %s, %s", m_regnames16[rd], get_directtext(direct));}
+void xa_cpu::subb_word_rd_direct(u8 rd, u16 direct){ fatalerror("SUBB.w %s, %s", m_regnames16[rd], get_directtext(direct));}
+void xa_cpu::cmp_word_rd_direct(u8 rd, u16 direct) { fatalerror("CMP.w %s, %s", m_regnames16[rd], get_directtext(direct));}
+void xa_cpu::and_word_rd_direct(u8 rd, u16 direct) { fatalerror("AND.w %s, %s", m_regnames16[rd], get_directtext(direct));}
+void xa_cpu::or_word_rd_direct(u8 rd, u16 direct)  { fatalerror("OR.w %s, %s", m_regnames16[rd], get_directtext(direct));}
+void xa_cpu::xor_word_rd_direct(u8 rd, u16 direct) { fatalerror("XOR.w %s, %s", m_regnames16[rd], get_directtext(direct));}
+void xa_cpu::mov_word_rd_direct(u8 rd, u16 direct) { fatalerror("MOV.w %s, %s", m_regnames16[rd], get_directtext(direct));}
+
 void xa_cpu::add_byte_rd_direct(u8 rd, u16 direct) { fatalerror("ADD.b %s, %s", m_regnames8[rd], get_directtext(direct));}
 void xa_cpu::addc_byte_rd_direct(u8 rd, u16 direct){ fatalerror("ADDC.b %s, %s", m_regnames8[rd], get_directtext(direct));}
 void xa_cpu::sub_byte_rd_direct(u8 rd, u16 direct) { fatalerror("SUB.b %s, %s", m_regnames8[rd], get_directtext(direct));}
@@ -1112,9 +1175,20 @@ void xa_cpu::cmp_byte_rd_direct(u8 rd, u16 direct) { fatalerror("CMP.b %s, %s", 
 void xa_cpu::and_byte_rd_direct(u8 rd, u16 direct) { fatalerror("AND.b %s, %s", m_regnames8[rd], get_directtext(direct));}
 void xa_cpu::or_byte_rd_direct(u8 rd, u16 direct)  { fatalerror("OR.b %s, %s", m_regnames8[rd], get_directtext(direct));}
 void xa_cpu::xor_byte_rd_direct(u8 rd, u16 direct) { fatalerror("XOR.b %s, %s", m_regnames8[rd], get_directtext(direct));}
-void xa_cpu::mov_byte_rd_direct(u8 rd, u16 direct) { fatalerror("MOV.b %s, %s", m_regnames8[rd], get_directtext(direct));}
+void xa_cpu::mov_byte_rd_direct(u8 rd, u16 direct) { u8 val = read_direct8(direct); do_nz_flags_8(val); sr8(rd, val); cy(4); }
 
 // ALUOP.w Direct, Rs
+// ALUOP.b Direct, Rs
+// ADD direct, Rs              Add reg to mem                                                          3 4         0000 S110  ssss 1DDD  DDDD DDDD
+// ADDC direct, Rs             Add reg to mem w/ carry                                                 3 4         0001 S110  ssss 1DDD  DDDD DDDD
+// SUB direct, Rs              Subtract reg to mem                                                     3 4         0010 S110  ssss 1DDD  DDDD DDDD
+// SUBB direct, Rs             Subtract w/ borrow reg to mem                                           3 4         0011 S110  ssss 1DDD  DDDD DDDD
+// CMP direct, Rs              Compare reg w/ mem                                                      3 4         0100 S110  ssss 1DDD  DDDD DDDD
+// AND direct, Rs              Logical AND reg to mem                                                  3 4         0101 S110  ssss 1DDD  DDDD DDDD
+// OR direct, Rs               Logical OR reg to mem                                                   3 4         0110 S110  ssss 1DDD  DDDD DDDD
+// XOR direct, Rs              Logical XOR reg to mem                                                  3 4         0111 S110  ssss 1DDD  DDDD DDDD
+// MOV direct, Rs              Move reg to mem                                                         3 4         1000 S110  ssss 1DDD  DDDD DDDD
+
 void xa_cpu::aluop_word_direct_rs(int alu_op, u16 direct, u8 rs)
 {
 	switch (alu_op)
@@ -1132,17 +1206,6 @@ void xa_cpu::aluop_word_direct_rs(int alu_op, u16 direct, u8 rs)
 	}
 }
 
-void xa_cpu::add_word_direct_rs(u16 direct, u8 rs) { fatalerror("ADD.w %s, %s", get_directtext(direct), m_regnames16[rs]);}
-void xa_cpu::addc_word_direct_rs(u16 direct, u8 rs){ fatalerror("ADDC.w %s, %s", get_directtext(direct), m_regnames16[rs]);}
-void xa_cpu::sub_word_direct_rs(u16 direct, u8 rs) { fatalerror("SUB.w %s, %s", get_directtext(direct), m_regnames16[rs]);}
-void xa_cpu::subb_word_direct_rs(u16 direct, u8 rs){ fatalerror("SUBB.w %s, %s", get_directtext(direct), m_regnames16[rs]);}
-void xa_cpu::cmp_word_direct_rs(u16 direct, u8 rs) { fatalerror("CMP.w %s, %s", get_directtext(direct), m_regnames16[rs]);}
-void xa_cpu::and_word_direct_rs(u16 direct, u8 rs) { fatalerror("AND.w %s, %s", get_directtext(direct), m_regnames16[rs]);}
-void xa_cpu::or_word_direct_rs(u16 direct, u8 rs)  { fatalerror("OR.w %s, %s", get_directtext(direct), m_regnames16[rs]);}
-void xa_cpu::xor_word_direct_rs(u16 direct, u8 rs) { fatalerror("XOR.w %s, %s", get_directtext(direct), m_regnames16[rs]);}
-void xa_cpu::mov_word_direct_rs(u16 direct, u8 rs) { fatalerror("MOV.w %s, %s", get_directtext(direct), m_regnames16[rs]);}
-
-// ALUOP.b Direct, Rs
 void xa_cpu::aluop_byte_direct_rs(int alu_op, u16 direct, u8 rs)
 {
 	switch (alu_op)
@@ -1160,6 +1223,16 @@ void xa_cpu::aluop_byte_direct_rs(int alu_op, u16 direct, u8 rs)
 	}
 }
 
+void xa_cpu::add_word_direct_rs(u16 direct, u8 rs) { fatalerror("ADD.w %s, %s", get_directtext(direct), m_regnames16[rs]);}
+void xa_cpu::addc_word_direct_rs(u16 direct, u8 rs){ fatalerror("ADDC.w %s, %s", get_directtext(direct), m_regnames16[rs]);}
+void xa_cpu::sub_word_direct_rs(u16 direct, u8 rs) { fatalerror("SUB.w %s, %s", get_directtext(direct), m_regnames16[rs]);}
+void xa_cpu::subb_word_direct_rs(u16 direct, u8 rs){ fatalerror("SUBB.w %s, %s", get_directtext(direct), m_regnames16[rs]);}
+void xa_cpu::cmp_word_direct_rs(u16 direct, u8 rs) { fatalerror("CMP.w %s, %s", get_directtext(direct), m_regnames16[rs]);}
+void xa_cpu::and_word_direct_rs(u16 direct, u8 rs) { fatalerror("AND.w %s, %s", get_directtext(direct), m_regnames16[rs]);}
+void xa_cpu::or_word_direct_rs(u16 direct, u8 rs)  { fatalerror("OR.w %s, %s", get_directtext(direct), m_regnames16[rs]);}
+void xa_cpu::xor_word_direct_rs(u16 direct, u8 rs) { fatalerror("XOR.w %s, %s", get_directtext(direct), m_regnames16[rs]);}
+void xa_cpu::mov_word_direct_rs(u16 direct, u8 rs) { fatalerror("MOV.w %s, %s", get_directtext(direct), m_regnames16[rs]);}
+
 void xa_cpu::add_byte_direct_rs(u16 direct, u8 rs) { fatalerror("ADD.b %s, %s", get_directtext(direct), m_regnames8[rs]);}
 void xa_cpu::addc_byte_direct_rs(u16 direct, u8 rs){ fatalerror("ADDC.b %s, %s", get_directtext(direct), m_regnames8[rs]);}
 void xa_cpu::sub_byte_direct_rs(u16 direct, u8 rs) { fatalerror("SUB.b %s, %s", get_directtext(direct), m_regnames8[rs]);}
@@ -1168,7 +1241,7 @@ void xa_cpu::cmp_byte_direct_rs(u16 direct, u8 rs) { fatalerror("CMP.b %s, %s", 
 void xa_cpu::and_byte_direct_rs(u16 direct, u8 rs) { fatalerror("AND.b %s, %s", get_directtext(direct), m_regnames8[rs]);}
 void xa_cpu::or_byte_direct_rs(u16 direct, u8 rs)  { fatalerror("OR.b %s, %s", get_directtext(direct), m_regnames8[rs]);}
 void xa_cpu::xor_byte_direct_rs(u16 direct, u8 rs) { fatalerror("XOR.b %s, %s", get_directtext(direct), m_regnames8[rs]);}
-void xa_cpu::mov_byte_direct_rs(u16 direct, u8 rs) { fatalerror("MOV.b %s, %s", get_directtext(direct), m_regnames8[rs]);}
+void xa_cpu::mov_byte_direct_rs(u16 direct, u8 rs) { u8 val = gr8(rs); do_nz_flags_8(val); write_direct8(direct, val); cy(4); }
 
 
 // MOVS Rd, #data4             Move 4-bit sign-extended imm data to reg                                2 3         1011 S001  dddd iiii
@@ -1328,13 +1401,22 @@ void xa_cpu::divu_dword_rd_rs(u8 rd, u8 rs) { fatalerror( "DIVU.d %s, %s", m_reg
 void xa_cpu::div_dword_rd_rs(u8 rd, u8 rs) { fatalerror( "DIV.d %s, %s", m_regnames16[rd], m_regnames16[rs]); }
 
 
+
+// CLR bit                     Clear bit                                                               3 4         0000 1000  0000 00bb  bbbb bbbb
 void xa_cpu::clr_bit(u16 bit) { fatalerror( "CLR %s", get_bittext(bit) ); }
-void xa_cpu::setb_bit(u16 bit) { fatalerror( "SETB %s", get_bittext(bit) ); }
+// SETB bit                    Sets the bit specified                                                  3 4         0000 1000  0001 00bb  bbbb bbbb
+void xa_cpu::setb_bit(u16 bit) { set_bit_8_helper(bit, 1); cy(4); }
+// MOV C, bit                  Move bit to the carry flag                                              3 4         0000 1000  0010 00bb  bbbb bbbb
 void xa_cpu::mov_c_bit(u16 bit) { fatalerror( "MOV C, %s", get_bittext(bit) ); }
+// MOV bit, C                  Move carry to bit                                                       3 4         0000 1000  0011 00bb  bbbb bbbb
 void xa_cpu::mov_bit_c(u16 bit) { fatalerror( "MOV %s, C", get_bittext(bit) ); }
+// ANL C, bit                  Logical AND bit to carry                                                3 4         0000 1000  0100 00bb  bbbb bbbb
 void xa_cpu::anl_c_bit(u16 bit) { fatalerror( "ANL C, %s", get_bittext(bit) ); }
+// ANL C, /bit                 Logical AND complement of a bit to carry                                3 4         0000 1000  0101 00bb  bbbb bbbb
 void xa_cpu::anl_c_notbit(u16 bit) { fatalerror( "ANL C, /%s", get_bittext(bit) ); }
+// ORL C, bit                  Logical OR a bit to carry                                               3 4         0000 1000  0110 00bb  bbbb bbbb
 void xa_cpu::orl_c_bit(u16 bit) { fatalerror( "ORL C, %s", get_bittext(bit) ); }
+// ORL C, /bit                 Logical OR complement of a bit to carry                                 3 4         0000 1000  0111 00bb  bbbb bbbb
 void xa_cpu::orl_c_notbit(u16 bit) { fatalerror( "ORL C, /%s", get_bittext(bit) ); }
 
 // LEA Rd, Rs+offset8          Load 16-bit effective address w/ 8-bit offs to reg                      3 3         0100 0000  0ddd 0sss  oooo oooo
@@ -1394,7 +1476,8 @@ void xa_cpu::jbc_bit_rel8(u16 bit, u8 rel8) { fatalerror( "JBC %s, $%02x", get_b
 
 // MOV direct, direct          Move mem to mem                                                         4 4         1001 S111  0DDD 0ddd  DDDD DDDD  dddd dddd
 void xa_cpu::mov_word_direct_direct(u16 direct_d, u16 direct_s) { fatalerror("MOV.w %s, %s", get_directtext(direct_d), get_directtext(direct_s)); }
-void xa_cpu::mov_byte_direct_direct(u16 direct_d, u16 direct_s) { fatalerror("MOV.b %s, %s", get_directtext(direct_d), get_directtext(direct_s)); }
+void xa_cpu::mov_byte_direct_direct(u16 direct_d, u16 direct_s) { u8 val = read_direct8(direct_s); do_nz_flags_8(val); write_direct8(direct_d, val); cy(4); }
+
 
 // XCH Rd, direct              Exchange contents of mem w/ a reg                                       3 6         1010 S000  dddd 1DDD  DDDD DDDD
 void xa_cpu::xch_word_rd_direct(u8 rd, u16 direct) { fatalerror("XCH.w %s, %s", m_regnames16[rd], get_directtext(direct)); }
