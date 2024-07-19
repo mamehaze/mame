@@ -14,17 +14,17 @@
 #include "xa.h"
 #include "xadasm.h"
 
-DEFINE_DEVICE_TYPE(XA, xa_cpu_device, "xa", "Philips 80c51 XA")
+DEFINE_DEVICE_TYPE(XA, xa_cpu, "xa", "Philips 80c51 XA")
 DEFINE_DEVICE_TYPE(MX10EXA, mx10exa_cpu_device, "mx10exa", "Philips MX10EXA")
 
 
 
 
-xa_cpu_device::xa_cpu_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, uint32_t clock, address_map_constructor prg_map, address_map_constructor dat_map)
+xa_cpu::xa_cpu(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, uint32_t clock, address_map_constructor prg_map, address_map_constructor dat_map)
 	: cpu_device(mconfig, type, tag, owner, clock)
 	, m_program_config("program", ENDIANNESS_LITTLE, 16, 24, 0, prg_map)
 	, m_data_config("data", ENDIANNESS_LITTLE, 16, 24, 0, dat_map)
-	, m_sfr_config("sfr", ENDIANNESS_LITTLE, 8, 11, 0, address_map_constructor(FUNC(xa_cpu_device::sfr_map), this))
+	, m_sfr_config("sfr", ENDIANNESS_LITTLE, 8, 11, 0, address_map_constructor(FUNC(xa_cpu::sfr_map), this))
 	, m_pc(0)
 	, m_program(nullptr)
 	, m_data(nullptr)
@@ -34,18 +34,18 @@ xa_cpu_device::xa_cpu_device(const machine_config &mconfig, device_type type, co
 	add_names(default_names);
 }
 
-xa_cpu_device::xa_cpu_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
-	: xa_cpu_device(mconfig, XA, tag, owner, clock, address_map_constructor(FUNC(xa_cpu_device::internal_map), this), address_map_constructor(FUNC(xa_cpu_device::internal_data_map), this))
+xa_cpu::xa_cpu(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
+	: xa_cpu(mconfig, XA, tag, owner, clock, address_map_constructor(FUNC(xa_cpu::internal_map), this), address_map_constructor(FUNC(xa_cpu::internal_data_map), this))
 {
 }
 
 
 mx10exa_cpu_device::mx10exa_cpu_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
-	: xa_cpu_device(mconfig, MX10EXA, tag, owner, clock, address_map_constructor(FUNC(mx10exa_cpu_device::mx10exa_internal_map), this), address_map_constructor(FUNC(mx10exa_cpu_device::mx10exa_internal_data_map), this))
+	: xa_cpu(mconfig, MX10EXA, tag, owner, clock, address_map_constructor(FUNC(mx10exa_cpu_device::mx10exa_internal_map), this), address_map_constructor(FUNC(mx10exa_cpu_device::mx10exa_internal_data_map), this))
 {
 }
 
-std::unique_ptr<util::disasm_interface> xa_cpu_device::create_disassembler()
+std::unique_ptr<util::disasm_interface> xa_cpu::create_disassembler()
 {
 	return std::make_unique<xa_dasm>();
 }
@@ -55,17 +55,17 @@ std::unique_ptr<util::disasm_interface> xa_cpu_device::create_disassembler()
 
 
 
-void xa_cpu_device::set_pc_in_current_page(u16 addr)
+void xa_cpu::set_pc_in_current_page(u16 addr)
 {
 	m_pc = addr;
 }
 
-u8 xa_cpu_device::sfr_WDCON_r()
+u8 xa_cpu::sfr_WDCON_r()
 {
 	return m_WDCON;
 }
 
-void xa_cpu_device::sfr_PSWL_w(u8 data)
+void xa_cpu::sfr_PSWL_w(u8 data)
 {
 	// PSWL  C AC - - - V N Z
 
@@ -75,20 +75,20 @@ void xa_cpu_device::sfr_PSWL_w(u8 data)
 
 
 
-void xa_cpu_device::sfr_PSWH_w(u8 data)
+void xa_cpu::sfr_PSWH_w(u8 data)
 {
 	// PSWH  SM TM RS1 RS0 IM3 IM2 IM1 IM0
 
 	printf("write %02x to PSWH\n", data);
 }
 
-void xa_cpu_device::sfr_PSW51_w(u8 data)
+void xa_cpu::sfr_PSW51_w(u8 data)
 {
 	// PSW51  C AC F0 RS1 RS0 OV F1 P
 
 }
 
-void xa_cpu_device::sfr_SCR_w(u8 data)
+void xa_cpu::sfr_SCR_w(u8 data)
 {
 	/* System Configuration Register (SCR)
 
@@ -105,38 +105,38 @@ void xa_cpu_device::sfr_SCR_w(u8 data)
 	m_pagezeromode = (data & 1);
 }
 
-void xa_cpu_device::sfr_WFEED1_w(u8 data)
+void xa_cpu::sfr_WFEED1_w(u8 data)
 {
 	logerror("write %02x to WFEED1\n", data);
 }
 
-void xa_cpu_device::sfr_WFEED2_w(u8 data)
+void xa_cpu::sfr_WFEED2_w(u8 data)
 {
 	logerror("write %02x to WFEED2\n", data);
 }
 
 /*****************************************************************************/
 
-void xa_cpu_device::data_map(address_map &map)
+void xa_cpu::data_map(address_map &map)
 {
 }
 
-void xa_cpu_device::sfr_map(address_map &map)
+void xa_cpu::sfr_map(address_map &map)
 {
-	map(0x000, 0x000).w(FUNC(xa_cpu_device::sfr_PSWL_w));
-	map(0x001, 0x001).w(FUNC(xa_cpu_device::sfr_PSWH_w));
-	map(0x002, 0x002).w(FUNC(xa_cpu_device::sfr_PSW51_w));
+	map(0x000, 0x000).w(FUNC(xa_cpu::sfr_PSWL_w));
+	map(0x001, 0x001).w(FUNC(xa_cpu::sfr_PSWH_w));
+	map(0x002, 0x002).w(FUNC(xa_cpu::sfr_PSW51_w));
 
-	map(0x01f, 0x01f).r(FUNC(xa_cpu_device::sfr_WDCON_r));
-	map(0x040, 0x040).w(FUNC(xa_cpu_device::sfr_SCR_w));
-	map(0x05d, 0x05d).w(FUNC(xa_cpu_device::sfr_WFEED1_w));
-	map(0x05e, 0x05e).w(FUNC(xa_cpu_device::sfr_WFEED2_w));
+	map(0x01f, 0x01f).r(FUNC(xa_cpu::sfr_WDCON_r));
+	map(0x040, 0x040).w(FUNC(xa_cpu::sfr_SCR_w));
+	map(0x05d, 0x05d).w(FUNC(xa_cpu::sfr_WFEED1_w));
+	map(0x05e, 0x05e).w(FUNC(xa_cpu::sfr_WFEED2_w));
 }
 
 
 
 
-void xa_cpu_device::internal_map(address_map &map)
+void xa_cpu::internal_map(address_map &map)
 {
 }
 
@@ -145,7 +145,7 @@ void mx10exa_cpu_device::mx10exa_internal_map(address_map &map)
 	map(0x000000, 0x00ffff).rom();
 }
 
-void xa_cpu_device::internal_data_map(address_map &map)
+void xa_cpu::internal_data_map(address_map &map)
 {
 }
 
@@ -156,7 +156,7 @@ void mx10exa_cpu_device::mx10exa_internal_data_map(address_map &map)
 
 
 
-device_memory_interface::space_config_vector xa_cpu_device::memory_space_config() const
+device_memory_interface::space_config_vector xa_cpu::memory_space_config() const
 {
 	return space_config_vector {
 		std::make_pair(AS_PROGRAM, &m_program_config),
@@ -167,60 +167,60 @@ device_memory_interface::space_config_vector xa_cpu_device::memory_space_config(
 
 /*****************************************************************************/
 
-const xa_cpu_device::op_func xa_cpu_device::s_instruction[256] =
+const xa_cpu::op_func xa_cpu::s_instruction[256] =
 {
 // group 0
-&xa_cpu_device::d_nop,          &xa_cpu_device::d_add,  &xa_cpu_device::d_add,      &xa_cpu_device::d_add,      &xa_cpu_device::d_add,  &xa_cpu_device::d_add,  &xa_cpu_device::d_add,      &xa_cpu_device::d_push_rlist,
-&xa_cpu_device::d_bitgroup,     &xa_cpu_device::d_add,  &xa_cpu_device::d_add,      &xa_cpu_device::d_add,      &xa_cpu_device::d_add,  &xa_cpu_device::d_add,  &xa_cpu_device::d_add,      &xa_cpu_device::d_push_rlist,
+&xa_cpu::d_nop,          &xa_cpu::d_add,  &xa_cpu::d_add,      &xa_cpu::d_add,      &xa_cpu::d_add,  &xa_cpu::d_add,  &xa_cpu::d_add,      &xa_cpu::d_push_rlist,
+&xa_cpu::d_bitgroup,     &xa_cpu::d_add,  &xa_cpu::d_add,      &xa_cpu::d_add,      &xa_cpu::d_add,  &xa_cpu::d_add,  &xa_cpu::d_add,      &xa_cpu::d_push_rlist,
 // group 1
-&xa_cpu_device::d_illegal,      &xa_cpu_device::d_addc, &xa_cpu_device::d_addc,     &xa_cpu_device::d_addc,     &xa_cpu_device::d_addc, &xa_cpu_device::d_addc, &xa_cpu_device::d_addc,     &xa_cpu_device::d_pushu_rlist,
-&xa_cpu_device::d_illegal,      &xa_cpu_device::d_addc, &xa_cpu_device::d_addc,     &xa_cpu_device::d_addc,     &xa_cpu_device::d_addc, &xa_cpu_device::d_addc, &xa_cpu_device::d_addc,     &xa_cpu_device::d_pushu_rlist,
+&xa_cpu::d_illegal,      &xa_cpu::d_addc, &xa_cpu::d_addc,     &xa_cpu::d_addc,     &xa_cpu::d_addc, &xa_cpu::d_addc, &xa_cpu::d_addc,     &xa_cpu::d_pushu_rlist,
+&xa_cpu::d_illegal,      &xa_cpu::d_addc, &xa_cpu::d_addc,     &xa_cpu::d_addc,     &xa_cpu::d_addc, &xa_cpu::d_addc, &xa_cpu::d_addc,     &xa_cpu::d_pushu_rlist,
 // group 2
-&xa_cpu_device::d_illegal,      &xa_cpu_device::d_sub,  &xa_cpu_device::d_sub,      &xa_cpu_device::d_sub,      &xa_cpu_device::d_sub,  &xa_cpu_device::d_sub,  &xa_cpu_device::d_sub,      &xa_cpu_device::d_pop_rlist,
-&xa_cpu_device::d_illegal,      &xa_cpu_device::d_sub,  &xa_cpu_device::d_sub,      &xa_cpu_device::d_sub,      &xa_cpu_device::d_sub,  &xa_cpu_device::d_sub,  &xa_cpu_device::d_sub,      &xa_cpu_device::d_pop_rlist,
+&xa_cpu::d_illegal,      &xa_cpu::d_sub,  &xa_cpu::d_sub,      &xa_cpu::d_sub,      &xa_cpu::d_sub,  &xa_cpu::d_sub,  &xa_cpu::d_sub,      &xa_cpu::d_pop_rlist,
+&xa_cpu::d_illegal,      &xa_cpu::d_sub,  &xa_cpu::d_sub,      &xa_cpu::d_sub,      &xa_cpu::d_sub,  &xa_cpu::d_sub,  &xa_cpu::d_sub,      &xa_cpu::d_pop_rlist,
 // group 3
-&xa_cpu_device::d_illegal,      &xa_cpu_device::d_subb, &xa_cpu_device::d_subb,     &xa_cpu_device::d_subb,     &xa_cpu_device::d_subb, &xa_cpu_device::d_subb, &xa_cpu_device::d_subb,     &xa_cpu_device::d_popu_rlist,
-&xa_cpu_device::d_illegal,      &xa_cpu_device::d_subb, &xa_cpu_device::d_subb,     &xa_cpu_device::d_subb,     &xa_cpu_device::d_subb, &xa_cpu_device::d_subb, &xa_cpu_device::d_subb,     &xa_cpu_device::d_popu_rlist,
+&xa_cpu::d_illegal,      &xa_cpu::d_subb, &xa_cpu::d_subb,     &xa_cpu::d_subb,     &xa_cpu::d_subb, &xa_cpu::d_subb, &xa_cpu::d_subb,     &xa_cpu::d_popu_rlist,
+&xa_cpu::d_illegal,      &xa_cpu::d_subb, &xa_cpu::d_subb,     &xa_cpu::d_subb,     &xa_cpu::d_subb, &xa_cpu::d_subb, &xa_cpu::d_subb,     &xa_cpu::d_popu_rlist,
 // group 4
-&xa_cpu_device::d_lea_offset8,  &xa_cpu_device::d_cmp,  &xa_cpu_device::d_cmp,      &xa_cpu_device::d_cmp,      &xa_cpu_device::d_cmp,  &xa_cpu_device::d_cmp,  &xa_cpu_device::d_cmp,      &xa_cpu_device::d_push_rlist,
-&xa_cpu_device::d_lea_offset16, &xa_cpu_device::d_cmp,  &xa_cpu_device::d_cmp,      &xa_cpu_device::d_cmp,      &xa_cpu_device::d_cmp,  &xa_cpu_device::d_cmp,  &xa_cpu_device::d_cmp,      &xa_cpu_device::d_push_rlist,
+&xa_cpu::d_lea_offset8,  &xa_cpu::d_cmp,  &xa_cpu::d_cmp,      &xa_cpu::d_cmp,      &xa_cpu::d_cmp,  &xa_cpu::d_cmp,  &xa_cpu::d_cmp,      &xa_cpu::d_push_rlist,
+&xa_cpu::d_lea_offset16, &xa_cpu::d_cmp,  &xa_cpu::d_cmp,      &xa_cpu::d_cmp,      &xa_cpu::d_cmp,  &xa_cpu::d_cmp,  &xa_cpu::d_cmp,      &xa_cpu::d_push_rlist,
 // group 5
-&xa_cpu_device::d_xch_type1,        &xa_cpu_device::d_and,  &xa_cpu_device::d_and,      &xa_cpu_device::d_and,      &xa_cpu_device::d_and,  &xa_cpu_device::d_and,  &xa_cpu_device::d_and,      &xa_cpu_device::d_pushu_rlist,
-&xa_cpu_device::d_xch_type1,        &xa_cpu_device::d_and,  &xa_cpu_device::d_and,      &xa_cpu_device::d_and,      &xa_cpu_device::d_and,  &xa_cpu_device::d_and,  &xa_cpu_device::d_and,      &xa_cpu_device::d_pushu_rlist,
+&xa_cpu::d_xch_type1,        &xa_cpu::d_and,  &xa_cpu::d_and,      &xa_cpu::d_and,      &xa_cpu::d_and,  &xa_cpu::d_and,  &xa_cpu::d_and,      &xa_cpu::d_pushu_rlist,
+&xa_cpu::d_xch_type1,        &xa_cpu::d_and,  &xa_cpu::d_and,      &xa_cpu::d_and,      &xa_cpu::d_and,  &xa_cpu::d_and,  &xa_cpu::d_and,      &xa_cpu::d_pushu_rlist,
 // group 6
-&xa_cpu_device::d_xch_type2,        &xa_cpu_device::d_or,       &xa_cpu_device::d_or,           &xa_cpu_device::d_or,           &xa_cpu_device::d_or,       &xa_cpu_device::d_or,       &xa_cpu_device::d_or,           &xa_cpu_device::d_pop_rlist,
-&xa_cpu_device::d_xch_type2,        &xa_cpu_device::d_or,       &xa_cpu_device::d_or,           &xa_cpu_device::d_or,           &xa_cpu_device::d_or,       &xa_cpu_device::d_or,       &xa_cpu_device::d_or,           &xa_cpu_device::d_pop_rlist,
+&xa_cpu::d_xch_type2,        &xa_cpu::d_or,       &xa_cpu::d_or,           &xa_cpu::d_or,           &xa_cpu::d_or,       &xa_cpu::d_or,       &xa_cpu::d_or,           &xa_cpu::d_pop_rlist,
+&xa_cpu::d_xch_type2,        &xa_cpu::d_or,       &xa_cpu::d_or,           &xa_cpu::d_or,           &xa_cpu::d_or,       &xa_cpu::d_or,       &xa_cpu::d_or,           &xa_cpu::d_pop_rlist,
 // group 7
-&xa_cpu_device::d_illegal,      &xa_cpu_device::d_xor,  &xa_cpu_device::d_xor,      &xa_cpu_device::d_xor,      &xa_cpu_device::d_xor,  &xa_cpu_device::d_xor,  &xa_cpu_device::d_xor,      &xa_cpu_device::d_popu_rlist,
-&xa_cpu_device::d_illegal,      &xa_cpu_device::d_xor,  &xa_cpu_device::d_xor,      &xa_cpu_device::d_xor,      &xa_cpu_device::d_xor,  &xa_cpu_device::d_xor,  &xa_cpu_device::d_xor,      &xa_cpu_device::d_popu_rlist,
+&xa_cpu::d_illegal,      &xa_cpu::d_xor,  &xa_cpu::d_xor,      &xa_cpu::d_xor,      &xa_cpu::d_xor,  &xa_cpu::d_xor,  &xa_cpu::d_xor,      &xa_cpu::d_popu_rlist,
+&xa_cpu::d_illegal,      &xa_cpu::d_xor,  &xa_cpu::d_xor,      &xa_cpu::d_xor,      &xa_cpu::d_xor,  &xa_cpu::d_xor,  &xa_cpu::d_xor,      &xa_cpu::d_popu_rlist,
 // group 8
-&xa_cpu_device::d_movc_rd_rsinc,    &xa_cpu_device::d_mov,  &xa_cpu_device::d_mov,      &xa_cpu_device::d_mov,      &xa_cpu_device::d_mov,  &xa_cpu_device::d_mov,  &xa_cpu_device::d_mov,      &xa_cpu_device::d_pushpop_djnz_subgroup,
-&xa_cpu_device::d_movc_rd_rsinc,    &xa_cpu_device::d_mov,  &xa_cpu_device::d_mov,      &xa_cpu_device::d_mov,      &xa_cpu_device::d_mov,  &xa_cpu_device::d_mov,  &xa_cpu_device::d_mov,      &xa_cpu_device::d_pushpop_djnz_subgroup,
+&xa_cpu::d_movc_rd_rsinc,    &xa_cpu::d_mov,  &xa_cpu::d_mov,      &xa_cpu::d_mov,      &xa_cpu::d_mov,  &xa_cpu::d_mov,  &xa_cpu::d_mov,      &xa_cpu::d_pushpop_djnz_subgroup,
+&xa_cpu::d_movc_rd_rsinc,    &xa_cpu::d_mov,  &xa_cpu::d_mov,      &xa_cpu::d_mov,      &xa_cpu::d_mov,  &xa_cpu::d_mov,  &xa_cpu::d_mov,      &xa_cpu::d_pushpop_djnz_subgroup,
 // group 9
-&xa_cpu_device::d_g9_subgroup,  &xa_cpu_device::d_alu,  &xa_cpu_device::d_alu,      &xa_cpu_device::d_alu,      &xa_cpu_device::d_alu,  &xa_cpu_device::d_alu,  &xa_cpu_device::d_alu,      &xa_cpu_device::d_jb_mov_subgroup,
-&xa_cpu_device::d_g9_subgroup,  &xa_cpu_device::d_alu,  &xa_cpu_device::d_alu,      &xa_cpu_device::d_alu,      &xa_cpu_device::d_alu,  &xa_cpu_device::d_alu,  &xa_cpu_device::d_alu,      &xa_cpu_device::d_jb_mov_subgroup,
+&xa_cpu::d_g9_subgroup,  &xa_cpu::d_alu,  &xa_cpu::d_alu,      &xa_cpu::d_alu,      &xa_cpu::d_alu,  &xa_cpu::d_alu,  &xa_cpu::d_alu,      &xa_cpu::d_jb_mov_subgroup,
+&xa_cpu::d_g9_subgroup,  &xa_cpu::d_alu,  &xa_cpu::d_alu,      &xa_cpu::d_alu,      &xa_cpu::d_alu,  &xa_cpu::d_alu,  &xa_cpu::d_alu,      &xa_cpu::d_jb_mov_subgroup,
 // group a
-&xa_cpu_device::d_movdir,           &xa_cpu_device::d_adds, &xa_cpu_device::d_adds,     &xa_cpu_device::d_adds,     &xa_cpu_device::d_adds, &xa_cpu_device::d_adds, &xa_cpu_device::d_adds,     &xa_cpu_device::d_movx_subgroup,
-&xa_cpu_device::d_movdir,           &xa_cpu_device::d_adds, &xa_cpu_device::d_adds,     &xa_cpu_device::d_adds,     &xa_cpu_device::d_adds, &xa_cpu_device::d_adds, &xa_cpu_device::d_adds,     &xa_cpu_device::d_movx_subgroup,
+&xa_cpu::d_movdir,           &xa_cpu::d_adds, &xa_cpu::d_adds,     &xa_cpu::d_adds,     &xa_cpu::d_adds, &xa_cpu::d_adds, &xa_cpu::d_adds,     &xa_cpu::d_movx_subgroup,
+&xa_cpu::d_movdir,           &xa_cpu::d_adds, &xa_cpu::d_adds,     &xa_cpu::d_adds,     &xa_cpu::d_adds, &xa_cpu::d_adds, &xa_cpu::d_adds,     &xa_cpu::d_movx_subgroup,
 // group b
-&xa_cpu_device::d_rr,               &xa_cpu_device::d_movs, &xa_cpu_device::d_movs,     &xa_cpu_device::d_movs,     &xa_cpu_device::d_movs, &xa_cpu_device::d_movs, &xa_cpu_device::d_movs,     &xa_cpu_device::d_rrc,
-&xa_cpu_device::d_rr,               &xa_cpu_device::d_movs, &xa_cpu_device::d_movs,     &xa_cpu_device::d_movs,     &xa_cpu_device::d_movs, &xa_cpu_device::d_movs, &xa_cpu_device::d_movs,     &xa_cpu_device::d_rrc,
+&xa_cpu::d_rr,               &xa_cpu::d_movs, &xa_cpu::d_movs,     &xa_cpu::d_movs,     &xa_cpu::d_movs, &xa_cpu::d_movs, &xa_cpu::d_movs,     &xa_cpu::d_rrc,
+&xa_cpu::d_rr,               &xa_cpu::d_movs, &xa_cpu::d_movs,     &xa_cpu::d_movs,     &xa_cpu::d_movs, &xa_cpu::d_movs, &xa_cpu::d_movs,     &xa_cpu::d_rrc,
 // group c
-&xa_cpu_device::d_lsr_fc,           &xa_cpu_device::d_asl_c,    &xa_cpu_device::d_asr_c,        &xa_cpu_device::d_norm,     &xa_cpu_device::d_lsr_fc,   &xa_cpu_device::d_asl_c,    &xa_cpu_device::d_asr_c,        &xa_cpu_device::d_norm,
-&xa_cpu_device::d_lsr_fc,           &xa_cpu_device::d_asl_c,    &xa_cpu_device::d_asr_c,        &xa_cpu_device::d_norm,     &xa_cpu_device::d_lsr_fc,   &xa_cpu_device::d_asl_c,    &xa_cpu_device::d_asr_c,        &xa_cpu_device::d_norm,
+&xa_cpu::d_lsr_fc,           &xa_cpu::d_asl_c,    &xa_cpu::d_asr_c,        &xa_cpu::d_norm,     &xa_cpu::d_lsr_fc,   &xa_cpu::d_asl_c,    &xa_cpu::d_asr_c,        &xa_cpu::d_norm,
+&xa_cpu::d_lsr_fc,           &xa_cpu::d_asl_c,    &xa_cpu::d_asr_c,        &xa_cpu::d_norm,     &xa_cpu::d_lsr_fc,   &xa_cpu::d_asl_c,    &xa_cpu::d_asr_c,        &xa_cpu::d_norm,
 // group d
-&xa_cpu_device::d_lsr_fj,           &xa_cpu_device::d_asl_j,    &xa_cpu_device::d_asr_j,        &xa_cpu_device::d_rl,           &xa_cpu_device::d_lsr_fj,   &xa_cpu_device::d_asl_j,    &xa_cpu_device::d_asr_j,        &xa_cpu_device::d_rlc,
-&xa_cpu_device::d_lsr_fj,           &xa_cpu_device::d_asl_j,    &xa_cpu_device::d_asr_j,        &xa_cpu_device::d_rl,           &xa_cpu_device::d_lsr_fj,   &xa_cpu_device::d_asl_j,    &xa_cpu_device::d_asr_j,        &xa_cpu_device::d_rlc,
+&xa_cpu::d_lsr_fj,           &xa_cpu::d_asl_j,    &xa_cpu::d_asr_j,        &xa_cpu::d_rl,           &xa_cpu::d_lsr_fj,   &xa_cpu::d_asl_j,    &xa_cpu::d_asr_j,        &xa_cpu::d_rlc,
+&xa_cpu::d_lsr_fj,           &xa_cpu::d_asl_j,    &xa_cpu::d_asr_j,        &xa_cpu::d_rl,           &xa_cpu::d_lsr_fj,   &xa_cpu::d_asl_j,    &xa_cpu::d_asr_j,        &xa_cpu::d_rlc,
 // group e
-&xa_cpu_device::d_mulu_b,           &xa_cpu_device::d_divu_b,   &xa_cpu_device::d_djnz_cjne,    &xa_cpu_device::d_cjne_d8,  &xa_cpu_device::d_mulu_w,   &xa_cpu_device::d_divu_w,   &xa_cpu_device::d_mul_w,        &xa_cpu_device::d_div_w,
-&xa_cpu_device::d_div_data8,        &xa_cpu_device::d_div_d16,&xa_cpu_device::d_djnz_cjne,  &xa_cpu_device::d_cjne_d16, &xa_cpu_device::d_jz_rel8,&xa_cpu_device::d_divu_d, &xa_cpu_device::d_jnz_rel8, &xa_cpu_device::d_div_d,
+&xa_cpu::d_mulu_b,           &xa_cpu::d_divu_b,   &xa_cpu::d_djnz_cjne,    &xa_cpu::d_cjne_d8,  &xa_cpu::d_mulu_w,   &xa_cpu::d_divu_w,   &xa_cpu::d_mul_w,        &xa_cpu::d_div_w,
+&xa_cpu::d_div_data8,        &xa_cpu::d_div_d16,&xa_cpu::d_djnz_cjne,  &xa_cpu::d_cjne_d16, &xa_cpu::d_jz_rel8,&xa_cpu::d_divu_d, &xa_cpu::d_jnz_rel8, &xa_cpu::d_div_d,
 // group f
-&xa_cpu_device::d_branch,           &xa_cpu_device::d_branch,   &xa_cpu_device::d_branch,       &xa_cpu_device::d_branch,       &xa_cpu_device::d_branch,   &xa_cpu_device::d_branch,   &xa_cpu_device::d_branch,       &xa_cpu_device::d_branch,
-&xa_cpu_device::d_branch,           &xa_cpu_device::d_branch,   &xa_cpu_device::d_branch,       &xa_cpu_device::d_branch,       &xa_cpu_device::d_branch,   &xa_cpu_device::d_branch,   &xa_cpu_device::d_branch,       &xa_cpu_device::d_bkpt,
+&xa_cpu::d_branch,           &xa_cpu::d_branch,   &xa_cpu::d_branch,       &xa_cpu::d_branch,       &xa_cpu::d_branch,   &xa_cpu::d_branch,   &xa_cpu::d_branch,       &xa_cpu::d_branch,
+&xa_cpu::d_branch,           &xa_cpu::d_branch,   &xa_cpu::d_branch,       &xa_cpu::d_branch,       &xa_cpu::d_branch,   &xa_cpu::d_branch,   &xa_cpu::d_branch,       &xa_cpu::d_bkpt,
 };
 
 // SFR names
-const xa_cpu_device::mem_info xa_cpu_device::default_names[] = {
+const xa_cpu::mem_info xa_cpu::default_names[] = {
 	// the following are bit addressable
 	{  0x400, "PSWL" },
 	{  0x401, "PSWH" },
@@ -290,20 +290,20 @@ const xa_cpu_device::mem_info xa_cpu_device::default_names[] = {
 	{ -1 }
 };
 
-void xa_cpu_device::add_names(const mem_info *info)
+void xa_cpu::add_names(const mem_info *info)
 {
 	for(unsigned int i=0; info[i].addr >= 0; i++)
 		m_names[info[i].addr] = info[i].name;
 }
 
-u16 xa_cpu_device::expand_rel16(u16 rel16)
+u16 xa_cpu::expand_rel16(u16 rel16)
 {
 	int address = m_pc + ((s16)rel16) * 2;
 	address &= ~1; // must be word aligned
 	return address;
 }
 
-u16 xa_cpu_device::expand_rel8(u8 rel8)
+u16 xa_cpu::expand_rel8(u8 rel8)
 {
 	int address = m_pc + ((s8)rel8) * 2;
 	address &= ~1; // must be word aligned
@@ -311,7 +311,7 @@ u16 xa_cpu_device::expand_rel8(u8 rel8)
 }
 
 
-void xa_cpu_device::do_nz_flags_16(u16 data)
+void xa_cpu::do_nz_flags_16(u16 data)
 {
 	if (data & 0x8000)
 		set_n_flag();
@@ -325,7 +325,7 @@ void xa_cpu_device::do_nz_flags_16(u16 data)
 }
 
 
-void xa_cpu_device::do_nz_flags_8(u8 data)
+void xa_cpu::do_nz_flags_8(u8 data)
 {
 	if (data & 0x80)
 		set_n_flag();
@@ -338,20 +338,20 @@ void xa_cpu_device::do_nz_flags_8(u8 data)
 		clear_z_flag();
 }
 
-void xa_cpu_device::push_word_to_user_stack(u16 data)
+void xa_cpu::push_word_to_user_stack(u16 data)
 {
 	// should use the segment register as well!
 	m_USP -= 2;
 	m_data->write_word(m_USP, data);
 }
 
-void xa_cpu_device::push_word_to_system_stack(u16 data)
+void xa_cpu::push_word_to_system_stack(u16 data)
 {
 	m_SSP -= 2;
 	m_data->write_word(m_SSP, data);
 }
 
-void xa_cpu_device::push_word_to_stack(u16 data)
+void xa_cpu::push_word_to_stack(u16 data)
 {
 	if (m_usermode)
 	{
@@ -363,7 +363,7 @@ void xa_cpu_device::push_word_to_stack(u16 data)
 	}
 }
 
-u16 xa_cpu_device::pull_word_from_user_stack()
+u16 xa_cpu::pull_word_from_user_stack()
 {
 	// should use the segment register as well!
 	u16 data = m_data->read_word(m_USP);
@@ -371,7 +371,7 @@ u16 xa_cpu_device::pull_word_from_user_stack()
 	return data;
 }
 
-u16 xa_cpu_device::pull_word_from_system_stack()
+u16 xa_cpu::pull_word_from_system_stack()
 {
 	u16 data = m_data->read_word(m_SSP);
 	m_SSP += 2;
@@ -379,7 +379,7 @@ u16 xa_cpu_device::pull_word_from_system_stack()
 }
 
 
-u16 xa_cpu_device::pull_word_from_stack()
+u16 xa_cpu::pull_word_from_stack()
 {
 	if (m_usermode)
 	{
@@ -394,20 +394,20 @@ u16 xa_cpu_device::pull_word_from_stack()
 
 
 
-void xa_cpu_device::push_byte_to_user_stack(u8 data)
+void xa_cpu::push_byte_to_user_stack(u8 data)
 {
 	// should use the segment register as well!
 	m_USP -= 2;
 	m_data->write_byte(m_USP, data);
 }
 
-void xa_cpu_device::push_byte_to_system_stack(u8 data)
+void xa_cpu::push_byte_to_system_stack(u8 data)
 {
 	m_SSP -= 2;
 	m_data->write_byte(m_SSP, data);
 }
 
-void xa_cpu_device::push_byte_to_stack(u16 data)
+void xa_cpu::push_byte_to_stack(u16 data)
 {
 	if (m_usermode)
 	{
@@ -419,7 +419,7 @@ void xa_cpu_device::push_byte_to_stack(u16 data)
 	}
 }
 
-u8 xa_cpu_device::pull_byte_from_user_stack()
+u8 xa_cpu::pull_byte_from_user_stack()
 {
 	// should use the segment register as well!
 	u8 data = m_data->read_byte(m_USP);
@@ -427,14 +427,14 @@ u8 xa_cpu_device::pull_byte_from_user_stack()
 	return data;
 }
 
-u8 xa_cpu_device::pull_byte_from_system_stack()
+u8 xa_cpu::pull_byte_from_system_stack()
 {
 	u8 data = m_data->read_byte(m_SSP);
 	m_SSP += 2;
 	return data;
 }
 
-u8 xa_cpu_device::pull_byte_from_stack()
+u8 xa_cpu::pull_byte_from_stack()
 {
 	if (m_usermode)
 	{
@@ -447,7 +447,7 @@ u8 xa_cpu_device::pull_byte_from_stack()
 }
 
 
-u8 xa_cpu_device::get_reg8(int reg)
+u8 xa_cpu::get_reg8(int reg)
 {
 	int high = reg & 1;
 
@@ -479,7 +479,7 @@ u8 xa_cpu_device::get_reg8(int reg)
 	}
 }
 
-void xa_cpu_device::set_reg8(int reg, u8 data)
+void xa_cpu::set_reg8(int reg, u8 data)
 {
 	int high = reg & 1;
 
@@ -511,7 +511,7 @@ void xa_cpu_device::set_reg8(int reg, u8 data)
 }
 
 
-void xa_cpu_device::set_reg16(int reg, u16 data)
+void xa_cpu::set_reg16(int reg, u16 data)
 {
 	if (reg < 4)
 	{
@@ -544,7 +544,7 @@ void xa_cpu_device::set_reg16(int reg, u16 data)
 	}
 }
 
-u16 xa_cpu_device::get_reg16(int reg)
+u16 xa_cpu::get_reg16(int reg)
 {
 	if (reg < 4)
 	{
@@ -576,12 +576,12 @@ u16 xa_cpu_device::get_reg16(int reg)
 	}
 }
 
-void xa_cpu_device::write_data8(int address, u8 data)
+void xa_cpu::write_data8(int address, u8 data)
 {
 	m_data->write_byte(address, data);
 }
 
-void xa_cpu_device::write_data16(int address, u16 data)
+void xa_cpu::write_data16(int address, u16 data)
 {
 	if (address & 1)
 		fatalerror("unaligned in write_data16\n");
@@ -589,12 +589,12 @@ void xa_cpu_device::write_data16(int address, u16 data)
 	m_data->write_word(address, data);
 }
 
-void xa_cpu_device::write_direct16(u16 addr, u16 data)
+void xa_cpu::write_direct16(u16 addr, u16 data)
 {
 	fatalerror("write_direct16 %04x %04x\n", addr, data);
 }
 
-void xa_cpu_device::write_direct8(u16 addr, u8 data)
+void xa_cpu::write_direct8(u16 addr, u8 data)
 {
 	if (addr < 0x400)
 	{
@@ -606,7 +606,7 @@ void xa_cpu_device::write_direct8(u16 addr, u8 data)
 	}
 }
 
-u8 xa_cpu_device::read_direct8(u16 addr)
+u8 xa_cpu::read_direct8(u16 addr)
 {
 	if (addr < 0x400)
 	{
@@ -620,7 +620,7 @@ u8 xa_cpu_device::read_direct8(u16 addr)
 	return 0;
 }
 
-std::string xa_cpu_device::get_data_address(u16 arg) const
+std::string xa_cpu::get_data_address(u16 arg) const
 {
 	auto i = m_names.find(arg);
 	if (i == m_names.end())
@@ -629,7 +629,7 @@ std::string xa_cpu_device::get_data_address(u16 arg) const
 		return i->second;
 }
 
-std::string xa_cpu_device::get_bittext(int bit)
+std::string xa_cpu::get_bittext(int bit)
 {
 	int position = bit & 7;
 
@@ -652,7 +652,7 @@ std::string xa_cpu_device::get_bittext(int bit)
 	return util::string_format("%s.%d", get_data_address(sfr), position);
 }
 
-std::string xa_cpu_device::get_directtext(int direct)
+std::string xa_cpu::get_directtext(int direct)
 {
 	if (direct < 0x400)
 	{
@@ -662,12 +662,12 @@ std::string xa_cpu_device::get_directtext(int direct)
 	return util::string_format("%s", get_data_address(direct));
 }
 
-void xa_cpu_device::d_illegal(XA_EXECUTE_PARAMS)
+void xa_cpu::d_illegal(XA_EXECUTE_PARAMS)
 {
 	fatalerror( "illegal");
 }
 
-void xa_cpu_device::handle_shift(XA_EXECUTE_PARAMS, int shift_type)
+void xa_cpu::handle_shift(XA_EXECUTE_PARAMS, int shift_type)
 {
 	int size = (op & 0x0c) >> 2;
 	const u8 op2 = m_program->read_byte(m_pc++);
@@ -711,7 +711,7 @@ void xa_cpu_device::handle_shift(XA_EXECUTE_PARAMS, int shift_type)
 }
 
 
-void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
+void xa_cpu::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 {
 	const int size = op & 0x08;
 	const u8 op2 = m_program->read_byte(m_pc++);
@@ -825,7 +825,7 @@ void xa_cpu_device::handle_alu_type0(XA_EXECUTE_PARAMS, int alu_op)
 
 
 
-void xa_cpu_device::handle_alu_type1(XA_EXECUTE_PARAMS, u8 op2)
+void xa_cpu::handle_alu_type1(XA_EXECUTE_PARAMS, u8 op2)
 {
 	int alu_op = op2 & 0x0f;
 	switch (op & 0x0f)
@@ -951,7 +951,7 @@ void xa_cpu_device::handle_alu_type1(XA_EXECUTE_PARAMS, u8 op2)
 	}
 }
 
-std::string xa_cpu_device::show_expanded_data4(u16 data4, int size)
+std::string xa_cpu::show_expanded_data4(u16 data4, int size)
 {
 	u16 extended = util::sext(data4, 4);
 
@@ -964,7 +964,7 @@ std::string xa_cpu_device::show_expanded_data4(u16 data4, int size)
 	return util::string_format("#$%04x", extended);
 }
 
-void xa_cpu_device::handle_adds_movs(XA_EXECUTE_PARAMS, int which)
+void xa_cpu::handle_adds_movs(XA_EXECUTE_PARAMS, int which)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	int size = op & 0x08;
@@ -1022,7 +1022,7 @@ void xa_cpu_device::handle_adds_movs(XA_EXECUTE_PARAMS, int which)
 	}
 }
 
-std::string xa_cpu_device::get_word_reglist(u8 op2)
+std::string xa_cpu::get_word_reglist(u8 op2)
 {
 	std::string temp;
 
@@ -1040,7 +1040,7 @@ std::string xa_cpu_device::get_word_reglist(u8 op2)
 	return temp;
 }
 
-std::string xa_cpu_device::get_byte_reglist(u8 op2, int h)
+std::string xa_cpu::get_byte_reglist(u8 op2, int h)
 {
 	std::string temp;
 
@@ -1058,7 +1058,7 @@ std::string xa_cpu_device::get_byte_reglist(u8 op2, int h)
 	return temp;
 }
 
-void xa_cpu_device::push_byte_reglist(u8 op2, int h, bool force_user)
+void xa_cpu::push_byte_reglist(u8 op2, int h, bool force_user)
 {
 	for (int i = 7; i >= 0; i--)
 	{
@@ -1075,7 +1075,7 @@ void xa_cpu_device::push_byte_reglist(u8 op2, int h, bool force_user)
 	}
 }
 
-void xa_cpu_device::pull_byte_reglist(u8 op2, int h, bool force_user)
+void xa_cpu::pull_byte_reglist(u8 op2, int h, bool force_user)
 {
 	for (int i = 0; i < 8; i++)
 	{
@@ -1094,7 +1094,7 @@ void xa_cpu_device::pull_byte_reglist(u8 op2, int h, bool force_user)
 	}
 }
 
-void xa_cpu_device::handle_push_rlist(XA_EXECUTE_PARAMS)
+void xa_cpu::handle_push_rlist(XA_EXECUTE_PARAMS)
 {
 	const u8 h = op & 0x40;
 	const u8 size = op & 0x08;
@@ -1102,7 +1102,7 @@ void xa_cpu_device::handle_push_rlist(XA_EXECUTE_PARAMS)
 	if (size) { push_word_rlist(op2, h); } else { push_byte_rlist(op2, h); }
 }
 
-void xa_cpu_device::handle_pushu_rlist(XA_EXECUTE_PARAMS)
+void xa_cpu::handle_pushu_rlist(XA_EXECUTE_PARAMS)
 {
 	const u8 h = op & 0x40;
 	const u8 size = op & 0x08;
@@ -1110,7 +1110,7 @@ void xa_cpu_device::handle_pushu_rlist(XA_EXECUTE_PARAMS)
 	if (size) { pushu_word_rlist(op2, h); } else { pushu_byte_rlist(op2, h); }
 }
 
-void xa_cpu_device::handle_pop_rlist(XA_EXECUTE_PARAMS)
+void xa_cpu::handle_pop_rlist(XA_EXECUTE_PARAMS)
 {
 	const u8 h = op & 0x40;
 	const u8 size = op & 0x08;
@@ -1118,7 +1118,7 @@ void xa_cpu_device::handle_pop_rlist(XA_EXECUTE_PARAMS)
 	if (size) { pop_word_rlist(op2, h); } else { pop_byte_rlist(op2, h); }
 }
 
-void xa_cpu_device::handle_popu_rlist(XA_EXECUTE_PARAMS)
+void xa_cpu::handle_popu_rlist(XA_EXECUTE_PARAMS)
 {
 	const u8 h = op & 0x40;
 	const u8 size = op & 0x08;
@@ -1131,7 +1131,7 @@ void xa_cpu_device::handle_popu_rlist(XA_EXECUTE_PARAMS)
 /*
 NOP                         No operation                                                            1 3         0000 0000
 */
-void xa_cpu_device::d_nop(XA_EXECUTE_PARAMS)
+void xa_cpu::d_nop(XA_EXECUTE_PARAMS)
 {
 	do_nop();
 }
@@ -1147,7 +1147,7 @@ ORL C, bit                  Logical OR a bit to carry                           
 ORL C, /bit                 Logical OR complement of a bit to carry                                 3 4         0000 1000  0111 00bb  bbbb bbbb
 */
 
-void xa_cpu_device::d_bitgroup(XA_EXECUTE_PARAMS)
+void xa_cpu::d_bitgroup(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 op3 = m_program->read_byte(m_pc++);
@@ -1182,7 +1182,7 @@ ADD [Rd+offset16], Rs       Add reg to reg-ind w/ 16-bit offs                   
 ADD direct, Rs              Add reg to mem                                                          3 4         0000 S110  ssss 1DDD  DDDD DDDD
 ADD Rd, direct              Add mem to reg                                                          3 4         0000 S110  dddd 0DDD  DDDD DDDD
 */
-void xa_cpu_device::d_add(XA_EXECUTE_PARAMS)
+void xa_cpu::d_add(XA_EXECUTE_PARAMS)
 {
 	handle_alu_type0(XA_EXECUTE_CALL_PARAMS, 0);
 }
@@ -1190,7 +1190,7 @@ void xa_cpu_device::d_add(XA_EXECUTE_PARAMS)
 /*
 PUSH Rlist                  Push regs (b/w) onto the current stack                                  2 b*        0H00 S111  LLLL LLLL
 */
-void xa_cpu_device::d_push_rlist(XA_EXECUTE_PARAMS)
+void xa_cpu::d_push_rlist(XA_EXECUTE_PARAMS)
 {
 	// PUSH
 	handle_push_rlist(XA_EXECUTE_CALL_PARAMS);
@@ -1212,7 +1212,7 @@ ADDC direct, Rs             Add reg to mem w/ carry                             
 ADDC Rd, direct             Add mem to reg w/ carry                                                 3 4         0001 S110  dddd 0DDD  DDDD DDDD
 */
 
-void xa_cpu_device::d_addc(XA_EXECUTE_PARAMS)
+void xa_cpu::d_addc(XA_EXECUTE_PARAMS)
 {
 	handle_alu_type0(XA_EXECUTE_CALL_PARAMS, 1);
 }
@@ -1220,7 +1220,7 @@ void xa_cpu_device::d_addc(XA_EXECUTE_PARAMS)
 /*
 PUSHU Rlist                 Push regs (b/w) from the user stack                                     2 b*        0H01 S111  LLLL LLLL
 */
-void xa_cpu_device::d_pushu_rlist(XA_EXECUTE_PARAMS)
+void xa_cpu::d_pushu_rlist(XA_EXECUTE_PARAMS)
 {
 	// PUSHU
 	handle_pushu_rlist(XA_EXECUTE_CALL_PARAMS);
@@ -1242,7 +1242,7 @@ SUB [Rd+], Rs               Subtract reg-ind w/ autoinc to reg                  
 SUB direct, Rs              Subtract reg to mem                                                     3 4         0010 S110  ssss 1DDD  DDDD DDDD
 SUB Rd, direct              Subtract mem to reg                                                     3 4         0010 S110  dddd 0DDD  DDDD DDDD
 */
-void xa_cpu_device::d_sub(XA_EXECUTE_PARAMS)
+void xa_cpu::d_sub(XA_EXECUTE_PARAMS)
 {
 	handle_alu_type0(XA_EXECUTE_CALL_PARAMS, 2);
 }
@@ -1250,7 +1250,7 @@ void xa_cpu_device::d_sub(XA_EXECUTE_PARAMS)
 /*
 POP Rlist                   Pop regs (b/w) from the current stack                                   2 c*        0H10 S111  LLLL LLLL
 */
-void xa_cpu_device::d_pop_rlist(XA_EXECUTE_PARAMS)
+void xa_cpu::d_pop_rlist(XA_EXECUTE_PARAMS)
 {
 	// POP
 	handle_pop_rlist(XA_EXECUTE_CALL_PARAMS);
@@ -1272,7 +1272,7 @@ SUBB [Rd+offset16], Rs      Subtract w/ borrow reg to reg-ind w/ 16-bit offs    
 SUBB direct, Rs             Subtract w/ borrow reg to mem                                           3 4         0011 S110  ssss 1DDD  DDDD DDDD
 SUBB Rd, direct             Subtract w/ borrow mem to reg                                           3 4         0011 S110  dddd 0DDD  DDDD DDDD
 */
-void xa_cpu_device::d_subb(XA_EXECUTE_PARAMS)
+void xa_cpu::d_subb(XA_EXECUTE_PARAMS)
 {
 	handle_alu_type0(XA_EXECUTE_CALL_PARAMS, 3);
 }
@@ -1280,7 +1280,7 @@ void xa_cpu_device::d_subb(XA_EXECUTE_PARAMS)
 /*
 POPU Rlist                  Pop regs (b/w) from the user stack                                      2 c*        0H11 S111  LLLL LLLL
 */
-void xa_cpu_device::d_popu_rlist(XA_EXECUTE_PARAMS)
+void xa_cpu::d_popu_rlist(XA_EXECUTE_PARAMS)
 {
 	// POPU
 	handle_popu_rlist(XA_EXECUTE_CALL_PARAMS);
@@ -1292,7 +1292,7 @@ void xa_cpu_device::d_popu_rlist(XA_EXECUTE_PARAMS)
 /*
 LEA Rd, Rs+offset8          Load 16-bit effective address w/ 8-bit offs to reg                      3 3         0100 0000  0ddd 0sss  oooo oooo
 */
-void xa_cpu_device::d_lea_offset8(XA_EXECUTE_PARAMS)
+void xa_cpu::d_lea_offset8(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 offs8 = m_program->read_byte(m_pc++);
@@ -1304,7 +1304,7 @@ void xa_cpu_device::d_lea_offset8(XA_EXECUTE_PARAMS)
 /*
 LEA Rd, Rs+offset16         Load 16-bit effective address w/ 16-bit offs to reg                     4 3         0100 1000  0ddd 0sss  oooo oooo  oooo oooo
 */
-void xa_cpu_device::d_lea_offset16(XA_EXECUTE_PARAMS)
+void xa_cpu::d_lea_offset16(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 op3 = m_program->read_byte(m_pc++);
@@ -1328,7 +1328,7 @@ CMP [Rd+], Rs               Compare reg w/ autoinc reg-ind                      
 CMP direct, Rs              Compare reg w/ mem                                                      3 4         0100 S110  ssss 1DDD  DDDD DDDD
 CMP Rd, direct              Compare mem w/ reg                                                      3 4         0100 S110  dddd 0DDD  DDDD DDDD
 */
-void xa_cpu_device::d_cmp(XA_EXECUTE_PARAMS)
+void xa_cpu::d_cmp(XA_EXECUTE_PARAMS)
 {
 	handle_alu_type0(XA_EXECUTE_CALL_PARAMS, 4);
 }
@@ -1338,7 +1338,7 @@ void xa_cpu_device::d_cmp(XA_EXECUTE_PARAMS)
 /*
 XCH Rd, [Rs]                Exchange contents of a reg-ind address w/ a reg                         2 6         0101 S000  dddd 0sss
 */
-void xa_cpu_device::d_xch_type1(XA_EXECUTE_PARAMS)
+void xa_cpu::d_xch_type1(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	int size = op & 0x08;
@@ -1361,7 +1361,7 @@ AND [Rd+], Rs               Logical AND reg-ind w/ autoinc to reg               
 AND direct, Rs              Logical AND reg to mem                                                  3 4         0101 S110  ssss 1DDD  DDDD DDDD
 AND Rd, direct              Logical AND mem to reg                                                  3 4         0101 S110  dddd 0DDD  DDDD DDDD
 */
-void xa_cpu_device::d_and(XA_EXECUTE_PARAMS)
+void xa_cpu::d_and(XA_EXECUTE_PARAMS)
 {
 	handle_alu_type0(XA_EXECUTE_CALL_PARAMS, 5);
 }
@@ -1371,7 +1371,7 @@ void xa_cpu_device::d_and(XA_EXECUTE_PARAMS)
 /*
 XCH Rd, Rs                  Exchange contents of two regs                                           2 5         0110 S000  dddd ssss
 */
-void xa_cpu_device::d_xch_type2(XA_EXECUTE_PARAMS)
+void xa_cpu::d_xch_type2(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	int size = op & 0x08;
@@ -1393,7 +1393,7 @@ OR [Rd+], Rs                Logical OR reg-ind w/ autoinc to reg                
 OR direct, Rs               Logical OR reg to mem                                                   3 4         0110 S110  ssss 1DDD  DDDD DDDD
 OR Rd, direct               Logical OR mem to reg                                                   3 4         0110 S110  dddd 0DDD  DDDD DDDD
 */
-void xa_cpu_device::d_or(XA_EXECUTE_PARAMS)
+void xa_cpu::d_or(XA_EXECUTE_PARAMS)
 {
 	handle_alu_type0(XA_EXECUTE_CALL_PARAMS, 6);
 }
@@ -1413,7 +1413,7 @@ XOR [Rd+], Rs               Logical XOR reg-ind w/ autoinc to reg               
 XOR direct, Rs              Logical XOR reg to mem                                                  3 4         0111 S110  ssss 1DDD  DDDD DDDD
 XOR Rd, direct              Logical XOR mem to reg                                                  3 4         0111 S110  dddd 0DDD  DDDD DDDD
 */
-void xa_cpu_device::d_xor(XA_EXECUTE_PARAMS)
+void xa_cpu::d_xor(XA_EXECUTE_PARAMS)
 {
 	handle_alu_type0(XA_EXECUTE_CALL_PARAMS, 7);
 }
@@ -1423,7 +1423,7 @@ void xa_cpu_device::d_xor(XA_EXECUTE_PARAMS)
 /*
 MOVC Rd, [Rs+]              Move data from WS:Rs address of code mem to reg w/ autoinc              2 4         1000 S000  dddd 0sss
 */
-void xa_cpu_device::d_movc_rd_rsinc(XA_EXECUTE_PARAMS)
+void xa_cpu::d_movc_rd_rsinc(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	int size = op & 0x08;
@@ -1445,7 +1445,7 @@ MOV [Rd+], Rs               Move reg-ind w/ autoinc to reg                      
 MOV direct, Rs              Move reg to mem                                                         3 4         1000 S110  ssss 1DDD  DDDD DDDD
 MOV Rd, direct              Move mem to reg                                                         3 4         1000 S110  dddd 0DDD  DDDD DDDD
 */
-void xa_cpu_device::d_mov(XA_EXECUTE_PARAMS)
+void xa_cpu::d_mov(XA_EXECUTE_PARAMS)
 {
 	handle_alu_type0(XA_EXECUTE_CALL_PARAMS, 8);
 }
@@ -1457,7 +1457,7 @@ PUSHU direct                Push the mem content (b/w) onto the user stack      
 PUSH direct                 Push the mem content (b/w) onto the current stack                       3 5         1000 S111  0011 0DDD  DDDD DDDD
 DJNZ Rd,rel8                Decrement reg and jump if not zero                                      3 8t/5nt    1000 S111  dddd 1000  rrrr rrrr
 */
-void xa_cpu_device::d_pushpop_djnz_subgroup(XA_EXECUTE_PARAMS)
+void xa_cpu::d_pushpop_djnz_subgroup(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	int size = op & 0x08;
@@ -1497,7 +1497,7 @@ MOVC A, [A+DPTR]            Move data from code mem to the accumulator ind w/ DP
 MOV Rd, USP                 Move User Stack Pointer to reg (system mode only)                       2 3         1001 0000  dddd 1111
 MOV USP, Rs                 Move reg to User Stack Pointer (system mode only)                       2 3         1001 1000  ssss 1111
 */
-void xa_cpu_device::d_g9_subgroup(XA_EXECUTE_PARAMS)
+void xa_cpu::d_g9_subgroup(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	int size = op & 0x08;
@@ -1641,7 +1641,7 @@ MOV [Rd+offset16], #data16  Move 16-bit imm data to reg-ind w/ 16-bit offs      
 MOV direct, #data8          Move 8-bit imm data to mem                                              4 3         1001 0110  0DDD 1000  DDDD DDDD  iiii iiii
 MOV direct, #data16         Move 16-bit imm data to mem                                             5 3         1001 1110  0DDD 1000  DDDD DDDD  iiii iiii  iiii iiii
 */
-void xa_cpu_device::d_alu(XA_EXECUTE_PARAMS)
+void xa_cpu::d_alu(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	handle_alu_type1(XA_EXECUTE_CALL_PARAMS, op2);
@@ -1653,7 +1653,7 @@ JB bit,rel8                 Jump if bit set                                     
 JNB bit,rel8                Jump if bit not set                                                     4 10t/6nt   1001 0111  1010 00bb  bbbb bbbb  rrrr rrrr
 JBC bit,rel8                Jump if bit set and then clear the bit                                  4 11t/7nt   1001 0111  1100 00bb  bbbb bbbb  rrrr rrrr
 */
-void xa_cpu_device::d_jb_mov_subgroup(XA_EXECUTE_PARAMS)
+void xa_cpu::d_jb_mov_subgroup(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 op3 = m_program->read_byte(m_pc++);
@@ -1687,7 +1687,7 @@ XCH Rd, direct              Exchange contents of mem w/ a reg                   
 MOV direct, [Rs]            Move reg-ind to mem                                                     3 4         1010 S000  1sss 0DDD  DDDD DDDD
 MOV [Rd], direct            Move mem to reg-ind                                                     3 4         1010 S000  0ddd 0DDD  DDDD DDDD
 */
-void xa_cpu_device::d_movdir(XA_EXECUTE_PARAMS)
+void xa_cpu::d_movdir(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 op3 = m_program->read_byte(m_pc++);
@@ -1722,7 +1722,7 @@ ADDS [Rd+offset8], #data4   Add reg-ind w/ 8-bit offs to 4-bit signed imm data  
 ADDS [Rd+offset16], #data4  Add reg-ind w/ 16-bit offs to 4-bit signed imm data                     4 6         1010 S101  0ddd iiii  oooo oooo  oooo oooo
 ADDS direct, #data4         Add 4-bit signed imm data to mem                                        3 4         1010 S110  0DDD iiii  DDDD DDDD
 */
-void xa_cpu_device::d_adds(XA_EXECUTE_PARAMS)
+void xa_cpu::d_adds(XA_EXECUTE_PARAMS)
 {
 	handle_adds_movs(XA_EXECUTE_CALL_PARAMS, 0);
 }
@@ -1731,7 +1731,7 @@ void xa_cpu_device::d_adds(XA_EXECUTE_PARAMS)
 MOVX [Rd], Rs               Move external data from reg to mem                                      2 6         1010 S111  ssss 1ddd
 MOVX Rd, [Rs]               Move external data from mem to reg                                      2 6         1010 S111  dddd 0sss
 */
-void xa_cpu_device::d_movx_subgroup(XA_EXECUTE_PARAMS)
+void xa_cpu::d_movx_subgroup(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	int size = op & 0x08;
@@ -1754,7 +1754,7 @@ void xa_cpu_device::d_movx_subgroup(XA_EXECUTE_PARAMS)
 /*
 RR Rd, #data4               Rotate right reg by the 4-bit imm value                                 2 a*        1011 S000  dddd iiii
 */
-void xa_cpu_device::d_rr(XA_EXECUTE_PARAMS)
+void xa_cpu::d_rr(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	int size = op & 0x08;
@@ -1771,7 +1771,7 @@ MOVS [Rd+offset8], #data4   Move reg-ind w/ 8-bit offs to 4-bit sign-extended im
 MOVS [Rd+offset16], #data4  Move reg-ind w/ 16-bit offs to 4-bit sign-extended imm data             4 5         1011 S101  0ddd iiii  oooo oooo  oooo oooo
 MOVS direct, #data4         Move 4-bit sign-extended imm data to mem                                3 3         1011 S110  0DDD iiii  DDDD DDDD
 */
-void xa_cpu_device::d_movs(XA_EXECUTE_PARAMS)
+void xa_cpu::d_movs(XA_EXECUTE_PARAMS)
 {
 	handle_adds_movs(XA_EXECUTE_CALL_PARAMS, 1);
 }
@@ -1779,7 +1779,7 @@ void xa_cpu_device::d_movs(XA_EXECUTE_PARAMS)
 /*
 RRC Rd, #data4              Rotate right reg though carry by the 4-bit imm value                    2 a*        1011 S111  dddd iiii
 */
-void xa_cpu_device::d_rrc(XA_EXECUTE_PARAMS)
+void xa_cpu::d_rrc(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	int size = op & 0x08;
@@ -1795,7 +1795,7 @@ void xa_cpu_device::d_rrc(XA_EXECUTE_PARAMS)
 LSR Rd, Rs                  Logical right shift dest reg by the value in the src reg                2 a*        1100 SS00  dddd ssss
 FCALL addr24                Far call (full 24-bit address space)                                    4 12/8(PZ)  1100 0100  aaaa aaaa  AAAA AAAA  AAAA AAAA
 */
-void xa_cpu_device::d_lsr_fc(XA_EXECUTE_PARAMS)
+void xa_cpu::d_lsr_fc(XA_EXECUTE_PARAMS)
 {
 	int size = (op & 0x0c) >> 2;
 	if (size == 0x01)
@@ -1821,7 +1821,7 @@ void xa_cpu_device::d_lsr_fc(XA_EXECUTE_PARAMS)
 ASL Rd, Rs                  Logical left shift dest reg by the value in the src reg                 2 a*        1100 SS01  dddd ssss
 CALL rel16                  Relative call (range +/- 64K)                                           3 7/4(PZ)   1100 0101  rrrr rrrr  rrrr rrrr
 */
-void xa_cpu_device::d_asl_c(XA_EXECUTE_PARAMS)
+void xa_cpu::d_asl_c(XA_EXECUTE_PARAMS)
 {
 	int size = (op & 0x0c) >> 2;
 	if (size == 0x01)
@@ -1846,7 +1846,7 @@ void xa_cpu_device::d_asl_c(XA_EXECUTE_PARAMS)
 ASR Rd, Rs                  Arithmetic shift right dest reg by the count in the src                 2 a*        1100 SS10  dddd ssss
 CALL [Rs]                   Subroutine call ind w/ a reg                                            2 8/5(PZ)   1100 0110  0000 0sss
 */
-void xa_cpu_device::d_asr_c(XA_EXECUTE_PARAMS)
+void xa_cpu::d_asr_c(XA_EXECUTE_PARAMS)
 {
 	int size = (op & 0x0c) >> 2;
 	if (size == 0x01)
@@ -1869,7 +1869,7 @@ void xa_cpu_device::d_asr_c(XA_EXECUTE_PARAMS)
 /*
 NORM Rd, Rs                 Logical shift left dest reg by the value in the src reg until MSB set   2 a*        1100 SS11  dddd ssss
 */
-void xa_cpu_device::d_norm(XA_EXECUTE_PARAMS)
+void xa_cpu::d_norm(XA_EXECUTE_PARAMS)
 {
 	int size = (op & 0x0c) >> 2;
 	if (size == 0x01)
@@ -1895,7 +1895,7 @@ LSR Rd, #data4              Logical right shift reg by the 4-bit imm value      
 LSR Rd, #data5              Logical right shift reg by the 4-bit imm value                          2 a*        1101 1100  dddi iiii
 FJMP addr24                 Far jump (full 24-bit address space)                                    4 6         1101 0100  aaaa aaaa  AAAA AAAA  AAAA AAAA
 */
-void xa_cpu_device::d_lsr_fj(XA_EXECUTE_PARAMS)
+void xa_cpu::d_lsr_fj(XA_EXECUTE_PARAMS)
 {
 	int size = (op & 0x0c) >> 2;
 	if (size == 0x01)
@@ -1917,7 +1917,7 @@ ASL Rd, #data4              Logical left shift reg by the 4-bit imm value       
 ASL Rd, #data5              Logical left shift reg by the 5-bit imm value                           2 a*        1101 1101  dddi iiii
 JMP rel16                   Long unconditional branch                                               3 6         1101 0101  rrrr rrrr  rrrr rrrr
 */
-void xa_cpu_device::d_asl_j(XA_EXECUTE_PARAMS)
+void xa_cpu::d_asl_j(XA_EXECUTE_PARAMS)
 {
 	int size = (op & 0x0c) >> 2;
 	if (size == 0x01)
@@ -1944,7 +1944,7 @@ JMP [Rs]                    Jump ind to the address in the reg (64K)            
 RET                         Return from subroutine                                                  2 8/6(PZ)   1101 0110  1000 0000
 RETI                        Return from interrupt                                                   2 10/8(PZ)  1101 0110  1001 0000
 */
-void xa_cpu_device::d_asr_j(XA_EXECUTE_PARAMS)
+void xa_cpu::d_asr_j(XA_EXECUTE_PARAMS)
 {
 	int size = (op & 0x0c) >> 2;
 	const u8 op2 = m_program->read_byte(m_pc++);
@@ -1971,7 +1971,7 @@ void xa_cpu_device::d_asr_j(XA_EXECUTE_PARAMS)
 /*
 RL Rd, #data4               Rotate left reg by the 4-bit imm value                                  2 a*        1101 S011  dddd iiii
 */
-void xa_cpu_device::d_rl(XA_EXECUTE_PARAMS)
+void xa_cpu::d_rl(XA_EXECUTE_PARAMS)
 {
 	int size = op & 0x08;
 	const u8 op2 = m_program->read_byte(m_pc++);
@@ -1983,7 +1983,7 @@ void xa_cpu_device::d_rl(XA_EXECUTE_PARAMS)
 /*
 RLC Rd, #data4              Rotate left reg though carry by the 4-bit imm value                     2 a*        1101 S111  dddd iiii
 */
-void xa_cpu_device::d_rlc(XA_EXECUTE_PARAMS)
+void xa_cpu::d_rlc(XA_EXECUTE_PARAMS)
 {
 	int size = op & 0x08;
 	const u8 op2 = m_program->read_byte(m_pc++);
@@ -1998,7 +1998,7 @@ void xa_cpu_device::d_rlc(XA_EXECUTE_PARAMS)
 DJNZ direct,rel8            Decrement mem and jump if not zero                                      4 9t/5nt    1110 S010  0000 1DDD  DDDD DDDD  rrrr rrrr
 CJNE Rd,direct,rel8         Compare dir byte to reg and jump if not equal                           4 10t/7nt   1110 S010  dddd 0DDD  DDDD DDDD  rrrr rrrr
 */
-void xa_cpu_device::d_djnz_cjne(XA_EXECUTE_PARAMS)
+void xa_cpu::d_djnz_cjne(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 op3 = m_program->read_byte(m_pc++);
@@ -2022,7 +2022,7 @@ void xa_cpu_device::d_djnz_cjne(XA_EXECUTE_PARAMS)
 /*
 MULU.b Rd, Rs               8X8 unsigned multiply of reg contents                                   2 12        1110 0000  dddd ssss
 */
-void xa_cpu_device::d_mulu_b(XA_EXECUTE_PARAMS)
+void xa_cpu::d_mulu_b(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 rd = (op2 & 0xf0) >> 4;
@@ -2033,7 +2033,7 @@ void xa_cpu_device::d_mulu_b(XA_EXECUTE_PARAMS)
 /*
 DIVU.b Rd, Rs               8x8 unsigned reg divide                                                 2 12        1110 0001  dddd ssss
 */
-void xa_cpu_device::d_divu_b(XA_EXECUTE_PARAMS)
+void xa_cpu::d_divu_b(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 rd = (op2 & 0xf0) >> 4;
@@ -2044,7 +2044,7 @@ void xa_cpu_device::d_divu_b(XA_EXECUTE_PARAMS)
 /*
 MULU.w Rd, Rs               16X16 unsigned reg multiply                                             2 12        1110 0100  dddd ssss
 */
-void xa_cpu_device::d_mulu_w(XA_EXECUTE_PARAMS)
+void xa_cpu::d_mulu_w(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 rd = (op2 & 0xf0) >> 4;
@@ -2055,7 +2055,7 @@ void xa_cpu_device::d_mulu_w(XA_EXECUTE_PARAMS)
 /*
 DIVU.w Rd, Rs               16X8 unsigned reg divide                                                2 12        1110 0101  dddd ssss
 */
-void xa_cpu_device::d_divu_w(XA_EXECUTE_PARAMS)
+void xa_cpu::d_divu_w(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 rd = (op2 & 0xf0) >> 4;
@@ -2066,7 +2066,7 @@ void xa_cpu_device::d_divu_w(XA_EXECUTE_PARAMS)
 /*
 MUL.w Rd, Rs                16X16 signed multiply of reg contents                                   2 12        1110 0110  dddd ssss
 */
-void xa_cpu_device::d_mul_w(XA_EXECUTE_PARAMS)
+void xa_cpu::d_mul_w(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 rd = (op2 & 0xf0) >> 4;
@@ -2077,7 +2077,7 @@ void xa_cpu_device::d_mul_w(XA_EXECUTE_PARAMS)
 /*
 DIV.w Rd, Rs                16x8 signed reg divide                                                  2 14        1110 0111  dddd ssss
 */
-void xa_cpu_device::d_div_w(XA_EXECUTE_PARAMS)
+void xa_cpu::d_div_w(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 rd = (op2 & 0xf0) >> 4;
@@ -2092,7 +2092,7 @@ DIVU.w Rd, #data8           16X8 unsigned reg divide w/ imm byte                
 DIV.w Rd, #data8            16x8 signed divide reg w/ imm word                                      3 14        1110 1000  dddd 1011  iiii iiii
 
 */
-void xa_cpu_device::d_div_data8(XA_EXECUTE_PARAMS)
+void xa_cpu::d_div_data8(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 data8 = m_program->read_byte(m_pc++);
@@ -2114,7 +2114,7 @@ DIVU.d Rd, #data16          32X16 unsigned double reg divide w/ imm word        
 MUL.w Rd, #data16           16X16 signed multiply 16-bit imm data w/ reg                            4 12        1110 1001  dddd 1000  iiii iiii  iiii iiii
 DIV.d Rd, #data16           32x16 signed double reg divide w/ imm word                              4 24        1110 1001  ddd0 1001  iiii iiii  iiii iiii
 */
-void xa_cpu_device::d_div_d16(XA_EXECUTE_PARAMS)
+void xa_cpu::d_div_d16(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 op3 = m_program->read_byte(m_pc++);
@@ -2133,7 +2133,7 @@ void xa_cpu_device::d_div_d16(XA_EXECUTE_PARAMS)
 /*
 DIVU.d Rd, Rs               32X16 unsigned double reg divide                                        2 22        1110 1101  ddd0 ssss
 */
-void xa_cpu_device::d_divu_d(XA_EXECUTE_PARAMS)
+void xa_cpu::d_divu_d(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 rd = (op2 & 0xe0) >> 4;
@@ -2144,7 +2144,7 @@ void xa_cpu_device::d_divu_d(XA_EXECUTE_PARAMS)
 /*
 DIV.d Rd, Rs                32x16 signed double reg divide                                          2 24        1110 1111  ddd0 ssss
 */
-void xa_cpu_device::d_div_d(XA_EXECUTE_PARAMS)
+void xa_cpu::d_div_d(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 rd = (op2 & 0xe0) >> 4;
@@ -2156,7 +2156,7 @@ void xa_cpu_device::d_div_d(XA_EXECUTE_PARAMS)
 CJNE [Rd],#data8,rel8       Compare imm word to reg-ind and jump if not equal                       4 10t/7nt   1110 0011  0ddd 1000  rrrr rrrr  iiii iiii
 CJNE Rd,#data8,rel8         Compare imm byte to reg and jump if not equal                           4 9t/6nt    1110 0011  dddd 0000  rrrr rrrr  iiii iiii
 */
-void xa_cpu_device::d_cjne_d8(XA_EXECUTE_PARAMS)
+void xa_cpu::d_cjne_d8(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 op3 = m_program->read_byte(m_pc++);
@@ -2177,7 +2177,7 @@ void xa_cpu_device::d_cjne_d8(XA_EXECUTE_PARAMS)
 CJNE [Rd],#data16,rel8      Compare imm word to reg-ind and jump if not equal                       5 10t/7nt   1110 1011  0ddd 1000  rrrr rrrr  iiii iiii  iiii iiii
 CJNE Rd,#data16,rel8        Compare imm word to reg and jump if not equal                           5 9t/6nt    1110 1011  dddd 0000  rrrr rrrr  iiii iiii  iiii iiii
 */
-void xa_cpu_device::d_cjne_d16(XA_EXECUTE_PARAMS)
+void xa_cpu::d_cjne_d16(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 op3 = m_program->read_byte(m_pc++);
@@ -2199,7 +2199,7 @@ void xa_cpu_device::d_cjne_d16(XA_EXECUTE_PARAMS)
 /*
 JZ rel8                     Jump if accumulator equals zero                                         2 6t/3nt    1110 1100  rrrr rrrr
 */
-void xa_cpu_device::d_jz_rel8(XA_EXECUTE_PARAMS)
+void xa_cpu::d_jz_rel8(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	jz_rel8(op2);
@@ -2208,7 +2208,7 @@ void xa_cpu_device::d_jz_rel8(XA_EXECUTE_PARAMS)
 /*
 JNZ rel8                    Jump if accumulator not equal zero                                      2 6t/3nt    1110 1110  rrrr rrrr
 */
-void xa_cpu_device::d_jnz_rel8(XA_EXECUTE_PARAMS)
+void xa_cpu::d_jnz_rel8(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	jnz_rel8(op2);
@@ -2235,7 +2235,7 @@ BLE rel8                    Branch if less than or equal to (signed)            
 BR rel8                     Short unconditional branch                                              2 6         1111 1110  rrrr rrrr
 */
 
-void xa_cpu_device::d_branch(XA_EXECUTE_PARAMS)
+void xa_cpu::d_branch(XA_EXECUTE_PARAMS)
 {
 	const u8 rel8 = m_program->read_byte(m_pc++);
 	switch (op & 0x0f)
@@ -2262,7 +2262,7 @@ void xa_cpu_device::d_branch(XA_EXECUTE_PARAMS)
 /*
 BKPT                        Cause the breakpoint trap to be executed.                               1 23/19(PZ) 1111 1111
 */
-void xa_cpu_device::d_bkpt(XA_EXECUTE_PARAMS)
+void xa_cpu::d_bkpt(XA_EXECUTE_PARAMS)
 {
 	fatalerror( "BKPT");
 }
@@ -2270,7 +2270,7 @@ void xa_cpu_device::d_bkpt(XA_EXECUTE_PARAMS)
 
 /*****************************************************************************/
 
-void xa_cpu_device::device_start()
+void xa_cpu::device_start()
 {
 	m_program = &space(AS_PROGRAM);
 	m_data = &space(AS_DATA);
@@ -2307,7 +2307,7 @@ void xa_cpu_device::device_start()
 	set_icountptr(m_icount);
 }
 
-void xa_cpu_device::device_reset()
+void xa_cpu::device_reset()
 {
 	u16 temppsw = m_program->read_word(0);
 	sfr_PSWL_w(temppsw & 0xff);
@@ -2338,7 +2338,7 @@ void xa_cpu_device::device_reset()
 
 /*****************************************************************************/
 
-void xa_cpu_device::execute_run()
+void xa_cpu::execute_run()
 {
 	while (m_icount > 0)
 	{

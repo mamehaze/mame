@@ -37,13 +37,13 @@ enum {
 };
 
 
-class xa_cpu_device : public cpu_device
+class xa_cpu : public cpu_device
 {
 public:
-	xa_cpu_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
+	xa_cpu(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
 
 protected:
-	xa_cpu_device(const machine_config& mconfig, device_type type, const char* tag, device_t* owner, uint32_t clock, address_map_constructor prg_map, address_map_constructor dat_map);
+	xa_cpu(const machine_config& mconfig, device_type type, const char* tag, device_t* owner, uint32_t clock, address_map_constructor prg_map, address_map_constructor dat_map);
 
 	virtual void device_start() override;
 	virtual void device_reset() override;
@@ -78,7 +78,7 @@ private:
 
 	std::string get_data_address(u16 arg) const;
 
-	typedef void (xa_cpu_device::*op_func) (XA_EXECUTE_PARAMS);
+	typedef void (xa_cpu::*op_func) (XA_EXECUTE_PARAMS);
 	static const op_func s_instruction[256];
 
 	const char* m_regnames16[16] = { "R0", "R1", "R2", "R3", "R4", "R5", "R6", "R7", "illegal", "illegal", "illegal", "illegal", "illegal", "illegal", "illegal", "illegal" };
@@ -913,7 +913,7 @@ private:
 	int m_icount;
 };
 
-class mx10exa_cpu_device : public xa_cpu_device
+class mx10exa_cpu_device : public xa_cpu
 {
 public:
 	mx10exa_cpu_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
@@ -925,7 +925,7 @@ private:
 };
 
 
-DECLARE_DEVICE_TYPE(XA, xa_cpu_device)
+DECLARE_DEVICE_TYPE(XA, xa_cpu)
 DECLARE_DEVICE_TYPE(MX10EXA, mx10exa_cpu_device)
 
 #endif // MAME_CPU_XA_XA_H
