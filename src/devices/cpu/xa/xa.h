@@ -172,6 +172,8 @@ private:
 
 	void set_bit_8_helper(u16 bit, u8 val);
 
+	u32 asl32_helper(u32 fullreg, u8 amount);
+
 	void write_direct16(u16 addr, u16 data);
 	u8 read_direct8(u16 addr);
 	void write_direct8(u16 addr, u8 data);

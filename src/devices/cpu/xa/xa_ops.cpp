@@ -79,7 +79,43 @@ u16 xa_cpu::do_and_16(u16 val1, u16 val2)
 	return result;
 }
 
+u32 xa_cpu::asl32_helper(u32 fullreg, u8 amount)
+{
+	cy(6 + (amount >> 1));
 
+	int lastbit = 0;
+
+	u32 topbit = fullreg & 0x8000000;
+
+	while (amount)
+	{
+		lastbit = fullreg & 0x8000000;
+		fullreg = fullreg << 1;
+		amount--;
+	}
+
+	if (lastbit)
+		set_c_flag();
+	else
+		clear_c_flag();
+
+	if (fullreg == 0)
+		set_z_flag();
+	else
+		clear_z_flag();
+
+	if (fullreg & 0x8000000)
+		set_n_flag();
+	else
+		clear_n_flag();
+
+	if (topbit != (fullreg & 0x8000000))
+		set_v_flag();
+	else
+		clear_v_flag();
+
+	return fullreg;
+}
 
 
 u8 xa_cpu::do_subb_8(u8 val1, u8 val2)
@@ -1342,18 +1378,27 @@ void xa_cpu::ble_rel8(u8 rel8) { fatalerror("BLE %04x\n", expand_rel8(rel8)); }
 // BR rel8                     Short unconditional branch                                              2 6         1111 1110  rrrr rrrr
 void xa_cpu::br_rel8(u8 rel8) { set_pc_in_current_page(expand_rel8(rel8)); cy(6); }
 
-// ASL.b Rd, #data4              Logical left shift reg by the 4-bit imm value                           2 a*        1101 SS01  dddd iiii
+// immediate shifts
+
+// ASL Rd, #data4              Logical left shift reg by the 4-bit imm value                           2 a*        1101 SS01  dddd iiii
 void xa_cpu::asl_byte_rd_imm4(u8 rd, u8 amount) { fatalerror("ASL.b %s, %d", m_regnames8[rd], amount); }
 void xa_cpu::asl_word_rd_imm4(u8 rd, u8 amount) { fatalerror("ASL.w %s, %d", m_regnames16[rd], amount); }
-void xa_cpu::asl_dword_rd_imm5(u8 rd, u8 amount) { fatalerror("ASL.dw %s, %d", m_regnames16[rd], amount); }
+// ASL Rd, #data5              Logical left shift reg by the 5-bit imm value                           2 a*        1101 1101  dddi iiii
+void xa_cpu::asl_dword_rd_imm5(u8 rd, u8 amount) { u32 fullreg = (gr16(rd) << 16) | gr16(rd + 1); fullreg = asl32_helper(fullreg, amount); sr16(rd, (fullreg >> 16) & 0xffff); sr16(rd + 1, fullreg & 0xffff); }
 
+// ASR Rd, #data4              Arithmetic shift right reg by the 4-bit imm count                       2 a*        1101 SS10  dddd iiii
 void xa_cpu::asr_byte_rd_imm4(u8 rd, u8 amount) { fatalerror("ASR.b %s, %d", m_regnames8[rd], amount); }
 void xa_cpu::asr_word_rd_imm4(u8 rd, u8 amount) { fatalerror("ASR.w %s, %d", m_regnames16[rd], amount); }
+// ASR Rd, #data5              Arithmetic shift right reg by the 5-bit imm count                       2 a*        1101 1110  dddi iiii
 void xa_cpu::asr_dword_rd_imm5(u8 rd, u8 amount) { fatalerror("ASR.dw %s, %d", m_regnames16[rd], amount); }
 
+// LSR Rd, #data4              Logical right shift reg by the 4-bit imm value                          2 a*        1101 SS00  dddd iiii
 void xa_cpu::lsr_byte_rd_imm4(u8 rd, u8 amount) { fatalerror("LSR.b %s, %d", m_regnames8[rd], amount); }
 void xa_cpu::lsr_word_rd_imm4(u8 rd, u8 amount) { fatalerror("LSR.w %s, %d", m_regnames16[rd], amount); }
+// LSR Rd, #data5              Logical right shift reg by the 4-bit imm value                          2 a*        1101 1100  dddi iiii
 void xa_cpu::lsr_dword_rd_imm5(u8 rd, u8 amount) { fatalerror("LSR.dw %s, %d", m_regnames16[rd], amount); }
+
+// register form shifts
 
 void xa_cpu::asl_byte_rd_rs(u8 rd, u8 rs) { fatalerror("ASL.b %s, %d", m_regnames8[rd], m_regnames8[rs]); }
 void xa_cpu::asl_word_rd_rs(u8 rd, u8 rs) { fatalerror("ASL.w %s, %d", m_regnames16[rd], m_regnames8[rs]); }
