@@ -5,8 +5,82 @@
 #include "xa.h"
 #include "xadasm.h"
 
-#define get_address get_reg16
-#define set_address set_reg16
+#define get_addr gr16
+#define set_addr sr16
+
+u16 xa_cpu::do_subb_16(u16 val1, u16 val2)
+{
+	return do_sub_16_helper(val1, val2, get_c_flag());
+}
+
+u16 xa_cpu::do_sub_16(u16 val1, u16 val2)
+{
+	return do_sub_16_helper(val1, val2, 0);
+}
+
+u16 xa_cpu::do_sub_16_helper(u16 val1, u16 val2, u8 c)
+{
+	u32 result = val1 - (val2 + c);
+	s32 result1 = (s16)val1 - (s16)(val2 + c);
+	u32 result3 = (val1 & 0x0fff) - ((val2 & 0x0fff) + c);
+
+	if (result & 0x10000) set_c_flag(); else clear_c_flag();
+	if (result3 & 0x1000) set_ac_flag(); else clear_ac_flag();
+	if ((result1 < -32768 || result1 > 32767)) set_v_flag(); else clear_v_flag();
+
+	do_nz_flags_16((u16)result);
+	return (u16)result;
+}
+
+
+u16 xa_cpu::do_addc_16(u16 val1, u16 val2)
+{
+	return do_add_16_helper(val1, val2, get_c_flag());
+}
+
+u16 xa_cpu::do_add_16(u16 val1, u16 val2)
+{
+	return do_add_16_helper(val1, val2, 0);
+}
+
+
+u16 xa_cpu::do_add_16_helper(u16 val1, u16 val2, u8 c)
+{
+	u32 result = val1 + val2 + c;
+	s32 result1 = (s16)val1 + (s16)val2 + c;
+	u32 result3 = (val1 & 0x0fff) + (val2 & 0x0fff) + c;
+	if (result & 0x10000) set_c_flag(); else clear_c_flag();
+	if (result3 & 0x1000) set_ac_flag(); else clear_ac_flag();
+	if ((result1 < -32768 || result1 > 32767)) set_v_flag(); else clear_v_flag();
+
+	do_nz_flags_16((u16)result);
+	return (u16)result;
+}
+
+
+u16 xa_cpu::do_xor_16(u16 val1, u16 val2)
+{
+	u16 result = val1 ^ val2;
+	do_nz_flags_16(result);
+	return result;
+}
+
+u16 xa_cpu::do_or_16(u16 val1, u16 val2)
+{
+	u16 result = val1 | val2;
+	do_nz_flags_16(result);
+	return result;
+}
+
+u16 xa_cpu::do_and_16(u16 val1, u16 val2)
+{
+	u16 result = val1 & val2;
+	do_nz_flags_16(result);
+	return result;
+}
+
+
+
 
 u8 xa_cpu::do_subb_8(u8 val1, u8 val2)
 {
@@ -116,15 +190,15 @@ void xa_cpu::aluop_byte_rd_data8(int alu_op, u8 rd, u8 data8)
 	}
 }
 
-void xa_cpu::add_byte_rd_data8(u8 rd, u8 data8) { u8 rdval = get_reg8(rd); u8 result = do_add_8(rdval, data8); set_reg8(rd, result); cy(3); }
-void xa_cpu::addc_byte_rd_data8(u8 rd, u8 data8){ u8 rdval = get_reg8(rd); u8 result = do_addc_8(rdval, data8); set_reg8(rd, result); cy(3); }
-void xa_cpu::sub_byte_rd_data8(u8 rd, u8 data8) { u8 rdval = get_reg8(rd); u8 result = do_sub_8(rdval, data8); set_reg8(rd, result); cy(3); }
-void xa_cpu::subb_byte_rd_data8(u8 rd, u8 data8){ u8 rdval = get_reg8(rd); u8 result = do_subb_8(rdval, data8); set_reg8(rd, result); cy(3); }
-void xa_cpu::cmp_byte_rd_data8(u8 rd, u8 data8) { u8 rdval = get_reg8(rd); do_sub_8(rdval, data8); cy(3); }
-void xa_cpu::and_byte_rd_data8(u8 rd, u8 data8) { u8 rdval = get_reg8(rd); u8 result = do_and_8(rdval, data8); set_reg8(rd, result); cy(3); }
-void xa_cpu::or_byte_rd_data8(u8 rd, u8 data8)  { u8 rdval = get_reg8(rd); u8 result = do_or_8(rdval, data8); set_reg8(rd, result); cy(3); }
-void xa_cpu::xor_byte_rd_data8(u8 rd, u8 data8) { u8 rdval = get_reg8(rd); u8 result = do_xor_8(rdval, data8); set_reg8(rd, result); cy(3); }
-void xa_cpu::mov_byte_rd_data8(u8 rd, u8 data8) { u8 result = data8; do_nz_flags_8(result); set_reg8(rd, result); cy(3); }
+void xa_cpu::add_byte_rd_data8(u8 rd, u8 data8) { u8 rdval = gr8(rd); u8 result = do_add_8(rdval, data8); sr8(rd, result); cy(3); }
+void xa_cpu::addc_byte_rd_data8(u8 rd, u8 data8){ u8 rdval = gr8(rd); u8 result = do_addc_8(rdval, data8); sr8(rd, result); cy(3); }
+void xa_cpu::sub_byte_rd_data8(u8 rd, u8 data8) { u8 rdval = gr8(rd); u8 result = do_sub_8(rdval, data8); sr8(rd, result); cy(3); }
+void xa_cpu::subb_byte_rd_data8(u8 rd, u8 data8){ u8 rdval = gr8(rd); u8 result = do_subb_8(rdval, data8); sr8(rd, result); cy(3); }
+void xa_cpu::cmp_byte_rd_data8(u8 rd, u8 data8) { u8 rdval = gr8(rd); do_sub_8(rdval, data8); cy(3); }
+void xa_cpu::and_byte_rd_data8(u8 rd, u8 data8) { u8 rdval = gr8(rd); u8 result = do_and_8(rdval, data8); sr8(rd, result); cy(3); }
+void xa_cpu::or_byte_rd_data8(u8 rd, u8 data8)  { u8 rdval = gr8(rd); u8 result = do_or_8(rdval, data8); sr8(rd, result); cy(3); }
+void xa_cpu::xor_byte_rd_data8(u8 rd, u8 data8) { u8 rdval = gr8(rd); u8 result = do_xor_8(rdval, data8); sr8(rd, result); cy(3); }
+void xa_cpu::mov_byte_rd_data8(u8 rd, u8 data8) { u8 result = data8; do_nz_flags_8(result); sr8(rd, result); cy(3); }
 
 // ------------------------------------------
 
@@ -310,7 +384,7 @@ void xa_cpu::cmp_word_rd_data16(u8 rd, u16 data16) { fatalerror("CMP.w % s, #$ %
 void xa_cpu::and_word_rd_data16(u8 rd, u16 data16) { fatalerror("AND.w %s, #$%04x (RD, DATA16)", m_regnames16[rd], data16); }
 void xa_cpu::or_word_rd_data16(u8 rd, u16 data16)  { fatalerror("OR.w %s, #$%04x (RD, DATA16)", m_regnames16[rd], data16); }
 void xa_cpu::xor_word_rd_data16(u8 rd, u16 data16) { fatalerror("XOR.w %s, #$%04x (RD, DATA16)", m_regnames16[rd], data16); }
-void xa_cpu::mov_word_rd_data16(u8 rd, u16 data16) { u16 result = data16; do_nz_flags_16(result); set_reg16(rd, result); cy(3); }
+void xa_cpu::mov_word_rd_data16(u8 rd, u16 data16) { u16 result = data16; do_nz_flags_16(result); sr16(rd, result); cy(3); }
 
 // -----------------------------------------------
 // ALUOP.w [Rd], data16
@@ -368,6 +442,15 @@ void xa_cpu::xor_word_indrdinc_data16(u8 rd, u16 data16) { fatalerror( "XOR.w [%
 void xa_cpu::mov_word_indrdinc_data16(u8 rd, u16 data16) { fatalerror( "MOV.w [%s+], #$%04x ([RD+], DATA16)", m_regnames16[rd], data16); }
 
 // ALPOP.w [Rd+offs8], data16
+// ADD [Rd+offset8], #data16   Add 16-bit imm data to reg-ind w/ 8-bit offs                            5 6         1001 1100  0ddd 0000  oooo oooo  iiii iiii  iiii iiii
+// ADDC [Rd+offset8], #data16  Add 16-bit imm data to reg-ind w/ 8-bit offs and carry                  5 6         1001 1100  0ddd 0001  oooo oooo  iiii iiii  iiii iiii
+// SUB [Rd+offset8], #data16   Subtract 16-bit imm data to reg-ind w/ 8-bit offs                       5 6         1001 1100  0ddd 0010  oooo oooo  iiii iiii  iiii iiii
+// SUBB [Rd+offset8], #data16  Subtract w/ borrow 16-bit imm data to reg-ind w/ 8-bit offs             5 6         1001 1100  0ddd 0011  oooo oooo  iiii iiii  iiii iiii
+// CMP [Rd+offset8], #data16   Compare 16-bit imm data to reg-ind w/ 8-bit offs                        5 6         1001 1100  0ddd 0100  oooo oooo  iiii iiii  iiii iiii
+// AND [Rd+offset8], #data16   Logical AND 16-bit imm data to reg-ind w/ 8-bit offs                    5 6         1001 1100  0ddd 0101  oooo oooo  iiii iiii  iiii iiii
+// OR [Rd+offset8], #data16    Logical OR 16-bit imm data to reg-ind w/ 8-bit offs                     5 6         1001 1100  0ddd 0110  oooo oooo  iiii iiii  iiii iiii
+// XOR [Rd+offset8], #data16   Logical XOR 16-bit imm data to reg-ind w/ 8-bit offs                    5 6         1001 1100  0ddd 0111  oooo oooo  iiii iiii  iiii iiii
+// MOV [Rd+offset8], #data16   Move 16-bit imm data to reg-ind w/ 8-bit offs                           5 5         1001 1100  0ddd 1000  oooo oooo  iiii iiii  iiii iiii
 void xa_cpu::aluop_byte_rdoff8_data16(int alu_op, u8 rd, u8 offset8, u16 data16)
 {
 	switch (alu_op)
@@ -388,7 +471,7 @@ void xa_cpu::add_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16) { fatalerr
 void xa_cpu::addc_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16){ fatalerror( "ADDC.w [%s+#$%02x], #$%04x ([RD+offs8], DATA16)", m_regnames16[rd], offset8, data16); }
 void xa_cpu::sub_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16) { fatalerror( "SUB.w [%s+#$%02x], #$%04x ([RD+offs8], DATA16)", m_regnames16[rd], offset8, data16); }
 void xa_cpu::subb_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16){ fatalerror( "SUBB.w [%s+#$%02x], #$%04x ([RD+offs8], DATA16)", m_regnames16[rd], offset8, data16); }
-void xa_cpu::cmp_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16) { fatalerror( "CMP.w [%s+#$%02x], #$%04x ([RD+offs8], DATA16)", m_regnames16[rd], offset8, data16); }
+void xa_cpu::cmp_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16) { u16 fulloffset = util::sext(offset8, 8); u16 address = get_addr(rd) + fulloffset; u16 val = rdat16(address); do_sub_16(val, data16); cy(6); }
 void xa_cpu::and_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16) { fatalerror( "AND.w [%s+#$%02x], #$%04x ([RD+offs8], DATA16)", m_regnames16[rd], offset8, data16); }
 void xa_cpu::or_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16)  { fatalerror( "OR.w [%s+#$%02x], #$%04x ([RD+offs8], DATA16)", m_regnames16[rd], offset8, data16); }
 void xa_cpu::xor_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16) { fatalerror( "XOR.w [%s+#$%02x], #$%04x ([RD+offs8], DATA16)", m_regnames16[rd], offset8, data16); }
@@ -748,7 +831,7 @@ void xa_cpu::cmp_byte_indrdinc_rs(u8 rd, u8 rs) { fatalerror("CMP.b [%s+], %s", 
 void xa_cpu::and_byte_indrdinc_rs(u8 rd, u8 rs) { fatalerror("AND.b [%s+], %s", m_regnames16[rd], m_regnames8[rs]);}
 void xa_cpu::or_byte_indrdinc_rs(u8 rd, u8 rs)  { fatalerror("OR.b [%s+], %s", m_regnames16[rd], m_regnames8[rs]);}
 void xa_cpu::xor_byte_indrdinc_rs(u8 rd, u8 rs) { fatalerror("XOR.b [%s+], %s", m_regnames16[rd], m_regnames8[rs]);}
-void xa_cpu::mov_byte_indrdinc_rs(u8 rd, u8 rs) { u16 address = get_address(rd); u8 result = get_reg8(rs); write_data8(address, result); address++; do_nz_flags_8(result); set_address(rd, address); cy(4); }
+void xa_cpu::mov_byte_indrdinc_rs(u8 rd, u8 rs) { u16 address = get_addr(rd); u8 result = gr8(rs); wdat8(address, result); address++; do_nz_flags_8(result); set_addr(rd, address); cy(4); }
 
 
 // ALUOP.w Rd, [Rs+off8]
@@ -1089,28 +1172,28 @@ void xa_cpu::mov_byte_direct_rs(u16 direct, u8 rs) { fatalerror("MOV.b %s, %s", 
 
 
 // MOVS Rd, #data4             Move 4-bit sign-extended imm data to reg                                2 3         1011 S001  dddd iiii
-void xa_cpu::movs_word_rd_data4(u8 rd, u8 data4) { fatalerror("MOVS.w %s, %s", m_regnames16[rd], show_expanded_data4(data4, 1)); }
-void xa_cpu::movs_byte_rd_data4(u8 rd, u8 data4) { u8 data = util::sext(data4, 4); set_reg8(rd, data); do_nz_flags_8(data); cy(3); }
+void xa_cpu::movs_word_rd_data4(u8 rd, u8 data4) { u16 data = util::sext(data4, 4); sr16(rd, data); do_nz_flags_16(data); cy(3); }
+void xa_cpu::movs_byte_rd_data4(u8 rd, u8 data4) { u8 data  = util::sext(data4, 4); sr8(rd, data);  do_nz_flags_8(data);  cy(3); }
 // ADDS Rd, #data4             Add 4-bit signed imm data to reg                                        2 3         1010 S001  dddd iiii
-void xa_cpu::adds_word_rd_data4(u8 rd, u8 data4) { fatalerror("ADDS.w %s, %s", m_regnames16[rd], show_expanded_data4(data4, 1)); }
+void xa_cpu::adds_word_rd_data4(u8 rd, u8 data4) { u16 data = util::sext(data4, 4); u16 regval = gr16(rd); regval += data; do_nz_flags_16(regval); sr16(rd, regval); cy(3); }
 void xa_cpu::adds_byte_rd_data4(u8 rd, u8 data4){ fatalerror("ADDS.b %s, %s", m_regnames8[rd], show_expanded_data4(data4, 0)); }
 
 // MOVS [Rd], #data4           Move 4-bit sign-extended imm data to reg-ind                            2 3         1011 S010  0ddd iiii
-void xa_cpu::movs_word_indrd_data4(u8 rd, u8 data4){ fatalerror("MOVS.w [%s], %s", m_regnames16[rd], show_expanded_data4(data4, 1)); }
+void xa_cpu::movs_word_indrd_data4(u8 rd, u8 data4){ u16 data = util::sext(data4, 4); u16 address = get_addr(rd); wdat16(address, data); do_nz_flags_16(data); cy(3); }
 void xa_cpu::movs_byte_indrd_data4(u8 rd, u8 data4){ fatalerror("MOVS.b [%s], %s", m_regnames16[rd], show_expanded_data4(data4, 0)); }
 // ADDS [Rd], #data4           Add 4-bit signed imm data to reg-ind                                    2 4         1010 S010  0ddd iiii
 void xa_cpu::adds_word_indrd_data4(u8 rd, u8 data4){ fatalerror("ADDS.w [%s], %s", m_regnames16[rd], show_expanded_data4(data4, 1)); }
 void xa_cpu::adds_byte_indrd_data4(u8 rd, u8 data4){ fatalerror("ADDS.b [%s], %s", m_regnames16[rd], show_expanded_data4(data4, 0)); }
 
 // MOVS [Rd+], #data4          Move 4-bit sign-extended imm data to reg-ind w/ autoinc                 2 4         1011 S011  0ddd iiii
-void xa_cpu::movs_word_indrdinc_data4(u8 rd, u8 data4) { u16 data = util::sext(data4, 4); u16 address = get_address(rd); write_data16(address, data); address += 2; do_nz_flags_16(data); set_address(rd, address); cy(4); }
-void xa_cpu::movs_byte_indrdinc_data4(u8 rd, u8 data4) { u8 data  = util::sext(data4, 4); u16 address = get_address(rd); write_data8(address, data);  address++;    do_nz_flags_8(data);  set_address(rd, address); cy(4); }
+void xa_cpu::movs_word_indrdinc_data4(u8 rd, u8 data4) { u16 data = util::sext(data4, 4); u16 address = get_addr(rd); wdat16(address, data); address += 2; do_nz_flags_16(data); set_addr(rd, address); cy(4); }
+void xa_cpu::movs_byte_indrdinc_data4(u8 rd, u8 data4) { u8 data  = util::sext(data4, 4); u16 address = get_addr(rd); wdat8(address, data);  address++;    do_nz_flags_8(data);  set_addr(rd, address); cy(4); }
 // ADDS [Rd+], #data4          Add 4-bit signed imm data to reg-ind w/ autoinc                         2 5         1010 S011  0ddd iiii
 void xa_cpu::adds_word_indrdinc_data4(u8 rd, u8 data4){ fatalerror("ADDS.w [%s+], %s", m_regnames16[rd], show_expanded_data4(data4, 1)); }
 void xa_cpu::adds_byte_indrdinc_data4(u8 rd, u8 data4){ fatalerror("ADDS.b [%s+], %s", m_regnames16[rd], show_expanded_data4(data4, 0)); }
 
 // MOVS [Rd+offset8], #data4   Move reg-ind w/ 8-bit offs to 4-bit sign-extended imm data              3 5         1011 S100  0ddd iiii  oooo oooo
-void xa_cpu::movs_word_indrdoff8_data4(u8 rd, u8 off8, u8 data4){ fatalerror("MOVS.w [%s+$%02x], %s", m_regnames16[rd], off8, show_expanded_data4(data4, 1)); }
+void xa_cpu::movs_word_indrdoff8_data4(u8 rd, u8 off8, u8 data4) { u16 data = util::sext(data4, 4); u16 fulloffset = util::sext(off8, 8); u16 address = get_addr(rd) + fulloffset; wdat16(address, data); do_nz_flags_16(data); cy(5); }
 void xa_cpu::movs_byte_indrdoff8_data4(u8 rd, u8 off8, u8 data4){ fatalerror("MOVS.b [%s+$%02x], %s", m_regnames16[rd], off8, show_expanded_data4(data4, 0));  }
 // ADDS [Rd+offset8], #data4   Add reg-ind w/ 8-bit offs to 4-bit signed imm data                      3 6         1010 S100  0ddd iiii  oooo oooo
 void xa_cpu::adds_word_indrdoff8_data4(u8 rd, u8 off8, u8 data4){ fatalerror("ADDS.w [%s+$%02x], %s", m_regnames16[rd], off8, show_expanded_data4(data4, 1)); }
@@ -1270,10 +1353,10 @@ void xa_cpu::xch_byte_rd_rs(u8 rd, u8 rs) { fatalerror("XCH.b %s, %s", m_regname
 
 // MOVC Rd, [Rs+]              Move data from WS:Rs address of code mem to reg w/ autoinc              2 4         1000 S000  dddd 0sss
 void xa_cpu::movc_word_rd_indrsinc(u8 rd, u8 rs) { fatalerror("MOVC.w %s, [%s+]\n", m_regnames16[rd], m_regnames16[rs]); }
-void xa_cpu::movc_byte_rd_indrsinc(u8 rd, u8 rs) { u16 address = get_address(rs); u8 data = m_program->read_byte(address); address++; set_address(rs, address); do_nz_flags_8(data); set_reg8(rd, data); cy(4); }
+void xa_cpu::movc_byte_rd_indrsinc(u8 rd, u8 rs) { u16 address = get_addr(rs); u8 data = m_program->read_byte(address); address++; set_addr(rs, address); do_nz_flags_8(data); sr8(rd, data); cy(4); }
 
 // DJNZ Rd,rel8                Decrement reg and jump if not zero                                      3 8t/5nt    1000 S111  dddd 1000  rrrr rrrr
-void xa_cpu::djnz_word_rd_rel8(u8 rd, u8 rel8) { u16 regval = get_reg16(rd);	regval--; do_nz_flags_16(regval); set_reg16(rd, regval); if (get_z_flag() == 0) { set_pc_in_current_page(expand_rel8(rel8)); cy(8); } else { cy(5); } }
+void xa_cpu::djnz_word_rd_rel8(u8 rd, u8 rel8) { u16 regval = gr16(rd);	regval--; do_nz_flags_16(regval); sr16(rd, regval); if (get_z_flag() == 0) { set_pc_in_current_page(expand_rel8(rel8)); cy(8); } else { cy(5); } }
 void xa_cpu::djnz_byte_rd_rel8(u8 rd, u8 rel8) { fatalerror("DJNZ.b %s, $%04x", m_regnames8[rd], expand_rel8(rel8)); }
 
 void xa_cpu::popu_word_direct(u16 direct) { fatalerror("POPU.w %s", get_directtext(direct)); }
@@ -1374,7 +1457,7 @@ void xa_cpu::cjne_byte_rd_direct_rel8(u8 rd, u16 direct, u8 rel8) { fatalerror("
 void xa_cpu::cjne_indrd_data8_rel8(u8 rd, u8 data8, u8 rel8) { fatalerror( "CJNE [%s], #$%02x, $%04x", m_regnames16[rd], data8, expand_rel8(rel8));}
 
 // CJNE Rd,#data8,rel8         Compare imm byte to reg and jump if not equal                           4 9t/6nt    1110 0011  dddd 0000  rrrr rrrr  iiii iiii
-void xa_cpu::cjne_rd_data8_rel8(u8 rd, u8 data8, u8 rel8) { u8 regval = get_reg8(rd); do_cjne_8_helper(regval, data8); if (!get_z_flag()) { set_pc_in_current_page(expand_rel8(rel8)); cy(9); } else { cy(6); } }
+void xa_cpu::cjne_rd_data8_rel8(u8 rd, u8 data8, u8 rel8) { u8 regval = gr8(rd); do_cjne_8_helper(regval, data8); if (!get_z_flag()) { set_pc_in_current_page(expand_rel8(rel8)); cy(9); } else { cy(6); } }
 
 // CJNE [Rd],#data16,rel8      Compare imm word to reg-ind and jump if not equal                       5 10t/7nt   1110 1011  0ddd 1000  rrrr rrrr  iiii iiii  iiii iiii
 void xa_cpu::cjne_indrd_data16_rel8(u8 rd, u16 data16, u8 rel8) { fatalerror( "CJNE [%s], #$%04x, $%04x", m_regnames16[rd], data16, expand_rel8(rel8));}

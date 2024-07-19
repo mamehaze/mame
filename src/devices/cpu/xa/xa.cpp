@@ -447,7 +447,7 @@ u8 xa_cpu::pull_byte_from_stack()
 }
 
 
-u8 xa_cpu::get_reg8(int reg)
+u8 xa_cpu::gr8(int reg)
 {
 	int high = reg & 1;
 
@@ -467,7 +467,7 @@ u8 xa_cpu::get_reg8(int reg)
 	{
 		if (reg == 7)
 		{
-			fatalerror("get_reg8 on register R7\n");
+			fatalerror("gr8 on register R7\n");
 			return 0;
 		}
 
@@ -479,7 +479,7 @@ u8 xa_cpu::get_reg8(int reg)
 	}
 }
 
-void xa_cpu::set_reg8(int reg, u8 data)
+void xa_cpu::sr8(int reg, u8 data)
 {
 	int high = reg & 1;
 
@@ -499,7 +499,7 @@ void xa_cpu::set_reg8(int reg, u8 data)
 	{
 		if (reg == 7)
 		{
-			fatalerror("set_reg8 on register R7\n");
+			fatalerror("sr8 on register R7\n");
 		}
 
 		reg -= 4;
@@ -511,7 +511,7 @@ void xa_cpu::set_reg8(int reg, u8 data)
 }
 
 
-void xa_cpu::set_reg16(int reg, u16 data)
+void xa_cpu::sr16(int reg, u16 data)
 {
 	if (reg < 4)
 	{
@@ -540,11 +540,11 @@ void xa_cpu::set_reg16(int reg, u16 data)
 	}
 	else
 	{
-		fatalerror("set_reg16 with reg %d val = %04x\n", reg, data);
+		fatalerror("sr16 with reg %d val = %04x\n", reg, data);
 	}
 }
 
-u16 xa_cpu::get_reg16(int reg)
+u16 xa_cpu::gr16(int reg)
 {
 	if (reg < 4)
 	{
@@ -571,34 +571,60 @@ u16 xa_cpu::get_reg16(int reg)
 	}
 	else
 	{
-		fatalerror("get_reg16 with reg %d\n", reg);
+		fatalerror("gr16 with reg %d\n", reg);
 		return 0;
 	}
 }
 
-void xa_cpu::write_data8(int address, u8 data)
+void xa_cpu::wdat8(int address, u8 data)
 {
 	m_data->write_byte(address, data);
 }
 
-void xa_cpu::write_data16(int address, u16 data)
+void xa_cpu::wdat16(int address, u16 data)
 {
 	if (address & 1)
-		fatalerror("unaligned in write_data16\n");
+		fatalerror("unaligned in wdat16\n");
 
 	m_data->write_word(address, data);
 }
 
+
+u8 xa_cpu::rdat8(int address)
+{
+	return m_data->read_byte(address);
+}
+
+u16 xa_cpu::rdat16(int address)
+{
+	if (address & 1)
+		fatalerror("unaligned in rdat16\n");
+
+	return m_data->read_word(address);
+}
+
+
+
 void xa_cpu::write_direct16(u16 addr, u16 data)
 {
-	fatalerror("write_direct16 %04x %04x\n", addr, data);
+	if (addr < 0x400)
+	{
+		if (addr & 1)
+			fatalerror("write_direct16 (odd address) %04x %04x\n", addr, data);
+
+		m_data->write_word(addr, data);
+	}
+	else
+	{
+		fatalerror("write_direct16 (SFR) %04x %04x\n", addr, data);
+	}
 }
 
 void xa_cpu::write_direct8(u16 addr, u8 data)
 {
 	if (addr < 0x400)
 	{
-		fatalerror("write_direct8 %04x %04x\n", addr, data);
+		m_data->write_byte(addr, data);
 	}
 	else
 	{
@@ -1065,7 +1091,7 @@ void xa_cpu::push_byte_reglist(u8 op2, int h, bool force_user)
 		int bit = (op2 & (1 << i));
 		if (bit)
 		{
-			u8 regval = get_reg8(i + h ? 8 : 0);
+			u8 regval = gr8(i + h ? 8 : 0);
 			if (force_user)
 				push_byte_to_user_stack(regval);
 			else
@@ -1088,7 +1114,7 @@ void xa_cpu::pull_byte_reglist(u8 op2, int h, bool force_user)
 			else
 				stackval = pull_byte_from_stack();
 
-			set_reg8(i + h ? 8 : 0, stackval);
+			sr8(i + h ? 8 : 0, stackval);
 			cy(2);
 		}
 	}
@@ -2302,7 +2328,10 @@ void xa_cpu::device_start()
 	state_add(XA_R4, "R4", m_regs[16]);
 	state_add(XA_R5, "R5", m_regs[17]);
 	state_add(XA_R6, "R6", m_regs[18]);
-	state_add(XA_R7, "R7", m_usermode ? m_USP : m_SSP);
+//	state_add(XA_R7, "R7", m_usermode ? m_USP : m_SSP);
+
+	state_add(XA_USP, "R7 USP", m_USP);
+	state_add(XA_SSP, "R7 SSP", m_SSP);
 
 	set_icountptr(m_icount);
 }

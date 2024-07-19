@@ -34,6 +34,10 @@ enum {
 	XA_R5,
 	XA_R6,
 	XA_R7,
+
+	XA_USP,
+	XA_SSP,
+
 };
 
 
@@ -124,11 +128,11 @@ private:
 	void clear_ac_flag() { m_acflag = 0; }
 
 
-	u8 get_reg8(int reg);
-	void set_reg8(int reg, u8 data);
+	u8 gr8(int reg);
+	void sr8(int reg, u8 data);
 
-	u16 get_reg16(int reg);
-	void set_reg16(int reg, u16 data);
+	u16 gr16(int reg);
+	void sr16(int reg, u16 data);
 
 	void set_pc_in_current_page(u16 addr);
 
@@ -152,8 +156,11 @@ private:
 
 	void pull_byte_reglist(u8 op2, int h, bool force_user);
 
-	void write_data8(int address, u8 data);
-	void write_data16(int address, u16 data);
+	void wdat8(int address, u8 data);
+	void wdat16(int address, u16 data);
+
+	u8 rdat8(int address);
+	u16 rdat16(int address);
 
 	void sfr_PSWL_w(u8 data);
 	void sfr_PSWH_w(u8 data);
@@ -166,6 +173,19 @@ private:
 	void write_direct16(u16 addr, u16 data);
 	u8 read_direct8(u16 addr);
 	void write_direct8(u16 addr, u8 data);
+
+	u16 do_subb_16(u16 val1, u16 val2);
+	u16 do_sub_16(u16 val1, u16 val2);
+	u16 do_sub_16_helper(u16 val1, u16 val2, u8 c);
+
+	u16 do_addc_16(u16 val1, u16 val2);
+	u16 do_add_16(u16 val1, u16 val2);
+	u16 do_add_16_helper(u16 val1, u16 val2, u8 c);
+
+	u16 do_xor_16(u16 val1, u16 val2);
+	u16 do_or_16(u16 val1, u16 val2);
+	u16 do_and_16(u16 val1, u16 val2);
+
 
 	u8 do_sub_8(u8 val1, u8 val2);
 	u8 do_subb_8(u8 val1, u8 val2);
