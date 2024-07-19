@@ -1346,7 +1346,7 @@ CMP Rd, [Rs]                Compare reg-ind w/ reg                              
 CMP [Rd], Rs                Compare reg w/ reg-ind                                                  2 4         0100 S010  ssss 1ddd
 CMP Rd, [Rs+offset8]        Compare reg-ind w/ 8-bit offs w/ reg                                    3 6         0100 S100  dddd 0sss  oooo oooo
 CMP [Rd+offset8], Rs        Compare reg w/ reg-ind w/ 8-bit offs                                    3 6         0100 S100  ssss 1ddd  oooo oooo
-CMP Rd,[Rs+offset16]        Compare reg-ind w/ 16-bit offs w/ reg                                   4 6         0100 S101  dddd 0sss  oooo oooo  oooo oooo
+CMP Rd, [Rs+offset16]       Compare reg-ind w/ 16-bit offs w/ reg                                   4 6         0100 S101  dddd 0sss  oooo oooo  oooo oooo
 CMP [Rd+offset16], Rs       Compare reg w/ reg-ind w/ 16-bit offs                                   4 6         0100 S101  ssss 1ddd  oooo oooo  oooo oooo
 CMP Rd, [Rs+]               Compare autoinc reg-ind w/ reg                                          2 5         0100 S011  dddd 0sss
 CMP [Rd+], Rs               Compare reg w/ autoinc reg-ind                                          2 5         0100 S011  ssss 1ddd
