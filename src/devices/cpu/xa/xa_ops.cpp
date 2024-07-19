@@ -5,8 +5,6 @@
 #include "xa.h"
 #include "xadasm.h"
 
-void xa_cpu_device::do_nop() { }
-
 u8 xa_cpu_device::do_subb_8(u8 val1, u8 val2)
 {
 	return do_sub_8_helper(val1, val2, get_c_flag());
@@ -85,6 +83,8 @@ u8 xa_cpu_device::do_cjne_8_helper(u8 val1, u8 val2)
 	return (u8)result;
 }
 
+// NOP                         No operation                                                            1 3         0000 0000
+void xa_cpu_device::do_nop() { cy(3); }
 
 // ALUOP.b Rd, data8
 void xa_cpu_device::aluop_byte_rd_data8(int alu_op, u8 rd, u8 data8)
@@ -228,7 +228,15 @@ void xa_cpu_device::xor_byte_indrdoff16_data8(u8 rd, u16 offset16, u8 data8) { f
 void xa_cpu_device::mov_byte_indrdoff16_data8(u8 rd, u16 offset16, u8 data8) { fatalerror( "MOV.b [%s+#$%04x], #$%02x ([RD+offs16], DATA8)", m_regnames16[rd], offset16, data8 ); }
 
 // ------------------------------------------
- // ALUOP.b DIRECT, data8
+// ADD direct, #data8          Add 8-bit imm data to mem                                               4 4         1001 0110  0DDD 0000  DDDD DDDD  iiii iiii
+// ADDC direct, #data8         Add 8-bit imm data to mem w/ carry                                      4 4         1001 0110  0DDD 0001  DDDD DDDD  iiii iiii
+// SUB direct, #data8          Subtract 8-bit imm data to mem                                          4 4         1001 0110  0DDD 0010  DDDD DDDD  iiii iiii
+// SUBB direct, #data8         Subtract w/ borrow 8-bit imm data to mem                                4 4         1001 0110  0DDD 0011  DDDD DDDD  iiii iiii
+// CMP direct, #data8          Compare 8-bit imm data to mem                                           4 4         1001 0110  0DDD 0100  DDDD DDDD  iiii iiii
+// AND direct, #data8          Logical AND 8-bit imm data to mem                                       4 4         1001 0110  0DDD 0101  DDDD DDDD  iiii iiii
+// OR direct, #data8           Logical OR 8-bit imm data to mem                                        4 4         1001 0110  0DDD 0110  DDDD DDDD  iiii iiii
+// XOR direct, #data8          Logical XOR 8-bit imm data to mem                                       4 4         1001 0110  0DDD 0111  DDDD DDDD  iiii iiii
+// MOV direct, #data8          Move 8-bit imm data to mem                                              4 3         1001 0110  0DDD 1000  DDDD DDDD  iiii iiii
 void xa_cpu_device::aluop_byte_direct_data8(int alu_op, u16 direct, u8 data8)
 {
 	switch (alu_op)
@@ -250,27 +258,22 @@ void xa_cpu_device::addc_byte_direct_data8(u16 direct, u8 data8){ fatalerror("AD
 void xa_cpu_device::sub_byte_direct_data8(u16 direct, u8 data8) { fatalerror("SUB.b %s, #$%02x (DIRECT, DATA8)", get_directtext(direct), data8); }
 void xa_cpu_device::subb_byte_direct_data8(u16 direct, u8 data8){ fatalerror("SUBB.b %s, #$%02x (DIRECT, DATA8)", get_directtext(direct), data8);}
 void xa_cpu_device::cmp_byte_direct_data8(u16 direct, u8 data8) { fatalerror("CMP.b %s, #$%02x (DIRECT, DATA8)", get_directtext(direct), data8); }
-
-void xa_cpu_device::and_byte_direct_data8(u16 direct, u8 data8)
-{
-	u8 val = read_direct8(direct);
-	u8 newval = val & data8;
-	// change N flag, change Z flag
-	write_direct8(direct, newval);
-}
-
+void xa_cpu_device::and_byte_direct_data8(u16 direct, u8 data8) { u8 val = read_direct8(direct); u8 result = do_and_8(val, data8); write_direct8(direct, result); cy(4); }
 void xa_cpu_device::or_byte_direct_data8(u16 direct, u8 data8)  { fatalerror("OR.b %s, #$%02x (DIRECT, DATA8)", get_directtext(direct), data8); }
 void xa_cpu_device::xor_byte_direct_data8(u16 direct, u8 data8) { fatalerror("XOR.b %s, #$%02x (DIRECT, DATA8)", get_directtext(direct), data8); }
-
-void xa_cpu_device::mov_byte_direct_data8(u16 direct, u8 data8)
-{
-	u8 newval = data8;
-	// do MOV flags?
-	write_direct8(direct, newval);
-}
+void xa_cpu_device::mov_byte_direct_data8(u16 direct, u8 data8) { u8 result = data8; do_nz_flags_8(result); write_direct8(direct, result); cy(3); }
 
 // -----------------------------------------------
 // ALUOP.w Rd, data16
+// ADD Rd, #data16             Add 16-bit imm data to reg                                              4 3         1001 1001  dddd 0000  iiii iiii  iiii iiii
+// ADDC Rd, #data16            Add 16-bit imm data to reg w/ carry                                     4 3         1001 1001  dddd 0001  iiii iiii  iiii iiii
+// SUB Rd, #data16             Subtract 16-bit imm data to reg                                         4 3         1001 1001  dddd 0010  iiii iiii  iiii iiii
+// SUBB Rd, #data16            Subtract w/ borrow 16-bit imm data to reg                               4 3         1001 1001  dddd 0011  iiii iiii  iiii iiii
+// CMP Rd, #data16             Compare 16-bit imm data to reg                                          4 3         1001 1001  dddd 0100  iiii iiii  iiii iiii
+// AND Rd, #data16             Logical AND 16-bit imm data to reg                                      4 3         1001 1001  dddd 0101  iiii iiii  iiii iiii
+// OR Rd, #data16              Logical OR 16-bit imm data to reg                                       4 3         1001 1001  dddd 0110  iiii iiii  iiii iiii
+// XOR Rd, #data16             Logical XOR 16-bit imm data to reg                                      4 3         1001 1001  dddd 0111  iiii iiii  iiii iiii
+// MOV Rd, #data16             Move 16-bit imm data to reg                                             4 3         1001 1001  dddd 1000  iiii iiii  iiii iiii
 void xa_cpu_device::aluop_byte_rd_data16(int alu_op, u8 rd, u16 data16)
 {
 	switch (alu_op)
@@ -295,11 +298,7 @@ void xa_cpu_device::cmp_word_rd_data16(u8 rd, u16 data16) { fatalerror("CMP.w % 
 void xa_cpu_device::and_word_rd_data16(u8 rd, u16 data16) { fatalerror("AND.w %s, #$%04x (RD, DATA16)", m_regnames16[rd], data16); }
 void xa_cpu_device::or_word_rd_data16(u8 rd, u16 data16)  { fatalerror("OR.w %s, #$%04x (RD, DATA16)", m_regnames16[rd], data16); }
 void xa_cpu_device::xor_word_rd_data16(u8 rd, u16 data16) { fatalerror("XOR.w %s, #$%04x (RD, DATA16)", m_regnames16[rd], data16); }
-
-void xa_cpu_device::mov_word_rd_data16(u8 rd, u16 data16){
-	printf("MOV.w %s, #$%04x\n", m_regnames16[rd], data16);
-	set_reg16(rd, data16);
-}
+void xa_cpu_device::mov_word_rd_data16(u8 rd, u16 data16) { u16 result = data16; do_nz_flags_16(result); set_reg16(rd, result); cy(3); }
 
 // -----------------------------------------------
 // ALUOP.w [Rd], data16
@@ -410,7 +409,16 @@ void xa_cpu_device::or_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16)  
 void xa_cpu_device::xor_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16) { fatalerror( "XOR.w [%s+#$%04x], #$%04x ([RD+offs16], DATA16)", m_regnames16[rd], offset16, data16); }
 void xa_cpu_device::mov_word_indrdoff16_data16(u8 rd, u16 offset16, u16 data16) { fatalerror( "MOV.w [%s+#$%04x], #$%04x ([RD+offs16], DATA16)", m_regnames16[rd], offset16, data16); }
 
- // ALUOP.w DIRECT, data16
+// ALUOP.w DIRECT, data16
+// ADD direct, #data16         Add 16-bit imm data to mem                                              5 4         1001 1110  0DDD 0000  DDDD DDDD  iiii iiii  iiii iiii
+// ADDC direct, #data16        Add 16-bit imm data to mem w/ carry                                     5 4         1001 1110  0DDD 0001  DDDD DDDD  iiii iiii  iiii iiii
+// SUB direct, #data16         Subtract 16-bit imm data to mem                                         5 4         1001 1110  0DDD 0010  DDDD DDDD  iiii iiii  iiii iiii
+// SUBB direct, #data16        Subtract w/ borrow 16-bit imm data to mem                               5 4         1001 1110  0DDD 0011  DDDD DDDD  iiii iiii  iiii iiii
+// CMP direct, #data16         Compare 16-bit imm data to mem                                          5 4         1001 1110  0DDD 0100  DDDD DDDD  iiii iiii  iiii iiii
+// AND direct, #data16         Logical AND 16-bit imm data to mem                                      5 4         1001 1110  0DDD 0101  DDDD DDDD  iiii iiii  iiii iiii
+// OR direct, #data16          Logical OR 16-bit imm data to mem                                       5 4         1001 1110  0DDD 0110  DDDD DDDD  iiii iiii  iiii iiii
+// XOR direct, #data16         Logical XOR 16-bit imm data to mem                                      5 4         1001 1110  0DDD 0111  DDDD DDDD  iiii iiii  iiii iiii
+// MOV direct, #data16         Move 16-bit imm data to mem                                             5 3         1001 1110  0DDD 1000  DDDD DDDD  iiii iiii  iiii iiii
 void xa_cpu_device::aluop_byte_direct_data16(int alu_op, u16 direct, u16 data16)
 {
 	switch (alu_op)
@@ -1059,12 +1067,11 @@ void xa_cpu_device::xor_byte_direct_rs(u16 direct, u8 rs) { fatalerror("XOR.b %s
 void xa_cpu_device::mov_byte_direct_rs(u16 direct, u8 rs) { fatalerror("MOV.b %s, %s", get_directtext(direct), m_regnames8[rs]);}
 
 
-// ADDS.w / MOVS.w Rd, #data4
+// MOVS Rd, #data4             Move 4-bit sign-extended imm data to reg                                2 3         1011 S001  dddd iiii
 void xa_cpu_device::movs_word_rd_data4(u8 rd, u8 data4) { fatalerror("MOVS.w %s, %s", m_regnames16[rd], show_expanded_data4(data4, 1)); }
+void xa_cpu_device::movs_byte_rd_data4(u8 rd, u8 data4) { u8 data = util::sext(data4, 4); set_reg8(rd, data); do_nz_flags_8(data); cy(3); }
+// ADDS Rd, #data4             Add 4-bit signed imm data to reg                                        2 3         1010 S001  dddd iiii
 void xa_cpu_device::adds_word_rd_data4(u8 rd, u8 data4) { fatalerror("ADDS.w %s, %s", m_regnames16[rd], show_expanded_data4(data4, 1)); }
-
-// ADDS.b / MOVS.b Rd, #data4
-void xa_cpu_device::movs_byte_rd_data4(u8 rd, u8 data4){ u8 data = util::sext(data4, 4); set_reg8(rd, data);    do_nz_flags_8(data); }
 void xa_cpu_device::adds_byte_rd_data4(u8 rd, u8 data4){ fatalerror("ADDS.b %s, %s", m_regnames8[rd], show_expanded_data4(data4, 0)); }
 
 // ADDS.w / MOVS.w [Rd], #data4
@@ -1099,12 +1106,13 @@ void xa_cpu_device::adds_word_indrdoff16_data4(u8 rd, u16 off16, u8 data4){ fata
 void xa_cpu_device::movs_byte_indrdoff16_data4(u8 rd, u16 off16, u8 data4){ fatalerror("MOVS.b [%s+$%04x], %s", m_regnames16[rd], off16, show_expanded_data4(data4, 0)); }
 void xa_cpu_device::adds_byte_indrdoff16_data4(u8 rd, u16 off16, u8 data4){ fatalerror("ADDS.b [%s+$%04x], %s", m_regnames16[rd], off16, show_expanded_data4(data4, 0)); }
 
-// ADDS.w / MOVS.w DIRECT, #data4
-void xa_cpu_device::movs_word_direct_data4(u16 direct, u8 data4){ u16 data = util::sext(data4, 4); do_nz_flags_16(data); write_direct16(direct, data); }
-void xa_cpu_device::adds_word_direct_data4(u16 direct, u8 data4){ fatalerror("ADDS.w %s, %s\n", get_directtext(direct), show_expanded_data4(data4, 0)); }
 
-// ADDS.b / MOVS.b DIRECT, #data4
-void xa_cpu_device::movs_byte_direct_data4(u16 direct, u8 data4){ u8  data = util::sext(data4, 4); do_nz_flags_8(data);  write_direct8(direct, data); }
+// MOVS direct, #data4         Move 4-bit sign-extended imm data to mem                                3 3         1011 S110  0DDD iiii  DDDD DDDD
+void xa_cpu_device::movs_word_direct_data4(u16 direct, u8 data4) { u16 data = util::sext(data4, 4); do_nz_flags_16(data); write_direct16(direct, data); cy(3); }
+void xa_cpu_device::movs_byte_direct_data4(u16 direct, u8 data4) { u8  data = util::sext(data4, 4); do_nz_flags_8(data);  write_direct8(direct, data); cy(3); }
+
+// ADDS direct, #data4         Add 4-bit signed imm data to mem                                        3 4         1010 S110  0DDD iiii  DDDD DDDD
+void xa_cpu_device::adds_word_direct_data4(u16 direct, u8 data4){ fatalerror("ADDS.w %s, %s\n", get_directtext(direct), show_expanded_data4(data4, 0)); }
 void xa_cpu_device::adds_byte_direct_data4(u16 direct, u8 data4){ fatalerror("ADDS.b %s, %s\n", get_directtext(direct), show_expanded_data4(data4, 0)); }
 
 // CALL rel16

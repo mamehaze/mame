@@ -2245,7 +2245,11 @@ void xa_cpu_device::execute_run()
 	while (m_icount > 0)
 	{
 		debugger_instruction_hook(m_pc);
+		u32 oldpc = m_pc;
 		u8 op = m_program->read_byte(m_pc++);
+		int old_icount = m_icount;
 		(this->*s_instruction[op])(XA_EXECUTE_CALL_PARAMS);
+		if (m_icount == old_icount)
+			fatalerror("op at %06x took no cycles\n", oldpc);
 	}
 }

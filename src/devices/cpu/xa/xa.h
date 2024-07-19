@@ -94,6 +94,11 @@ private:
 	u16 expand_rel16(u16 rel16);
 	u16 expand_rel8(u8 rel8);
 
+	void cy(u8 cycles)
+	{
+		m_icount -= cycles;
+	}
+
 	void do_nz_flags_16(u16 data);
 	void do_nz_flags_8(u8 data);
 
