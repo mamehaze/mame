@@ -1250,10 +1250,10 @@ void xa_cpu::bl_rel8(u8 rel8) { fatalerror("BL %04x\n", expand_rel8(rel8)); }
 void xa_cpu::bge_rel8(u8 rel8) { fatalerror("BGE %04x\n", expand_rel8(rel8)); }
 
 // BLT rel8                    Branch if less than (signed)                                            2 6t/3nt    1111 1011  rrrr rrrr
-void xa_cpu::blt_rel8(u8 rel8) { fatalerror("BLT %04x\n", expand_rel8(rel8)); }
+void xa_cpu::blt_rel8(u8 rel8) { if (get_n_flag() ^ get_v_flag()) { set_pc_in_current_page(expand_rel8(rel8)); cy(6); } else { cy(3); } }
 
 // BGT rel8                    Branch if greater than (signed)                                         2 6t/3nt    1111 1100  rrrr rrrr
-void xa_cpu::bgt_rel8(u8 rel8) { fatalerror("BGT %04x\n", expand_rel8(rel8)); }
+void xa_cpu::bgt_rel8(u8 rel8) { if ((get_z_flag() | get_n_flag()) ^ get_v_flag()) { set_pc_in_current_page(expand_rel8(rel8)); cy(6); } else { cy(3); } }
 
 // BLE rel8                    Branch if less than or equal to (signed)                                2 6t/3nt    1111 1101  rrrr rrrr
 void xa_cpu::ble_rel8(u8 rel8) { fatalerror("BLE %04x\n", expand_rel8(rel8)); }
