@@ -159,6 +159,36 @@ u32 xa_cpu::lsr32_helper(u32 fullreg, u8 amount)
 	return fullreg;
 }
 
+u16 xa_cpu::lsr16_helper(u16 fullreg, u8 amount)
+{
+	cy(6 + (amount >> 1));
+
+	int lastbit = 0;
+
+	while (amount)
+	{
+		lastbit = fullreg & 0x0001;
+		fullreg = fullreg >> 1;
+		amount--;
+	}
+
+	if (lastbit)
+		set_c_flag();
+	else
+		clear_c_flag();
+
+	if (fullreg == 0)
+		set_z_flag();
+	else
+		clear_z_flag();
+
+	if (fullreg & 0x8000)
+		set_n_flag();
+	else
+		clear_n_flag();
+
+	return fullreg;
+}
 
 
 u8 xa_cpu::do_subb_8(u8 val1, u8 val2)
@@ -521,8 +551,8 @@ void xa_cpu::aluop_byte_rd_data16(int alu_op, u8 rd, u16 data16)
 }
 void xa_cpu::add_word_rd_data16(u8 rd, u16 data16) { u16 rdval = gr16(rd); u16 result = do_add_16(rdval, data16); sr16(rd, result); cy(3); }
 void xa_cpu::addc_word_rd_data16(u8 rd, u16 data16){ fatalerror("ADDC.w %s, #$%04x (RD, DATA16)", m_regnames16[rd], data16); }
-void xa_cpu::sub_word_rd_data16(u8 rd, u16 data16) { fatalerror("SUB.w %s, #$%04x (RD, DATA16)", m_regnames16[rd], data16); }
-void xa_cpu::subb_word_rd_data16(u8 rd, u16 data16){ fatalerror("SUBB.w %s, #$%04x (RD, DATA16)", m_regnames16[rd], data16); }
+void xa_cpu::sub_word_rd_data16(u8 rd, u16 data16) { u16 rdval = gr16(rd); u16 result = do_sub_16(rdval, data16); sr16(rd, result); cy(3); }
+void xa_cpu::subb_word_rd_data16(u8 rd, u16 data16){ u16 rdval = gr16(rd); u16 result = do_subb_16(rdval, data16); sr16(rd, result); cy(3); }
 void xa_cpu::cmp_word_rd_data16(u8 rd, u16 data16) { fatalerror("CMP.w % s, #$ % 04x(RD, DATA16)", m_regnames16[rd], data16); }
 void xa_cpu::and_word_rd_data16(u8 rd, u16 data16) { fatalerror("AND.w %s, #$%04x (RD, DATA16)", m_regnames16[rd], data16); }
 void xa_cpu::or_word_rd_data16(u8 rd, u16 data16)  { fatalerror("OR.w %s, #$%04x (RD, DATA16)", m_regnames16[rd], data16); }
@@ -777,11 +807,10 @@ void xa_cpu::addc_byte_rd_rs(u8 rd, u8 rs){ fatalerror("ADDC.b %s, %s", m_regnam
 void xa_cpu::sub_byte_rd_rs(u8 rd, u8 rs) { fatalerror("SUB.b %s, %s", m_regnames8[rd], m_regnames8[rs]);}
 void xa_cpu::subb_byte_rd_rs(u8 rd, u8 rs){ fatalerror("SUBB.b %s, %s", m_regnames8[rd], m_regnames8[rs]);}
 void xa_cpu::cmp_byte_rd_rs(u8 rd, u8 rs) { fatalerror("CMP.b %s, %s", m_regnames8[rd], m_regnames8[rs]);}
-void xa_cpu::and_byte_rd_rs(u8 rd, u8 rs) { fatalerror("AND.b %s, %s", m_regnames8[rd], m_regnames8[rs]);}
+void xa_cpu::and_byte_rd_rs(u8 rd, u8 rs) { u8 rdval = gr8(rd); u8 rsval = gr8(rs); u8 result = do_and_8(rdval, rsval); sr8(rd, result); cy(3); }
 void xa_cpu::or_byte_rd_rs(u8 rd, u8 rs)  { u8 rdval = gr8(rd); u8 rsval = gr8(rs); u8 result = do_or_8(rdval, rsval); sr8(rd, result); cy(3); }
-void xa_cpu::xor_byte_rd_rs(u8 rd, u8 rs) { fatalerror("XOR.b %s, %s", m_regnames8[rd], m_regnames8[rs]);}
-void xa_cpu::mov_byte_rd_rs(u8 rd, u8 rs) { fatalerror("MOV.b %s, %s", m_regnames8[rd], m_regnames8[rs]);}
-
+void xa_cpu::xor_byte_rd_rs(u8 rd, u8 rs) { u8 rdval = gr8(rd); u8 rsval = gr8(rs); u8 result = do_xor_8(rdval, rsval); sr8(rd, result); cy(3); }
+void xa_cpu::mov_byte_rd_rs(u8 rd, u8 rs) {	u8 val = gr8(rs);  do_nz_flags_8(val); sr8(rd, val); cy(3);}
 
 // ALUOP.w Rd, [Rs]
 // ALUOP.b Rd, [Rs]
@@ -1429,6 +1458,7 @@ void xa_cpu::or_byte_direct_rs(u16 direct, u8 rs)  { fatalerror("OR.b %s, %s", g
 void xa_cpu::xor_byte_direct_rs(u16 direct, u8 rs) { fatalerror("XOR.b %s, %s", get_directtext(direct), m_regnames8[rs]);}
 void xa_cpu::mov_byte_direct_rs(u16 direct, u8 rs) { u8 val = gr8(rs); do_nz_flags_8(val); write_direct8(direct, val); cy(4); }
 
+///////////////////////////////////////////////////////
 
 // MOVS Rd, #data4             Move 4-bit sign-extended imm data to reg                                2 3         1011 S001  dddd iiii
 void xa_cpu::movs_word_rd_data4(u8 rd, u8 data4) { u16 data = util::sext(data4, 4); sr16(rd, data); do_nz_flags_16(data); cy(3); }
@@ -1522,24 +1552,28 @@ void xa_cpu::asr_dword_rd_imm5(u8 rd, u8 amount) { fatalerror("ASR.dw %s, %d", m
 
 // LSR Rd, #data4              Logical right shift reg by the 4-bit imm value                          2 a*        1101 SS00  dddd iiii
 void xa_cpu::lsr_byte_rd_imm4(u8 rd, u8 amount) { fatalerror("LSR.b %s, %d", m_regnames8[rd], amount); }
-void xa_cpu::lsr_word_rd_imm4(u8 rd, u8 amount) { fatalerror("LSR.w %s, %d", m_regnames16[rd], amount); }
+void xa_cpu::lsr_word_rd_imm4(u8 rd, u8 amount) { u16 fullreg = gr16(rd); fullreg = lsr32_helper(fullreg, amount); sr16(rd, fullreg); }
 // LSR Rd, #data5              Logical right shift reg by the 4-bit imm value                          2 a*        1101 1100  dddi iiii
 void xa_cpu::lsr_dword_rd_imm5(u8 rd, u8 amount) { u32 fullreg = (gr16(rd) << 16) | gr16(rd + 1); fullreg = lsr32_helper(fullreg, amount); sr16(rd, (fullreg >> 16) & 0xffff); sr16(rd + 1, fullreg & 0xffff); }
 
 // register form shifts
 
+//ASL Rd, Rs                  Logical left shift dest reg by the value in the src reg                 2 a*        1100 SS01  dddd ssss
 void xa_cpu::asl_byte_rd_rs(u8 rd, u8 rs) { fatalerror("ASL.b %s, %d", m_regnames8[rd], m_regnames8[rs]); }
 void xa_cpu::asl_word_rd_rs(u8 rd, u8 rs) { fatalerror("ASL.w %s, %d", m_regnames16[rd], m_regnames8[rs]); }
 void xa_cpu::asl_dword_rd_rs(u8 rd, u8 rs) { fatalerror("ASL.dw %s, %d", m_regnames16[rd], m_regnames8[rs]); }
 
+// ASR Rd, Rs                  Arithmetic shift right dest reg by the count in the src                 2 a*        1100 SS10  dddd ssss
 void xa_cpu::asr_byte_rd_rs(u8 rd, u8 rs) { fatalerror("ASR.b %s, %d", m_regnames8[rd], m_regnames8[rs]); }
 void xa_cpu::asr_word_rd_rs(u8 rd, u8 rs) { fatalerror("ASR.w %s, %d", m_regnames16[rd], m_regnames8[rs]); }
 void xa_cpu::asr_dword_rd_rs(u8 rd, u8 rs) { fatalerror("ASR.dw %s, %d", m_regnames16[rd], m_regnames8[rs]); }
 
+// LSR Rd, Rs                  Logical right shift dest reg by the value in the src reg                2 a*        1100 SS00  dddd ssss
 void xa_cpu::lsr_byte_rd_rs(u8 rd, u8 rs) { fatalerror("LSR.b %s, %d", m_regnames8[rd], m_regnames8[rs]); }
 void xa_cpu::lsr_word_rd_rs(u8 rd, u8 rs) { fatalerror("LSR.w %s, %d", m_regnames16[rd], m_regnames8[rs]); }
 void xa_cpu::lsr_dword_rd_rs(u8 rd, u8 rs) { fatalerror("LSR.dw %s, %d", m_regnames16[rd], m_regnames8[rs]); }
 
+// NORM Rd, Rs                 Logical shift left dest reg by the value in the src reg until MSB set   2 a*        1100 SS11  dddd ssss
 void xa_cpu::norm_byte_rd_rs(u8 rd, u8 rs) { fatalerror("NORM.b %s, %d", m_regnames8[rd], m_regnames8[rs]); }
 void xa_cpu::norm_word_rd_rs(u8 rd, u8 rs) { fatalerror("NORM.w %s, %d", m_regnames16[rd], m_regnames8[rs]); }
 void xa_cpu::norm_dword_rd_rs(u8 rd, u8 rs) { fatalerror("NORM.dw %s, %d", m_regnames16[rd], m_regnames8[rs]); }
@@ -1621,8 +1655,6 @@ void xa_cpu::divu_dword_rd_rs(u8 rd, u8 rs)
 //DIV.d Rd, Rs
 void xa_cpu::div_dword_rd_rs(u8 rd, u8 rs) { fatalerror( "DIV.d %s, %s", m_regnames16[rd], m_regnames16[rs]); }
 
-
-
 // CLR bit                     Clear bit                                                               3 4         0000 1000  0000 00bb  bbbb bbbb
 void xa_cpu::clr_bit(u16 bit) { set_bit_8_helper(bit, 0); cy(4); }
 // SETB bit                    Sets the bit specified                                                  3 4         0000 1000  0001 00bb  bbbb bbbb
@@ -1662,12 +1694,16 @@ void xa_cpu::movc_byte_rd_indrsinc(u8 rd, u8 rs) { u16 address = get_addr(rs); u
 void xa_cpu::djnz_word_rd_rel8(u8 rd, u8 rel8) { u16 regval = gr16(rd);	regval--; do_nz_flags_16(regval); sr16(rd, regval); if (get_z_flag() == 0) { set_pc_in_current_page(expand_rel8(rel8)); cy(8); } else { cy(5); } }
 void xa_cpu::djnz_byte_rd_rel8(u8 rd, u8 rel8) { fatalerror("DJNZ.b %s, $%04x", m_regnames8[rd], expand_rel8(rel8)); }
 
+// POPU direct                 Pop the mem content (b/w) from the user stack                           3 5         1000 S111  0000 0DDD  DDDD DDDD
 void xa_cpu::popu_word_direct(u16 direct) { fatalerror("POPU.w %s", get_directtext(direct)); }
 void xa_cpu::popu_byte_direct(u16 direct) { fatalerror("POPU.b %s", get_directtext(direct)); }
+// POP direct                  Pop the mem content (b/w) from the current stack                        3 5         1000 S111  0001 0DDD  DDDD DDDD
 void xa_cpu::pop_word_direct(u16 direct) { fatalerror("POP.w %s", get_directtext(direct)); }
 void xa_cpu::pop_byte_direct(u16 direct) { fatalerror("POP.b %s", get_directtext(direct)); }
+// PUSHU direct                Push the mem content (b/w) onto the user stack                          3 5         1000 S111  0010 0DDD  DDDD DDDD
 void xa_cpu::pushu_word_direct(u16 direct) { fatalerror("PUSHU.w %s", get_directtext(direct)); }
 void xa_cpu::pushu_byte_direct(u16 direct) { fatalerror("PUSHU.b %s", get_directtext(direct)); }
+// PUSH direct                 Push the mem content (b/w) onto the current stack                       3 5         1000 S111  0011 0DDD  DDDD DDDD
 void xa_cpu::push_word_direct(u16 direct) { fatalerror("PUSH.w %s", get_directtext(direct)); }
 void xa_cpu::push_byte_direct(u16 direct) { fatalerror("PUSH.b %s", get_directtext(direct)); }
 
@@ -1675,16 +1711,24 @@ void xa_cpu::push_byte_direct(u16 direct) { fatalerror("PUSH.b %s", get_directte
 void xa_cpu::mov_word_indrdinc_indrsinc(u8 rd, u8 rs) { fatalerror("MOV.w [%s+], [%s+]", m_regnames16[rd], m_regnames16[rs]); }
 void xa_cpu::mov_byte_indrdinc_indrsinc(u8 rd, u8 rs) { fatalerror("MOV.b [%s+], [%s+]", m_regnames16[rd], m_regnames16[rs]); }
 
+// DA Rd                       Decimal Adjust byte reg                                                 2 4         1001 0000  dddd 1000
 void xa_cpu::da_rd(u8 rd) { fatalerror( "DA %s", m_regnames8[rd]); }
+// SEXT Rd                     Sign extend last operation to reg                                       2 3         1001 S000  dddd 1001
 void xa_cpu::sext_word_rd(u8 rd) { fatalerror("SEXT.w %s", m_regnames16[rd]); }
 void xa_cpu::sext_byte_rd(u8 rd) { fatalerror("SEXT.b %s", m_regnames8[rd]); }
+// CPL Rd                      Complement (ones complement) reg                                        2 3         1001 S000  dddd 1010
 void xa_cpu::cpl_word_rd(u8 rd) { fatalerror("CPL.w %s", m_regnames16[rd]); }
 void xa_cpu::cpl_byte_rd(u8 rd) { fatalerror("CPL.b %s", m_regnames8[rd]); }
+// NEG Rd                      Negate (twos complement) reg                                            2 3         1001 S000  dddd 1011
 void xa_cpu::neg_word_rd(u8 rd) { fatalerror("NEG.w %sx", m_regnames16[rd]); }
 void xa_cpu::neg_byte_rd(u8 rd) { fatalerror("NEG.b %sx", m_regnames8[rd]); }
+// MOVC A, [A+PC]              Move data from code mem to the accumulator ind w/ PC                    2 6         1001 0000  0100 1100
 void xa_cpu::movc_a_apc() { fatalerror( "MOVC A, [A+PC]"); }
+// MOVC A, [A+DPTR]            Move data from code mem to the accumulator ind w/ DPTR                  2 6         1001 0000  0100 1110
 void xa_cpu::movc_a_adptr() { fatalerror( "MOVC A, [A+DPTR]"); }
+// MOV Rd, USP                 Move User Stack Pointer to reg (system mode only)                       2 3         1001 0000  dddd 1111
 void xa_cpu::mov_rd_usp(u8 rd) { fatalerror( "MOV %s, USP", m_regnames16[rd]); }
+// MOV USP, Rs                 Move reg to User Stack Pointer (system mode only)                       2 3         1001 1000  ssss 1111
 void xa_cpu::mov_usp_rs(u8 rs) { fatalerror( "MOV USP, %s", m_regnames16[rs]); }
 
 //JB bit,rel8                 Jump if bit set                                                         4 10t/6nt   1001 0111  1000 00bb  bbbb bbbb  rrrr rrrr
@@ -1806,7 +1850,7 @@ void xa_cpu::jz_rel8(u8 rel8) { fatalerror( "JZ $%04x", expand_rel8(rel8)); }
 void xa_cpu::jnz_rel8(u8 rel8) { fatalerror( "JNZ $%04x", expand_rel8(rel8)); }
 
 // PUSH Rlist                  Push regs (b/w) onto the current stack                                  2 b*        0H00 S111  LLLL LLLL
-void xa_cpu::push_word_rlist(u8 bitfield, int h) { fatalerror("PUSH.w %s", get_word_reglist(bitfield)); }
+void xa_cpu::push_word_rlist(u8 bitfield, int h) { cy(2); push_word_reglist(bitfield, h, false); }
 void xa_cpu::push_byte_rlist(u8 bitfield, int h) { cy(2); push_byte_reglist(bitfield, h, false); }
 
 // PUSHU Rlist                 Push regs (b/w) from the user stack                                     2 b*        0H01 S111  LLLL LLLL
@@ -1814,7 +1858,7 @@ void xa_cpu::pushu_word_rlist(u8 bitfield, int h) { fatalerror("PUSHU.w %s", get
 void xa_cpu::pushu_byte_rlist(u8 bitfield, int h) { push_byte_reglist(bitfield, h, true); }
 
 // POP Rlist                   Pop regs (b/w) from the current stack                                   2 c*        0H10 S111  LLLL LLLL
-void xa_cpu::pop_word_rlist(u8 bitfield, int h) { fatalerror("POP.w %s", get_word_reglist(bitfield)); }
+void xa_cpu::pop_word_rlist(u8 bitfield, int h) { cy(2); pull_word_reglist(bitfield, h, false); }
 void xa_cpu::pop_byte_rlist(u8 bitfield, int h) { cy(2); pull_byte_reglist(bitfield, h, false); }
 
 // POPU Rlist                  Pop regs (b/w) from the user stack                                      2 c*        0H11 S111  LLLL LLLL

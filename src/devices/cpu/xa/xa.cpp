@@ -68,9 +68,7 @@ u8 xa_cpu::sfr_WDCON_r()
 void xa_cpu::sfr_PSWL_w(u8 data)
 {
 	// PSWL  C AC - - - V N Z
-
-
-	printf("write %02x to PSWL\n", data);
+	logerror("write %02x to PSWL\n", data);
 }
 
 
@@ -78,8 +76,7 @@ void xa_cpu::sfr_PSWL_w(u8 data)
 void xa_cpu::sfr_PSWH_w(u8 data)
 {
 	// PSWH  SM TM RS1 RS0 IM3 IM2 IM1 IM0
-
-	printf("write %02x to PSWH\n", data);
+	logerror("write %02x to PSWH\n", data);
 }
 
 void xa_cpu::sfr_PSW51_w(u8 data)
@@ -100,7 +97,7 @@ void xa_cpu::sfr_SCR_w(u8 data)
 
 	*/
 
-	printf("write %02x to SCR\n", data);
+	logerror("write %02x to SCR\n", data);
 	m_SCR = data;
 	m_pagezeromode = (data & 1);
 }
@@ -170,53 +167,53 @@ device_memory_interface::space_config_vector xa_cpu::memory_space_config() const
 const xa_cpu::op_func xa_cpu::s_instruction[256] =
 {
 // group 0
-&xa_cpu::d_nop,          &xa_cpu::d_add,  &xa_cpu::d_add,      &xa_cpu::d_add,      &xa_cpu::d_add,  &xa_cpu::d_add,  &xa_cpu::d_add,      &xa_cpu::d_push_rlist,
-&xa_cpu::d_bitgroup,     &xa_cpu::d_add,  &xa_cpu::d_add,      &xa_cpu::d_add,      &xa_cpu::d_add,  &xa_cpu::d_add,  &xa_cpu::d_add,      &xa_cpu::d_push_rlist,
+&xa_cpu::e_nop,          &xa_cpu::e_add,      &xa_cpu::e_add,      &xa_cpu::e_add,     &xa_cpu::e_add,     &xa_cpu::e_add,     &xa_cpu::e_add,      &xa_cpu::e_push_rlist,
+&xa_cpu::e_bitgroup,     &xa_cpu::e_add,      &xa_cpu::e_add,      &xa_cpu::e_add,     &xa_cpu::e_add,     &xa_cpu::e_add,     &xa_cpu::e_add,      &xa_cpu::e_push_rlist,
 // group 1
-&xa_cpu::d_illegal,      &xa_cpu::d_addc, &xa_cpu::d_addc,     &xa_cpu::d_addc,     &xa_cpu::d_addc, &xa_cpu::d_addc, &xa_cpu::d_addc,     &xa_cpu::d_pushu_rlist,
-&xa_cpu::d_illegal,      &xa_cpu::d_addc, &xa_cpu::d_addc,     &xa_cpu::d_addc,     &xa_cpu::d_addc, &xa_cpu::d_addc, &xa_cpu::d_addc,     &xa_cpu::d_pushu_rlist,
+&xa_cpu::e_illegal,      &xa_cpu::e_addc,     &xa_cpu::e_addc,     &xa_cpu::e_addc,    &xa_cpu::e_addc,    &xa_cpu::e_addc,    &xa_cpu::e_addc,     &xa_cpu::e_pushu_rlist,
+&xa_cpu::e_illegal,      &xa_cpu::e_addc,     &xa_cpu::e_addc,     &xa_cpu::e_addc,    &xa_cpu::e_addc,    &xa_cpu::e_addc,    &xa_cpu::e_addc,     &xa_cpu::e_pushu_rlist,
 // group 2
-&xa_cpu::d_illegal,      &xa_cpu::d_sub,  &xa_cpu::d_sub,      &xa_cpu::d_sub,      &xa_cpu::d_sub,  &xa_cpu::d_sub,  &xa_cpu::d_sub,      &xa_cpu::d_pop_rlist,
-&xa_cpu::d_illegal,      &xa_cpu::d_sub,  &xa_cpu::d_sub,      &xa_cpu::d_sub,      &xa_cpu::d_sub,  &xa_cpu::d_sub,  &xa_cpu::d_sub,      &xa_cpu::d_pop_rlist,
+&xa_cpu::e_illegal,      &xa_cpu::e_sub,      &xa_cpu::e_sub,      &xa_cpu::e_sub,     &xa_cpu::e_sub,     &xa_cpu::e_sub,     &xa_cpu::e_sub,      &xa_cpu::e_pop_rlist,
+&xa_cpu::e_illegal,      &xa_cpu::e_sub,      &xa_cpu::e_sub,      &xa_cpu::e_sub,     &xa_cpu::e_sub,     &xa_cpu::e_sub,     &xa_cpu::e_sub,      &xa_cpu::e_pop_rlist,
 // group 3
-&xa_cpu::d_illegal,      &xa_cpu::d_subb, &xa_cpu::d_subb,     &xa_cpu::d_subb,     &xa_cpu::d_subb, &xa_cpu::d_subb, &xa_cpu::d_subb,     &xa_cpu::d_popu_rlist,
-&xa_cpu::d_illegal,      &xa_cpu::d_subb, &xa_cpu::d_subb,     &xa_cpu::d_subb,     &xa_cpu::d_subb, &xa_cpu::d_subb, &xa_cpu::d_subb,     &xa_cpu::d_popu_rlist,
+&xa_cpu::e_illegal,      &xa_cpu::e_subb,     &xa_cpu::e_subb,     &xa_cpu::e_subb,    &xa_cpu::e_subb,    &xa_cpu::e_subb,    &xa_cpu::e_subb,     &xa_cpu::e_popu_rlist,
+&xa_cpu::e_illegal,      &xa_cpu::e_subb,     &xa_cpu::e_subb,     &xa_cpu::e_subb,    &xa_cpu::e_subb,    &xa_cpu::e_subb,    &xa_cpu::e_subb,     &xa_cpu::e_popu_rlist,
 // group 4
-&xa_cpu::d_lea_offset8,  &xa_cpu::d_cmp,  &xa_cpu::d_cmp,      &xa_cpu::d_cmp,      &xa_cpu::d_cmp,  &xa_cpu::d_cmp,  &xa_cpu::d_cmp,      &xa_cpu::d_push_rlist,
-&xa_cpu::d_lea_offset16, &xa_cpu::d_cmp,  &xa_cpu::d_cmp,      &xa_cpu::d_cmp,      &xa_cpu::d_cmp,  &xa_cpu::d_cmp,  &xa_cpu::d_cmp,      &xa_cpu::d_push_rlist,
+&xa_cpu::e_lea_offset8,  &xa_cpu::e_cmp,      &xa_cpu::e_cmp,      &xa_cpu::e_cmp,     &xa_cpu::e_cmp,     &xa_cpu::e_cmp,     &xa_cpu::e_cmp,      &xa_cpu::e_push_rlist,
+&xa_cpu::e_lea_offset16, &xa_cpu::e_cmp,      &xa_cpu::e_cmp,      &xa_cpu::e_cmp,     &xa_cpu::e_cmp,     &xa_cpu::e_cmp,     &xa_cpu::e_cmp,      &xa_cpu::e_push_rlist,
 // group 5
-&xa_cpu::d_xch_type1,        &xa_cpu::d_and,  &xa_cpu::d_and,      &xa_cpu::d_and,      &xa_cpu::d_and,  &xa_cpu::d_and,  &xa_cpu::d_and,      &xa_cpu::d_pushu_rlist,
-&xa_cpu::d_xch_type1,        &xa_cpu::d_and,  &xa_cpu::d_and,      &xa_cpu::d_and,      &xa_cpu::d_and,  &xa_cpu::d_and,  &xa_cpu::d_and,      &xa_cpu::d_pushu_rlist,
+&xa_cpu::e_xch_type1,    &xa_cpu::e_and,      &xa_cpu::e_and,      &xa_cpu::e_and,     &xa_cpu::e_and,     &xa_cpu::e_and,     &xa_cpu::e_and,      &xa_cpu::e_pushu_rlist,
+&xa_cpu::e_xch_type1,    &xa_cpu::e_and,      &xa_cpu::e_and,      &xa_cpu::e_and,     &xa_cpu::e_and,     &xa_cpu::e_and,     &xa_cpu::e_and,      &xa_cpu::e_pushu_rlist,
 // group 6
-&xa_cpu::d_xch_type2,        &xa_cpu::d_or,       &xa_cpu::d_or,           &xa_cpu::d_or,           &xa_cpu::d_or,       &xa_cpu::d_or,       &xa_cpu::d_or,           &xa_cpu::d_pop_rlist,
-&xa_cpu::d_xch_type2,        &xa_cpu::d_or,       &xa_cpu::d_or,           &xa_cpu::d_or,           &xa_cpu::d_or,       &xa_cpu::d_or,       &xa_cpu::d_or,           &xa_cpu::d_pop_rlist,
+&xa_cpu::e_xch_type2,    &xa_cpu::e_or,       &xa_cpu::e_or,       &xa_cpu::e_or,      &xa_cpu::e_or,      &xa_cpu::e_or,      &xa_cpu::e_or,       &xa_cpu::e_pop_rlist,
+&xa_cpu::e_xch_type2,    &xa_cpu::e_or,       &xa_cpu::e_or,       &xa_cpu::e_or,      &xa_cpu::e_or,      &xa_cpu::e_or,      &xa_cpu::e_or,       &xa_cpu::e_pop_rlist,
 // group 7
-&xa_cpu::d_illegal,      &xa_cpu::d_xor,  &xa_cpu::d_xor,      &xa_cpu::d_xor,      &xa_cpu::d_xor,  &xa_cpu::d_xor,  &xa_cpu::d_xor,      &xa_cpu::d_popu_rlist,
-&xa_cpu::d_illegal,      &xa_cpu::d_xor,  &xa_cpu::d_xor,      &xa_cpu::d_xor,      &xa_cpu::d_xor,  &xa_cpu::d_xor,  &xa_cpu::d_xor,      &xa_cpu::d_popu_rlist,
+&xa_cpu::e_illegal,      &xa_cpu::e_xor,      &xa_cpu::e_xor,      &xa_cpu::e_xor,     &xa_cpu::e_xor,     &xa_cpu::e_xor,     &xa_cpu::e_xor,      &xa_cpu::e_popu_rlist,
+&xa_cpu::e_illegal,      &xa_cpu::e_xor,      &xa_cpu::e_xor,      &xa_cpu::e_xor,     &xa_cpu::e_xor,     &xa_cpu::e_xor,     &xa_cpu::e_xor,      &xa_cpu::e_popu_rlist,
 // group 8
-&xa_cpu::d_movc_rd_rsinc,    &xa_cpu::d_mov,  &xa_cpu::d_mov,      &xa_cpu::d_mov,      &xa_cpu::d_mov,  &xa_cpu::d_mov,  &xa_cpu::d_mov,      &xa_cpu::d_pushpop_djnz_subgroup,
-&xa_cpu::d_movc_rd_rsinc,    &xa_cpu::d_mov,  &xa_cpu::d_mov,      &xa_cpu::d_mov,      &xa_cpu::d_mov,  &xa_cpu::d_mov,  &xa_cpu::d_mov,      &xa_cpu::d_pushpop_djnz_subgroup,
+&xa_cpu::e_movc_rd_rsinc,&xa_cpu::e_mov,      &xa_cpu::e_mov,      &xa_cpu::e_mov,     &xa_cpu::e_mov,     &xa_cpu::e_mov,     &xa_cpu::e_mov,      &xa_cpu::e_pushpop_djnz_subgroup,
+&xa_cpu::e_movc_rd_rsinc,&xa_cpu::e_mov,      &xa_cpu::e_mov,      &xa_cpu::e_mov,     &xa_cpu::e_mov,     &xa_cpu::e_mov,     &xa_cpu::e_mov,      &xa_cpu::e_pushpop_djnz_subgroup,
 // group 9
-&xa_cpu::d_g9_subgroup,  &xa_cpu::d_alu,  &xa_cpu::d_alu,      &xa_cpu::d_alu,      &xa_cpu::d_alu,  &xa_cpu::d_alu,  &xa_cpu::d_alu,      &xa_cpu::d_jb_mov_subgroup,
-&xa_cpu::d_g9_subgroup,  &xa_cpu::d_alu,  &xa_cpu::d_alu,      &xa_cpu::d_alu,      &xa_cpu::d_alu,  &xa_cpu::d_alu,  &xa_cpu::d_alu,      &xa_cpu::d_jb_mov_subgroup,
+&xa_cpu::e_g9_subgroup,  &xa_cpu::e_alu,      &xa_cpu::e_alu,      &xa_cpu::e_alu,     &xa_cpu::e_alu,     &xa_cpu::e_alu,     &xa_cpu::e_alu,      &xa_cpu::e_jb_mov_subgroup,
+&xa_cpu::e_g9_subgroup,  &xa_cpu::e_alu,      &xa_cpu::e_alu,      &xa_cpu::e_alu,     &xa_cpu::e_alu,     &xa_cpu::e_alu,     &xa_cpu::e_alu,      &xa_cpu::e_jb_mov_subgroup,
 // group a
-&xa_cpu::d_movdir,           &xa_cpu::d_adds, &xa_cpu::d_adds,     &xa_cpu::d_adds,     &xa_cpu::d_adds, &xa_cpu::d_adds, &xa_cpu::d_adds,     &xa_cpu::d_movx_subgroup,
-&xa_cpu::d_movdir,           &xa_cpu::d_adds, &xa_cpu::d_adds,     &xa_cpu::d_adds,     &xa_cpu::d_adds, &xa_cpu::d_adds, &xa_cpu::d_adds,     &xa_cpu::d_movx_subgroup,
+&xa_cpu::e_movdir,       &xa_cpu::e_adds,     &xa_cpu::e_adds,     &xa_cpu::e_adds,    &xa_cpu::e_adds,    &xa_cpu::e_adds,    &xa_cpu::e_adds,     &xa_cpu::e_movx_subgroup,
+&xa_cpu::e_movdir,       &xa_cpu::e_adds,     &xa_cpu::e_adds,     &xa_cpu::e_adds,    &xa_cpu::e_adds,    &xa_cpu::e_adds,    &xa_cpu::e_adds,     &xa_cpu::e_movx_subgroup,
 // group b
-&xa_cpu::d_rr,               &xa_cpu::d_movs, &xa_cpu::d_movs,     &xa_cpu::d_movs,     &xa_cpu::d_movs, &xa_cpu::d_movs, &xa_cpu::d_movs,     &xa_cpu::d_rrc,
-&xa_cpu::d_rr,               &xa_cpu::d_movs, &xa_cpu::d_movs,     &xa_cpu::d_movs,     &xa_cpu::d_movs, &xa_cpu::d_movs, &xa_cpu::d_movs,     &xa_cpu::d_rrc,
+&xa_cpu::e_rr,           &xa_cpu::e_movs,     &xa_cpu::e_movs,     &xa_cpu::e_movs,    &xa_cpu::e_movs,    &xa_cpu::e_movs,    &xa_cpu::e_movs,     &xa_cpu::e_rrc,
+&xa_cpu::e_rr,           &xa_cpu::e_movs,     &xa_cpu::e_movs,     &xa_cpu::e_movs,    &xa_cpu::e_movs,    &xa_cpu::e_movs,    &xa_cpu::e_movs,     &xa_cpu::e_rrc,
 // group c
-&xa_cpu::d_lsr_fc,           &xa_cpu::d_asl_c,    &xa_cpu::d_asr_c,        &xa_cpu::d_norm,     &xa_cpu::d_lsr_fc,   &xa_cpu::d_asl_c,    &xa_cpu::d_asr_c,        &xa_cpu::d_norm,
-&xa_cpu::d_lsr_fc,           &xa_cpu::d_asl_c,    &xa_cpu::d_asr_c,        &xa_cpu::d_norm,     &xa_cpu::d_lsr_fc,   &xa_cpu::d_asl_c,    &xa_cpu::d_asr_c,        &xa_cpu::d_norm,
+&xa_cpu::e_lsr_fc,       &xa_cpu::e_asl_c,    &xa_cpu::e_asr_c,    &xa_cpu::e_norm,    &xa_cpu::e_lsr_fc,  &xa_cpu::e_asl_c,   &xa_cpu::e_asr_c,    &xa_cpu::e_norm,
+&xa_cpu::e_lsr_fc,       &xa_cpu::e_asl_c,    &xa_cpu::e_asr_c,    &xa_cpu::e_norm,    &xa_cpu::e_lsr_fc,  &xa_cpu::e_asl_c,   &xa_cpu::e_asr_c,    &xa_cpu::e_norm,
 // group d
-&xa_cpu::d_lsr_fj,           &xa_cpu::d_asl_j,    &xa_cpu::d_asr_j,        &xa_cpu::d_rl,           &xa_cpu::d_lsr_fj,   &xa_cpu::d_asl_j,    &xa_cpu::d_asr_j,        &xa_cpu::d_rlc,
-&xa_cpu::d_lsr_fj,           &xa_cpu::d_asl_j,    &xa_cpu::d_asr_j,        &xa_cpu::d_rl,           &xa_cpu::d_lsr_fj,   &xa_cpu::d_asl_j,    &xa_cpu::d_asr_j,        &xa_cpu::d_rlc,
+&xa_cpu::e_lsr_fj,       &xa_cpu::e_asl_j,   &xa_cpu::e_asr_j,     &xa_cpu::e_rl,       &xa_cpu::e_lsr_fj,  &xa_cpu::e_asl_j,  &xa_cpu::e_asr_j,    &xa_cpu::e_rlc,
+&xa_cpu::e_lsr_fj,       &xa_cpu::e_asl_j,   &xa_cpu::e_asr_j,     &xa_cpu::e_rl,       &xa_cpu::e_lsr_fj,  &xa_cpu::e_asl_j,  &xa_cpu::e_asr_j,    &xa_cpu::e_rlc,
 // group e
-&xa_cpu::d_mulu_b,           &xa_cpu::d_divu_b,   &xa_cpu::d_djnz_cjne,    &xa_cpu::d_cjne_d8,  &xa_cpu::d_mulu_w,   &xa_cpu::d_divu_w,   &xa_cpu::d_mul_w,        &xa_cpu::d_div_w,
-&xa_cpu::d_div_data8,        &xa_cpu::d_div_d16,&xa_cpu::d_djnz_cjne,  &xa_cpu::d_cjne_d16, &xa_cpu::d_jz_rel8,&xa_cpu::d_divu_d, &xa_cpu::d_jnz_rel8, &xa_cpu::d_div_d,
+&xa_cpu::e_mulu_b,       &xa_cpu::e_divu_b,  &xa_cpu::e_djnz_cjne, &xa_cpu::e_cjne_d8,  &xa_cpu::e_mulu_w,  &xa_cpu::e_divu_w, &xa_cpu::e_mul_w,    &xa_cpu::e_div_w,
+&xa_cpu::e_div_data8,    &xa_cpu::e_div_d16, &xa_cpu::e_djnz_cjne, &xa_cpu::e_cjne_d16, &xa_cpu::e_jz_rel8, &xa_cpu::e_divu_d, &xa_cpu::e_jnz_rel8, &xa_cpu::e_div_d,
 // group f
-&xa_cpu::d_branch,           &xa_cpu::d_branch,   &xa_cpu::d_branch,       &xa_cpu::d_branch,       &xa_cpu::d_branch,   &xa_cpu::d_branch,   &xa_cpu::d_branch,       &xa_cpu::d_branch,
-&xa_cpu::d_branch,           &xa_cpu::d_branch,   &xa_cpu::d_branch,       &xa_cpu::d_branch,       &xa_cpu::d_branch,   &xa_cpu::d_branch,   &xa_cpu::d_branch,       &xa_cpu::d_bkpt,
+&xa_cpu::e_branch,       &xa_cpu::e_branch,  &xa_cpu::e_branch,    &xa_cpu::e_branch,   &xa_cpu::e_branch,  &xa_cpu::e_branch, &xa_cpu::e_branch,   &xa_cpu::e_branch,
+&xa_cpu::e_branch,       &xa_cpu::e_branch,  &xa_cpu::e_branch,    &xa_cpu::e_branch,   &xa_cpu::e_branch,  &xa_cpu::e_branch, &xa_cpu::e_branch,   &xa_cpu::e_bkpt,
 };
 
 // SFR names
@@ -390,9 +387,6 @@ u16 xa_cpu::pull_word_from_stack()
 		return pull_word_from_system_stack();
 	}
 }
-
-
-
 
 void xa_cpu::push_byte_to_user_stack(u8 data)
 {
@@ -687,7 +681,7 @@ std::string xa_cpu::get_directtext(int direct)
 	return util::string_format("%s", get_data_address(direct));
 }
 
-void xa_cpu::d_illegal(XA_EXECUTE_PARAMS)
+void xa_cpu::e_illegal(XA_EXECUTE_PARAMS)
 {
 	fatalerror( "illegal");
 }
@@ -1100,6 +1094,24 @@ void xa_cpu::push_byte_reglist(u8 op2, int h, bool force_user)
 	}
 }
 
+void xa_cpu::push_word_reglist(u8 op2, int h, bool force_user)
+{
+	// h is unused for word ops?
+	for (int i = 7; i >= 0; i--)
+	{
+		int bit = (op2 & (1 << i));
+		if (bit)
+		{
+			u16 regval = gr16(i);
+			if (force_user)
+				push_word_to_user_stack(regval);
+			else
+				push_word_to_stack(regval);
+			cy(2);
+		}
+	}
+}
+
 void xa_cpu::pull_byte_reglist(u8 op2, int h, bool force_user)
 {
 	for (int i = 0; i < 8; i++)
@@ -1118,6 +1130,27 @@ void xa_cpu::pull_byte_reglist(u8 op2, int h, bool force_user)
 		}
 	}
 }
+
+void xa_cpu::pull_word_reglist(u8 op2, int h, bool force_user)
+{
+	// h is unused for word ops?
+	for (int i = 0; i < 8; i++)
+	{
+		int bit = (op2 & (1 << i));
+		if (bit)
+		{
+			u16 stackval;
+			if (force_user)
+				stackval = pull_word_from_user_stack();
+			else
+				stackval = pull_word_from_stack();
+
+			sr16(i, stackval);
+			cy(2);
+		}
+	}
+}
+
 
 void xa_cpu::handle_push_rlist(XA_EXECUTE_PARAMS)
 {
@@ -1156,7 +1189,7 @@ void xa_cpu::handle_popu_rlist(XA_EXECUTE_PARAMS)
 /*
 NOP                         No operation                                                            1 3         0000 0000
 */
-void xa_cpu::d_nop(XA_EXECUTE_PARAMS)
+void xa_cpu::e_nop(XA_EXECUTE_PARAMS)
 {
 	do_nop();
 }
@@ -1172,7 +1205,7 @@ ORL C, bit                  Logical OR a bit to carry                           
 ORL C, /bit                 Logical OR complement of a bit to carry                                 3 4         0000 1000  0111 00bb  bbbb bbbb
 */
 
-void xa_cpu::d_bitgroup(XA_EXECUTE_PARAMS)
+void xa_cpu::e_bitgroup(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 op3 = m_program->read_byte(m_pc++);
@@ -1207,7 +1240,7 @@ ADD [Rd+offset16], Rs       Add reg to reg-ind w/ 16-bit offs                   
 ADD direct, Rs              Add reg to mem                                                          3 4         0000 S110  ssss 1DDD  DDDD DDDD
 ADD Rd, direct              Add mem to reg                                                          3 4         0000 S110  dddd 0DDD  DDDD DDDD
 */
-void xa_cpu::d_add(XA_EXECUTE_PARAMS)
+void xa_cpu::e_add(XA_EXECUTE_PARAMS)
 {
 	handle_alu_type0(XA_EXECUTE_CALL_PARAMS, 0);
 }
@@ -1215,7 +1248,7 @@ void xa_cpu::d_add(XA_EXECUTE_PARAMS)
 /*
 PUSH Rlist                  Push regs (b/w) onto the current stack                                  2 b*        0H00 S111  LLLL LLLL
 */
-void xa_cpu::d_push_rlist(XA_EXECUTE_PARAMS)
+void xa_cpu::e_push_rlist(XA_EXECUTE_PARAMS)
 {
 	// PUSH
 	handle_push_rlist(XA_EXECUTE_CALL_PARAMS);
@@ -1237,7 +1270,7 @@ ADDC direct, Rs             Add reg to mem w/ carry                             
 ADDC Rd, direct             Add mem to reg w/ carry                                                 3 4         0001 S110  dddd 0DDD  DDDD DDDD
 */
 
-void xa_cpu::d_addc(XA_EXECUTE_PARAMS)
+void xa_cpu::e_addc(XA_EXECUTE_PARAMS)
 {
 	handle_alu_type0(XA_EXECUTE_CALL_PARAMS, 1);
 }
@@ -1245,7 +1278,7 @@ void xa_cpu::d_addc(XA_EXECUTE_PARAMS)
 /*
 PUSHU Rlist                 Push regs (b/w) from the user stack                                     2 b*        0H01 S111  LLLL LLLL
 */
-void xa_cpu::d_pushu_rlist(XA_EXECUTE_PARAMS)
+void xa_cpu::e_pushu_rlist(XA_EXECUTE_PARAMS)
 {
 	// PUSHU
 	handle_pushu_rlist(XA_EXECUTE_CALL_PARAMS);
@@ -1267,7 +1300,7 @@ SUB [Rd+], Rs               Subtract reg-ind w/ autoinc to reg                  
 SUB direct, Rs              Subtract reg to mem                                                     3 4         0010 S110  ssss 1DDD  DDDD DDDD
 SUB Rd, direct              Subtract mem to reg                                                     3 4         0010 S110  dddd 0DDD  DDDD DDDD
 */
-void xa_cpu::d_sub(XA_EXECUTE_PARAMS)
+void xa_cpu::e_sub(XA_EXECUTE_PARAMS)
 {
 	handle_alu_type0(XA_EXECUTE_CALL_PARAMS, 2);
 }
@@ -1275,7 +1308,7 @@ void xa_cpu::d_sub(XA_EXECUTE_PARAMS)
 /*
 POP Rlist                   Pop regs (b/w) from the current stack                                   2 c*        0H10 S111  LLLL LLLL
 */
-void xa_cpu::d_pop_rlist(XA_EXECUTE_PARAMS)
+void xa_cpu::e_pop_rlist(XA_EXECUTE_PARAMS)
 {
 	// POP
 	handle_pop_rlist(XA_EXECUTE_CALL_PARAMS);
@@ -1297,7 +1330,7 @@ SUBB [Rd+offset16], Rs      Subtract w/ borrow reg to reg-ind w/ 16-bit offs    
 SUBB direct, Rs             Subtract w/ borrow reg to mem                                           3 4         0011 S110  ssss 1DDD  DDDD DDDD
 SUBB Rd, direct             Subtract w/ borrow mem to reg                                           3 4         0011 S110  dddd 0DDD  DDDD DDDD
 */
-void xa_cpu::d_subb(XA_EXECUTE_PARAMS)
+void xa_cpu::e_subb(XA_EXECUTE_PARAMS)
 {
 	handle_alu_type0(XA_EXECUTE_CALL_PARAMS, 3);
 }
@@ -1305,7 +1338,7 @@ void xa_cpu::d_subb(XA_EXECUTE_PARAMS)
 /*
 POPU Rlist                  Pop regs (b/w) from the user stack                                      2 c*        0H11 S111  LLLL LLLL
 */
-void xa_cpu::d_popu_rlist(XA_EXECUTE_PARAMS)
+void xa_cpu::e_popu_rlist(XA_EXECUTE_PARAMS)
 {
 	// POPU
 	handle_popu_rlist(XA_EXECUTE_CALL_PARAMS);
@@ -1317,7 +1350,7 @@ void xa_cpu::d_popu_rlist(XA_EXECUTE_PARAMS)
 /*
 LEA Rd, Rs+offset8          Load 16-bit effective address w/ 8-bit offs to reg                      3 3         0100 0000  0ddd 0sss  oooo oooo
 */
-void xa_cpu::d_lea_offset8(XA_EXECUTE_PARAMS)
+void xa_cpu::e_lea_offset8(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 offs8 = m_program->read_byte(m_pc++);
@@ -1329,7 +1362,7 @@ void xa_cpu::d_lea_offset8(XA_EXECUTE_PARAMS)
 /*
 LEA Rd, Rs+offset16         Load 16-bit effective address w/ 16-bit offs to reg                     4 3         0100 1000  0ddd 0sss  oooo oooo  oooo oooo
 */
-void xa_cpu::d_lea_offset16(XA_EXECUTE_PARAMS)
+void xa_cpu::e_lea_offset16(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 op3 = m_program->read_byte(m_pc++);
@@ -1353,7 +1386,7 @@ CMP [Rd+], Rs               Compare reg w/ autoinc reg-ind                      
 CMP direct, Rs              Compare reg w/ mem                                                      3 4         0100 S110  ssss 1DDD  DDDD DDDD
 CMP Rd, direct              Compare mem w/ reg                                                      3 4         0100 S110  dddd 0DDD  DDDD DDDD
 */
-void xa_cpu::d_cmp(XA_EXECUTE_PARAMS)
+void xa_cpu::e_cmp(XA_EXECUTE_PARAMS)
 {
 	handle_alu_type0(XA_EXECUTE_CALL_PARAMS, 4);
 }
@@ -1363,7 +1396,7 @@ void xa_cpu::d_cmp(XA_EXECUTE_PARAMS)
 /*
 XCH Rd, [Rs]                Exchange contents of a reg-ind address w/ a reg                         2 6         0101 S000  dddd 0sss
 */
-void xa_cpu::d_xch_type1(XA_EXECUTE_PARAMS)
+void xa_cpu::e_xch_type1(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	int size = op & 0x08;
@@ -1386,7 +1419,7 @@ AND [Rd+], Rs               Logical AND reg-ind w/ autoinc to reg               
 AND direct, Rs              Logical AND reg to mem                                                  3 4         0101 S110  ssss 1DDD  DDDD DDDD
 AND Rd, direct              Logical AND mem to reg                                                  3 4         0101 S110  dddd 0DDD  DDDD DDDD
 */
-void xa_cpu::d_and(XA_EXECUTE_PARAMS)
+void xa_cpu::e_and(XA_EXECUTE_PARAMS)
 {
 	handle_alu_type0(XA_EXECUTE_CALL_PARAMS, 5);
 }
@@ -1396,7 +1429,7 @@ void xa_cpu::d_and(XA_EXECUTE_PARAMS)
 /*
 XCH Rd, Rs                  Exchange contents of two regs                                           2 5         0110 S000  dddd ssss
 */
-void xa_cpu::d_xch_type2(XA_EXECUTE_PARAMS)
+void xa_cpu::e_xch_type2(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	int size = op & 0x08;
@@ -1418,7 +1451,7 @@ OR [Rd+], Rs                Logical OR reg-ind w/ autoinc to reg                
 OR direct, Rs               Logical OR reg to mem                                                   3 4         0110 S110  ssss 1DDD  DDDD DDDD
 OR Rd, direct               Logical OR mem to reg                                                   3 4         0110 S110  dddd 0DDD  DDDD DDDD
 */
-void xa_cpu::d_or(XA_EXECUTE_PARAMS)
+void xa_cpu::e_or(XA_EXECUTE_PARAMS)
 {
 	handle_alu_type0(XA_EXECUTE_CALL_PARAMS, 6);
 }
@@ -1438,7 +1471,7 @@ XOR [Rd+], Rs               Logical XOR reg-ind w/ autoinc to reg               
 XOR direct, Rs              Logical XOR reg to mem                                                  3 4         0111 S110  ssss 1DDD  DDDD DDDD
 XOR Rd, direct              Logical XOR mem to reg                                                  3 4         0111 S110  dddd 0DDD  DDDD DDDD
 */
-void xa_cpu::d_xor(XA_EXECUTE_PARAMS)
+void xa_cpu::e_xor(XA_EXECUTE_PARAMS)
 {
 	handle_alu_type0(XA_EXECUTE_CALL_PARAMS, 7);
 }
@@ -1448,7 +1481,7 @@ void xa_cpu::d_xor(XA_EXECUTE_PARAMS)
 /*
 MOVC Rd, [Rs+]              Move data from WS:Rs address of code mem to reg w/ autoinc              2 4         1000 S000  dddd 0sss
 */
-void xa_cpu::d_movc_rd_rsinc(XA_EXECUTE_PARAMS)
+void xa_cpu::e_movc_rd_rsinc(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	int size = op & 0x08;
@@ -1470,7 +1503,7 @@ MOV [Rd+], Rs               Move reg-ind w/ autoinc to reg                      
 MOV direct, Rs              Move reg to mem                                                         3 4         1000 S110  ssss 1DDD  DDDD DDDD
 MOV Rd, direct              Move mem to reg                                                         3 4         1000 S110  dddd 0DDD  DDDD DDDD
 */
-void xa_cpu::d_mov(XA_EXECUTE_PARAMS)
+void xa_cpu::e_mov(XA_EXECUTE_PARAMS)
 {
 	handle_alu_type0(XA_EXECUTE_CALL_PARAMS, 8);
 }
@@ -1482,7 +1515,7 @@ PUSHU direct                Push the mem content (b/w) onto the user stack      
 PUSH direct                 Push the mem content (b/w) onto the current stack                       3 5         1000 S111  0011 0DDD  DDDD DDDD
 DJNZ Rd,rel8                Decrement reg and jump if not zero                                      3 8t/5nt    1000 S111  dddd 1000  rrrr rrrr
 */
-void xa_cpu::d_pushpop_djnz_subgroup(XA_EXECUTE_PARAMS)
+void xa_cpu::e_pushpop_djnz_subgroup(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	int size = op & 0x08;
@@ -1522,7 +1555,7 @@ MOVC A, [A+DPTR]            Move data from code mem to the accumulator ind w/ DP
 MOV Rd, USP                 Move User Stack Pointer to reg (system mode only)                       2 3         1001 0000  dddd 1111
 MOV USP, Rs                 Move reg to User Stack Pointer (system mode only)                       2 3         1001 1000  ssss 1111
 */
-void xa_cpu::d_g9_subgroup(XA_EXECUTE_PARAMS)
+void xa_cpu::e_g9_subgroup(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	int size = op & 0x08;
@@ -1666,7 +1699,7 @@ MOV [Rd+offset16], #data16  Move 16-bit imm data to reg-ind w/ 16-bit offs      
 MOV direct, #data8          Move 8-bit imm data to mem                                              4 3         1001 0110  0DDD 1000  DDDD DDDD  iiii iiii
 MOV direct, #data16         Move 16-bit imm data to mem                                             5 3         1001 1110  0DDD 1000  DDDD DDDD  iiii iiii  iiii iiii
 */
-void xa_cpu::d_alu(XA_EXECUTE_PARAMS)
+void xa_cpu::e_alu(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	handle_alu_type1(XA_EXECUTE_CALL_PARAMS, op2);
@@ -1678,7 +1711,7 @@ JB bit,rel8                 Jump if bit set                                     
 JNB bit,rel8                Jump if bit not set                                                     4 10t/6nt   1001 0111  1010 00bb  bbbb bbbb  rrrr rrrr
 JBC bit,rel8                Jump if bit set and then clear the bit                                  4 11t/7nt   1001 0111  1100 00bb  bbbb bbbb  rrrr rrrr
 */
-void xa_cpu::d_jb_mov_subgroup(XA_EXECUTE_PARAMS)
+void xa_cpu::e_jb_mov_subgroup(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 op3 = m_program->read_byte(m_pc++);
@@ -1712,7 +1745,7 @@ XCH Rd, direct              Exchange contents of mem w/ a reg                   
 MOV direct, [Rs]            Move reg-ind to mem                                                     3 4         1010 S000  1sss 0DDD  DDDD DDDD
 MOV [Rd], direct            Move mem to reg-ind                                                     3 4         1010 S000  0ddd 0DDD  DDDD DDDD
 */
-void xa_cpu::d_movdir(XA_EXECUTE_PARAMS)
+void xa_cpu::e_movdir(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 op3 = m_program->read_byte(m_pc++);
@@ -1747,7 +1780,7 @@ ADDS [Rd+offset8], #data4   Add reg-ind w/ 8-bit offs to 4-bit signed imm data  
 ADDS [Rd+offset16], #data4  Add reg-ind w/ 16-bit offs to 4-bit signed imm data                     4 6         1010 S101  0ddd iiii  oooo oooo  oooo oooo
 ADDS direct, #data4         Add 4-bit signed imm data to mem                                        3 4         1010 S110  0DDD iiii  DDDD DDDD
 */
-void xa_cpu::d_adds(XA_EXECUTE_PARAMS)
+void xa_cpu::e_adds(XA_EXECUTE_PARAMS)
 {
 	handle_adds_movs(XA_EXECUTE_CALL_PARAMS, 0);
 }
@@ -1756,7 +1789,7 @@ void xa_cpu::d_adds(XA_EXECUTE_PARAMS)
 MOVX [Rd], Rs               Move external data from reg to mem                                      2 6         1010 S111  ssss 1ddd
 MOVX Rd, [Rs]               Move external data from mem to reg                                      2 6         1010 S111  dddd 0sss
 */
-void xa_cpu::d_movx_subgroup(XA_EXECUTE_PARAMS)
+void xa_cpu::e_movx_subgroup(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	int size = op & 0x08;
@@ -1779,7 +1812,7 @@ void xa_cpu::d_movx_subgroup(XA_EXECUTE_PARAMS)
 /*
 RR Rd, #data4               Rotate right reg by the 4-bit imm value                                 2 a*        1011 S000  dddd iiii
 */
-void xa_cpu::d_rr(XA_EXECUTE_PARAMS)
+void xa_cpu::e_rr(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	int size = op & 0x08;
@@ -1796,7 +1829,7 @@ MOVS [Rd+offset8], #data4   Move reg-ind w/ 8-bit offs to 4-bit sign-extended im
 MOVS [Rd+offset16], #data4  Move reg-ind w/ 16-bit offs to 4-bit sign-extended imm data             4 5         1011 S101  0ddd iiii  oooo oooo  oooo oooo
 MOVS direct, #data4         Move 4-bit sign-extended imm data to mem                                3 3         1011 S110  0DDD iiii  DDDD DDDD
 */
-void xa_cpu::d_movs(XA_EXECUTE_PARAMS)
+void xa_cpu::e_movs(XA_EXECUTE_PARAMS)
 {
 	handle_adds_movs(XA_EXECUTE_CALL_PARAMS, 1);
 }
@@ -1804,7 +1837,7 @@ void xa_cpu::d_movs(XA_EXECUTE_PARAMS)
 /*
 RRC Rd, #data4              Rotate right reg though carry by the 4-bit imm value                    2 a*        1011 S111  dddd iiii
 */
-void xa_cpu::d_rrc(XA_EXECUTE_PARAMS)
+void xa_cpu::e_rrc(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	int size = op & 0x08;
@@ -1820,7 +1853,7 @@ void xa_cpu::d_rrc(XA_EXECUTE_PARAMS)
 LSR Rd, Rs                  Logical right shift dest reg by the value in the src reg                2 a*        1100 SS00  dddd ssss
 FCALL addr24                Far call (full 24-bit address space)                                    4 12/8(PZ)  1100 0100  aaaa aaaa  AAAA AAAA  AAAA AAAA
 */
-void xa_cpu::d_lsr_fc(XA_EXECUTE_PARAMS)
+void xa_cpu::e_lsr_fc(XA_EXECUTE_PARAMS)
 {
 	int size = (op & 0x0c) >> 2;
 	if (size == 0x01)
@@ -1846,7 +1879,7 @@ void xa_cpu::d_lsr_fc(XA_EXECUTE_PARAMS)
 ASL Rd, Rs                  Logical left shift dest reg by the value in the src reg                 2 a*        1100 SS01  dddd ssss
 CALL rel16                  Relative call (range +/- 64K)                                           3 7/4(PZ)   1100 0101  rrrr rrrr  rrrr rrrr
 */
-void xa_cpu::d_asl_c(XA_EXECUTE_PARAMS)
+void xa_cpu::e_asl_c(XA_EXECUTE_PARAMS)
 {
 	int size = (op & 0x0c) >> 2;
 	if (size == 0x01)
@@ -1871,7 +1904,7 @@ void xa_cpu::d_asl_c(XA_EXECUTE_PARAMS)
 ASR Rd, Rs                  Arithmetic shift right dest reg by the count in the src                 2 a*        1100 SS10  dddd ssss
 CALL [Rs]                   Subroutine call ind w/ a reg                                            2 8/5(PZ)   1100 0110  0000 0sss
 */
-void xa_cpu::d_asr_c(XA_EXECUTE_PARAMS)
+void xa_cpu::e_asr_c(XA_EXECUTE_PARAMS)
 {
 	int size = (op & 0x0c) >> 2;
 	if (size == 0x01)
@@ -1894,7 +1927,7 @@ void xa_cpu::d_asr_c(XA_EXECUTE_PARAMS)
 /*
 NORM Rd, Rs                 Logical shift left dest reg by the value in the src reg until MSB set   2 a*        1100 SS11  dddd ssss
 */
-void xa_cpu::d_norm(XA_EXECUTE_PARAMS)
+void xa_cpu::e_norm(XA_EXECUTE_PARAMS)
 {
 	int size = (op & 0x0c) >> 2;
 	if (size == 0x01)
@@ -1920,7 +1953,7 @@ LSR Rd, #data4              Logical right shift reg by the 4-bit imm value      
 LSR Rd, #data5              Logical right shift reg by the 4-bit imm value                          2 a*        1101 1100  dddi iiii
 FJMP addr24                 Far jump (full 24-bit address space)                                    4 6         1101 0100  aaaa aaaa  AAAA AAAA  AAAA AAAA
 */
-void xa_cpu::d_lsr_fj(XA_EXECUTE_PARAMS)
+void xa_cpu::e_lsr_fj(XA_EXECUTE_PARAMS)
 {
 	int size = (op & 0x0c) >> 2;
 	if (size == 0x01)
@@ -1942,7 +1975,7 @@ ASL Rd, #data4              Logical left shift reg by the 4-bit imm value       
 ASL Rd, #data5              Logical left shift reg by the 5-bit imm value                           2 a*        1101 1101  dddi iiii
 JMP rel16                   Long unconditional branch                                               3 6         1101 0101  rrrr rrrr  rrrr rrrr
 */
-void xa_cpu::d_asl_j(XA_EXECUTE_PARAMS)
+void xa_cpu::e_asl_j(XA_EXECUTE_PARAMS)
 {
 	int size = (op & 0x0c) >> 2;
 	if (size == 0x01)
@@ -1969,7 +2002,7 @@ JMP [Rs]                    Jump ind to the address in the reg (64K)            
 RET                         Return from subroutine                                                  2 8/6(PZ)   1101 0110  1000 0000
 RETI                        Return from interrupt                                                   2 10/8(PZ)  1101 0110  1001 0000
 */
-void xa_cpu::d_asr_j(XA_EXECUTE_PARAMS)
+void xa_cpu::e_asr_j(XA_EXECUTE_PARAMS)
 {
 	int size = (op & 0x0c) >> 2;
 	const u8 op2 = m_program->read_byte(m_pc++);
@@ -1996,7 +2029,7 @@ void xa_cpu::d_asr_j(XA_EXECUTE_PARAMS)
 /*
 RL Rd, #data4               Rotate left reg by the 4-bit imm value                                  2 a*        1101 S011  dddd iiii
 */
-void xa_cpu::d_rl(XA_EXECUTE_PARAMS)
+void xa_cpu::e_rl(XA_EXECUTE_PARAMS)
 {
 	int size = op & 0x08;
 	const u8 op2 = m_program->read_byte(m_pc++);
@@ -2008,7 +2041,7 @@ void xa_cpu::d_rl(XA_EXECUTE_PARAMS)
 /*
 RLC Rd, #data4              Rotate left reg though carry by the 4-bit imm value                     2 a*        1101 S111  dddd iiii
 */
-void xa_cpu::d_rlc(XA_EXECUTE_PARAMS)
+void xa_cpu::e_rlc(XA_EXECUTE_PARAMS)
 {
 	int size = op & 0x08;
 	const u8 op2 = m_program->read_byte(m_pc++);
@@ -2023,7 +2056,7 @@ void xa_cpu::d_rlc(XA_EXECUTE_PARAMS)
 DJNZ direct,rel8            Decrement mem and jump if not zero                                      4 9t/5nt    1110 S010  0000 1DDD  DDDD DDDD  rrrr rrrr
 CJNE Rd,direct,rel8         Compare dir byte to reg and jump if not equal                           4 10t/7nt   1110 S010  dddd 0DDD  DDDD DDDD  rrrr rrrr
 */
-void xa_cpu::d_djnz_cjne(XA_EXECUTE_PARAMS)
+void xa_cpu::e_djnz_cjne(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 op3 = m_program->read_byte(m_pc++);
@@ -2047,7 +2080,7 @@ void xa_cpu::d_djnz_cjne(XA_EXECUTE_PARAMS)
 /*
 MULU.b Rd, Rs               8X8 unsigned multiply of reg contents                                   2 12        1110 0000  dddd ssss
 */
-void xa_cpu::d_mulu_b(XA_EXECUTE_PARAMS)
+void xa_cpu::e_mulu_b(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 rd = (op2 & 0xf0) >> 4;
@@ -2058,7 +2091,7 @@ void xa_cpu::d_mulu_b(XA_EXECUTE_PARAMS)
 /*
 DIVU.b Rd, Rs               8x8 unsigned reg divide                                                 2 12        1110 0001  dddd ssss
 */
-void xa_cpu::d_divu_b(XA_EXECUTE_PARAMS)
+void xa_cpu::e_divu_b(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 rd = (op2 & 0xf0) >> 4;
@@ -2069,7 +2102,7 @@ void xa_cpu::d_divu_b(XA_EXECUTE_PARAMS)
 /*
 MULU.w Rd, Rs               16X16 unsigned reg multiply                                             2 12        1110 0100  dddd ssss
 */
-void xa_cpu::d_mulu_w(XA_EXECUTE_PARAMS)
+void xa_cpu::e_mulu_w(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 rd = (op2 & 0xf0) >> 4;
@@ -2080,7 +2113,7 @@ void xa_cpu::d_mulu_w(XA_EXECUTE_PARAMS)
 /*
 DIVU.w Rd, Rs               16X8 unsigned reg divide                                                2 12        1110 0101  dddd ssss
 */
-void xa_cpu::d_divu_w(XA_EXECUTE_PARAMS)
+void xa_cpu::e_divu_w(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 rd = (op2 & 0xf0) >> 4;
@@ -2091,7 +2124,7 @@ void xa_cpu::d_divu_w(XA_EXECUTE_PARAMS)
 /*
 MUL.w Rd, Rs                16X16 signed multiply of reg contents                                   2 12        1110 0110  dddd ssss
 */
-void xa_cpu::d_mul_w(XA_EXECUTE_PARAMS)
+void xa_cpu::e_mul_w(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 rd = (op2 & 0xf0) >> 4;
@@ -2102,7 +2135,7 @@ void xa_cpu::d_mul_w(XA_EXECUTE_PARAMS)
 /*
 DIV.w Rd, Rs                16x8 signed reg divide                                                  2 14        1110 0111  dddd ssss
 */
-void xa_cpu::d_div_w(XA_EXECUTE_PARAMS)
+void xa_cpu::e_div_w(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 rd = (op2 & 0xf0) >> 4;
@@ -2117,7 +2150,7 @@ DIVU.w Rd, #data8           16X8 unsigned reg divide w/ imm byte                
 DIV.w Rd, #data8            16x8 signed divide reg w/ imm word                                      3 14        1110 1000  dddd 1011  iiii iiii
 
 */
-void xa_cpu::d_div_data8(XA_EXECUTE_PARAMS)
+void xa_cpu::e_div_data8(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 data8 = m_program->read_byte(m_pc++);
@@ -2139,7 +2172,7 @@ DIVU.d Rd, #data16          32X16 unsigned double reg divide w/ imm word        
 MUL.w Rd, #data16           16X16 signed multiply 16-bit imm data w/ reg                            4 12        1110 1001  dddd 1000  iiii iiii  iiii iiii
 DIV.d Rd, #data16           32x16 signed double reg divide w/ imm word                              4 24        1110 1001  ddd0 1001  iiii iiii  iiii iiii
 */
-void xa_cpu::d_div_d16(XA_EXECUTE_PARAMS)
+void xa_cpu::e_div_d16(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 op3 = m_program->read_byte(m_pc++);
@@ -2158,7 +2191,7 @@ void xa_cpu::d_div_d16(XA_EXECUTE_PARAMS)
 /*
 DIVU.d Rd, Rs               32X16 unsigned double reg divide                                        2 22        1110 1101  ddd0 ssss
 */
-void xa_cpu::d_divu_d(XA_EXECUTE_PARAMS)
+void xa_cpu::e_divu_d(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 rd = (op2 & 0xe0) >> 4;
@@ -2169,7 +2202,7 @@ void xa_cpu::d_divu_d(XA_EXECUTE_PARAMS)
 /*
 DIV.d Rd, Rs                32x16 signed double reg divide                                          2 24        1110 1111  ddd0 ssss
 */
-void xa_cpu::d_div_d(XA_EXECUTE_PARAMS)
+void xa_cpu::e_div_d(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 rd = (op2 & 0xe0) >> 4;
@@ -2181,7 +2214,7 @@ void xa_cpu::d_div_d(XA_EXECUTE_PARAMS)
 CJNE [Rd],#data8,rel8       Compare imm word to reg-ind and jump if not equal                       4 10t/7nt   1110 0011  0ddd 1000  rrrr rrrr  iiii iiii
 CJNE Rd,#data8,rel8         Compare imm byte to reg and jump if not equal                           4 9t/6nt    1110 0011  dddd 0000  rrrr rrrr  iiii iiii
 */
-void xa_cpu::d_cjne_d8(XA_EXECUTE_PARAMS)
+void xa_cpu::e_cjne_d8(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 op3 = m_program->read_byte(m_pc++);
@@ -2202,7 +2235,7 @@ void xa_cpu::d_cjne_d8(XA_EXECUTE_PARAMS)
 CJNE [Rd],#data16,rel8      Compare imm word to reg-ind and jump if not equal                       5 10t/7nt   1110 1011  0ddd 1000  rrrr rrrr  iiii iiii  iiii iiii
 CJNE Rd,#data16,rel8        Compare imm word to reg and jump if not equal                           5 9t/6nt    1110 1011  dddd 0000  rrrr rrrr  iiii iiii  iiii iiii
 */
-void xa_cpu::d_cjne_d16(XA_EXECUTE_PARAMS)
+void xa_cpu::e_cjne_d16(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	const u8 op3 = m_program->read_byte(m_pc++);
@@ -2224,7 +2257,7 @@ void xa_cpu::d_cjne_d16(XA_EXECUTE_PARAMS)
 /*
 JZ rel8                     Jump if accumulator equals zero                                         2 6t/3nt    1110 1100  rrrr rrrr
 */
-void xa_cpu::d_jz_rel8(XA_EXECUTE_PARAMS)
+void xa_cpu::e_jz_rel8(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	jz_rel8(op2);
@@ -2233,7 +2266,7 @@ void xa_cpu::d_jz_rel8(XA_EXECUTE_PARAMS)
 /*
 JNZ rel8                    Jump if accumulator not equal zero                                      2 6t/3nt    1110 1110  rrrr rrrr
 */
-void xa_cpu::d_jnz_rel8(XA_EXECUTE_PARAMS)
+void xa_cpu::e_jnz_rel8(XA_EXECUTE_PARAMS)
 {
 	const u8 op2 = m_program->read_byte(m_pc++);
 	jnz_rel8(op2);
@@ -2260,7 +2293,7 @@ BLE rel8                    Branch if less than or equal to (signed)            
 BR rel8                     Short unconditional branch                                              2 6         1111 1110  rrrr rrrr
 */
 
-void xa_cpu::d_branch(XA_EXECUTE_PARAMS)
+void xa_cpu::e_branch(XA_EXECUTE_PARAMS)
 {
 	const u8 rel8 = m_program->read_byte(m_pc++);
 	switch (op & 0x0f)
@@ -2287,7 +2320,7 @@ void xa_cpu::d_branch(XA_EXECUTE_PARAMS)
 /*
 BKPT                        Cause the breakpoint trap to be executed.                               1 23/19(PZ) 1111 1111
 */
-void xa_cpu::d_bkpt(XA_EXECUTE_PARAMS)
+void xa_cpu::e_bkpt(XA_EXECUTE_PARAMS)
 {
 	fatalerror( "BKPT");
 }
@@ -2333,6 +2366,28 @@ void xa_cpu::device_start()
 	state_add(XA_SSP, "R7 SSP", m_SSP);
 
 	set_icountptr(m_icount);
+
+	save_item(NAME(m_im));
+	save_item(NAME(m_rs));
+	save_item(NAME(m_zflag));
+	save_item(NAME(m_nflag));
+	save_item(NAME(m_vflag));
+	save_item(NAME(m_cflag));
+	save_item(NAME(m_acflag));
+	save_item(NAME(m_sm_flag));
+	save_item(NAME(m_tm_flag));
+	save_item(NAME(m_p_flag));
+	save_item(NAME(m_f0_flag));
+	save_item(NAME(m_f1_flag));
+	save_item(NAME(m_pc));
+	save_item(NAME(m_usermode));
+	save_item(NAME(m_pagezeromode));
+	save_item(NAME(m_USP));
+	save_item(NAME(m_SSP));
+	save_item(NAME(m_WDCON));
+	save_item(NAME(m_SCR));
+	save_item(NAME(m_regs));
+
 }
 
 void xa_cpu::device_reset()
