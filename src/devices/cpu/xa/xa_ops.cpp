@@ -558,7 +558,7 @@ void xa_cpu::aluop_byte_indrd_data16(int alu_op, u8 rd, u16 data16)
 }
 void xa_cpu::add_word_indrd_data16(u8 rd, u16 data16) { fatalerror( "ADD.w [%s], #$%04x ([RD], DATA16)", m_regnames16[rd], data16); }
 void xa_cpu::addc_word_indrd_data16(u8 rd, u16 data16){ fatalerror( "ADDC.w [%s], #$%04x ([RD], DATA16)", m_regnames16[rd], data16); }
-void xa_cpu::sub_word_indrd_data16(u8 rd, u16 data16) { fatalerror( "xxxSUB.w [%s], #$%04x ([RD], DATA16)", m_regnames16[rd], data16); }
+void xa_cpu::sub_word_indrd_data16(u8 rd, u16 data16) { u16 address = get_addr(rd); u16 val = rdat16(address); u16 result = do_sub_16(val, data16); wdat16(address, result); cy(4); }
 void xa_cpu::subb_word_indrd_data16(u8 rd, u16 data16){ fatalerror( "SUBB.w [%s], #$%04x ([RD], DATA16)", m_regnames16[rd], data16); }
 void xa_cpu::cmp_word_indrd_data16(u8 rd, u16 data16) { fatalerror( "CMP.w [%s], #$%04x ([RD], DATA16)", m_regnames16[rd], data16); }
 void xa_cpu::and_word_indrd_data16(u8 rd, u16 data16) { fatalerror( "AND.w [%s], #$%04x ([RD], DATA16)", m_regnames16[rd], data16); }
@@ -633,7 +633,7 @@ void xa_cpu::aluop_byte_rdoff8_data16(int alu_op, u8 rd, u8 offset8, u16 data16)
 void xa_cpu::add_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16) { fatalerror( "ADD.w [%s+#$%02x], #$%04x ([RD+offs8], DATA16)", m_regnames16[rd], offset8, data16); }
 void xa_cpu::addc_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16){ fatalerror( "ADDC.w [%s+#$%02x], #$%04x ([RD+offs8], DATA16)", m_regnames16[rd], offset8, data16); }
 void xa_cpu::sub_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16) { fatalerror( "SUB.w [%s+#$%02x], #$%04x ([RD+offs8], DATA16)", m_regnames16[rd], offset8, data16); }
-void xa_cpu::subb_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16){ u16 fulloffset = util::sext(offset8, 8); u16 address = get_addr(rd) + fulloffset; u16 val = rdat16(address); u16 result = do_subb_16(val, data16); sr16(rd, result); cy(6); }
+void xa_cpu::subb_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16){	u16 fulloffset = util::sext(offset8, 8); u16 address = get_addr(rd) + fulloffset; u16 val = rdat16(address); u16 result = do_subb_16(val, data16); wdat16(address, result); cy(6); }
 void xa_cpu::cmp_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16) { u16 fulloffset = util::sext(offset8, 8); u16 address = get_addr(rd) + fulloffset; u16 val = rdat16(address); do_sub_16(val, data16); cy(6); }
 void xa_cpu::and_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16) { fatalerror( "AND.w [%s+#$%02x], #$%04x ([RD+offs8], DATA16)", m_regnames16[rd], offset8, data16); }
 void xa_cpu::or_word_indrdoff8_data16(u8 rd, u8 offset8, u16 data16)  { fatalerror( "OR.w [%s+#$%02x], #$%04x ([RD+offs8], DATA16)", m_regnames16[rd], offset8, data16); }
