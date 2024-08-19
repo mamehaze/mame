@@ -40,7 +40,8 @@ public:
 		m_igs_mainram(*this, "igs_mainram"),
 		m_maincpu(*this, "maincpu"),
 		m_ppi(*this, "ppi8255"),
-		m_igs017_igs031(*this, "igs017_igs031")
+		m_igs017_igs031(*this, "igs017_igs031"),
+		m_screen(*this, "screen")
 	{ }
 
 	void igs_mahjong(machine_config &config);
@@ -76,6 +77,7 @@ private:
 	required_device<cpu_device> m_maincpu;
 	optional_device<i8255_device> m_ppi;
 	required_device<igs017_igs031_device> m_igs017_igs031;
+	required_device<screen_device> m_screen;
 
 	u32 unk_r()
 	{
@@ -177,14 +179,20 @@ static const u8 sdwx_tab[] =
 static INPUT_PORTS_START( base )
 
 	PORT_START("TEST0")
-	PORT_BIT( 0xff, IP_ACTIVE_LOW, IPT_UNUSED )
+    PORT_BIT( 0xff, IP_ACTIVE_LOW, IPT_UNUSED )
 
 	PORT_START("TEST1")
-	PORT_BIT( 0xff, IP_ACTIVE_LOW, IPT_UNUSED )
+    PORT_BIT( 0xff, IP_ACTIVE_LOW, IPT_UNUSED )
 
 	PORT_START("TEST2")
-	PORT_BIT( 0xff, IP_ACTIVE_LOW, IPT_UNUSED )
+    PORT_BIT( 0xff, IP_ACTIVE_LOW, IPT_UNUSED )
+INPUT_PORTS_END
 
+static INPUT_PORTS_START( qlgs )
+	PORT_INCLUDE(base)
+
+	PORT_MODIFY("TEST0")
+    PORT_BIT( 0x0f, IP_ACTIVE_HIGH, IPT_UNKNOWN )
 INPUT_PORTS_END
 
 static INPUT_PORTS_START( amazonia )
@@ -269,15 +277,17 @@ INPUT_PORTS_END
 
 ***************************************************************************/
 
-
-
-
 void igs_m027_state::vblank_irq(int state)
 {
+	// hack for now
 	if (state)
-		m_maincpu->pulse_input_line(ARM7_FIRQ_LINE, m_maincpu->minimum_quantum_time());
+	{
+//		if (m_screen->frame_number() & 1)
+			m_maincpu->pulse_input_line(ARM7_FIRQ_LINE, m_maincpu->minimum_quantum_time());
+//		else
+//			m_maincpu->pulse_input_line(ARM7_IRQ_LINE, m_maincpu->minimum_quantum_time()); // qlgs needs this, but there's no XA on these PCBs, where is it from? causes coin error in jking02 for now
+	}
 }
-
 
 void igs_m027_state::igs_mahjong(machine_config &config)
 {
@@ -286,14 +296,14 @@ void igs_m027_state::igs_mahjong(machine_config &config)
 
 //  NVRAM(config, "nvram", nvram_device::DEFAULT_ALL_0);
 
-	screen_device &screen(SCREEN(config, "screen", SCREEN_TYPE_RASTER));
-	screen.set_refresh_hz(60);
-	screen.set_vblank_time(ATTOSECONDS_IN_USEC(0));
-	screen.set_size(512, 256);
-	screen.set_visarea(0, 512-1, 0, 240-1);
-	screen.set_screen_update("igs017_igs031", FUNC(igs017_igs031_device::screen_update));
-	screen.set_palette("igs017_igs031:palette");
-	screen.screen_vblank().set(FUNC(igs_m027_state::vblank_irq));
+	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
+	m_screen->set_refresh_hz(60);
+	m_screen->set_vblank_time(ATTOSECONDS_IN_USEC(0));
+	m_screen->set_size(512, 256);
+	m_screen->set_visarea(0, 512-1, 0, 240-1);
+	m_screen->set_screen_update("igs017_igs031", FUNC(igs017_igs031_device::screen_update));
+	m_screen->set_palette("igs017_igs031:palette");
+	m_screen->screen_vblank().set(FUNC(igs_m027_state::vblank_irq));
 
 	I8255A(config, m_ppi);
 	m_ppi->in_pa_callback().set_ioport("TEST0");
@@ -1129,7 +1139,7 @@ ROM_END
 ROM_START( qlgs )
 	ROM_REGION( 0x04000, "maincpu", 0 )
 	// Internal ROM of IGS027A type G ARM based MCU
-	ROM_LOAD( "qlgs_igs027a", 0x00000, 0x4000, NO_DUMP ) // has a 'DJ-2 U17' and a 'C3' sticker
+	ROM_LOAD( "c3_igs027a.bin", 0x00000, 0x4000, CRC(7b107594) SHA1(274d9927b396b610f99f4a3c760f9f4d9c21d29c) ) // has a 'DJ-2 U17' and a 'C3' sticker
 
 	ROM_REGION32_LE( 0x200000, "user1", 0 ) // external ARM data / prg
 	ROM_LOAD( "s-501cn.u17", 0x000000, 0x200000, CRC(c80b61c0) SHA1(4e9920beb85fd559620f3136ea52ab6532657b1f) ) // 11xxxxxxxxxxxxxxxxxxx = 0xFF
@@ -1307,8 +1317,11 @@ void igs_m027_state::init_amazoni2()
 void igs_m027_state::init_qlgs()
 {
 	qlgs_decrypt(machine());
+	m_igs017_igs031->sdwx_gfx_decrypt();
+	m_igs017_igs031->tarzan_decrypt_sprites(0x400000); // not 100% correect?
+
 	//qlgs_gfx_decrypt(machine());
-	pgm_create_dummy_internal_arm_region();
+	//pgm_create_dummy_internal_arm_region();
 }
 
 void igs_m027_state::init_mgzz()
@@ -1371,7 +1384,7 @@ void igs_m027_state::init_lhdmg()
 ***************************************************************************/
 
 GAME( 1999, slqz3,     0,        igs_mahjong, base,     igs_m027_state, init_slqz3,    ROT0, "IGS", "Mahjong Shuang Long Qiang Zhu 3 (China, VS107C)", MACHINE_IS_SKELETON )
-GAME( 1999, qlgs,      0,        igs_mahjong, base,     igs_m027_state, init_qlgs,     ROT0, "IGS", "Que Long Gao Shou", MACHINE_IS_SKELETON )
+GAME( 1999, qlgs,      0,        igs_mahjong, qlgs,     igs_m027_state, init_qlgs,     ROT0, "IGS", "Que Long Gao Shou", MACHINE_IS_SKELETON )
 GAME( 1999, amazonia,  0,        igs_mahjong, amazonia, igs_m027_state, init_amazonia, ROT0, "IGS", "Amazonia King (V104BR)", MACHINE_IS_SKELETON )
 GAME( 1999, amazonkp,  amazonia, igs_mahjong, amazonia, igs_m027_state, init_amazonia, ROT0, "IGS", "Amazonia King Plus (V204BR)", MACHINE_IS_SKELETON )
 GAME( 1999, fruitpar,  0,        igs_mahjong, base,     igs_m027_state, init_fruitpar, ROT0, "IGS", "Fruit Paradise (V214)", MACHINE_IS_SKELETON )
