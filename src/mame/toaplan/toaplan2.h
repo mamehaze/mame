@@ -141,55 +141,6 @@ protected:
 	void vfive_v25_mem(address_map &map);
 };
 
-// with paddle
-class ghox_state : public toaplan2_state
-{
-public:
-	ghox_state(const machine_config &mconfig, device_type type, const char *tag)
-		: toaplan2_state(mconfig, type, tag)
-		, m_io_pad(*this, "PAD%u", 1U)
-	{ }
 
-	void ghox(machine_config &config);
-
-protected:
-	virtual void machine_start() override;
-	virtual void machine_reset() override;
-
-private:
-	required_ioport_array<2> m_io_pad;
-
-	s8 m_old_paddle_h[2] = {0};
-
-	template<unsigned Which> u16 ghox_h_analog_r();
-
-	void ghox_68k_mem(address_map &map);
-	void ghox_hd647180_mem_map(address_map &map);
-};
-
-
-// with RTC, hopper
-class pwrkick_state : public toaplan2_state
-{
-public:
-	pwrkick_state(const machine_config &mconfig, device_type type, const char *tag)
-		: toaplan2_state(mconfig, type, tag)
-		, m_rtc(*this, "rtc")
-		, m_hopper(*this, "hopper")
-	{ }
-
-	void othldrby(machine_config &config);
-	void pwrkick(machine_config &config);
-
-private:
-	required_device<upd4992_device> m_rtc;
-	optional_device<ticket_dispenser_device> m_hopper;
-
-	void pwrkick_coin_w(u8 data);
-	void pwrkick_coin_lockout_w(u8 data);
-
-	void othldrby_68k_mem(address_map &map);
-	void pwrkick_68k_mem(address_map &map);
-};
 
 #endif // MAME_TOAPLAN_TOAPLAN2_H
