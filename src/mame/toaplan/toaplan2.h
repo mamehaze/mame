@@ -11,7 +11,11 @@
 #include "machine/gen_latch.h"
 #include "machine/ticket.h"
 #include "machine/upd4992.h"
+
 #include "gp9001.h"
+#include "toaplan2_screen.h"
+#include "toaplan2_txlayer.h"
+
 #include "sound/okim6295.h"
 #include "emupal.h"
 #include "screen.h"
@@ -161,122 +165,6 @@ private:
 
 	void ghox_68k_mem(address_map &map);
 	void ghox_hd647180_mem_map(address_map &map);
-};
-
-// with text layer
-class truxton2_state : public toaplan2_state
-{
-public:
-	truxton2_state(const machine_config &mconfig, device_type type, const char *tag)
-		: toaplan2_state(mconfig, type, tag)
-		, m_tx_videoram(*this, "tx_videoram")
-		, m_tx_lineselect(*this, "tx_lineselect")
-		, m_tx_linescroll(*this, "tx_linescroll")
-		, m_tx_gfxram(*this, "tx_gfxram")
-		, m_dma_space(*this, "dma_space")
-		, m_audiobank(*this, "audiobank")
-		, m_raizing_okibank{
-			{ *this, "raizing_okibank0_%u", 0U },
-			{ *this, "raizing_okibank1_%u", 0U } }
-		, m_eepromout(*this, "EEPROMOUT")
-	{ }
-
-	void batrider(machine_config &config);
-	void bbakraid(machine_config &config);
-	void bgaregga(machine_config &config);
-	void bgareggabl(machine_config &config);
-	void fixeight(machine_config &config);
-	void fixeightbl(machine_config &config);
-	void mahoudai(machine_config &config);
-	void nprobowl(machine_config &config);
-	void shippumd(machine_config &config);
-	void truxton2(machine_config &config);
-
-	void init_batrider();
-	void init_bbakraid();
-	void init_bgaregga();
-	void init_fixeight();
-
-protected:
-	virtual void machine_start() override;
-	virtual void device_post_load() override;
-
-private:
-	required_shared_ptr<u16> m_tx_videoram;
-	optional_shared_ptr<u16> m_tx_lineselect;
-	optional_shared_ptr<u16> m_tx_linescroll;
-	optional_shared_ptr<u16> m_tx_gfxram;
-
-	optional_device<address_map_bank_device> m_dma_space;
-
-	optional_memory_bank m_audiobank;
-	optional_memory_bank_array<8> m_raizing_okibank[2];
-
-	optional_ioport m_eepromout;
-
-	u8 m_sndirq_line = 0;        /* IRQ4 for batrider, IRQ2 for bbakraid */
-	u8 m_z80_busreq = 0;
-	u16 m_gfxrom_bank[8]{};       /* Batrider object bank */
-
-	tilemap_t *m_tx_tilemap = nullptr;    /* Tilemap for extra-text-layer */
-
-	void shippumd_coin_w(u8 data);
-	void raizing_z80_bankswitch_w(u8 data);
-	void raizing_oki_bankswitch_w(offs_t offset, u8 data);
-	u8 bgaregga_E01D_r();
-	u16 batrider_z80_busack_r();
-	void batrider_z80_busreq_w(u8 data);
-	u16 batrider_z80rom_r(offs_t offset);
-	void batrider_soundlatch_w(u8 data);
-	void batrider_soundlatch2_w(u8 data);
-	void batrider_unknown_sound_w(u16 data);
-	void batrider_clear_sndirq_w(u16 data);
-	void batrider_sndirq_w(u8 data);
-	void batrider_clear_nmi_w(u8 data);
-	u16 bbakraid_eeprom_r();
-	void bbakraid_eeprom_w(u8 data);
-	void tx_videoram_w(offs_t offset, u16 data, u16 mem_mask = ~0);
-	void tx_linescroll_w(offs_t offset, u16 data, u16 mem_mask = ~0);
-	void tx_gfxram_w(offs_t offset, u16 data, u16 mem_mask = ~0);
-	void batrider_tx_gfxram_w(offs_t offset, u16 data, u16 mem_mask = ~0);
-	void batrider_textdata_dma_w(u16 data);
-	void batrider_pal_text_dma_w(u16 data);
-	void batrider_objectbank_w(offs_t offset, u8 data);
-	void batrider_bank_cb(u8 layer, u32 &code);
-
-	void install_raizing_okibank(int chip);
-
-	TILE_GET_INFO_MEMBER(get_text_tile_info);
-	DECLARE_MACHINE_RESET(bgaregga);
-	DECLARE_VIDEO_START(truxton2);
-	DECLARE_VIDEO_START(fixeightbl);
-	DECLARE_VIDEO_START(bgaregga);
-	DECLARE_VIDEO_START(bgareggabl);
-	DECLARE_VIDEO_START(batrider);
-
-	u32 screen_update_truxton2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
-	u32 screen_update_bootleg(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
-	INTERRUPT_GEN_MEMBER(bbakraid_snd_interrupt);
-	void create_tx_tilemap(int dx = 0, int dx_flipped = 0);
-
-	void batrider_68k_mem(address_map &map);
-	void batrider_dma_mem(address_map &map);
-	void batrider_sound_z80_mem(address_map &map);
-	void batrider_sound_z80_port(address_map &map);
-	void bbakraid_68k_mem(address_map &map);
-	void bbakraid_sound_z80_mem(address_map &map);
-	void bbakraid_sound_z80_port(address_map &map);
-	void bgaregga_68k_mem(address_map &map);
-	void bgaregga_sound_z80_mem(address_map &map);
-	void fixeight_68k_mem(address_map &map);
-	void fixeight_v25_mem(address_map &map);
-	void fixeightbl_68k_mem(address_map &map);
-	void mahoudai_68k_mem(address_map &map);
-	void nprobowl_68k_mem(address_map &map);
-	template<unsigned Chip> void raizing_oki(address_map &map);
-	void raizing_sound_z80_mem(address_map &map);
-	void shippumd_68k_mem(address_map &map);
-	void truxton2_68k_mem(address_map &map);
 };
 
 
