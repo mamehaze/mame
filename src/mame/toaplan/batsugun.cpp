@@ -46,8 +46,46 @@ private:
 	DECLARE_VIDEO_START(toaplan2);
 	DECLARE_VIDEO_START(batsugunbl);
 	void screen_vblank(int state);
+	u16 video_count_r();
+	void toaplan2_reset(int state);
 
 };
+
+void batsugun_state::toaplan2_reset(int state)
+{
+	if (m_audiocpu != nullptr)
+		m_audiocpu->pulse_input_line(INPUT_LINE_RESET, attotime::zero);
+}
+
+u16 batsugun_state::video_count_r()
+{
+	/* +---------+---------+--------+---------------------------+ */
+	/* | /H-Sync | /V-Sync | /Blank |       Scanline Count      | */
+	/* | Bit 15  | Bit 14  | Bit 8  |  Bit 7-0 (count from #EF) | */
+	/* +---------+---------+--------+---------------------------+ */
+	/*************** Control Signals are active low ***************/
+
+	int vpos = m_screen->vpos();
+
+	u16 video_status = 0xff00;    // Set signals inactive
+
+	vpos = (vpos + 15) % 262;
+
+	if (!m_vdp[0]->hsync_r())
+		video_status &= ~0x8000;
+	if (!m_vdp[0]->vsync_r())
+		video_status &= ~0x4000;
+	if (!m_vdp[0]->fblank_r())
+		video_status &= ~0x0100;
+	if (vpos < 256)
+		video_status |= (vpos & 0xff);
+	else
+		video_status |= 0xff;
+
+//  logerror("VC: vpos=%04x hpos=%04x VBL=%04x\n",vpos,hpos,m_screen->vblank());
+
+	return video_status;
+}
 
 VIDEO_START_MEMBER(batsugun_state,toaplan2)
 {
@@ -191,7 +229,7 @@ void batsugun_state::batsugun(machine_config &config)
 	/* basic machine hardware */
 	M68000(config, m_maincpu, 32_MHz_XTAL/2);           // 16MHz, 32MHz Oscillator
 	m_maincpu->set_addrmap(AS_PROGRAM, &batsugun_state::batsugun_68k_mem);
-	m_maincpu->reset_cb().set(FUNC(toaplan2_state::toaplan2_reset));
+	m_maincpu->reset_cb().set(FUNC(batsugun_state::toaplan2_reset));
 
 	v25_device &audiocpu(V25(config, m_audiocpu, 32_MHz_XTAL/2));         // NEC V25 type Toaplan marked CPU ???
 	audiocpu.set_addrmap(AS_PROGRAM, &batsugun_state::batsugun_v25_mem);
@@ -421,7 +459,7 @@ void batsugun_state::batsugun_68k_mem(address_map &map)
 	map(0x300000, 0x30000d).rw(m_vdp[0], FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
 	map(0x400000, 0x400fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
 	map(0x500000, 0x50000d).rw(m_vdp[1], FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
-	map(0x700000, 0x700001).r(FUNC(toaplan2_state::video_count_r));
+	map(0x700000, 0x700001).r(FUNC(batsugun_state::video_count_r));
 }
 
 void batsugun_state::batsugunbl_68k_mem(address_map &map)
@@ -441,7 +479,7 @@ void batsugun_state::batsugunbl_68k_mem(address_map &map)
 	map(0x300000, 0x30000d).rw(m_vdp[0], FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
 	map(0x400000, 0x400fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
 	map(0x500000, 0x50000d).rw(m_vdp[1], FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
-	map(0x700000, 0x700001).r(FUNC(toaplan2_state::video_count_r));
+	map(0x700000, 0x700001).r(FUNC(batsugun_state::video_count_r));
 }
 
 

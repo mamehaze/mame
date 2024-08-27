@@ -35,10 +35,15 @@ private:
 	DECLARE_VIDEO_START(toaplan2);
 	u32 screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
 	void screen_vblank(int state);
-
-
+	void toaplan2_reset(int state);
 };
 
+
+void tekipaki_state::toaplan2_reset(int state)
+{
+	if (m_audiocpu != nullptr)
+		m_audiocpu->pulse_input_line(INPUT_LINE_RESET, attotime::zero);
+}
 
 VIDEO_START_MEMBER(tekipaki_state,toaplan2)
 {
@@ -282,7 +287,7 @@ void tekipaki_state::tekipaki(machine_config &config)
 	/* basic machine hardware */
 	M68000(config, m_maincpu, 10_MHz_XTAL);         // 10MHz Oscillator
 	m_maincpu->set_addrmap(AS_PROGRAM, &tekipaki_state::tekipaki_68k_mem);
-	m_maincpu->reset_cb().set(FUNC(toaplan2_state::toaplan2_reset));
+	m_maincpu->reset_cb().set(FUNC(tekipaki_state::toaplan2_reset));
 
 	hd647180x_device &audiocpu(HD647180X(config, m_audiocpu, 10_MHz_XTAL));
 	// 16k byte ROM and 512 byte RAM are internal

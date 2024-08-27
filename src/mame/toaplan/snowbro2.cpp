@@ -33,8 +33,16 @@ private:
 	u32 screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
 	void screen_vblank(int state);
 
+	void toaplan2_reset(int state);
 
 };
+
+
+void snowbro2_state::toaplan2_reset(int state)
+{
+	if (m_audiocpu != nullptr)
+		m_audiocpu->pulse_input_line(INPUT_LINE_RESET, attotime::zero);
+}
 
 
 VIDEO_START_MEMBER(snowbro2_state,toaplan2)
@@ -350,7 +358,7 @@ void snowbro2_state::snowbro2(machine_config &config)
 	/* basic machine hardware */
 	M68000(config, m_maincpu, 32_MHz_XTAL/2);
 	m_maincpu->set_addrmap(AS_PROGRAM, &snowbro2_state::snowbro2_68k_mem);
-	m_maincpu->reset_cb().set(FUNC(toaplan2_state::toaplan2_reset));
+	m_maincpu->reset_cb().set(FUNC(snowbro2_state::toaplan2_reset));
 
 	/* video hardware */
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);

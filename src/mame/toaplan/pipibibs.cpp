@@ -37,8 +37,16 @@ private:
 	DECLARE_VIDEO_START(toaplan2);
 	u32 screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
 	void screen_vblank(int state);
+	void toaplan2_reset(int state);
 
 };
+
+
+void pipibibs_state::toaplan2_reset(int state)
+{
+	if (m_audiocpu != nullptr)
+		m_audiocpu->pulse_input_line(INPUT_LINE_RESET, attotime::zero);
+}
 
 
 VIDEO_START_MEMBER(pipibibs_state,toaplan2)
@@ -295,7 +303,7 @@ void pipibibs_state::pipibibs(machine_config &config)
 	/* basic machine hardware */
 	M68000(config, m_maincpu, 10_MHz_XTAL);         // verified on PCB
 	m_maincpu->set_addrmap(AS_PROGRAM, &pipibibs_state::pipibibs_68k_mem);
-	m_maincpu->reset_cb().set(FUNC(toaplan2_state::toaplan2_reset));
+	m_maincpu->reset_cb().set(FUNC(pipibibs_state::toaplan2_reset));
 
 	Z80(config, m_audiocpu, 27_MHz_XTAL/8);         // verified on PCB
 	m_audiocpu->set_addrmap(AS_PROGRAM, &pipibibs_state::pipibibs_sound_z80_mem);
@@ -339,7 +347,7 @@ void pipibibs_state::pipibibsbl(machine_config &config)
 	M68000(config, m_maincpu, 12_MHz_XTAL); // ??? (position labeled "68000-12" but 10 MHz-rated parts used)
 	m_maincpu->set_addrmap(AS_PROGRAM, &pipibibs_state::pipibibi_bootleg_68k_mem);
 	m_maincpu->set_addrmap(m68000_base_device::AS_CPU_SPACE, &pipibibs_state::cpu_space_pipibibsbl_map);
-	m_maincpu->reset_cb().set(FUNC(toaplan2_state::toaplan2_reset));
+	m_maincpu->reset_cb().set(FUNC(pipibibs_state::toaplan2_reset));
 
 	Z80(config, m_audiocpu, 12_MHz_XTAL / 2); // GoldStar Z8400B; clock source and divider unknown
 	m_audiocpu->set_addrmap(AS_PROGRAM, &pipibibs_state::pipibibs_sound_z80_mem);

@@ -38,8 +38,46 @@ private:
 	DECLARE_VIDEO_START(toaplan2);
 	u32 screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
 	void screen_vblank(int state);
+	u16 video_count_r();
+	void toaplan2_reset(int state);
 
 };
+
+void kbash_state::toaplan2_reset(int state)
+{
+	if (m_audiocpu != nullptr)
+		m_audiocpu->pulse_input_line(INPUT_LINE_RESET, attotime::zero);
+}
+
+u16 kbash_state::video_count_r()
+{
+	/* +---------+---------+--------+---------------------------+ */
+	/* | /H-Sync | /V-Sync | /Blank |       Scanline Count      | */
+	/* | Bit 15  | Bit 14  | Bit 8  |  Bit 7-0 (count from #EF) | */
+	/* +---------+---------+--------+---------------------------+ */
+	/*************** Control Signals are active low ***************/
+
+	int vpos = m_screen->vpos();
+
+	u16 video_status = 0xff00;    // Set signals inactive
+
+	vpos = (vpos + 15) % 262;
+
+	if (!m_vdp[0]->hsync_r())
+		video_status &= ~0x8000;
+	if (!m_vdp[0]->vsync_r())
+		video_status &= ~0x4000;
+	if (!m_vdp[0]->fblank_r())
+		video_status &= ~0x0100;
+	if (vpos < 256)
+		video_status |= (vpos & 0xff);
+	else
+		video_status |= 0xff;
+
+//  logerror("VC: vpos=%04x hpos=%04x VBL=%04x\n",vpos,hpos,m_screen->vblank());
+
+	return video_status;
+}
 
 VIDEO_START_MEMBER(kbash_state,toaplan2)
 {
@@ -123,7 +161,7 @@ void kbash_state::kbash_68k_mem(address_map &map)
 	map(0x20801d, 0x20801d).w(FUNC(kbash_state::coin_w));
 	map(0x300000, 0x30000d).rw(m_vdp[0], FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
 	map(0x400000, 0x400fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
-	map(0x700000, 0x700001).r(FUNC(toaplan2_state::video_count_r));         // test bit 8
+	map(0x700000, 0x700001).r(FUNC(kbash_state::video_count_r));         // test bit 8
 }
 
 
@@ -143,7 +181,7 @@ void kbash_state::kbash2_68k_mem(address_map &map)
 	map(0x200021, 0x200021).rw(m_oki[1], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
 	map(0x200025, 0x200025).rw(m_oki[0], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
 	map(0x200029, 0x200029).w(FUNC(kbash_state::oki_bankswitch_w<0>));
-	map(0x20002c, 0x20002d).r(FUNC(toaplan2_state::video_count_r));
+	map(0x20002c, 0x20002d).r(FUNC(kbash_state::video_count_r));
 	map(0x300000, 0x30000d).rw(m_vdp[0], FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
 	map(0x400000, 0x400fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
 }
@@ -354,7 +392,7 @@ void kbash_state::kbash(machine_config &config)
 	/* basic machine hardware */
 	M68000(config, m_maincpu, 16_MHz_XTAL);         /* 16MHz Oscillator */
 	m_maincpu->set_addrmap(AS_PROGRAM, &kbash_state::kbash_68k_mem);
-	m_maincpu->reset_cb().set(FUNC(toaplan2_state::toaplan2_reset));
+	m_maincpu->reset_cb().set(FUNC(kbash_state::toaplan2_reset));
 
 	/* ROM based v25 */
 	v25_device &audiocpu(V25(config, m_audiocpu, 16_MHz_XTAL));         /* NEC V25 type Toaplan marked CPU ??? */
@@ -402,7 +440,7 @@ void kbash_state::kbash2(machine_config &config)
 	/* basic machine hardware */
 	M68000(config, m_maincpu, 16_MHz_XTAL);         /* 16MHz Oscillator */
 	m_maincpu->set_addrmap(AS_PROGRAM, &kbash_state::kbash2_68k_mem);
-	m_maincpu->reset_cb().set(FUNC(toaplan2_state::toaplan2_reset));
+	m_maincpu->reset_cb().set(FUNC(kbash_state::toaplan2_reset));
 
 	/* video hardware */
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);

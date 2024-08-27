@@ -50,9 +50,16 @@ private:
 	DECLARE_VIDEO_START(toaplan2);
 	u32 screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
 	void screen_vblank(int state);
+	void toaplan2_reset(int state);
 
 };
 
+
+void ghox_state::toaplan2_reset(int state)
+{
+	if (m_audiocpu != nullptr)
+		m_audiocpu->pulse_input_line(INPUT_LINE_RESET, attotime::zero);
+}
 
 VIDEO_START_MEMBER(ghox_state,toaplan2)
 {

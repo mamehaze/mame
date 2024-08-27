@@ -72,16 +72,6 @@ public:
 	bitmap_ind8 m_custom_priority_bitmap;
 	bitmap_ind16 m_secondary_render_bitmap;
 
-	u16 video_count_r();
-	
-	
-
-
-	
-
-
-
-	void toaplan2_reset(int state);
 
 };
 

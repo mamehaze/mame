@@ -51,8 +51,47 @@ private:
 	u32 screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
 	void screen_vblank(int state);
 
+	u16 video_count_r();
+	void toaplan2_reset(int state);
+
 };
 
+
+void pwrkick_state::toaplan2_reset(int state)
+{
+	if (m_audiocpu != nullptr)
+		m_audiocpu->pulse_input_line(INPUT_LINE_RESET, attotime::zero);
+}
+
+u16 pwrkick_state::video_count_r()
+{
+	/* +---------+---------+--------+---------------------------+ */
+	/* | /H-Sync | /V-Sync | /Blank |       Scanline Count      | */
+	/* | Bit 15  | Bit 14  | Bit 8  |  Bit 7-0 (count from #EF) | */
+	/* +---------+---------+--------+---------------------------+ */
+	/*************** Control Signals are active low ***************/
+
+	int vpos = m_screen->vpos();
+
+	u16 video_status = 0xff00;    // Set signals inactive
+
+	vpos = (vpos + 15) % 262;
+
+	if (!m_vdp[0]->hsync_r())
+		video_status &= ~0x8000;
+	if (!m_vdp[0]->vsync_r())
+		video_status &= ~0x4000;
+	if (!m_vdp[0]->fblank_r())
+		video_status &= ~0x0100;
+	if (vpos < 256)
+		video_status |= (vpos & 0xff);
+	else
+		video_status |= 0xff;
+
+//  logerror("VC: vpos=%04x hpos=%04x VBL=%04x\n",vpos,hpos,m_screen->vblank());
+
+	return video_status;
+}
 
 VIDEO_START_MEMBER(pwrkick_state,toaplan2)
 {
