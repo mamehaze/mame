@@ -26,10 +26,33 @@ protected:
 private:
 	void snowbro2_68k_mem(address_map &map);
 	void snowbro2b3_68k_mem(address_map &map);
-
+	void coin_w(u8 data);
 	template<int Chip> void oki_bankswitch_w(u8 data);
 
 };
+
+void snowbro2_state::coin_w(u8 data)
+{
+	/* +----------------+------ Bits 7-5 not used ------+--------------+ */
+	/* | Coin Lockout 2 | Coin Lockout 1 | Coin Count 2 | Coin Count 1 | */
+	/* |     Bit 3      |     Bit 2      |     Bit 1    |     Bit 0    | */
+
+	if (data & 0x0f)
+	{
+		machine().bookkeeping().coin_lockout_w(0, BIT(~data, 2));
+		machine().bookkeeping().coin_lockout_w(1, BIT(~data, 3));
+		machine().bookkeeping().coin_counter_w(0, BIT( data, 0));
+		machine().bookkeeping().coin_counter_w(1, BIT( data, 1));
+	}
+	else
+	{
+		machine().bookkeeping().coin_lockout_global_w(1);    // Lock all coin slots
+	}
+	if (data & 0xf0)
+	{
+		logerror("Writing unknown upper bits (%02x) to coin control\n",data);
+	}
+}
 
 
 constexpr unsigned toaplan2_state::T2PALETTE_LENGTH;
@@ -253,7 +276,7 @@ void snowbro2_state::snowbro2_68k_mem(address_map &map)
 	map(0x700018, 0x700019).portr("IN4");
 	map(0x70001c, 0x70001d).portr("SYS");
 	map(0x700031, 0x700031).w(FUNC(snowbro2_state::oki_bankswitch_w<0>));
-	map(0x700035, 0x700035).w(FUNC(toaplan2_state::coin_w));
+	map(0x700035, 0x700035).w(FUNC(snowbro2_state::coin_w));
 }
 
 void snowbro2_state::snowbro2b3_68k_mem(address_map &map)
@@ -269,7 +292,7 @@ void snowbro2_state::snowbro2b3_68k_mem(address_map &map)
 	map(0x700010, 0x700011).portr("IN2");
 	map(0x700014, 0x700015).portr("IN3");
 	map(0x700018, 0x700019).portr("IN4");
-	map(0x700035, 0x700035).w(FUNC(toaplan2_state::coin_w));
+	map(0x700035, 0x700035).w(FUNC(snowbro2_state::coin_w));
 	map(0x700041, 0x700041).w(FUNC(snowbro2_state::oki_bankswitch_w<0>));
 	map(0xff0000, 0xff2fff).rw(m_vdp[0], FUNC(gp9001vdp_device::bootleg_videoram16_r), FUNC(gp9001vdp_device::bootleg_videoram16_w));
 	map(0xff3000, 0xff37ff).rw(m_vdp[0], FUNC(gp9001vdp_device::bootleg_spriteram16_r), FUNC(gp9001vdp_device::bootleg_spriteram16_w));

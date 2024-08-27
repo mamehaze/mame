@@ -444,7 +444,7 @@ u16 toaplan2_state::video_count_r()
 	return video_status;
 }
 
-
+#if 0
 void toaplan2_state::coin_w(u8 data)
 {
 	/* +----------------+------ Bits 7-5 not used ------+--------------+ */
@@ -467,6 +467,7 @@ void toaplan2_state::coin_w(u8 data)
 		logerror("Writing unknown upper bits (%02x) to coin control\n",data);
 	}
 }
+#endif
 
 
 

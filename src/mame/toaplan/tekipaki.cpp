@@ -30,10 +30,33 @@ private:
 
 	// Teki Paki sound
 	u8 tekipaki_cmdavailable_r();
-
+	void coin_w(u8 data);
 
 };
 
+
+void tekipaki_state::coin_w(u8 data)
+{
+	/* +----------------+------ Bits 7-5 not used ------+--------------+ */
+	/* | Coin Lockout 2 | Coin Lockout 1 | Coin Count 2 | Coin Count 1 | */
+	/* |     Bit 3      |     Bit 2      |     Bit 1    |     Bit 0    | */
+
+	if (data & 0x0f)
+	{
+		machine().bookkeeping().coin_lockout_w(0, BIT(~data, 2));
+		machine().bookkeeping().coin_lockout_w(1, BIT(~data, 3));
+		machine().bookkeeping().coin_counter_w(0, BIT( data, 0));
+		machine().bookkeeping().coin_counter_w(1, BIT( data, 1));
+	}
+	else
+	{
+		machine().bookkeeping().coin_lockout_global_w(1);    // Lock all coin slots
+	}
+	if (data & 0xf0)
+	{
+		logerror("Writing unknown upper bits (%02x) to coin control\n",data);
+	}
+}
 
 constexpr unsigned toaplan2_state::T2PALETTE_LENGTH;
 
@@ -50,7 +73,7 @@ void tekipaki_state::tekipaki_68k_mem(address_map &map)
 	map(0x180010, 0x180011).portr("DSWB");
 	map(0x180020, 0x180021).portr("SYS");
 	map(0x180030, 0x180031).portr("JMPR");           // CPU 2 busy and Region Jumper block
-	map(0x180041, 0x180041).w(FUNC(toaplan2_state::coin_w));
+	map(0x180041, 0x180041).w(FUNC(tekipaki_state::coin_w));
 	map(0x180050, 0x180051).portr("IN1");
 	map(0x180060, 0x180061).portr("IN2");
 	map(0x180071, 0x180071).w(m_soundlatch[0], FUNC(generic_latch_8_device::write));

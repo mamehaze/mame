@@ -30,11 +30,35 @@ private:
 	void kbash_v25_mem(address_map &map);
 
 	template<int Chip> void oki_bankswitch_w(u8 data);
+	void coin_w(u8 data);
 
 	u8 shared_ram_r(offs_t offset) { return m_shared_ram[offset]; }
 	void shared_ram_w(offs_t offset, u8 data) { m_shared_ram[offset] = data; }
 
 };
+
+void kbash_state::coin_w(u8 data)
+{
+	/* +----------------+------ Bits 7-5 not used ------+--------------+ */
+	/* | Coin Lockout 2 | Coin Lockout 1 | Coin Count 2 | Coin Count 1 | */
+	/* |     Bit 3      |     Bit 2      |     Bit 1    |     Bit 0    | */
+
+	if (data & 0x0f)
+	{
+		machine().bookkeeping().coin_lockout_w(0, BIT(~data, 2));
+		machine().bookkeeping().coin_lockout_w(1, BIT(~data, 3));
+		machine().bookkeeping().coin_counter_w(0, BIT( data, 0));
+		machine().bookkeeping().coin_counter_w(1, BIT( data, 1));
+	}
+	else
+	{
+		machine().bookkeeping().coin_lockout_global_w(1);    // Lock all coin slots
+	}
+	if (data & 0xf0)
+	{
+		logerror("Writing unknown upper bits (%02x) to coin control\n",data);
+	}
+}
 
 constexpr unsigned toaplan2_state::T2PALETTE_LENGTH;
 
@@ -54,7 +78,7 @@ void kbash_state::kbash_68k_mem(address_map &map)
 	map(0x208010, 0x208011).portr("IN1");
 	map(0x208014, 0x208015).portr("IN2");
 	map(0x208018, 0x208019).portr("SYS");
-	map(0x20801d, 0x20801d).w(FUNC(toaplan2_state::coin_w));
+	map(0x20801d, 0x20801d).w(FUNC(kbash_state::coin_w));
 	map(0x300000, 0x30000d).rw(m_vdp[0], FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
 	map(0x400000, 0x400fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
 	map(0x700000, 0x700001).r(FUNC(toaplan2_state::video_count_r));         // test bit 8

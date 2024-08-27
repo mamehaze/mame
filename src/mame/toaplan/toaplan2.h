@@ -73,7 +73,6 @@ public:
 	bitmap_ind16 m_secondary_render_bitmap;
 
 	u16 video_count_r();
-	void coin_w(u8 data);
 	
 	
 
