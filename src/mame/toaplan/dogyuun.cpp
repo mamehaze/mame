@@ -41,10 +41,43 @@ private:
 	u8 shared_ram_r(offs_t offset) { return m_shared_ram[offset]; }
 	void shared_ram_w(offs_t offset, u8 data) { m_shared_ram[offset] = data; }
 
+	DECLARE_VIDEO_START(toaplan2);
+	void screen_vblank(int state);
+
+
 };
 
 constexpr unsigned toaplan2_state::T2PALETTE_LENGTH;
 
+
+VIDEO_START_MEMBER(dogyuun_state,toaplan2)
+{
+	/* our current VDP implementation needs this bitmap to work with */
+	m_screen->register_screen_bitmap(m_custom_priority_bitmap);
+
+	if (m_vdp[0] != nullptr)
+	{
+		m_secondary_render_bitmap.reset();
+		m_vdp[0]->custom_priority_bitmap = &m_custom_priority_bitmap;
+	}
+
+	if (m_vdp[1] != nullptr)
+	{
+		m_screen->register_screen_bitmap(m_secondary_render_bitmap);
+		m_vdp[1]->custom_priority_bitmap = &m_custom_priority_bitmap;
+	}
+}
+
+
+void dogyuun_state::screen_vblank(int state)
+{
+	// rising edge
+	if (state)
+	{
+		if (m_vdp[0]) m_vdp[0]->screen_eof();
+		if (m_vdp[1]) m_vdp[1]->screen_eof();
+	}
+}
 
 
 u32 dogyuun_state::screen_update_dogyuun(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
@@ -370,7 +403,7 @@ void dogyuun_state::dogyuun(machine_config &config)
 	m_screen->set_video_attributes(VIDEO_UPDATE_BEFORE_VBLANK);
 	m_screen->set_raw(27_MHz_XTAL/4, 432, 0, 320, 262, 0, 240);
 	m_screen->set_screen_update(FUNC(dogyuun_state::screen_update_dogyuun));
-	m_screen->screen_vblank().set(FUNC(toaplan2_state::screen_vblank));
+	m_screen->screen_vblank().set(FUNC(dogyuun_state::screen_vblank));
 	m_screen->set_palette(m_palette);
 
 	toaplan2_screen_device& t2screen(TOAPLAN2_SCREEN(config, "t2screen", 27_MHz_XTAL / 4));
@@ -385,7 +418,7 @@ void dogyuun_state::dogyuun(machine_config &config)
 	GP9001_VDP(config, m_vdp[1], 27_MHz_XTAL);
 	m_vdp[1]->set_palette(m_palette);
 
-	MCFG_VIDEO_START_OVERRIDE(toaplan2_state,toaplan2)
+	MCFG_VIDEO_START_OVERRIDE(dogyuun_state,toaplan2)
 
 	/* sound hardware */
 	SPEAKER(config, "mono").front_center();

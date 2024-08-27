@@ -43,8 +43,39 @@ private:
 	u8 shared_ram_r(offs_t offset) { return m_shared_ram[offset]; }
 	void shared_ram_w(offs_t offset, u8 data) { m_shared_ram[offset] = data; }
 
+	DECLARE_VIDEO_START(toaplan2);
+	DECLARE_VIDEO_START(batsugunbl);
+	void screen_vblank(int state);
 
 };
+
+VIDEO_START_MEMBER(batsugun_state,toaplan2)
+{
+	/* our current VDP implementation needs this bitmap to work with */
+	m_screen->register_screen_bitmap(m_custom_priority_bitmap);
+
+	if (m_vdp[0] != nullptr)
+	{
+		m_secondary_render_bitmap.reset();
+		m_vdp[0]->custom_priority_bitmap = &m_custom_priority_bitmap;
+	}
+
+	if (m_vdp[1] != nullptr)
+	{
+		m_screen->register_screen_bitmap(m_secondary_render_bitmap);
+		m_vdp[1]->custom_priority_bitmap = &m_custom_priority_bitmap;
+	}
+}
+
+void batsugun_state::screen_vblank(int state)
+{
+	// rising edge
+	if (state)
+	{
+		if (m_vdp[0]) m_vdp[0]->screen_eof();
+		if (m_vdp[1]) m_vdp[1]->screen_eof();
+	}
+}
 
 constexpr unsigned toaplan2_state::T2PALETTE_LENGTH;
 
@@ -127,7 +158,7 @@ u32 batsugun_state::screen_update_batsugun(screen_device &screen, bitmap_ind16 &
 
 
 
-VIDEO_START_MEMBER(toaplan2_state, batsugunbl)
+VIDEO_START_MEMBER(batsugun_state, batsugunbl)
 {
 	VIDEO_START_CALL_MEMBER(toaplan2);
 
@@ -177,7 +208,7 @@ void batsugun_state::batsugun(machine_config &config)
 	//m_screen->set_size(432, 262);
 	//m_screen->set_visarea(0, 319, 0, 239);
 	m_screen->set_screen_update(FUNC(batsugun_state::screen_update_batsugun));
-	m_screen->screen_vblank().set(FUNC(toaplan2_state::screen_vblank));
+	m_screen->screen_vblank().set(FUNC(batsugun_state::screen_vblank));
 	m_screen->set_palette(m_palette);
 
 	toaplan2_screen_device& t2screen(TOAPLAN2_SCREEN(config, "t2screen", 27_MHz_XTAL / 4));
@@ -192,7 +223,7 @@ void batsugun_state::batsugun(machine_config &config)
 	GP9001_VDP(config, m_vdp[1], 27_MHz_XTAL);
 	m_vdp[1]->set_palette(m_palette);
 
-	MCFG_VIDEO_START_OVERRIDE(toaplan2_state,toaplan2)
+	MCFG_VIDEO_START_OVERRIDE(batsugun_state,toaplan2)
 
 	/* sound hardware */
 	SPEAKER(config, "mono").front_center();
@@ -219,7 +250,7 @@ void batsugun_state::batsugunbl(machine_config &config)
 
 	m_vdp[0]->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_2, ASSERT_LINE);
 
-	MCFG_VIDEO_START_OVERRIDE(toaplan2_state, batsugunbl)
+	MCFG_VIDEO_START_OVERRIDE(batsugun_state, batsugunbl)
 
 	config.device_remove("audiocpu");
 	config.device_remove("ymsnd");

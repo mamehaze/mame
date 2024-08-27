@@ -77,12 +77,9 @@ public:
 	
 
 
-	DECLARE_VIDEO_START(toaplan2);
-	DECLARE_VIDEO_START(batsugunbl);
+	
 
 
-	u32 screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
-	void screen_vblank(int state);
 
 	void toaplan2_reset(int state);
 

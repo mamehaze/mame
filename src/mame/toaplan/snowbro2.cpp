@@ -29,7 +29,52 @@ private:
 	void coin_w(u8 data);
 	template<int Chip> void oki_bankswitch_w(u8 data);
 
+	DECLARE_VIDEO_START(toaplan2);
+	u32 screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
+	void screen_vblank(int state);
+
+
 };
+
+
+VIDEO_START_MEMBER(snowbro2_state,toaplan2)
+{
+	/* our current VDP implementation needs this bitmap to work with */
+	m_screen->register_screen_bitmap(m_custom_priority_bitmap);
+
+	if (m_vdp[0] != nullptr)
+	{
+		m_secondary_render_bitmap.reset();
+		m_vdp[0]->custom_priority_bitmap = &m_custom_priority_bitmap;
+	}
+
+	if (m_vdp[1] != nullptr)
+	{
+		m_screen->register_screen_bitmap(m_secondary_render_bitmap);
+		m_vdp[1]->custom_priority_bitmap = &m_custom_priority_bitmap;
+	}
+}
+
+
+u32 snowbro2_state::screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
+{
+	bitmap.fill(0, cliprect);
+	m_custom_priority_bitmap.fill(0, cliprect);
+	m_vdp[0]->render_vdp(bitmap, cliprect);
+
+	return 0;
+}
+
+void snowbro2_state::screen_vblank(int state)
+{
+	// rising edge
+	if (state)
+	{
+		if (m_vdp[0]) m_vdp[0]->screen_eof();
+		if (m_vdp[1]) m_vdp[1]->screen_eof();
+	}
+}
+
 
 void snowbro2_state::coin_w(u8 data)
 {
@@ -314,8 +359,8 @@ void snowbro2_state::snowbro2(machine_config &config)
 	//m_screen->set_refresh_hz(60);
 	//m_screen->set_size(432, 262);
 	//m_screen->set_visarea(0, 319, 0, 239);
-	m_screen->set_screen_update(FUNC(toaplan2_state::screen_update_toaplan2));
-	m_screen->screen_vblank().set(FUNC(toaplan2_state::screen_vblank));
+	m_screen->set_screen_update(FUNC(snowbro2_state::screen_update_toaplan2));
+	m_screen->screen_vblank().set(FUNC(snowbro2_state::screen_vblank));
 	m_screen->set_palette(m_palette);
 
 	toaplan2_screen_device& t2screen(TOAPLAN2_SCREEN(config, "t2screen", 27_MHz_XTAL / 4));
@@ -327,7 +372,7 @@ void snowbro2_state::snowbro2(machine_config &config)
 	m_vdp[0]->set_palette(m_palette);
 	m_vdp[0]->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
 
-	MCFG_VIDEO_START_OVERRIDE(toaplan2_state,toaplan2)
+	MCFG_VIDEO_START_OVERRIDE(snowbro2_state,toaplan2)
 
 	/* sound hardware */
 	SPEAKER(config, "mono").front_center();

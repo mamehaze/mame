@@ -30,8 +30,51 @@ private:
 	void enmadaio_oki(address_map &map);
 
 	void enmadaio_oki_bank_w(offs_t offset, u16 data, u16 mem_mask = ~0);
+	DECLARE_VIDEO_START(toaplan2);
+	u32 screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
+	void screen_vblank(int state);
+
 
 };
+
+
+VIDEO_START_MEMBER(enmadaio_state,toaplan2)
+{
+	/* our current VDP implementation needs this bitmap to work with */
+	m_screen->register_screen_bitmap(m_custom_priority_bitmap);
+
+	if (m_vdp[0] != nullptr)
+	{
+		m_secondary_render_bitmap.reset();
+		m_vdp[0]->custom_priority_bitmap = &m_custom_priority_bitmap;
+	}
+
+	if (m_vdp[1] != nullptr)
+	{
+		m_screen->register_screen_bitmap(m_secondary_render_bitmap);
+		m_vdp[1]->custom_priority_bitmap = &m_custom_priority_bitmap;
+	}
+}
+
+
+u32 enmadaio_state::screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
+{
+	bitmap.fill(0, cliprect);
+	m_custom_priority_bitmap.fill(0, cliprect);
+	m_vdp[0]->render_vdp(bitmap, cliprect);
+
+	return 0;
+}
+
+void enmadaio_state::screen_vblank(int state)
+{
+	// rising edge
+	if (state)
+	{
+		if (m_vdp[0]) m_vdp[0]->screen_eof();
+		if (m_vdp[1]) m_vdp[1]->screen_eof();
+	}
+}
 
 constexpr unsigned toaplan2_state::T2PALETTE_LENGTH;
 
@@ -306,8 +349,8 @@ void enmadaio_state::enmadaio(machine_config &config)
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
 	m_screen->set_video_attributes(VIDEO_UPDATE_BEFORE_VBLANK);
 	m_screen->set_raw(27_MHz_XTAL/4, 432, 0, 320, 262, 0, 240);
-	m_screen->set_screen_update(FUNC(toaplan2_state::screen_update_toaplan2));
-	m_screen->screen_vblank().set(FUNC(toaplan2_state::screen_vblank));
+	m_screen->set_screen_update(FUNC(enmadaio_state::screen_update_toaplan2));
+	m_screen->screen_vblank().set(FUNC(enmadaio_state::screen_vblank));
 	m_screen->set_palette(m_palette);
 
 	toaplan2_screen_device& t2screen(TOAPLAN2_SCREEN(config, "t2screen", 27_MHz_XTAL / 4));
@@ -319,7 +362,7 @@ void enmadaio_state::enmadaio(machine_config &config)
 	m_vdp[0]->set_palette(m_palette);
 	m_vdp[0]->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
 
-	MCFG_VIDEO_START_OVERRIDE(toaplan2_state,toaplan2)
+	MCFG_VIDEO_START_OVERRIDE(enmadaio_state,toaplan2)
 
 	/* sound hardware */
 	SPEAKER(config, "mono").front_center();
