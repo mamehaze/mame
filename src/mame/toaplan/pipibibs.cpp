@@ -2,6 +2,8 @@
 #include "toaplan2.h"
 #include "toaplipt.h"
 
+#include "gp9001.h"
+
 #include "cpu/nec/v25.h"
 #include "cpu/z80/z80.h"
 #include "cpu/z180/hd647180x.h"
@@ -17,6 +19,7 @@ class pipibibs_state : public toaplan2_state
 public:
 	pipibibs_state(const machine_config &mconfig, device_type type, const char *tag)
 		: toaplan2_state(mconfig, type, tag)
+		, m_vdp(*this, "gp9001")
 	{ }
 	void pipibibs(machine_config &config);
 	void pipibibsbl(machine_config &config);
@@ -39,6 +42,8 @@ private:
 	void screen_vblank(int state);
 	void toaplan2_reset(int state);
 
+	required_device<gp9001vdp_device> m_vdp;
+
 };
 
 
@@ -54,7 +59,7 @@ VIDEO_START_MEMBER(pipibibs_state,toaplan2)
 	/* our current VDP implementation needs this bitmap to work with */
 	m_screen->register_screen_bitmap(m_custom_priority_bitmap);
 	m_secondary_render_bitmap.reset();
-	m_vdp[0]->custom_priority_bitmap = &m_custom_priority_bitmap;
+	m_vdp->custom_priority_bitmap = &m_custom_priority_bitmap;
 
 }
 
@@ -63,7 +68,7 @@ u32 pipibibs_state::screen_update_toaplan2(screen_device &screen, bitmap_ind16 &
 {
 	bitmap.fill(0, cliprect);
 	m_custom_priority_bitmap.fill(0, cliprect);
-	m_vdp[0]->render_vdp(bitmap, cliprect);
+	m_vdp->render_vdp(bitmap, cliprect);
 
 	return 0;
 }
@@ -73,7 +78,7 @@ void pipibibs_state::screen_vblank(int state)
 	// rising edge
 	if (state)
 	{
-		m_vdp[0]->screen_eof();
+		m_vdp->screen_eof();
 	}
 }
 
@@ -123,7 +128,7 @@ void pipibibs_state::pipibibs_68k_mem(address_map &map)
 	map(0x000000, 0x03ffff).rom();
 	map(0x080000, 0x082fff).ram();
 	map(0x0c0000, 0x0c0fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
-	map(0x140000, 0x14000d).rw(m_vdp[0], FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
+	map(0x140000, 0x14000d).rw(m_vdp, FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
 	map(0x190000, 0x190fff).rw(FUNC(pipibibs_state::shared_ram_r), FUNC(pipibibs_state::shared_ram_w)).umask16(0x00ff);
 	map(0x19c01d, 0x19c01d).w(FUNC(pipibibs_state::coin_w));
 	map(0x19c020, 0x19c021).portr("DSWA");
@@ -139,13 +144,13 @@ void pipibibs_state::pipibibi_bootleg_68k_mem(address_map &map)
 {
 	map(0x000000, 0x03ffff).rom();
 	map(0x080000, 0x082fff).ram();
-	map(0x083000, 0x0837ff).rw(m_vdp[0], FUNC(gp9001vdp_device::bootleg_spriteram16_r), FUNC(gp9001vdp_device::bootleg_spriteram16_w));   // SpriteRAM
+	map(0x083000, 0x0837ff).rw(m_vdp, FUNC(gp9001vdp_device::bootleg_spriteram16_r), FUNC(gp9001vdp_device::bootleg_spriteram16_w));   // SpriteRAM
 	map(0x083800, 0x087fff).ram();             // SpriteRAM (unused)
 	map(0x0c0000, 0x0c0fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
 	map(0x120000, 0x120fff).ram();             // Copy of SpriteRAM ?
 //  map(0x13f000, 0x13f001).nopw();        // ???
-	map(0x180000, 0x182fff).rw(m_vdp[0], FUNC(gp9001vdp_device::bootleg_videoram16_r), FUNC(gp9001vdp_device::bootleg_videoram16_w)); // TileRAM
-	map(0x188000, 0x18800f).w(m_vdp[0], FUNC(gp9001vdp_device::bootleg_scroll_w));
+	map(0x180000, 0x182fff).rw(m_vdp, FUNC(gp9001vdp_device::bootleg_videoram16_r), FUNC(gp9001vdp_device::bootleg_videoram16_w)); // TileRAM
+	map(0x188000, 0x18800f).w(m_vdp, FUNC(gp9001vdp_device::bootleg_scroll_w));
 	map(0x190003, 0x190003).r(FUNC(pipibibs_state::shared_ram_r));  // Z80 ready ?
 	map(0x190011, 0x190011).w(FUNC(pipibibs_state::shared_ram_w)); // Z80 task to perform
 	map(0x19c01d, 0x19c01d).w(FUNC(pipibibs_state::coin_w));
@@ -316,9 +321,9 @@ void pipibibs_state::pipibibs(machine_config &config)
 
 	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, T2PALETTE_LENGTH);
 
-	GP9001_VDP(config, m_vdp[0], 27_MHz_XTAL);
-	m_vdp[0]->set_palette(m_palette);
-	m_vdp[0]->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
+	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
+	m_vdp->set_palette(m_palette);
+	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
 
 	MCFG_VIDEO_START_OVERRIDE(pipibibs_state,toaplan2)
 
@@ -357,10 +362,10 @@ void pipibibs_state::pipibibsbl(machine_config &config)
 
 	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, T2PALETTE_LENGTH);
 
-	GP9001_VDP(config, m_vdp[0], 27_MHz_XTAL); // FIXME: bootleg has no VDP
-	m_vdp[0]->set_palette(m_palette);
-	m_vdp[0]->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4, ASSERT_LINE);
-	m_vdp[0]->set_bootleg_extra_offsets(0x01f, 0x1ef, 0x01d, 0x1ef, 0x01b, 0x1ef, 0x1d4, 0x1f7);
+	GP9001_VDP(config, m_vdp, 27_MHz_XTAL); // FIXME: bootleg has no VDP
+	m_vdp->set_palette(m_palette);
+	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4, ASSERT_LINE);
+	m_vdp->set_bootleg_extra_offsets(0x01f, 0x1ef, 0x01d, 0x1ef, 0x01b, 0x1ef, 0x1d4, 0x1f7);
 
 	MCFG_VIDEO_START_OVERRIDE(pipibibs_state,toaplan2)
 

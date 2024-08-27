@@ -2,6 +2,8 @@
 #include "toaplan2.h"
 #include "toaplipt.h"
 
+#include "gp9001.h"
+
 #include "cpu/nec/v25.h"
 #include "cpu/z80/z80.h"
 #include "cpu/z180/hd647180x.h"
@@ -17,6 +19,7 @@ class enmadaio_state : public toaplan2_state
 public:
 	enmadaio_state(const machine_config &mconfig, device_type type, const char *tag)
 		: toaplan2_state(mconfig, type, tag)
+		, m_vdp(*this, "gp9001")
 	{ }
 
 	void enmadaio(machine_config &config);
@@ -36,6 +39,7 @@ private:
 	u16 video_count_r();
 	void toaplan2_reset(int state);
 
+	required_device<gp9001vdp_device> m_vdp;
 
 };
 
@@ -60,11 +64,11 @@ u16 enmadaio_state::video_count_r()
 
 	vpos = (vpos + 15) % 262;
 
-	if (!m_vdp[0]->hsync_r())
+	if (!m_vdp->hsync_r())
 		video_status &= ~0x8000;
-	if (!m_vdp[0]->vsync_r())
+	if (!m_vdp->vsync_r())
 		video_status &= ~0x4000;
-	if (!m_vdp[0]->fblank_r())
+	if (!m_vdp->fblank_r())
 		video_status &= ~0x0100;
 	if (vpos < 256)
 		video_status |= (vpos & 0xff);
@@ -81,7 +85,7 @@ VIDEO_START_MEMBER(enmadaio_state,toaplan2)
 	/* our current VDP implementation needs this bitmap to work with */
 	m_screen->register_screen_bitmap(m_custom_priority_bitmap);
 	m_secondary_render_bitmap.reset();
-	m_vdp[0]->custom_priority_bitmap = &m_custom_priority_bitmap;
+	m_vdp->custom_priority_bitmap = &m_custom_priority_bitmap;
 }
 
 
@@ -89,7 +93,7 @@ u32 enmadaio_state::screen_update_toaplan2(screen_device &screen, bitmap_ind16 &
 {
 	bitmap.fill(0, cliprect);
 	m_custom_priority_bitmap.fill(0, cliprect);
-	m_vdp[0]->render_vdp(bitmap, cliprect);
+	m_vdp->render_vdp(bitmap, cliprect);
 
 	return 0;
 }
@@ -99,7 +103,7 @@ void enmadaio_state::screen_vblank(int state)
 	// rising edge
 	if (state)
 	{
-		m_vdp[0]->screen_eof();
+		m_vdp->screen_eof();
 	}
 }
 
@@ -343,7 +347,7 @@ void enmadaio_state::enmadaio_68k_mem(address_map &map)
 	map(0x100000, 0x103fff).ram(); //.share("nvram");
 	map(0x104000, 0x10ffff).ram();
 
-	map(0x200000, 0x20000d).rw(m_vdp[0], FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
+	map(0x200000, 0x20000d).rw(m_vdp, FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
 	map(0x300000, 0x300fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
 	map(0x400000, 0x400003).rw("ymsnd", FUNC(ym2151_device::read), FUNC(ym2151_device::write)).umask16(0x00ff);
 	map(0x500001, 0x500001).rw(m_oki[0], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
@@ -385,9 +389,9 @@ void enmadaio_state::enmadaio(machine_config &config)
 
 	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, T2PALETTE_LENGTH);
 
-	GP9001_VDP(config, m_vdp[0], 27_MHz_XTAL);
-	m_vdp[0]->set_palette(m_palette);
-	m_vdp[0]->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
+	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
+	m_vdp->set_palette(m_palette);
+	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
 
 	MCFG_VIDEO_START_OVERRIDE(enmadaio_state,toaplan2)
 

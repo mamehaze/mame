@@ -6,6 +6,8 @@
 #include "toaplan2.h"
 #include "toaplipt.h"
 
+#include "gp9001.h"
+
 #include "cpu/nec/v25.h"
 #include "cpu/z80/z80.h"
 #include "cpu/z180/hd647180x.h"
@@ -33,6 +35,7 @@ public:
 			{ *this, "raizing_okibank1_%u", 0U } }
 		, m_eepromout(*this, "EEPROMOUT")
 		, m_txlayer(*this, "txlayer")
+		, m_vdp(*this, "gp9001")
 	{ }
 
 	void batrider(machine_config &config);
@@ -70,6 +73,7 @@ private:
 	optional_ioport m_eepromout;
 
 	optional_device<toaplan2_txlayer_device> m_txlayer;
+	required_device<gp9001vdp_device> m_vdp;
 
 	u8 m_sndirq_line = 0;        /* IRQ4 for batrider, IRQ2 for bbakraid */
 	u8 m_z80_busreq = 0;
@@ -175,11 +179,11 @@ u16 truxton2_state::video_count_r()
 
 	vpos = (vpos + 15) % 262;
 
-	if (!m_vdp[0]->hsync_r())
+	if (!m_vdp->hsync_r())
 		video_status &= ~0x8000;
-	if (!m_vdp[0]->vsync_r())
+	if (!m_vdp->vsync_r())
 		video_status &= ~0x4000;
-	if (!m_vdp[0]->fblank_r())
+	if (!m_vdp->fblank_r())
 		video_status &= ~0x0100;
 	if (vpos < 256)
 		video_status |= (vpos & 0xff);
@@ -197,7 +201,7 @@ VIDEO_START_MEMBER(truxton2_state,toaplan2)
 	/* our current VDP implementation needs this bitmap to work with */
 	m_screen->register_screen_bitmap(m_custom_priority_bitmap);
 	m_secondary_render_bitmap.reset();
-	m_vdp[0]->custom_priority_bitmap = &m_custom_priority_bitmap;
+	m_vdp->custom_priority_bitmap = &m_custom_priority_bitmap;
 }
 
 
@@ -205,7 +209,7 @@ u32 truxton2_state::screen_update_toaplan2(screen_device &screen, bitmap_ind16 &
 {
 	bitmap.fill(0, cliprect);
 	m_custom_priority_bitmap.fill(0, cliprect);
-	m_vdp[0]->render_vdp(bitmap, cliprect);
+	m_vdp->render_vdp(bitmap, cliprect);
 
 	return 0;
 }
@@ -215,7 +219,7 @@ void truxton2_state::screen_vblank(int state)
 	// rising edge
 	if (state)
 	{
-		m_vdp[0]->screen_eof();
+		m_vdp->screen_eof();
 	}
 }
 
@@ -290,12 +294,12 @@ VIDEO_START_MEMBER(truxton2_state,fixeightbl)
 	create_tx_tilemap();
 
 	/* This bootleg has additional layer offsets on the VDP */
-	m_vdp[0]->set_tm_extra_offsets(0, -0x1d6 - 26, -0x1ef - 15, 0, 0);
-	m_vdp[0]->set_tm_extra_offsets(1, -0x1d8 - 22, -0x1ef - 15, 0, 0);
-	m_vdp[0]->set_tm_extra_offsets(2, -0x1da - 18, -0x1ef - 15, 0, 0);
-	m_vdp[0]->set_sp_extra_offsets(8/*-0x1cc - 64*/, 8/*-0x1ef - 128*/, 0, 0);
+	m_vdp->set_tm_extra_offsets(0, -0x1d6 - 26, -0x1ef - 15, 0, 0);
+	m_vdp->set_tm_extra_offsets(1, -0x1d8 - 22, -0x1ef - 15, 0, 0);
+	m_vdp->set_tm_extra_offsets(2, -0x1da - 18, -0x1ef - 15, 0, 0);
+	m_vdp->set_sp_extra_offsets(8/*-0x1cc - 64*/, 8/*-0x1ef - 128*/, 0, 0);
 
-	m_vdp[0]->init_scroll_regs();
+	m_vdp->init_scroll_regs();
 }
 
 
@@ -319,7 +323,7 @@ VIDEO_START_MEMBER(truxton2_state,batrider)
 {
 	VIDEO_START_CALL_MEMBER(toaplan2);
 
-	m_vdp[0]->disable_sprite_buffer(); // disable buffering on this game
+	m_vdp->disable_sprite_buffer(); // disable buffering on this game
 
 	/* Create the Text tilemap for this game */
 	m_gfxdecode->gfx(0)->set_source(reinterpret_cast<u8 *>(m_tx_gfxram.target()));
@@ -400,7 +404,7 @@ void truxton2_state::batrider_objectbank_w(offs_t offset, u8 data)
 	if (m_gfxrom_bank[offset] != data)
 	{
 		m_gfxrom_bank[offset] = data;
-		m_vdp[0]->set_dirty();
+		m_vdp->set_dirty();
 	}
 }
 
@@ -647,7 +651,7 @@ void truxton2_state::truxton2_68k_mem(address_map &map)
 {
 	map(0x000000, 0x07ffff).rom();
 	map(0x100000, 0x10ffff).ram();
-	map(0x200000, 0x20000d).rw(m_vdp[0], FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
+	map(0x200000, 0x20000d).rw(m_vdp, FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
 	map(0x300000, 0x300fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
 	map(0x400000, 0x401fff).ram().w(FUNC(truxton2_state::tx_videoram_w)).share(m_tx_videoram);
 	map(0x402000, 0x402fff).ram().share(m_tx_lineselect);
@@ -682,7 +686,7 @@ void truxton2_state::fixeight_68k_mem(address_map &map)
 	map(0x200010, 0x200011).portr("SYS");
 	map(0x20001d, 0x20001d).w(FUNC(truxton2_state::coin_w));
 	map(0x280000, 0x28ffff).rw(FUNC(truxton2_state::shared_ram_r), FUNC(truxton2_state::shared_ram_w)).umask16(0x00ff);
-	map(0x300000, 0x30000d).rw(m_vdp[0], FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
+	map(0x300000, 0x30000d).rw(m_vdp, FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
 	map(0x400000, 0x400fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
 	map(0x500000, 0x501fff).ram().w(FUNC(truxton2_state::tx_videoram_w)).share(m_tx_videoram);
 	map(0x502000, 0x5021ff).ram().share(m_tx_lineselect);
@@ -717,7 +721,7 @@ void truxton2_state::fixeightbl_68k_mem(address_map &map)
 	map(0x200015, 0x200015).w(FUNC(truxton2_state::fixeightbl_oki_bankswitch_w));  // Sound banking. Code at $4084c, $5070
 	map(0x200019, 0x200019).rw(m_oki[0], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
 	map(0x20001c, 0x20001d).portr("DSWA");
-	map(0x300000, 0x30000d).rw(m_vdp[0], FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
+	map(0x300000, 0x30000d).rw(m_vdp, FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
 	map(0x400000, 0x400fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
 	map(0x500000, 0x501fff).ram().w(FUNC(truxton2_state::tx_videoram_w)).share(m_tx_videoram);
 	map(0x700000, 0x700001).r(FUNC(truxton2_state::video_count_r));
@@ -738,7 +742,7 @@ void truxton2_state::mahoudai_68k_mem(address_map &map)
 	map(0x21c030, 0x21c031).portr("DSWB");
 	map(0x21c034, 0x21c035).portr("JMPR");
 	map(0x21c03c, 0x21c03d).r(FUNC(truxton2_state::video_count_r));
-	map(0x300000, 0x30000d).rw(m_vdp[0], FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
+	map(0x300000, 0x30000d).rw(m_vdp, FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
 	map(0x400000, 0x400fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
 	map(0x401000, 0x4017ff).ram();                         // Unused palette RAM
 	map(0x500000, 0x501fff).ram().w(FUNC(truxton2_state::tx_videoram_w)).share(m_tx_videoram);
@@ -762,7 +766,7 @@ void truxton2_state::shippumd_68k_mem(address_map &map)
 	map(0x21c030, 0x21c031).portr("DSWB");
 	map(0x21c034, 0x21c035).portr("JMPR");
 	map(0x21c03c, 0x21c03d).r(FUNC(truxton2_state::video_count_r));
-	map(0x300000, 0x30000d).rw(m_vdp[0], FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
+	map(0x300000, 0x30000d).rw(m_vdp, FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
 	map(0x400000, 0x400fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
 	map(0x401000, 0x4017ff).ram();                         // Unused palette RAM
 	map(0x500000, 0x501fff).ram().w(FUNC(truxton2_state::tx_videoram_w)).share(m_tx_videoram);
@@ -785,7 +789,7 @@ void truxton2_state::bgaregga_68k_mem(address_map &map)
 	map(0x21c030, 0x21c031).portr("DSWB");
 	map(0x21c034, 0x21c035).portr("JMPR");
 	map(0x21c03c, 0x21c03d).r(FUNC(truxton2_state::video_count_r));
-	map(0x300000, 0x30000d).rw(m_vdp[0], FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
+	map(0x300000, 0x30000d).rw(m_vdp, FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
 	map(0x400000, 0x400fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
 	map(0x500000, 0x501fff).ram().w(FUNC(truxton2_state::tx_videoram_w)).share(m_tx_videoram);
 	map(0x502000, 0x502fff).ram().share(m_tx_lineselect);
@@ -814,8 +818,8 @@ void truxton2_state::batrider_68k_mem(address_map &map)
 	map(0x208000, 0x20ffff).ram();
 	map(0x300000, 0x37ffff).r(FUNC(truxton2_state::batrider_z80rom_r));
 	map(0x400000, 0x40000d).lrw16(
-							NAME([this](offs_t offset, u16 mem_mask) { return m_vdp[0]->read(offset ^ (0xc/2), mem_mask); }),
-							NAME([this](offs_t offset, u16 data, u16 mem_mask) { m_vdp[0]->write(offset ^ (0xc/2), data, mem_mask); }));
+							NAME([this](offs_t offset, u16 mem_mask) { return m_vdp->read(offset ^ (0xc/2), mem_mask); }),
+							NAME([this](offs_t offset, u16 data, u16 mem_mask) { m_vdp->write(offset ^ (0xc/2), data, mem_mask); }));
 	map(0x500000, 0x500001).portr("IN");
 	map(0x500002, 0x500003).portr("SYS-DSW");
 	map(0x500004, 0x500005).portr("DSW");
@@ -843,8 +847,8 @@ void truxton2_state::bbakraid_68k_mem(address_map &map)
 	map(0x208000, 0x20ffff).ram();
 	map(0x300000, 0x33ffff).r(FUNC(truxton2_state::batrider_z80rom_r));
 	map(0x400000, 0x40000d).lrw16(
-							NAME([this](offs_t offset, u16 mem_mask) { return m_vdp[0]->read(offset ^ (0xc/2), mem_mask); }),
-							NAME([this](offs_t offset, u16 data, u16 mem_mask) { m_vdp[0]->write(offset ^ (0xc/2), data, mem_mask); }));
+							NAME([this](offs_t offset, u16 mem_mask) { return m_vdp->read(offset ^ (0xc/2), mem_mask); }),
+							NAME([this](offs_t offset, u16 data, u16 mem_mask) { m_vdp->write(offset ^ (0xc/2), data, mem_mask); }));
 	map(0x500000, 0x500001).portr("IN");
 	map(0x500002, 0x500003).portr("SYS-DSW");
 	map(0x500004, 0x500005).portr("DSW");
@@ -870,8 +874,8 @@ void truxton2_state::nprobowl_68k_mem(address_map &map) // TODO: verify everythi
 	map(0x200000, 0x207fff).ram().share(m_mainram);
 	map(0x208000, 0x20ffff).ram();
 	map(0x400000, 0x40000d).lrw16(
-							NAME([this](offs_t offset, u16 mem_mask) { return m_vdp[0]->read(offset ^ (0xc/2), mem_mask); }),
-							NAME([this](offs_t offset, u16 data, u16 mem_mask) { m_vdp[0]->write(offset ^ (0xc/2), data, mem_mask); }));
+							NAME([this](offs_t offset, u16 mem_mask) { return m_vdp->read(offset ^ (0xc/2), mem_mask); }),
+							NAME([this](offs_t offset, u16 data, u16 mem_mask) { m_vdp->write(offset ^ (0xc/2), data, mem_mask); }));
 	map(0x500000, 0x500001).portr("IN");
 	map(0x500002, 0x500003).portr("UNK");
 	map(0x500004, 0x500005).portr("DSW");
@@ -1735,9 +1739,9 @@ void truxton2_state::truxton2(machine_config &config)
 	GFXDECODE(config, m_gfxdecode, m_palette, gfx_truxton2);
 	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, T2PALETTE_LENGTH);
 
-	GP9001_VDP(config, m_vdp[0], 27_MHz_XTAL);
-	m_vdp[0]->set_palette(m_palette);
-	m_vdp[0]->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_2);
+	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
+	m_vdp->set_palette(m_palette);
+	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_2);
 
 	MCFG_VIDEO_START_OVERRIDE(truxton2_state,truxton2)
 
@@ -1830,9 +1834,9 @@ void truxton2_state::fixeight(machine_config &config)
 	GFXDECODE(config, m_gfxdecode, m_palette, gfx_truxton2);
 	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, T2PALETTE_LENGTH);
 
-	GP9001_VDP(config, m_vdp[0], 27_MHz_XTAL);
-	m_vdp[0]->set_palette(m_palette);
-	m_vdp[0]->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
+	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
+	m_vdp->set_palette(m_palette);
+	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
 
 	MCFG_VIDEO_START_OVERRIDE(truxton2_state,truxton2)
 
@@ -1876,9 +1880,9 @@ void truxton2_state::fixeightbl(machine_config &config)
 	GFXDECODE(config, m_gfxdecode, m_palette, gfx_textrom);
 	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, T2PALETTE_LENGTH);
 
-	GP9001_VDP(config, m_vdp[0], 27_MHz_XTAL);
-	m_vdp[0]->set_palette(m_palette);
-	m_vdp[0]->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_2, ASSERT_LINE);
+	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
+	m_vdp->set_palette(m_palette);
+	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_2, ASSERT_LINE);
 
 	MCFG_VIDEO_START_OVERRIDE(truxton2_state,fixeightbl)
 
@@ -1920,9 +1924,9 @@ void truxton2_state::mahoudai(machine_config &config)
 	GFXDECODE(config, m_gfxdecode, m_palette, gfx_textrom);
 	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, T2PALETTE_LENGTH);
 
-	GP9001_VDP(config, m_vdp[0], 27_MHz_XTAL);
-	m_vdp[0]->set_palette(m_palette);
-	m_vdp[0]->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
+	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
+	m_vdp->set_palette(m_palette);
+	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
 
 	MCFG_VIDEO_START_OVERRIDE(truxton2_state,bgaregga)
 
@@ -1974,9 +1978,9 @@ void truxton2_state::bgaregga(machine_config &config)
 	GFXDECODE(config, m_gfxdecode, m_palette, gfx_textrom);
 	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, T2PALETTE_LENGTH);
 
-	GP9001_VDP(config, m_vdp[0], 27_MHz_XTAL);
-	m_vdp[0]->set_palette(m_palette);
-	m_vdp[0]->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
+	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
+	m_vdp->set_palette(m_palette);
+	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
 
 	MCFG_VIDEO_START_OVERRIDE(truxton2_state,bgaregga)
 
@@ -2044,10 +2048,10 @@ void truxton2_state::batrider(machine_config &config)
 	GFXDECODE(config, m_gfxdecode, m_palette, gfx_batrider);
 	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, T2PALETTE_LENGTH);
 
-	GP9001_VDP(config, m_vdp[0], 27_MHz_XTAL);
-	m_vdp[0]->set_palette(m_palette);
-	m_vdp[0]->set_tile_callback(FUNC(truxton2_state::batrider_bank_cb));
-	m_vdp[0]->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_2);
+	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
+	m_vdp->set_palette(m_palette);
+	m_vdp->set_tile_callback(FUNC(truxton2_state::batrider_bank_cb));
+	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_2);
 
 	MCFG_VIDEO_START_OVERRIDE(truxton2_state,batrider)
 
@@ -2112,10 +2116,10 @@ void truxton2_state::bbakraid(machine_config &config)
 	GFXDECODE(config, m_gfxdecode, m_palette, gfx_batrider);
 	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, T2PALETTE_LENGTH);
 
-	GP9001_VDP(config, m_vdp[0], 27_MHz_XTAL);
-	m_vdp[0]->set_palette(m_palette);
-	m_vdp[0]->set_tile_callback(FUNC(truxton2_state::batrider_bank_cb));
-	m_vdp[0]->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_1);
+	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
+	m_vdp->set_palette(m_palette);
+	m_vdp->set_tile_callback(FUNC(truxton2_state::batrider_bank_cb));
+	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_1);
 
 	MCFG_VIDEO_START_OVERRIDE(truxton2_state,batrider)
 
@@ -2164,9 +2168,9 @@ void truxton2_state::nprobowl(machine_config &config)
 	GFXDECODE(config, m_gfxdecode, m_palette, gfx_batrider);
 	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, T2PALETTE_LENGTH);
 
-	GP9001_VDP(config, m_vdp[0], 27_MHz_XTAL);
-	m_vdp[0]->set_palette(m_palette);
-	m_vdp[0]->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_2);
+	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
+	m_vdp->set_palette(m_palette);
+	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_2);
 
 	MCFG_VIDEO_START_OVERRIDE(truxton2_state, batrider)
 

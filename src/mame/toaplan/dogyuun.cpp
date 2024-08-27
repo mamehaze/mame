@@ -2,6 +2,8 @@
 #include "toaplan2.h"
 #include "toaplipt.h"
 
+#include "gp9001.h"
+
 #include "cpu/nec/v25.h"
 #include "cpu/z80/z80.h"
 #include "cpu/z180/hd647180x.h"
@@ -16,6 +18,7 @@ class dogyuun_state : public toaplan2_state
 public:
 	dogyuun_state(const machine_config &mconfig, device_type type, const char *tag)
 		: toaplan2_state(mconfig, type, tag)
+		, m_vdp(*this, "gp9001_%u", 0U)
 	{ }
 
 	void dogyuun(machine_config &config);
@@ -46,6 +49,7 @@ private:
 	u16 video_count_r();
 	void toaplan2_reset(int state);
 
+	required_device_array<gp9001vdp_device, 2> m_vdp;
 
 };
 

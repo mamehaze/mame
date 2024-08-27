@@ -3,6 +3,8 @@
 #include "toaplan2.h"
 #include "toaplipt.h"
 
+#include "gp9001.h"
+
 #include "cpu/nec/v25.h"
 #include "cpu/z80/z80.h"
 #include "cpu/z180/hd647180x.h"
@@ -17,6 +19,7 @@ class snowbro2_state : public toaplan2_state
 public:
 	snowbro2_state(const machine_config &mconfig, device_type type, const char *tag)
 		: toaplan2_state(mconfig, type, tag)
+		, m_vdp(*this, "gp9001")
 	{ }
 
 	void snowbro2(machine_config &config);
@@ -35,6 +38,8 @@ private:
 
 	void toaplan2_reset(int state);
 
+	required_device<gp9001vdp_device> m_vdp;
+
 };
 
 
@@ -50,7 +55,7 @@ VIDEO_START_MEMBER(snowbro2_state,toaplan2)
 	/* our current VDP implementation needs this bitmap to work with */
 	m_screen->register_screen_bitmap(m_custom_priority_bitmap);
 	m_secondary_render_bitmap.reset();
-	m_vdp[0]->custom_priority_bitmap = &m_custom_priority_bitmap;
+	m_vdp->custom_priority_bitmap = &m_custom_priority_bitmap;
 }
 
 
@@ -58,7 +63,7 @@ u32 snowbro2_state::screen_update_toaplan2(screen_device &screen, bitmap_ind16 &
 {
 	bitmap.fill(0, cliprect);
 	m_custom_priority_bitmap.fill(0, cliprect);
-	m_vdp[0]->render_vdp(bitmap, cliprect);
+	m_vdp->render_vdp(bitmap, cliprect);
 
 	return 0;
 }
@@ -68,7 +73,7 @@ void snowbro2_state::screen_vblank(int state)
 	// rising edge
 	if (state)
 	{
-		m_vdp[0]->screen_eof();
+		m_vdp->screen_eof();
 	}
 }
 
@@ -305,7 +310,7 @@ void snowbro2_state::snowbro2_68k_mem(address_map &map)
 {
 	map(0x000000, 0x07ffff).rom();
 	map(0x100000, 0x10ffff).ram();
-	map(0x300000, 0x30000d).rw(m_vdp[0], FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
+	map(0x300000, 0x30000d).rw(m_vdp, FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
 	map(0x400000, 0x400fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
 	map(0x500000, 0x500003).rw("ymsnd", FUNC(ym2151_device::read), FUNC(ym2151_device::write)).umask16(0x00ff);
 	map(0x600001, 0x600001).rw(m_oki[0], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
@@ -336,9 +341,9 @@ void snowbro2_state::snowbro2b3_68k_mem(address_map &map)
 	map(0x700018, 0x700019).portr("IN4");
 	map(0x700035, 0x700035).w(FUNC(snowbro2_state::coin_w));
 	map(0x700041, 0x700041).w(FUNC(snowbro2_state::oki_bankswitch_w<0>));
-	map(0xff0000, 0xff2fff).rw(m_vdp[0], FUNC(gp9001vdp_device::bootleg_videoram16_r), FUNC(gp9001vdp_device::bootleg_videoram16_w));
-	map(0xff3000, 0xff37ff).rw(m_vdp[0], FUNC(gp9001vdp_device::bootleg_spriteram16_r), FUNC(gp9001vdp_device::bootleg_spriteram16_w));
-	map(0xff8000, 0xff800f).w(m_vdp[0], FUNC(gp9001vdp_device::bootleg_scroll_w));
+	map(0xff0000, 0xff2fff).rw(m_vdp, FUNC(gp9001vdp_device::bootleg_videoram16_r), FUNC(gp9001vdp_device::bootleg_videoram16_w));
+	map(0xff3000, 0xff37ff).rw(m_vdp, FUNC(gp9001vdp_device::bootleg_spriteram16_r), FUNC(gp9001vdp_device::bootleg_spriteram16_w));
+	map(0xff8000, 0xff800f).w(m_vdp, FUNC(gp9001vdp_device::bootleg_scroll_w));
 }
 
 
@@ -365,9 +370,9 @@ void snowbro2_state::snowbro2(machine_config &config)
 
 	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, T2PALETTE_LENGTH);
 
-	GP9001_VDP(config, m_vdp[0], 27_MHz_XTAL);
-	m_vdp[0]->set_palette(m_palette);
-	m_vdp[0]->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
+	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
+	m_vdp->set_palette(m_palette);
+	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
 
 	MCFG_VIDEO_START_OVERRIDE(snowbro2_state,toaplan2)
 
@@ -387,8 +392,8 @@ void snowbro2_state::snowbro2b3(machine_config &config)
 	m_maincpu->set_addrmap(AS_PROGRAM, &snowbro2_state::snowbro2b3_68k_mem);
 	m_maincpu->set_vblank_int("screen", FUNC(toaplan2_state::irq2_line_hold));
 
-	m_vdp[0]->vint_out_cb().set_nop();
-	m_vdp[0]->set_bootleg_extra_offsets(0x02e, 0x1f0, 0x02e, 0x1ee, 0x02e, 0x1ef, 0x1e9, 0x1ef);
+	m_vdp->vint_out_cb().set_nop();
+	m_vdp->set_bootleg_extra_offsets(0x02e, 0x1f0, 0x02e, 0x1ee, 0x02e, 0x1ef, 0x1e9, 0x1ef);
 }
 
 
