@@ -12,6 +12,25 @@
 #include "speaker.h"
 
 
+class pipibibs_state : public toaplan2_state
+{
+public:
+	pipibibs_state(const machine_config &mconfig, device_type type, const char *tag)
+		: toaplan2_state(mconfig, type, tag)
+	{ }
+	void pipibibs(machine_config &config);
+	void pipibibsbl(machine_config &config);
+
+protected:
+private:
+
+	void pipibibi_bootleg_68k_mem(address_map &map);
+	void pipibibs_68k_mem(address_map &map);
+	void pipibibs_sound_z80_mem(address_map &map);
+	void cpu_space_pipibibsbl_map(address_map &map);
+
+};
+
 
 
 constexpr unsigned toaplan2_state::T2PALETTE_LENGTH;
@@ -30,7 +49,7 @@ void toaplan2_state::init_pipibibsbl()
 	}
 }
 
-void toaplan2_state::pipibibs_68k_mem(address_map &map)
+void pipibibs_state::pipibibs_68k_mem(address_map &map)
 {
 	map(0x000000, 0x03ffff).rom();
 	map(0x080000, 0x082fff).ram();
@@ -47,7 +66,7 @@ void toaplan2_state::pipibibs_68k_mem(address_map &map)
 }
 
 // odd scroll registers
-void toaplan2_state::pipibibi_bootleg_68k_mem(address_map &map)
+void pipibibs_state::pipibibi_bootleg_68k_mem(address_map &map)
 {
 	map(0x000000, 0x03ffff).rom();
 	map(0x080000, 0x082fff).ram();
@@ -69,7 +88,7 @@ void toaplan2_state::pipibibi_bootleg_68k_mem(address_map &map)
 	map(0x19c034, 0x19c035).portr("IN2");
 }
 
-void toaplan2_state::pipibibs_sound_z80_mem(address_map &map)
+void pipibibs_state::pipibibs_sound_z80_mem(address_map &map)
 {
 	map(0x0000, 0x7fff).rom();
 	map(0x8000, 0x87ff).ram().share(m_shared_ram);
@@ -77,7 +96,7 @@ void toaplan2_state::pipibibs_sound_z80_mem(address_map &map)
 }
 
 
-void toaplan2_state::cpu_space_pipibibsbl_map(address_map &map)
+void pipibibs_state::cpu_space_pipibibsbl_map(address_map &map)
 {
 	map(0xfffff0, 0xffffff).m(m_maincpu, FUNC(m68000_base_device::autovectors_map));
 	map(0xfffff9, 0xfffff9).lr8(NAME([this] () { m_maincpu->set_input_line(M68K_IRQ_4, CLEAR_LINE); return m68000_device::autovector(4); }));
@@ -200,15 +219,15 @@ INPUT_PORTS_END
 
 
 
-void toaplan2_state::pipibibs(machine_config &config)
+void pipibibs_state::pipibibs(machine_config &config)
 {
 	/* basic machine hardware */
 	M68000(config, m_maincpu, 10_MHz_XTAL);         // verified on PCB
-	m_maincpu->set_addrmap(AS_PROGRAM, &toaplan2_state::pipibibs_68k_mem);
+	m_maincpu->set_addrmap(AS_PROGRAM, &pipibibs_state::pipibibs_68k_mem);
 	m_maincpu->reset_cb().set(FUNC(toaplan2_state::toaplan2_reset));
 
 	Z80(config, m_audiocpu, 27_MHz_XTAL/8);         // verified on PCB
-	m_audiocpu->set_addrmap(AS_PROGRAM, &toaplan2_state::pipibibs_sound_z80_mem);
+	m_audiocpu->set_addrmap(AS_PROGRAM, &pipibibs_state::pipibibs_sound_z80_mem);
 
 	config.set_maximum_quantum(attotime::from_hz(600));
 
@@ -243,16 +262,16 @@ void toaplan2_state::pipibibs(machine_config &config)
 }
 
 
-void toaplan2_state::pipibibsbl(machine_config &config)
+void pipibibs_state::pipibibsbl(machine_config &config)
 {
 	/* basic machine hardware */
 	M68000(config, m_maincpu, 12_MHz_XTAL); // ??? (position labeled "68000-12" but 10 MHz-rated parts used)
-	m_maincpu->set_addrmap(AS_PROGRAM, &toaplan2_state::pipibibi_bootleg_68k_mem);
-	m_maincpu->set_addrmap(m68000_base_device::AS_CPU_SPACE, &toaplan2_state::cpu_space_pipibibsbl_map);
+	m_maincpu->set_addrmap(AS_PROGRAM, &pipibibs_state::pipibibi_bootleg_68k_mem);
+	m_maincpu->set_addrmap(m68000_base_device::AS_CPU_SPACE, &pipibibs_state::cpu_space_pipibibsbl_map);
 	m_maincpu->reset_cb().set(FUNC(toaplan2_state::toaplan2_reset));
 
 	Z80(config, m_audiocpu, 12_MHz_XTAL / 2); // GoldStar Z8400B; clock source and divider unknown
-	m_audiocpu->set_addrmap(AS_PROGRAM, &toaplan2_state::pipibibs_sound_z80_mem);
+	m_audiocpu->set_addrmap(AS_PROGRAM, &pipibibs_state::pipibibs_sound_z80_mem);
 
 	config.set_maximum_quantum(attotime::from_hz(600));
 
@@ -393,11 +412,11 @@ ROM_END
 
 
 
-GAME( 1991, pipibibs,    0,        pipibibs,     pipibibs,   toaplan2_state, empty_init,    ROT0,   "Toaplan",         "Pipi & Bibis / Whoopee!! (Z80 sound cpu, set 1)", MACHINE_SUPPORTS_SAVE )
-GAME( 1991, pipibibsa,   pipibibs, pipibibs,     pipibibs,   toaplan2_state, empty_init,    ROT0,   "Toaplan",         "Pipi & Bibis / Whoopee!! (Z80 sound cpu, set 2)", MACHINE_SUPPORTS_SAVE )
-GAME( 1991, pipibibsp,   pipibibs, pipibibs,     pipibibsp,  toaplan2_state, empty_init,    ROT0,   "Toaplan",         "Pipi & Bibis / Whoopee!! (prototype)",            MACHINE_SUPPORTS_SAVE )
+GAME( 1991, pipibibs,    0,        pipibibs,     pipibibs,   pipibibs_state, empty_init,    ROT0,   "Toaplan",         "Pipi & Bibis / Whoopee!! (Z80 sound cpu, set 1)", MACHINE_SUPPORTS_SAVE )
+GAME( 1991, pipibibsa,   pipibibs, pipibibs,     pipibibs,   pipibibs_state, empty_init,    ROT0,   "Toaplan",         "Pipi & Bibis / Whoopee!! (Z80 sound cpu, set 2)", MACHINE_SUPPORTS_SAVE )
+GAME( 1991, pipibibsp,   pipibibs, pipibibs,     pipibibsp,  pipibibs_state, empty_init,    ROT0,   "Toaplan",         "Pipi & Bibis / Whoopee!! (prototype)",            MACHINE_SUPPORTS_SAVE )
 
-GAME( 1991, pipibibsbl,  pipibibs, pipibibsbl,   pipibibsbl, toaplan2_state, init_pipibibsbl, ROT0, "bootleg (Ryouta Kikaku)", "Pipi & Bibis / Whoopee!! (Ryouta Kikaku bootleg, encrypted)", MACHINE_SUPPORTS_SAVE )
-GAME( 1991, pipibibsbl2, pipibibs, pipibibsbl,   pipibibsbl, toaplan2_state, empty_init,    ROT0,   "bootleg",                 "Pipi & Bibis / Whoopee!! (bootleg, decrypted)", MACHINE_NOT_WORKING | MACHINE_SUPPORTS_SAVE ) // different memory map, not scrambled
-GAME( 1991, pipibibsbl3, pipibibs, pipibibsbl,   pipibibsbl, toaplan2_state, empty_init,    ROT0,   "bootleg (Ryouta Kikaku)", "Pipi & Bibis / Whoopee!! (Ryouta Kikaku bootleg, decrypted)", MACHINE_SUPPORTS_SAVE )
+GAME( 1991, pipibibsbl,  pipibibs, pipibibsbl,   pipibibsbl, pipibibs_state, init_pipibibsbl, ROT0, "bootleg (Ryouta Kikaku)", "Pipi & Bibis / Whoopee!! (Ryouta Kikaku bootleg, encrypted)", MACHINE_SUPPORTS_SAVE )
+GAME( 1991, pipibibsbl2, pipibibs, pipibibsbl,   pipibibsbl, pipibibs_state, empty_init,    ROT0,   "bootleg",                 "Pipi & Bibis / Whoopee!! (bootleg, decrypted)", MACHINE_NOT_WORKING | MACHINE_SUPPORTS_SAVE ) // different memory map, not scrambled
+GAME( 1991, pipibibsbl3, pipibibs, pipibibsbl,   pipibibsbl, pipibibs_state, empty_init,    ROT0,   "bootleg (Ryouta Kikaku)", "Pipi & Bibis / Whoopee!! (Ryouta Kikaku bootleg, decrypted)", MACHINE_SUPPORTS_SAVE )
 

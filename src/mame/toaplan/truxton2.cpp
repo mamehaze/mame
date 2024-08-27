@@ -50,6 +50,7 @@ public:
 	void init_bbakraid();
 	void init_bgaregga();
 	void init_fixeight();
+	void init_fixeightbl();
 
 protected:
 	virtual void machine_start() override;
@@ -133,6 +134,11 @@ private:
 	void raizing_sound_z80_mem(address_map &map);
 	void shippumd_68k_mem(address_map &map);
 	void truxton2_68k_mem(address_map &map);
+	void cpu_space_fixeightbl_map(address_map &map);
+
+	void fixeightbl_oki_bankswitch_w(u8 data);
+	void fixeightbl_oki(address_map &map);
+
 };
 
 
@@ -580,6 +586,18 @@ void truxton2_state::fixeight_68k_mem(address_map &map)
 	map(0x800000, 0x800001).r(FUNC(truxton2_state::video_count_r));
 }
 
+
+void truxton2_state::fixeightbl_oki_bankswitch_w(u8 data)
+{
+	data &= 7;
+	if (data <= 4) m_okibank->set_entry(data);
+}
+
+void truxton2_state::fixeightbl_oki(address_map &map)
+{
+	map(0x00000, 0x2ffff).rom();
+	map(0x30000, 0x3ffff).bankr(m_okibank);
+}
 
 void truxton2_state::fixeightbl_68k_mem(address_map &map)
 {
@@ -1721,6 +1739,11 @@ void truxton2_state::fixeight(machine_config &config)
 	m_oki[0]->add_route(ALL_OUTPUTS, "mono", 0.5);
 }
 
+void truxton2_state::cpu_space_fixeightbl_map(address_map &map)
+{
+	map(0xfffff0, 0xffffff).m(m_maincpu, FUNC(m68000_base_device::autovectors_map));
+	map(0xfffff5, 0xfffff5).lr8(NAME([this] () { m_maincpu->set_input_line(M68K_IRQ_2, CLEAR_LINE); return m68000_device::autovector(2); }));
+}
 
 void truxton2_state::fixeightbl(machine_config &config)
 {
@@ -3064,6 +3087,12 @@ ROM_START( probowl2 ) // identical to New Pro Bowl but for slight mods to the GF
 ROM_END
 
 
+void truxton2_state::init_fixeightbl()
+{
+	u8 *ROM = memregion("oki1")->base();
+
+	m_okibank->configure_entries(0, 5, &ROM[0x30000], 0x10000);
+}
 
 
 GAME( 1992, truxton2,    0,        truxton2,     truxton2,   truxton2_state, empty_init,    ROT270, "Toaplan",         "Truxton II / Tatsujin Oh",  MACHINE_SUPPORTS_SAVE )

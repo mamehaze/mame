@@ -12,6 +12,24 @@
 #include "speaker.h"
 
 
+class kbash_state : public toaplan2_state
+{
+public:
+	kbash_state(const machine_config &mconfig, device_type type, const char *tag)
+		: toaplan2_state(mconfig, type, tag)
+	{ }
+
+	void kbash(machine_config &config);
+	void kbash2(machine_config &config);
+
+protected:
+private:
+
+	void kbash2_68k_mem(address_map &map);
+	void kbash_68k_mem(address_map &map);
+	void kbash_v25_mem(address_map &map);
+};
+
 constexpr unsigned toaplan2_state::T2PALETTE_LENGTH;
 
 template<int Chip>
@@ -22,7 +40,7 @@ void toaplan2_state::oki_bankswitch_w(u8 data)
 
 
 
-void toaplan2_state::kbash_68k_mem(address_map &map)
+void kbash_state::kbash_68k_mem(address_map &map)
 {
 	map(0x000000, 0x07ffff).rom();
 	map(0x100000, 0x103fff).ram();
@@ -37,7 +55,7 @@ void toaplan2_state::kbash_68k_mem(address_map &map)
 }
 
 
-void toaplan2_state::kbash2_68k_mem(address_map &map)
+void kbash_state::kbash2_68k_mem(address_map &map)
 {
 	map(0x000000, 0x07ffff).rom();
 	map(0x100000, 0x103fff).ram();
@@ -58,7 +76,7 @@ void toaplan2_state::kbash2_68k_mem(address_map &map)
 	map(0x400000, 0x400fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
 }
 
-void toaplan2_state::kbash_v25_mem(address_map &map)
+void kbash_state::kbash_v25_mem(address_map &map)
 {
 	map(0x00000, 0x007ff).ram().share(m_shared_ram);
 	map(0x04000, 0x04001).rw("ymsnd", FUNC(ym2151_device::read), FUNC(ym2151_device::write));
@@ -259,16 +277,16 @@ a4849 cd
 */
 
 
-void toaplan2_state::kbash(machine_config &config)
+void kbash_state::kbash(machine_config &config)
 {
 	/* basic machine hardware */
 	M68000(config, m_maincpu, 16_MHz_XTAL);         /* 16MHz Oscillator */
-	m_maincpu->set_addrmap(AS_PROGRAM, &toaplan2_state::kbash_68k_mem);
+	m_maincpu->set_addrmap(AS_PROGRAM, &kbash_state::kbash_68k_mem);
 	m_maincpu->reset_cb().set(FUNC(toaplan2_state::toaplan2_reset));
 
 	/* ROM based v25 */
 	v25_device &audiocpu(V25(config, m_audiocpu, 16_MHz_XTAL));         /* NEC V25 type Toaplan marked CPU ??? */
-	audiocpu.set_addrmap(AS_PROGRAM, &toaplan2_state::kbash_v25_mem);
+	audiocpu.set_addrmap(AS_PROGRAM, &kbash_state::kbash_v25_mem);
 	audiocpu.set_decryption_table(nitro_decryption_table);
 	audiocpu.pt_in_cb().set_ioport("DSWA").exor(0xff);
 	audiocpu.p0_in_cb().set_ioport("DSWB").exor(0xff);
@@ -307,11 +325,11 @@ void toaplan2_state::kbash(machine_config &config)
 }
 
 
-void toaplan2_state::kbash2(machine_config &config)
+void kbash_state::kbash2(machine_config &config)
 {
 	/* basic machine hardware */
 	M68000(config, m_maincpu, 16_MHz_XTAL);         /* 16MHz Oscillator */
-	m_maincpu->set_addrmap(AS_PROGRAM, &toaplan2_state::kbash2_68k_mem);
+	m_maincpu->set_addrmap(AS_PROGRAM, &kbash_state::kbash2_68k_mem);
 	m_maincpu->reset_cb().set(FUNC(toaplan2_state::toaplan2_reset));
 
 	/* video hardware */
@@ -481,8 +499,8 @@ ROM_START( kbash2 )
 ROM_END
 
 
-GAME( 1993, kbash,       0,        kbash,        kbash,      toaplan2_state, empty_init,    ROT0,   "Toaplan / Atari", "Knuckle Bash",                 MACHINE_SUPPORTS_SAVE ) // Atari license shown for some regions.
-GAME( 1993, kbashk,      kbash,    kbash,        kbashk,     toaplan2_state, empty_init,    ROT0,   "Toaplan / Taito", "Knuckle Bash (Korean PCB)",    MACHINE_SUPPORTS_SAVE ) // Japan region has optional Taito license, maybe the original Japan release?
-GAME( 1993, kbashp,      kbash,    kbash,        kbash,      toaplan2_state, empty_init,    ROT0,   "Toaplan / Taito", "Knuckle Bash (location test)", MACHINE_SUPPORTS_SAVE )
+GAME( 1993, kbash,       0,        kbash,        kbash,      kbash_state, empty_init,    ROT0,   "Toaplan / Atari", "Knuckle Bash",                 MACHINE_SUPPORTS_SAVE ) // Atari license shown for some regions.
+GAME( 1993, kbashk,      kbash,    kbash,        kbashk,     kbash_state, empty_init,    ROT0,   "Toaplan / Taito", "Knuckle Bash (Korean PCB)",    MACHINE_SUPPORTS_SAVE ) // Japan region has optional Taito license, maybe the original Japan release?
+GAME( 1993, kbashp,      kbash,    kbash,        kbash,      kbash_state, empty_init,    ROT0,   "Toaplan / Taito", "Knuckle Bash (location test)", MACHINE_SUPPORTS_SAVE )
 
-GAME( 1999, kbash2,      0,        kbash2,       kbash2,     toaplan2_state, empty_init,    ROT0,   "bootleg",         "Knuckle Bash 2 (bootleg)",  MACHINE_SUPPORTS_SAVE )
+GAME( 1999, kbash2,      0,        kbash2,       kbash2,     kbash_state, empty_init,    ROT0,   "bootleg",         "Knuckle Bash 2 (bootleg)",  MACHINE_SUPPORTS_SAVE )

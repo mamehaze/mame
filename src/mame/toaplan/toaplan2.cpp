@@ -411,18 +411,8 @@ void toaplan2_state::toaplan2_reset(int state)
 		m_audiocpu->pulse_input_line(INPUT_LINE_RESET, attotime::zero);
 }
 
-void toaplan2_state::init_fixeightbl()
-{
-	u8 *ROM = memregion("oki1")->base();
 
-	m_okibank->configure_entries(0, 5, &ROM[0x30000], 0x10000);
-}
 
-void toaplan2_state::cpu_space_fixeightbl_map(address_map &map)
-{
-	map(0xfffff0, 0xffffff).m(m_maincpu, FUNC(m68000_base_device::autovectors_map));
-	map(0xfffff5, 0xfffff5).lr8(NAME([this] () { m_maincpu->set_input_line(M68K_IRQ_2, CLEAR_LINE); return m68000_device::autovector(2); }));
-}
 
 u16 toaplan2_state::video_count_r()
 {
@@ -496,50 +486,16 @@ void toaplan2_state::shared_ram_w(offs_t offset, u8 data)
 	m_shared_ram[offset] = data;
 }
 
-int toaplan2_state::c2map_r()
-{
-	// For Teki Paki hardware
-	// bit 4 high signifies secondary CPU is ready
-	// bit 5 is tested low before V-Blank bit ???
 
-	return m_soundlatch[0]->pending_r() ? 0x00 : 0x01;
-}
 
 void toaplan2_state::sound_reset_w(u8 data)
 {
 	m_audiocpu->set_input_line(INPUT_LINE_RESET, (data & m_sound_reset_bit) ? CLEAR_LINE : ASSERT_LINE);
 }
 
-void toaplan2_state::fixeightbl_oki_bankswitch_w(u8 data)
-{
-	data &= 7;
-	if (data <= 4) m_okibank->set_entry(data);
-}
 
-void toaplan2_state::v25_mem(address_map &map)
-{
-	map(0x00000, 0x00001).rw("ymsnd", FUNC(ym2151_device::read), FUNC(ym2151_device::write));
-	map(0x00004, 0x00004).rw(m_oki[0], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
-	map(0x80000, 0x87fff).mirror(0x78000).ram().share(m_shared_ram);
-}
 
-void toaplan2_state::fixeightbl_oki(address_map &map)
-{
-	map(0x00000, 0x2ffff).rom();
-	map(0x30000, 0x3ffff).bankr(m_okibank);
-}
 
-void toaplan2_state::hd647180_io_map(address_map &map)
-{
-	map.global_mask(0xff);
-
-	map(0x60, 0x60).nopr();
-	map(0x70, 0x75).nopw(); // DDRs are written with the wrong upper addresses!
-	map(0x84, 0x84).r(m_soundlatch[0], FUNC(generic_latch_8_device::read));
-
-	map(0x82, 0x82).rw("ymsnd", FUNC(ym3812_device::status_r), FUNC(ym3812_device::address_w));
-	map(0x83, 0x83).w("ymsnd", FUNC(ym3812_device::data_w));
-}
 
 /*****************************************************************************
     Input Port definitions

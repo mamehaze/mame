@@ -11,6 +11,23 @@
 #include "sound/ymz280b.h"
 #include "speaker.h"
 
+class grindstm_state : public toaplan2_state
+{
+public:
+	grindstm_state(const machine_config &mconfig, device_type type, const char *tag)
+		: toaplan2_state(mconfig, type, tag)
+	{ }
+
+	void vfive(machine_config &config);
+
+	void init_vfive();
+
+protected:
+private:
+	void vfive_68k_mem(address_map &map);
+	void vfive_v25_mem(address_map &map);
+
+};
 
 constexpr unsigned toaplan2_state::T2PALETTE_LENGTH;
 
@@ -148,7 +165,7 @@ INPUT_PORTS_END
 
 
 
-void toaplan2_state::vfive_68k_mem(address_map &map)
+void grindstm_state::vfive_68k_mem(address_map &map)
 {
 	map(0x000000, 0x07ffff).rom();
 	map(0x100000, 0x103fff).ram();
@@ -163,7 +180,7 @@ void toaplan2_state::vfive_68k_mem(address_map &map)
 	map(0x700000, 0x700001).r(FUNC(toaplan2_state::video_count_r));
 }
 
-void toaplan2_state::vfive_v25_mem(address_map &map)
+void grindstm_state::vfive_v25_mem(address_map &map)
 {
 	map(0x00000, 0x00001).rw("ymsnd", FUNC(ym2151_device::read), FUNC(ym2151_device::write));
 	map(0x80000, 0x87fff).mirror(0x78000).ram().share(m_shared_ram);
@@ -220,15 +237,15 @@ a4849 cd
 
 */
 
-void toaplan2_state::vfive(machine_config &config)
+void grindstm_state::vfive(machine_config &config)
 {
 	/* basic machine hardware */
 	M68000(config, m_maincpu, 20_MHz_XTAL/2);   // verified on PCB
-	m_maincpu->set_addrmap(AS_PROGRAM, &toaplan2_state::vfive_68k_mem);
+	m_maincpu->set_addrmap(AS_PROGRAM, &grindstm_state::vfive_68k_mem);
 	m_maincpu->reset_cb().set(FUNC(toaplan2_state::toaplan2_reset));
 
 	v25_device &audiocpu(V25(config, m_audiocpu, 20_MHz_XTAL/2)); // Verified on PCB, NEC V25 type Toaplan mark scratched out
-	audiocpu.set_addrmap(AS_PROGRAM, &toaplan2_state::vfive_v25_mem);
+	audiocpu.set_addrmap(AS_PROGRAM, &grindstm_state::vfive_v25_mem);
 	audiocpu.set_decryption_table(nitro_decryption_table);
 	audiocpu.pt_in_cb().set_ioport("DSWA").exor(0xff);
 	audiocpu.p0_in_cb().set_ioport("DSWB").exor(0xff);
@@ -260,7 +277,7 @@ void toaplan2_state::vfive(machine_config &config)
 	YM2151(config, "ymsnd", 27_MHz_XTAL/8).add_route(ALL_OUTPUTS, "mono", 0.5); // verified on PCB
 }
 
-void toaplan2_state::init_vfive()
+void grindstm_state::init_vfive()
 {
 	m_sound_reset_bit = 0x10;
 }
@@ -306,7 +323,7 @@ ROM_END
 
 
 
-GAME( 1992, grindstm,    0,        vfive,      grindstm,   toaplan2_state, init_vfive,      ROT270, "Toaplan", "Grind Stormer",             MACHINE_SUPPORTS_SAVE )
-GAME( 1992, grindstma,   grindstm, vfive,      grindstma,  toaplan2_state, init_vfive,      ROT270, "Toaplan", "Grind Stormer (older set)", MACHINE_SUPPORTS_SAVE )
-GAME( 1993, vfive,       grindstm, vfive,      vfive,      toaplan2_state, init_vfive,      ROT270, "Toaplan", "V-Five (Japan)",            MACHINE_SUPPORTS_SAVE )
+GAME( 1992, grindstm,    0,        vfive,      grindstm,   grindstm_state, init_vfive,      ROT270, "Toaplan", "Grind Stormer",             MACHINE_SUPPORTS_SAVE )
+GAME( 1992, grindstma,   grindstm, vfive,      grindstma,  grindstm_state, init_vfive,      ROT270, "Toaplan", "Grind Stormer (older set)", MACHINE_SUPPORTS_SAVE )
+GAME( 1993, vfive,       grindstm, vfive,      vfive,      grindstm_state, init_vfive,      ROT270, "Toaplan", "V-Five (Japan)",            MACHINE_SUPPORTS_SAVE )
 

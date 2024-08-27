@@ -11,26 +11,45 @@
 #include "sound/ymz280b.h"
 #include "speaker.h"
 
+class dogyuun_state : public toaplan2_state
+{
+public:
+	dogyuun_state(const machine_config &mconfig, device_type type, const char *tag)
+		: toaplan2_state(mconfig, type, tag)
+	{ }
+
+	void dogyuun(machine_config &config);
+	void dogyuunto(machine_config &config);
+
+	void init_dogyuunto();
+	void init_dogyuun();
+
+protected:
+private:
+	void dogyuun_68k_mem(address_map &map);
+	void dogyuunto_68k_mem(address_map &map);
+	void dogyuunto_sound_z80_mem(address_map &map);
+	void dogyuun_v25_mem(address_map &map);
+
+
+	u32 screen_update_dogyuun(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
+
+};
 
 constexpr unsigned toaplan2_state::T2PALETTE_LENGTH;
 
 
 
-
-// Dogyuun doesn't appear to require fancy mixing?
-u32 toaplan2_state::screen_update_dogyuun(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
+u32 dogyuun_state::screen_update_dogyuun(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
 {
 	bitmap.fill(0, cliprect);
-	if (m_vdp[1])
-	{
-		m_custom_priority_bitmap.fill(0, cliprect);
-		m_vdp[1]->render_vdp(bitmap, cliprect);
-	}
-	if (m_vdp[0])
-	{
-		m_custom_priority_bitmap.fill(0, cliprect);
-		m_vdp[0]->render_vdp(bitmap, cliprect);
-	}
+
+	m_custom_priority_bitmap.fill(0, cliprect);
+	m_vdp[1]->render_vdp(bitmap, cliprect);
+
+	m_custom_priority_bitmap.fill(0, cliprect);
+	m_vdp[0]->render_vdp(bitmap, cliprect);
+	
 
 	return 0;
 }
@@ -186,7 +205,7 @@ static INPUT_PORTS_START( dogyuunt )
 INPUT_PORTS_END
 
 
-void toaplan2_state::dogyuun_68k_mem(address_map &map)
+void dogyuun_state::dogyuun_68k_mem(address_map &map)
 {
 	map(0x000000, 0x07ffff).rom();
 	map(0x100000, 0x103fff).ram();
@@ -202,7 +221,7 @@ void toaplan2_state::dogyuun_68k_mem(address_map &map)
 }
 
 
-void toaplan2_state::dogyuunto_68k_mem(address_map &map)
+void dogyuun_state::dogyuunto_68k_mem(address_map &map)
 {
 	map(0x000000, 0x07ffff).rom();
 	map(0x100000, 0x103fff).ram();
@@ -219,7 +238,7 @@ void toaplan2_state::dogyuunto_68k_mem(address_map &map)
 	map(0x700000, 0x700001).r(FUNC(toaplan2_state::video_count_r));         // test bit 8
 }
 
-void toaplan2_state::dogyuunto_sound_z80_mem(address_map &map)
+void dogyuun_state::dogyuunto_sound_z80_mem(address_map &map)
 {
 	map(0x0000, 0x7fff).rom();
 	map(0xc000, 0xc7ff).ram().share(m_shared_ram);
@@ -280,16 +299,22 @@ a4849 cd
 */
 
 
+void dogyuun_state::dogyuun_v25_mem(address_map &map)
+{
+	map(0x00000, 0x00001).rw("ymsnd", FUNC(ym2151_device::read), FUNC(ym2151_device::write));
+	map(0x00004, 0x00004).rw(m_oki[0], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
+	map(0x80000, 0x87fff).mirror(0x78000).ram().share(m_shared_ram);
+}
 
-void toaplan2_state::dogyuun(machine_config &config)
+void dogyuun_state::dogyuun(machine_config &config)
 {
 	/* basic machine hardware */
 	M68000(config, m_maincpu, 25_MHz_XTAL/2);           /* verified on pcb */
-	m_maincpu->set_addrmap(AS_PROGRAM, &toaplan2_state::dogyuun_68k_mem);
+	m_maincpu->set_addrmap(AS_PROGRAM, &dogyuun_state::dogyuun_68k_mem);
 	m_maincpu->reset_cb().set(FUNC(toaplan2_state::toaplan2_reset));
 
 	v25_device &audiocpu(V25(config, m_audiocpu, 25_MHz_XTAL/2));         /* NEC V25 type Toaplan marked CPU ??? */
-	audiocpu.set_addrmap(AS_PROGRAM, &toaplan2_state::v25_mem);
+	audiocpu.set_addrmap(AS_PROGRAM, &dogyuun_state::dogyuun_v25_mem);
 	audiocpu.set_decryption_table(nitro_decryption_table);
 	audiocpu.pt_in_cb().set_ioport("DSWB").exor(0xff);
 	audiocpu.p0_in_cb().set_ioport("DSWA").exor(0xff);
@@ -300,7 +325,7 @@ void toaplan2_state::dogyuun(machine_config &config)
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
 	m_screen->set_video_attributes(VIDEO_UPDATE_BEFORE_VBLANK);
 	m_screen->set_raw(27_MHz_XTAL/4, 432, 0, 320, 262, 0, 240);
-	m_screen->set_screen_update(FUNC(toaplan2_state::screen_update_dogyuun));
+	m_screen->set_screen_update(FUNC(dogyuun_state::screen_update_dogyuun));
 	m_screen->screen_vblank().set(FUNC(toaplan2_state::screen_vblank));
 	m_screen->set_palette(m_palette);
 
@@ -328,21 +353,25 @@ void toaplan2_state::dogyuun(machine_config &config)
 }
 
 
-void toaplan2_state::dogyuunto(machine_config &config)
+void dogyuun_state::dogyuunto(machine_config &config)
 {
 	dogyuun(config);
 
-	m_maincpu->set_addrmap(AS_PROGRAM, &toaplan2_state::dogyuunto_68k_mem);
+	m_maincpu->set_addrmap(AS_PROGRAM, &dogyuun_state::dogyuunto_68k_mem);
 	m_maincpu->set_clock(24_MHz_XTAL / 2); // 24 MHz instead of 25
 
 	z80_device &audiocpu(Z80(config.replace(), "audiocpu", 27_MHz_XTAL / 8)); // guessed divisor
-	audiocpu.set_addrmap(AS_PROGRAM, &toaplan2_state::dogyuunto_sound_z80_mem);
+	audiocpu.set_addrmap(AS_PROGRAM, &dogyuun_state::dogyuunto_sound_z80_mem);
 
 	m_oki[0]->set_clock(1.056_MHz_XTAL); // blue resonator 1056J
 }
 
+void dogyuun_state::init_dogyuunto()
+{
+	m_sound_reset_bit = 0x10;
+}
 
-void toaplan2_state::init_dogyuun()
+void dogyuun_state::init_dogyuun()
 {
 	m_sound_reset_bit = 0x20;
 }
@@ -463,8 +492,8 @@ ROM_START( dogyuunto )
 	ROM_LOAD( "2m.u29", 0x00000, 0x40000, CRC(5e7a77d8) SHA1(da6beb5e8e015965ff42fd52f5aa0c0ae5bcee4f) ) // '2M' hand-written
 ROM_END
 
-GAME( 1992, dogyuun,     0,        dogyuun,      dogyuun,    toaplan2_state, init_dogyuun,  ROT270, "Toaplan",         "Dogyuun",                           MACHINE_SUPPORTS_SAVE )
-GAME( 1992, dogyuuna,    dogyuun,  dogyuun,      dogyuuna,   toaplan2_state, init_dogyuun,  ROT270, "Toaplan",         "Dogyuun (older set)",               MACHINE_SUPPORTS_SAVE )
-GAME( 1992, dogyuunb,    dogyuun,  dogyuun,      dogyuunt,   toaplan2_state, init_dogyuun,  ROT270, "Toaplan",         "Dogyuun (oldest set)",              MACHINE_SUPPORTS_SAVE ) // maybe a newer location test version, instead
-GAME( 1992, dogyuunt,    dogyuun,  dogyuun,      dogyuunt,   toaplan2_state, init_dogyuun,  ROT270, "Toaplan",         "Dogyuun (10/9/1992 location test)", MACHINE_SUPPORTS_SAVE )
-GAME( 1992, dogyuunto,   dogyuun,  dogyuunto,    dogyuunt,   toaplan2_state, init_vfive,    ROT270, "Toaplan",         "Dogyuun (8/25/1992 location test)", MACHINE_SUPPORTS_SAVE )
+GAME( 1992, dogyuun,     0,        dogyuun,      dogyuun,    dogyuun_state, init_dogyuun,  ROT270, "Toaplan",         "Dogyuun",                           MACHINE_SUPPORTS_SAVE )
+GAME( 1992, dogyuuna,    dogyuun,  dogyuun,      dogyuuna,   dogyuun_state, init_dogyuun,  ROT270, "Toaplan",         "Dogyuun (older set)",               MACHINE_SUPPORTS_SAVE )
+GAME( 1992, dogyuunb,    dogyuun,  dogyuun,      dogyuunt,   dogyuun_state, init_dogyuun,  ROT270, "Toaplan",         "Dogyuun (oldest set)",              MACHINE_SUPPORTS_SAVE ) // maybe a newer location test version, instead
+GAME( 1992, dogyuunt,    dogyuun,  dogyuun,      dogyuunt,   dogyuun_state, init_dogyuun,  ROT270, "Toaplan",         "Dogyuun (10/9/1992 location test)", MACHINE_SUPPORTS_SAVE )
+GAME( 1992, dogyuunto,   dogyuun,  dogyuunto,    dogyuunt,   dogyuun_state, init_dogyuunto, ROT270, "Toaplan",         "Dogyuun (8/25/1992 location test)", MACHINE_SUPPORTS_SAVE )

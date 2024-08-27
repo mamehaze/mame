@@ -44,29 +44,10 @@ public:
 		, m_okibank(*this, "okibank")
 	{ }
 
-	void batsugun(machine_config &config);
-	void batsugunbl(machine_config &config);
-	void dogyuun(machine_config &config);
-	void dogyuunto(machine_config &config);
-	void enmadaio(machine_config &config);
-	void kbash(machine_config &config);
-	void kbash2(machine_config &config);
-	void pipibibs(machine_config &config);
-	void pipibibsbl(machine_config &config);
-	void snowbro2(machine_config &config);
-	void snowbro2b3(machine_config &config);
-	void tekipaki(machine_config &config);
-	void vfive(machine_config &config);
 
-	void init_dogyuun();
-	void init_enmadaio();
-	void init_fixeightbl();
 	void init_pipibibsbl();
-	void init_vfive();
 
-	int c2map_r();
 
-protected:
 	// We encode priority with colour in the tilemaps, so need a larger palette
 	static constexpr unsigned T2PALETTE_LENGTH = 0x10000;
 
@@ -98,47 +79,19 @@ protected:
 	u8 shared_ram_r(offs_t offset);
 	void shared_ram_w(offs_t offset, u8 data);
 	void sound_reset_w(u8 data);
-	void fixeightbl_oki_bankswitch_w(u8 data);
+	
 
 	template<int Chip> void oki_bankswitch_w(u8 data);
-	void enmadaio_oki_bank_w(offs_t offset, u16 data, u16 mem_mask = ~0);
 
 	DECLARE_VIDEO_START(toaplan2);
 	DECLARE_VIDEO_START(batsugunbl);
 
-	// Teki Paki sound
-	u8 tekipaki_cmdavailable_r();
 
 	u32 screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
-	u32 screen_update_dogyuun(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
-	u32 screen_update_batsugun(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
 	void screen_vblank(int state);
-	void cpu_space_fixeightbl_map(address_map &map);
-	void cpu_space_pipibibsbl_map(address_map &map);
 
 	void toaplan2_reset(int state);
 
-	void batsugun_68k_mem(address_map &map);
-	void batsugunbl_68k_mem(address_map &map);
-	void dogyuun_68k_mem(address_map &map);
-	void dogyuunto_68k_mem(address_map &map);
-	void dogyuunto_sound_z80_mem(address_map &map);
-	void enmadaio_68k_mem(address_map &map);
-	void enmadaio_oki(address_map &map);
-	void fixeightbl_oki(address_map &map);
-	void hd647180_io_map(address_map &map);
-	void kbash2_68k_mem(address_map &map);
-	void kbash_68k_mem(address_map &map);
-	void kbash_v25_mem(address_map &map);
-	void pipibibi_bootleg_68k_mem(address_map &map);
-	void pipibibs_68k_mem(address_map &map);
-	void pipibibs_sound_z80_mem(address_map &map);
-	void snowbro2_68k_mem(address_map &map);
-	void snowbro2b3_68k_mem(address_map &map);
-	void tekipaki_68k_mem(address_map &map);
-	void v25_mem(address_map &map);
-	void vfive_68k_mem(address_map &map);
-	void vfive_v25_mem(address_map &map);
 };
 
 

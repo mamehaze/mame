@@ -12,7 +12,26 @@
 #include "speaker.h"
 
 
+class enmadaio_state : public toaplan2_state
+{
+public:
+	enmadaio_state(const machine_config &mconfig, device_type type, const char *tag)
+		: toaplan2_state(mconfig, type, tag)
+	{ }
 
+	void enmadaio(machine_config &config);
+
+	void init_enmadaio();
+
+protected:
+private:
+
+	void enmadaio_68k_mem(address_map &map);
+	void enmadaio_oki(address_map &map);
+
+	void enmadaio_oki_bank_w(offs_t offset, u16 data, u16 mem_mask = ~0);
+
+};
 
 constexpr unsigned toaplan2_state::T2PALETTE_LENGTH;
 
@@ -228,13 +247,13 @@ static INPUT_PORTS_START( enmadaio )
 
 INPUT_PORTS_END
 
-void toaplan2_state::enmadaio_oki(address_map &map)
+void enmadaio_state::enmadaio_oki(address_map &map)
 {
 	map(0x00000, 0x3ffff).bankr(m_okibank);
 }
 
 
-void toaplan2_state::enmadaio_oki_bank_w(offs_t offset, u16 data, u16 mem_mask)
+void enmadaio_state::enmadaio_oki_bank_w(offs_t offset, u16 data, u16 mem_mask)
 {
 	data &= mem_mask;
 
@@ -248,7 +267,7 @@ void toaplan2_state::enmadaio_oki_bank_w(offs_t offset, u16 data, u16 mem_mask)
 	}
 }
 
-void toaplan2_state::enmadaio_68k_mem(address_map &map)
+void enmadaio_state::enmadaio_68k_mem(address_map &map)
 {
 	map(0x000000, 0x07ffff).rom();
 	map(0x100000, 0x103fff).ram(); //.share("nvram");
@@ -268,7 +287,7 @@ void toaplan2_state::enmadaio_68k_mem(address_map &map)
 	map(0x700018, 0x700019).portr("SYS");
 	map(0x70001c, 0x70001d).portr("UNK"); //.portr("SYS");
 
-	map(0x700020, 0x700021).w(FUNC(toaplan2_state::enmadaio_oki_bank_w)); // oki bank
+	map(0x700020, 0x700021).w(FUNC(enmadaio_state::enmadaio_oki_bank_w)); // oki bank
 
 	map(0x700028, 0x700029).nopw();
 	map(0x70003c, 0x70003d).nopw();
@@ -276,11 +295,11 @@ void toaplan2_state::enmadaio_68k_mem(address_map &map)
 }
 
 
-void toaplan2_state::enmadaio(machine_config &config)
+void enmadaio_state::enmadaio(machine_config &config)
 {
 	/* basic machine hardware */
 	M68000(config, m_maincpu, 20_MHz_XTAL/2);
-	m_maincpu->set_addrmap(AS_PROGRAM, &toaplan2_state::enmadaio_68k_mem);
+	m_maincpu->set_addrmap(AS_PROGRAM, &enmadaio_state::enmadaio_68k_mem);
 	m_maincpu->reset_cb().set(FUNC(toaplan2_state::toaplan2_reset));
 
 	/* video hardware */
@@ -308,13 +327,13 @@ void toaplan2_state::enmadaio(machine_config &config)
 	YM2151(config, "ymsnd", 27_MHz_XTAL/8).add_route(ALL_OUTPUTS, "mono", 0.5);
 
 	OKIM6295(config, m_oki[0], 16_MHz_XTAL/4, okim6295_device::PIN7_LOW); // pin7 not confirmed
-	m_oki[0]->set_addrmap(0, &toaplan2_state::enmadaio_oki);
+	m_oki[0]->set_addrmap(0, &enmadaio_state::enmadaio_oki);
 	m_oki[0]->add_route(ALL_OUTPUTS, "mono", 0.5);
 }
 
 
 
-void toaplan2_state::init_enmadaio()
+void enmadaio_state::init_enmadaio()
 {
 	u8 *ROM = memregion("oki1")->base();
 
@@ -346,4 +365,4 @@ ROM_START( enmadaio )
 	ROM_LOAD( "rom17_u72.a19", 0x1600000, 0x0200000, CRC(6b8717c3) SHA1(b5b7e35deaa2f34bccd1e83844d4bc0be845d0b8) )
 ROM_END
 
-GAME( 1993, enmadaio,    0,        enmadaio,     enmadaio,   toaplan2_state, init_enmadaio, ROT0,   "Toaplan / Taito",  "Enma Daio (Japan)", 0 ) // TP-031
+GAME( 1993, enmadaio,    0,        enmadaio,     enmadaio,   enmadaio_state, init_enmadaio, ROT0,   "Toaplan / Taito",  "Enma Daio (Japan)", 0 ) // TP-031

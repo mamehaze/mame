@@ -12,13 +12,34 @@
 #include "speaker.h"
 
 
+class tekipaki_state : public toaplan2_state
+{
+public:
+	tekipaki_state(const machine_config &mconfig, device_type type, const char *tag)
+		: toaplan2_state(mconfig, type, tag)
+	{ }
+
+	void tekipaki(machine_config &config);
+
+	int c2map_r();
+
+protected:
+private:
+	void tekipaki_68k_mem(address_map &map);
+	void hd647180_io_map(address_map &map);
+
+	// Teki Paki sound
+	u8 tekipaki_cmdavailable_r();
+
+
+};
 
 
 constexpr unsigned toaplan2_state::T2PALETTE_LENGTH;
 
 
 
-void toaplan2_state::tekipaki_68k_mem(address_map &map)
+void tekipaki_state::tekipaki_68k_mem(address_map &map)
 {
 	map(0x000000, 0x01ffff).rom();
 	map(0x020000, 0x03ffff).rom();                     // extra for Whoopee
@@ -35,7 +56,7 @@ void toaplan2_state::tekipaki_68k_mem(address_map &map)
 	map(0x180071, 0x180071).w(m_soundlatch[0], FUNC(generic_latch_8_device::write));
 }
 
-u8 toaplan2_state::tekipaki_cmdavailable_r()
+u8 tekipaki_state::tekipaki_cmdavailable_r()
 {
 	if (m_soundlatch[0]->pending_r()) return 0xff;
 	else return 0x00;
@@ -118,7 +139,7 @@ static INPUT_PORTS_START( tekipaki )
 //  PORT_CONFSETTING(        0x000d, DEF_STR( Japan ) )
 //  PORT_CONFSETTING(        0x000e, DEF_STR( Japan ) )
 	PORT_CONFSETTING(       0x000f, "Japan (Distributed by Tecmo)" )
-	PORT_BIT( 0x0010, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_READ_LINE_MEMBER(toaplan2_state, c2map_r)
+	PORT_BIT( 0x0010, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_READ_LINE_MEMBER(tekipaki_state, c2map_r)
 INPUT_PORTS_END
 
 static INPUT_PORTS_START( pipibibs )
@@ -166,22 +187,41 @@ static INPUT_PORTS_START( whoopee )
 	PORT_INCLUDE( pipibibs )
 
 	PORT_MODIFY("JMPR")
-	PORT_BIT( 0x0010, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_READ_LINE_MEMBER(toaplan2_state, c2map_r)   // bit 0x10 sound ready
+	PORT_BIT( 0x0010, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_READ_LINE_MEMBER(tekipaki_state, c2map_r)   // bit 0x10 sound ready
 INPUT_PORTS_END
 
+int tekipaki_state::c2map_r()
+{
+	// For Teki Paki hardware
+	// bit 4 high signifies secondary CPU is ready
+	// bit 5 is tested low before V-Blank bit ???
 
+	return m_soundlatch[0]->pending_r() ? 0x00 : 0x01;
+}
 
-void toaplan2_state::tekipaki(machine_config &config)
+void tekipaki_state::hd647180_io_map(address_map &map)
+{
+	map.global_mask(0xff);
+
+	map(0x60, 0x60).nopr();
+	map(0x70, 0x75).nopw(); // DDRs are written with the wrong upper addresses!
+	map(0x84, 0x84).r(m_soundlatch[0], FUNC(generic_latch_8_device::read));
+
+	map(0x82, 0x82).rw("ymsnd", FUNC(ym3812_device::status_r), FUNC(ym3812_device::address_w));
+	map(0x83, 0x83).w("ymsnd", FUNC(ym3812_device::data_w));
+}
+
+void tekipaki_state::tekipaki(machine_config &config)
 {
 	/* basic machine hardware */
 	M68000(config, m_maincpu, 10_MHz_XTAL);         // 10MHz Oscillator
-	m_maincpu->set_addrmap(AS_PROGRAM, &toaplan2_state::tekipaki_68k_mem);
+	m_maincpu->set_addrmap(AS_PROGRAM, &tekipaki_state::tekipaki_68k_mem);
 	m_maincpu->reset_cb().set(FUNC(toaplan2_state::toaplan2_reset));
 
 	hd647180x_device &audiocpu(HD647180X(config, m_audiocpu, 10_MHz_XTAL));
 	// 16k byte ROM and 512 byte RAM are internal
-	audiocpu.set_addrmap(AS_IO, &toaplan2_state::hd647180_io_map);
-	audiocpu.in_pa_callback().set(FUNC(toaplan2_state::tekipaki_cmdavailable_r));
+	audiocpu.set_addrmap(AS_IO, &tekipaki_state::hd647180_io_map);
+	audiocpu.in_pa_callback().set(FUNC(tekipaki_state::tekipaki_cmdavailable_r));
 
 	config.set_maximum_quantum(attotime::from_hz(600));
 
@@ -259,7 +299,7 @@ ROM_START( whoopee )
 ROM_END
 
 
-GAME( 1991, tekipaki,    0,        tekipaki,     tekipaki,   toaplan2_state, empty_init,    ROT0,   "Toaplan",         "Teki Paki",                 MACHINE_SUPPORTS_SAVE )
-GAME( 1991, tekipakit,   tekipaki, tekipaki,     tekipaki,   toaplan2_state, empty_init,    ROT0,   "Toaplan",         "Teki Paki (location test)", MACHINE_SUPPORTS_SAVE )
+GAME( 1991, tekipaki,    0,        tekipaki,     tekipaki,   tekipaki_state, empty_init,    ROT0,   "Toaplan",         "Teki Paki",                 MACHINE_SUPPORTS_SAVE )
+GAME( 1991, tekipakit,   tekipaki, tekipaki,     tekipaki,   tekipaki_state, empty_init,    ROT0,   "Toaplan",         "Teki Paki (location test)", MACHINE_SUPPORTS_SAVE )
 
-GAME( 1991, whoopee,     pipibibs, tekipaki,     whoopee,    toaplan2_state, empty_init,    ROT0,   "Toaplan",         "Pipi & Bibis / Whoopee!! (Teki Paki hardware)",   MACHINE_SUPPORTS_SAVE ) // original Whoopee!! boards have a HD647180 instead of Z80
+GAME( 1991, whoopee,     pipibibs, tekipaki,     whoopee,    tekipaki_state, empty_init,    ROT0,   "Toaplan",         "Pipi & Bibis / Whoopee!! (Teki Paki hardware)",   MACHINE_SUPPORTS_SAVE ) // original Whoopee!! boards have a HD647180 instead of Z80

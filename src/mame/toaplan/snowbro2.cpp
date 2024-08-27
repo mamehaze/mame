@@ -12,6 +12,23 @@
 #include "sound/ymz280b.h"
 #include "speaker.h"
 
+class snowbro2_state : public toaplan2_state
+{
+public:
+	snowbro2_state(const machine_config &mconfig, device_type type, const char *tag)
+		: toaplan2_state(mconfig, type, tag)
+	{ }
+
+	void snowbro2(machine_config &config);
+	void snowbro2b3(machine_config &config);
+
+protected:
+private:
+	void snowbro2_68k_mem(address_map &map);
+	void snowbro2b3_68k_mem(address_map &map);
+
+};
+
 
 constexpr unsigned toaplan2_state::T2PALETTE_LENGTH;
 
@@ -212,7 +229,7 @@ INPUT_PORTS_END
 
 
 
-void toaplan2_state::snowbro2_68k_mem(address_map &map)
+void snowbro2_state::snowbro2_68k_mem(address_map &map)
 {
 	map(0x000000, 0x07ffff).rom();
 	map(0x100000, 0x10ffff).ram();
@@ -232,7 +249,7 @@ void toaplan2_state::snowbro2_68k_mem(address_map &map)
 	map(0x700035, 0x700035).w(FUNC(toaplan2_state::coin_w));
 }
 
-void toaplan2_state::snowbro2b3_68k_mem(address_map &map)
+void snowbro2_state::snowbro2b3_68k_mem(address_map &map)
 {
 	map(0x000000, 0x07ffff).rom();
 	map(0x100000, 0x10ffff).ram();
@@ -253,11 +270,11 @@ void toaplan2_state::snowbro2b3_68k_mem(address_map &map)
 }
 
 
-void toaplan2_state::snowbro2(machine_config &config)
+void snowbro2_state::snowbro2(machine_config &config)
 {
 	/* basic machine hardware */
 	M68000(config, m_maincpu, 32_MHz_XTAL/2);
-	m_maincpu->set_addrmap(AS_PROGRAM, &toaplan2_state::snowbro2_68k_mem);
+	m_maincpu->set_addrmap(AS_PROGRAM, &snowbro2_state::snowbro2_68k_mem);
 	m_maincpu->reset_cb().set(FUNC(toaplan2_state::toaplan2_reset));
 
 	/* video hardware */
@@ -291,11 +308,11 @@ void toaplan2_state::snowbro2(machine_config &config)
 	m_oki[0]->add_route(ALL_OUTPUTS, "mono", 0.5);
 }
 
-void toaplan2_state::snowbro2b3(machine_config &config)
+void snowbro2_state::snowbro2b3(machine_config &config)
 {
 	snowbro2(config);
 
-	m_maincpu->set_addrmap(AS_PROGRAM, &toaplan2_state::snowbro2b3_68k_mem);
+	m_maincpu->set_addrmap(AS_PROGRAM, &snowbro2_state::snowbro2b3_68k_mem);
 	m_maincpu->set_vblank_int("screen", FUNC(toaplan2_state::irq2_line_hold));
 
 	m_vdp[0]->vint_out_cb().set_nop();
@@ -384,9 +401,9 @@ ROM_START( snowbro2ny ) // Nyanko
 	ROM_LOAD( "15_gal16v8-25lnc.u93", 0x22e, 0x117, NO_DUMP ) // Protected
 ROM_END
 
-GAME( 1994, snowbro2,    0,        snowbro2,   snowbro2,   toaplan2_state, empty_init,      ROT0,   "Hanafram",         "Snow Bros. 2 - With New Elves / Otenki Paradise (Hanafram)",       MACHINE_SUPPORTS_SAVE )
-GAME( 1994, snowbro2ny,  snowbro2, snowbro2,   snowbro2,   toaplan2_state, empty_init,      ROT0,   "Nyanko",           "Snow Bros. 2 - With New Elves / Otenki Paradise (Nyanko)",         MACHINE_SUPPORTS_SAVE ) // not a bootleg, has original parts (the "GP9001 L7A0498 TOA PLAN" IC and the three mask ROMs)
-GAME( 1998, snowbro2b,   snowbro2, snowbro2,   snowbro2,   toaplan2_state, empty_init,      ROT0,   "bootleg",          "Snow Bros. 2 - With New Elves / Otenki Paradise (bootleg, set 1)", MACHINE_SUPPORTS_SAVE )
-GAME( 1994, snowbro2b2,  snowbro2, snowbro2,   snowbro2,   toaplan2_state, empty_init,      ROT0,   "bootleg (Q Elec)", "Snow Bros. 2 - With New Elves / Otenki Paradise (bootleg, set 2)", MACHINE_SUPPORTS_SAVE ) // possibly not a bootleg, has some original parts
-GAME( 1994, snowbro2b3,  snowbro2, snowbro2b3, snowbro2b3, toaplan2_state, empty_init,      ROT0,   "bootleg",          "Snow Bros. 2 - With New Elves / Otenki Paradise (bootleg, set 3)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_SUPPORTS_SAVE ) // GFX offsets not 100% correct
+GAME( 1994, snowbro2,    0,        snowbro2,   snowbro2,   snowbro2_state, empty_init,      ROT0,   "Hanafram",         "Snow Bros. 2 - With New Elves / Otenki Paradise (Hanafram)",       MACHINE_SUPPORTS_SAVE )
+GAME( 1994, snowbro2ny,  snowbro2, snowbro2,   snowbro2,   snowbro2_state, empty_init,      ROT0,   "Nyanko",           "Snow Bros. 2 - With New Elves / Otenki Paradise (Nyanko)",         MACHINE_SUPPORTS_SAVE ) // not a bootleg, has original parts (the "GP9001 L7A0498 TOA PLAN" IC and the three mask ROMs)
+GAME( 1998, snowbro2b,   snowbro2, snowbro2,   snowbro2,   snowbro2_state, empty_init,      ROT0,   "bootleg",          "Snow Bros. 2 - With New Elves / Otenki Paradise (bootleg, set 1)", MACHINE_SUPPORTS_SAVE )
+GAME( 1994, snowbro2b2,  snowbro2, snowbro2,   snowbro2,   snowbro2_state, empty_init,      ROT0,   "bootleg (Q Elec)", "Snow Bros. 2 - With New Elves / Otenki Paradise (bootleg, set 2)", MACHINE_SUPPORTS_SAVE ) // possibly not a bootleg, has some original parts
+GAME( 1994, snowbro2b3,  snowbro2, snowbro2b3, snowbro2b3, snowbro2_state, empty_init,      ROT0,   "bootleg",          "Snow Bros. 2 - With New Elves / Otenki Paradise (bootleg, set 3)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_SUPPORTS_SAVE ) // GFX offsets not 100% correct
 

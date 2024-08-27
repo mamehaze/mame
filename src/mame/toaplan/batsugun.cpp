@@ -11,29 +11,58 @@
 #include "sound/ymz280b.h"
 #include "speaker.h"
 
+class batsugun_state : public toaplan2_state
+{
+public:
+	batsugun_state(const machine_config &mconfig, device_type type, const char *tag)
+		: toaplan2_state(mconfig, type, tag)
+	{ }
+
+	void batsugun(machine_config &config);
+	void batsugunbl(machine_config &config);
+
+	void init_batsugun();
+	void init_batsugunbl();
+
+protected:
+
+private:
+	void batsugun_68k_mem(address_map &map);
+	void batsugunbl_68k_mem(address_map &map);
+	void batsugun_v25_mem(address_map &map);
+	void cpu_space_batsugunbl_map(address_map &map);
+	void batsugunbl_oki_bankswitch_w(u8 data);
+	void batsugunbl_oki(address_map &map);
+
+	u32 screen_update_batsugun(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
+};
 
 constexpr unsigned toaplan2_state::T2PALETTE_LENGTH;
 
+void batsugun_state::batsugunbl_oki_bankswitch_w(u8 data)
+{
+	data &= 7;
+	if (data <= 4) m_okibank->set_entry(data);
+}
+
+void batsugun_state::batsugunbl_oki(address_map &map)
+{
+	map(0x00000, 0x2ffff).rom();
+	map(0x30000, 0x3ffff).bankr(m_okibank);
+}
 
 
 // renders to 2 bitmaps, and mixes output
-u32 toaplan2_state::screen_update_batsugun(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
+u32 batsugun_state::screen_update_batsugun(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
 {
-//  bitmap.fill(0, cliprect);
-//  gp9001_custom_priority_bitmap->fill(0, cliprect);
+	bitmap.fill(0, cliprect);
+	m_custom_priority_bitmap.fill(0, cliprect);
+	m_vdp[0]->render_vdp(bitmap, cliprect);
 
-	if (m_vdp[0])
-	{
-		bitmap.fill(0, cliprect);
-		m_custom_priority_bitmap.fill(0, cliprect);
-		m_vdp[0]->render_vdp(bitmap, cliprect);
-	}
-	if (m_vdp[1])
-	{
-		m_secondary_render_bitmap.fill(0, cliprect);
-		m_custom_priority_bitmap.fill(0, cliprect);
-		m_vdp[1]->render_vdp(m_secondary_render_bitmap, cliprect);
-	}
+	m_secondary_render_bitmap.fill(0, cliprect);
+	m_custom_priority_bitmap.fill(0, cliprect);
+	m_vdp[1]->render_vdp(m_secondary_render_bitmap, cliprect);
+	
 
 	// key test places in batsugun
 	// level 2 - the two layers of clouds (will appear under background, or over ships if wrong)
@@ -45,61 +74,39 @@ u32 toaplan2_state::screen_update_batsugun(screen_device &screen, bitmap_ind16 &
 	// when implemented based directly on the PAL equation it doesn't work, however, my own equations roughly based
 	// on that do.
 	//
-
-	if (m_vdp[0] && m_vdp[1])
+	for (int y = cliprect.min_y; y <= cliprect.max_y; y++)
 	{
-		for (int y = cliprect.min_y; y <= cliprect.max_y; y++)
+		u16 *const src_vdp0 = &bitmap.pix(y);
+		u16 const *const src_vdp1 = &m_secondary_render_bitmap.pix(y);
+
+		for (int x = cliprect.min_x; x <= cliprect.max_x; x++)
 		{
-			u16 *const src_vdp0 = &bitmap.pix(y);
-			u16 const *const src_vdp1 = &m_secondary_render_bitmap.pix(y);
+			const u16 GPU0_LUTaddr = src_vdp0[x];
+			const u16 GPU1_LUTaddr = src_vdp1[x];
 
-			for (int x = cliprect.min_x; x <= cliprect.max_x; x++)
+			const bool COMPARISON = ((GPU0_LUTaddr & 0x0780) > (GPU1_LUTaddr & 0x0780));
+
+			if (!(GPU1_LUTaddr & 0x000f))
 			{
-				const u16 GPU0_LUTaddr = src_vdp0[x];
-				const u16 GPU1_LUTaddr = src_vdp1[x];
-
-				// these equations is derived from the PAL, but doesn't seem to work?
-
-				const bool COMPARISON = ((GPU0_LUTaddr & 0x0780) > (GPU1_LUTaddr & 0x0780));
-
-				// note: GPU1_LUTaddr & 0x000f - transparency check for vdp1? (gfx are 4bpp, the low 4 bits of the lookup would be the pixel data value)
-#if 0
-				int result =
-							((GPU0_LUTaddr & 0x0008) & !COMPARISON)
-						| ((GPU0_LUTaddr & 0x0008) & !(GPU1_LUTaddr & 0x000f))
-						| ((GPU0_LUTaddr & 0x0004) & !COMPARISON)
-						| ((GPU0_LUTaddr & 0x0004) & !(GPU1_LUTaddr & 0x000f))
-						| ((GPU0_LUTaddr & 0x0002) & !COMPARISON)
-						| ((GPU0_LUTaddr & 0x0002) & !(GPU1_LUTaddr & 0x000f))
-						| ((GPU0_LUTaddr & 0x0001) & !COMPARISON)
-						| ((GPU0_LUTaddr & 0x0001) & !(GPU1_LUTaddr & 0x000f));
-
-				if (result) src_vdp0[x] = GPU0_LUTaddr;
-				else src_vdp0[x] = GPU1_LUTaddr;
-#endif
-				// this seems to work tho?
-				if (!(GPU1_LUTaddr & 0x000f))
+				src_vdp0[x] = GPU0_LUTaddr;
+			}
+			else
+			{
+				if (!(GPU0_LUTaddr & 0x000f))
 				{
-					src_vdp0[x] = GPU0_LUTaddr;
+					src_vdp0[x] = GPU1_LUTaddr; // bg pen
 				}
 				else
 				{
-					if (!(GPU0_LUTaddr & 0x000f))
+					if (COMPARISON)
 					{
-						src_vdp0[x] = GPU1_LUTaddr; // bg pen
+						src_vdp0[x] = GPU1_LUTaddr;
 					}
 					else
 					{
-						if (COMPARISON)
-						{
-							src_vdp0[x] = GPU1_LUTaddr;
-						}
-						else
-						{
-							src_vdp0[x] = GPU0_LUTaddr;
-						}
-
+						src_vdp0[x] = GPU0_LUTaddr;
 					}
+
 				}
 			}
 		}
@@ -131,16 +138,23 @@ VIDEO_START_MEMBER(toaplan2_state, batsugunbl)
 }
 
 
+void batsugun_state::batsugun_v25_mem(address_map &map)
+{
+	map(0x00000, 0x00001).rw("ymsnd", FUNC(ym2151_device::read), FUNC(ym2151_device::write));
+	map(0x00004, 0x00004).rw(m_oki[0], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
+	map(0x80000, 0x87fff).mirror(0x78000).ram().share(m_shared_ram);
+}
 
-void toaplan2_state::batsugun(machine_config &config)
+
+void batsugun_state::batsugun(machine_config &config)
 {
 	/* basic machine hardware */
 	M68000(config, m_maincpu, 32_MHz_XTAL/2);           // 16MHz, 32MHz Oscillator
-	m_maincpu->set_addrmap(AS_PROGRAM, &toaplan2_state::batsugun_68k_mem);
+	m_maincpu->set_addrmap(AS_PROGRAM, &batsugun_state::batsugun_68k_mem);
 	m_maincpu->reset_cb().set(FUNC(toaplan2_state::toaplan2_reset));
 
 	v25_device &audiocpu(V25(config, m_audiocpu, 32_MHz_XTAL/2));         // NEC V25 type Toaplan marked CPU ???
-	audiocpu.set_addrmap(AS_PROGRAM, &toaplan2_state::v25_mem);
+	audiocpu.set_addrmap(AS_PROGRAM, &batsugun_state::batsugun_v25_mem);
 	audiocpu.pt_in_cb().set_ioport("DSWA").exor(0xff);
 	audiocpu.p0_in_cb().set_ioport("DSWB").exor(0xff);
 	audiocpu.p1_in_cb().set_ioport("JMPR").exor(0xff);
@@ -153,7 +167,7 @@ void toaplan2_state::batsugun(machine_config &config)
 	//m_screen->set_refresh_hz(60);
 	//m_screen->set_size(432, 262);
 	//m_screen->set_visarea(0, 319, 0, 239);
-	m_screen->set_screen_update(FUNC(toaplan2_state::screen_update_batsugun));
+	m_screen->set_screen_update(FUNC(batsugun_state::screen_update_batsugun));
 	m_screen->screen_vblank().set(FUNC(toaplan2_state::screen_vblank));
 	m_screen->set_palette(m_palette);
 
@@ -180,12 +194,19 @@ void toaplan2_state::batsugun(machine_config &config)
 	m_oki[0]->add_route(ALL_OUTPUTS, "mono", 0.4);
 }
 
-void toaplan2_state::batsugunbl(machine_config &config)
+
+void batsugun_state::cpu_space_batsugunbl_map(address_map &map)
+{
+	map(0xfffff0, 0xffffff).m(m_maincpu, FUNC(m68000_base_device::autovectors_map));
+	map(0xfffff5, 0xfffff5).lr8(NAME([this] () { m_maincpu->set_input_line(M68K_IRQ_2, CLEAR_LINE); return m68000_device::autovector(2); }));
+}
+
+void batsugun_state::batsugunbl(machine_config &config)
 {
 	batsugun(config);
 
-	m_maincpu->set_addrmap(AS_PROGRAM, &toaplan2_state::batsugunbl_68k_mem);
-	m_maincpu->set_addrmap(m68000_base_device::AS_CPU_SPACE, &toaplan2_state::cpu_space_fixeightbl_map);
+	m_maincpu->set_addrmap(AS_PROGRAM, &batsugun_state::batsugunbl_68k_mem);
+	m_maincpu->set_addrmap(m68000_base_device::AS_CPU_SPACE, &batsugun_state::cpu_space_batsugunbl_map);
 
 	m_vdp[0]->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_2, ASSERT_LINE);
 
@@ -194,7 +215,7 @@ void toaplan2_state::batsugunbl(machine_config &config)
 	config.device_remove("audiocpu");
 	config.device_remove("ymsnd");
 
-	m_oki[0]->set_addrmap(0, &toaplan2_state::fixeightbl_oki);
+	m_oki[0]->set_addrmap(0, &batsugun_state::batsugunbl_oki);
 }
 
 static INPUT_PORTS_START( toaplan2_2b )
@@ -311,7 +332,7 @@ static INPUT_PORTS_START( batsugunbl )
 INPUT_PORTS_END
 
 
-void toaplan2_state::batsugun_68k_mem(address_map &map)
+void batsugun_state::batsugun_68k_mem(address_map &map)
 {
 	map(0x000000, 0x07ffff).rom();
 	map(0x100000, 0x10ffff).ram();
@@ -326,12 +347,12 @@ void toaplan2_state::batsugun_68k_mem(address_map &map)
 	map(0x700000, 0x700001).r(FUNC(toaplan2_state::video_count_r));
 }
 
-void toaplan2_state::batsugunbl_68k_mem(address_map &map)
+void batsugun_state::batsugunbl_68k_mem(address_map &map)
 {
 	map(0x000000, 0x07ffff).rom();
 	map(0x100000, 0x10ffff).ram();
 	// map(0x200004, 0x200005).r() // only cleared at boot?
-	map(0x200005, 0x200005).w(FUNC(toaplan2_state::fixeightbl_oki_bankswitch_w)); // TODO: doesn't sound correct
+	map(0x200005, 0x200005).w(FUNC(batsugun_state::batsugunbl_oki_bankswitch_w)); // TODO: doesn't sound correct
 	map(0x200009, 0x200009).rw(m_oki[0], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
 	map(0x200010, 0x200011).portr("IN1");
 	map(0x200014, 0x200015).portr("IN2");
@@ -497,11 +518,21 @@ ROM_START( batsugunbl )
 	ROM_LOAD( "27c040.bin", 0x00000, 0x80000, CRC(1f8ec1b6) SHA1(28107a90d29613ceddc001df2556543b33c1294c) )
 ROM_END
 
+void batsugun_state::init_batsugun()
+{
+	m_sound_reset_bit = 0x20;
+}
 
+void batsugun_state::init_batsugunbl()
+{
+	u8 *ROM = memregion("oki1")->base();
 
-GAME( 1993, batsugun,    0,        batsugun,   batsugun,   toaplan2_state, init_dogyuun,    ROT270, "Toaplan", "Batsugun", MACHINE_SUPPORTS_SAVE )
-GAME( 1993, batsuguna,   batsugun, batsugun,   batsugun,   toaplan2_state, init_dogyuun,    ROT270, "Toaplan", "Batsugun (older, set 1)", MACHINE_SUPPORTS_SAVE )
-GAME( 1993, batsugunc,   batsugun, batsugun,   batsugun,   toaplan2_state, init_dogyuun,    ROT270, "Toaplan", "Batsugun (older, set 2)", MACHINE_SUPPORTS_SAVE )
-GAME( 1993, batsugunb,   batsugun, batsugun,   batsugun,   toaplan2_state, init_dogyuun,    ROT270, "Toaplan", "Batsugun (Korean PCB)", MACHINE_SUPPORTS_SAVE ) // cheap looking PCB (same 'TP-030' numbering as original) but without Mask ROMs.  Still has original customs etc.  Jumpers were set to the Korea Unite Trading license, so likely made in Korea, not a bootleg tho.
-GAME( 1993, batsugunsp,  batsugun, batsugun,   batsugun,   toaplan2_state, init_dogyuun,    ROT270, "Toaplan", "Batsugun - Special Version", MACHINE_SUPPORTS_SAVE )
-GAME( 1993, batsugunbl,  batsugun, batsugunbl, batsugunbl, toaplan2_state, init_fixeightbl, ROT270, "Toaplan", "Batsugun (bootleg)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND | MACHINE_SUPPORTS_SAVE ) // needs correct GFX offsets and oki banking fix
+	m_okibank->configure_entries(0, 5, &ROM[0x30000], 0x10000);
+}
+
+GAME( 1993, batsugun,    0,        batsugun,   batsugun,   batsugun_state, init_batsugun,    ROT270, "Toaplan", "Batsugun", MACHINE_SUPPORTS_SAVE )
+GAME( 1993, batsuguna,   batsugun, batsugun,   batsugun,   batsugun_state, init_batsugun,    ROT270, "Toaplan", "Batsugun (older, set 1)", MACHINE_SUPPORTS_SAVE )
+GAME( 1993, batsugunc,   batsugun, batsugun,   batsugun,   batsugun_state, init_batsugun,    ROT270, "Toaplan", "Batsugun (older, set 2)", MACHINE_SUPPORTS_SAVE )
+GAME( 1993, batsugunb,   batsugun, batsugun,   batsugun,   batsugun_state, init_batsugun,    ROT270, "Toaplan", "Batsugun (Korean PCB)", MACHINE_SUPPORTS_SAVE ) // cheap looking PCB (same 'TP-030' numbering as original) but without Mask ROMs.  Still has original customs etc.  Jumpers were set to the Korea Unite Trading license, so likely made in Korea, not a bootleg tho.
+GAME( 1993, batsugunsp,  batsugun, batsugun,   batsugun,   batsugun_state, init_batsugun,    ROT270, "Toaplan", "Batsugun - Special Version", MACHINE_SUPPORTS_SAVE )
+GAME( 1993, batsugunbl,  batsugun, batsugunbl, batsugunbl, batsugun_state, init_batsugunbl,  ROT270, "Toaplan", "Batsugun (bootleg)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND | MACHINE_SUPPORTS_SAVE ) // needs correct GFX offsets and oki banking fix

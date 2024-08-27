@@ -11,6 +11,16 @@
 #include "sound/ymz280b.h"
 #include "speaker.h"
 
+class sunwise_t2_state : public toaplan2_state
+{
+public:
+	sunwise_t2_state(const machine_config &mconfig, device_type type, const char *tag)
+		: toaplan2_state(mconfig, type, tag)
+	{ }
+protected:
+private:
+};
+
 
 constexpr unsigned toaplan2_state::T2PALETTE_LENGTH;
 
