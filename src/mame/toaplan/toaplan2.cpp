@@ -468,30 +468,9 @@ void toaplan2_state::coin_w(u8 data)
 	}
 }
 
-void toaplan2_state::coin_sound_reset_w(u8 data)
-{
-	logerror("coin_sound_reset_w %02x\n",data);
-
-	coin_w(data & ~m_sound_reset_bit);
-	sound_reset_w(data & m_sound_reset_bit);
-}
-
-u8 toaplan2_state::shared_ram_r(offs_t offset)
-{
-	return m_shared_ram[offset];
-}
-
-void toaplan2_state::shared_ram_w(offs_t offset, u8 data)
-{
-	m_shared_ram[offset] = data;
-}
 
 
 
-void toaplan2_state::sound_reset_w(u8 data)
-{
-	m_audiocpu->set_input_line(INPUT_LINE_RESET, (data & m_sound_reset_bit) ? CLEAR_LINE : ASSERT_LINE);
-}
 
 
 

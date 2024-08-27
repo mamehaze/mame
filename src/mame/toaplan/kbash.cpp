@@ -28,12 +28,18 @@ private:
 	void kbash2_68k_mem(address_map &map);
 	void kbash_68k_mem(address_map &map);
 	void kbash_v25_mem(address_map &map);
+
+	template<int Chip> void oki_bankswitch_w(u8 data);
+
+	u8 shared_ram_r(offs_t offset) { return m_shared_ram[offset]; }
+	void shared_ram_w(offs_t offset, u8 data) { m_shared_ram[offset] = data; }
+
 };
 
 constexpr unsigned toaplan2_state::T2PALETTE_LENGTH;
 
 template<int Chip>
-void toaplan2_state::oki_bankswitch_w(u8 data)
+void kbash_state::oki_bankswitch_w(u8 data)
 {
 	m_oki[Chip]->set_rom_bank(data & 1);
 }
@@ -44,7 +50,7 @@ void kbash_state::kbash_68k_mem(address_map &map)
 {
 	map(0x000000, 0x07ffff).rom();
 	map(0x100000, 0x103fff).ram();
-	map(0x200000, 0x200fff).rw(FUNC(toaplan2_state::shared_ram_r), FUNC(toaplan2_state::shared_ram_w)).umask16(0x00ff);
+	map(0x200000, 0x200fff).rw(FUNC(kbash_state::shared_ram_r), FUNC(kbash_state::shared_ram_w)).umask16(0x00ff);
 	map(0x208010, 0x208011).portr("IN1");
 	map(0x208014, 0x208015).portr("IN2");
 	map(0x208018, 0x208019).portr("SYS");
@@ -70,7 +76,7 @@ void kbash_state::kbash2_68k_mem(address_map &map)
 	map(0x200018, 0x200019).portr("SYS");
 	map(0x200021, 0x200021).rw(m_oki[1], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
 	map(0x200025, 0x200025).rw(m_oki[0], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
-	map(0x200029, 0x200029).w(FUNC(toaplan2_state::oki_bankswitch_w<0>));
+	map(0x200029, 0x200029).w(FUNC(kbash_state::oki_bankswitch_w<0>));
 	map(0x20002c, 0x20002d).r(FUNC(toaplan2_state::video_count_r));
 	map(0x300000, 0x30000d).rw(m_vdp[0], FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
 	map(0x400000, 0x400fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");

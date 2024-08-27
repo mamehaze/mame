@@ -41,6 +41,9 @@ private:
 
 	void ghox_68k_mem(address_map &map);
 	void ghox_hd647180_mem_map(address_map &map);
+
+	u8 shared_ram_r(offs_t offset) { return m_shared_ram[offset]; }
+	void shared_ram_w(offs_t offset, u8 data) { m_shared_ram[offset] = data; }
 };
 
 

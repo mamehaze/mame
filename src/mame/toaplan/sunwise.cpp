@@ -11,18 +11,10 @@
 #include "sound/ymz280b.h"
 #include "speaker.h"
 
-class sunwise_t2_state : public toaplan2_state
-{
-public:
-	sunwise_t2_state(const machine_config &mconfig, device_type type, const char *tag)
-		: toaplan2_state(mconfig, type, tag)
-	{ }
-protected:
-private:
-};
-
 
 constexpr unsigned toaplan2_state::T2PALETTE_LENGTH;
+
+
 
 
 #define PWRKICK_HOPPER_PULSE    50          // time between hopper pulses in milliseconds (probably wrong)
@@ -50,7 +42,15 @@ private:
 
 	void othldrby_68k_mem(address_map &map);
 	void pwrkick_68k_mem(address_map &map);
+
+	template<int Chip> void oki_bankswitch_w(u8 data);
 };
+
+template<int Chip>
+void pwrkick_state::oki_bankswitch_w(u8 data)
+{
+	m_oki[Chip]->set_rom_bank(data & 1);
+}
 
 
 static INPUT_PORTS_START( toaplan2_2b )

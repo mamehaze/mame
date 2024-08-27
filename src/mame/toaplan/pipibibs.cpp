@@ -21,6 +21,8 @@ public:
 	void pipibibs(machine_config &config);
 	void pipibibsbl(machine_config &config);
 
+	void init_pipibibsbl();
+
 protected:
 private:
 
@@ -29,6 +31,9 @@ private:
 	void pipibibs_sound_z80_mem(address_map &map);
 	void cpu_space_pipibibsbl_map(address_map &map);
 
+	u8 shared_ram_r(offs_t offset) { return m_shared_ram[offset]; }
+	void shared_ram_w(offs_t offset, u8 data) { m_shared_ram[offset] = data; }
+
 };
 
 
@@ -36,7 +41,7 @@ private:
 constexpr unsigned toaplan2_state::T2PALETTE_LENGTH;
 
 
-void toaplan2_state::init_pipibibsbl()
+void pipibibs_state::init_pipibibsbl()
 {
 	u16 *ROM = (u16 *)(memregion("maincpu")->base());
 
@@ -55,7 +60,7 @@ void pipibibs_state::pipibibs_68k_mem(address_map &map)
 	map(0x080000, 0x082fff).ram();
 	map(0x0c0000, 0x0c0fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
 	map(0x140000, 0x14000d).rw(m_vdp[0], FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
-	map(0x190000, 0x190fff).rw(FUNC(toaplan2_state::shared_ram_r), FUNC(toaplan2_state::shared_ram_w)).umask16(0x00ff);
+	map(0x190000, 0x190fff).rw(FUNC(pipibibs_state::shared_ram_r), FUNC(pipibibs_state::shared_ram_w)).umask16(0x00ff);
 	map(0x19c01d, 0x19c01d).w(FUNC(toaplan2_state::coin_w));
 	map(0x19c020, 0x19c021).portr("DSWA");
 	map(0x19c024, 0x19c025).portr("DSWB");
@@ -77,8 +82,8 @@ void pipibibs_state::pipibibi_bootleg_68k_mem(address_map &map)
 //  map(0x13f000, 0x13f001).nopw();        // ???
 	map(0x180000, 0x182fff).rw(m_vdp[0], FUNC(gp9001vdp_device::bootleg_videoram16_r), FUNC(gp9001vdp_device::bootleg_videoram16_w)); // TileRAM
 	map(0x188000, 0x18800f).w(m_vdp[0], FUNC(gp9001vdp_device::bootleg_scroll_w));
-	map(0x190003, 0x190003).r(FUNC(toaplan2_state::shared_ram_r));  // Z80 ready ?
-	map(0x190011, 0x190011).w(FUNC(toaplan2_state::shared_ram_w)); // Z80 task to perform
+	map(0x190003, 0x190003).r(FUNC(pipibibs_state::shared_ram_r));  // Z80 ready ?
+	map(0x190011, 0x190011).w(FUNC(pipibibs_state::shared_ram_w)); // Z80 task to perform
 	map(0x19c01d, 0x19c01d).w(FUNC(toaplan2_state::coin_w));
 	map(0x19c020, 0x19c021).portr("DSWA");
 	map(0x19c024, 0x19c025).portr("DSWB");

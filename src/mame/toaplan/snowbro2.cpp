@@ -27,11 +27,18 @@ private:
 	void snowbro2_68k_mem(address_map &map);
 	void snowbro2b3_68k_mem(address_map &map);
 
+	template<int Chip> void oki_bankswitch_w(u8 data);
+
 };
 
 
 constexpr unsigned toaplan2_state::T2PALETTE_LENGTH;
 
+template<int Chip>
+void snowbro2_state::oki_bankswitch_w(u8 data)
+{
+	m_oki[Chip]->set_rom_bank(data & 1);
+}
 
 
 
@@ -245,7 +252,7 @@ void snowbro2_state::snowbro2_68k_mem(address_map &map)
 	map(0x700014, 0x700015).portr("IN3");
 	map(0x700018, 0x700019).portr("IN4");
 	map(0x70001c, 0x70001d).portr("SYS");
-	map(0x700031, 0x700031).w(FUNC(toaplan2_state::oki_bankswitch_w<0>));
+	map(0x700031, 0x700031).w(FUNC(snowbro2_state::oki_bankswitch_w<0>));
 	map(0x700035, 0x700035).w(FUNC(toaplan2_state::coin_w));
 }
 
@@ -263,7 +270,7 @@ void snowbro2_state::snowbro2b3_68k_mem(address_map &map)
 	map(0x700014, 0x700015).portr("IN3");
 	map(0x700018, 0x700019).portr("IN4");
 	map(0x700035, 0x700035).w(FUNC(toaplan2_state::coin_w));
-	map(0x700041, 0x700041).w(FUNC(toaplan2_state::oki_bankswitch_w<0>));
+	map(0x700041, 0x700041).w(FUNC(snowbro2_state::oki_bankswitch_w<0>));
 	map(0xff0000, 0xff2fff).rw(m_vdp[0], FUNC(gp9001vdp_device::bootleg_videoram16_r), FUNC(gp9001vdp_device::bootleg_videoram16_w));
 	map(0xff3000, 0xff37ff).rw(m_vdp[0], FUNC(gp9001vdp_device::bootleg_spriteram16_r), FUNC(gp9001vdp_device::bootleg_spriteram16_w));
 	map(0xff8000, 0xff800f).w(m_vdp[0], FUNC(gp9001vdp_device::bootleg_scroll_w));

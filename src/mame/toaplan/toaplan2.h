@@ -45,7 +45,6 @@ public:
 	{ }
 
 
-	void init_pipibibsbl();
 
 
 	// We encode priority with colour in the tilemaps, so need a larger palette
@@ -75,13 +74,9 @@ public:
 
 	u16 video_count_r();
 	void coin_w(u8 data);
-	void coin_sound_reset_w(u8 data);
-	u8 shared_ram_r(offs_t offset);
-	void shared_ram_w(offs_t offset, u8 data);
-	void sound_reset_w(u8 data);
+	
 	
 
-	template<int Chip> void oki_bankswitch_w(u8 data);
 
 	DECLARE_VIDEO_START(toaplan2);
 	DECLARE_VIDEO_START(batsugunbl);

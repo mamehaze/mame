@@ -27,6 +27,11 @@ private:
 	void vfive_68k_mem(address_map &map);
 	void vfive_v25_mem(address_map &map);
 
+	void sound_reset_w(u8 data);
+	void coin_sound_reset_w(u8 data);
+
+	u8 shared_ram_r(offs_t offset) { return m_shared_ram[offset]; }
+	void shared_ram_w(offs_t offset, u8 data) { m_shared_ram[offset] = data; }
 };
 
 constexpr unsigned toaplan2_state::T2PALETTE_LENGTH;
@@ -163,7 +168,18 @@ static INPUT_PORTS_START( vfive )
 	PORT_CONFSETTING(       0x0080, DEF_STR( On ) )
 INPUT_PORTS_END
 
+void grindstm_state::sound_reset_w(u8 data)
+{
+	m_audiocpu->set_input_line(INPUT_LINE_RESET, (data & m_sound_reset_bit) ? CLEAR_LINE : ASSERT_LINE);
+}
 
+void grindstm_state::coin_sound_reset_w(u8 data)
+{
+	logerror("coin_sound_reset_w %02x\n",data);
+
+	coin_w(data & ~m_sound_reset_bit);
+	sound_reset_w(data & m_sound_reset_bit);
+}
 
 void grindstm_state::vfive_68k_mem(address_map &map)
 {
@@ -173,8 +189,8 @@ void grindstm_state::vfive_68k_mem(address_map &map)
 	map(0x200010, 0x200011).portr("IN1");
 	map(0x200014, 0x200015).portr("IN2");
 	map(0x200018, 0x200019).portr("SYS");
-	map(0x20001d, 0x20001d).w(FUNC(toaplan2_state::coin_sound_reset_w)); // Coin count/lock + v25 reset line
-	map(0x210000, 0x21ffff).rw(FUNC(toaplan2_state::shared_ram_r), FUNC(toaplan2_state::shared_ram_w)).umask16(0x00ff);
+	map(0x20001d, 0x20001d).w(FUNC(grindstm_state::coin_sound_reset_w)); // Coin count/lock + v25 reset line
+	map(0x210000, 0x21ffff).rw(FUNC(grindstm_state::shared_ram_r), FUNC(grindstm_state::shared_ram_w)).umask16(0x00ff);
 	map(0x300000, 0x30000d).rw(m_vdp[0], FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
 	map(0x400000, 0x400fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
 	map(0x700000, 0x700001).r(FUNC(toaplan2_state::video_count_r));

@@ -139,6 +139,11 @@ private:
 	void fixeightbl_oki_bankswitch_w(u8 data);
 	void fixeightbl_oki(address_map &map);
 
+	void sound_reset_w(u8 data);
+
+	u8 shared_ram_r(offs_t offset) { return m_shared_ram[offset]; }
+	void shared_ram_w(offs_t offset, u8 data) { m_shared_ram[offset] = data; }
+
 };
 
 
@@ -565,6 +570,11 @@ void truxton2_state::truxton2_68k_mem(address_map &map)
 	map(0x70001f, 0x70001f).w(FUNC(truxton2_state::coin_w));
 }
 
+
+void truxton2_state::sound_reset_w(u8 data)
+{
+	m_audiocpu->set_input_line(INPUT_LINE_RESET, (data & m_sound_reset_bit) ? CLEAR_LINE : ASSERT_LINE);
+}
 
 void truxton2_state::fixeight_68k_mem(address_map &map)
 {
