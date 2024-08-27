@@ -92,18 +92,10 @@ VIDEO_START_MEMBER(dogyuun_state,toaplan2)
 {
 	/* our current VDP implementation needs this bitmap to work with */
 	m_screen->register_screen_bitmap(m_custom_priority_bitmap);
-
-	if (m_vdp[0] != nullptr)
-	{
-		m_secondary_render_bitmap.reset();
-		m_vdp[0]->custom_priority_bitmap = &m_custom_priority_bitmap;
-	}
-
-	if (m_vdp[1] != nullptr)
-	{
-		m_screen->register_screen_bitmap(m_secondary_render_bitmap);
-		m_vdp[1]->custom_priority_bitmap = &m_custom_priority_bitmap;
-	}
+	m_secondary_render_bitmap.reset();
+	m_vdp[0]->custom_priority_bitmap = &m_custom_priority_bitmap;
+	m_screen->register_screen_bitmap(m_secondary_render_bitmap);
+	m_vdp[1]->custom_priority_bitmap = &m_custom_priority_bitmap;
 }
 
 
@@ -112,8 +104,8 @@ void dogyuun_state::screen_vblank(int state)
 	// rising edge
 	if (state)
 	{
-		if (m_vdp[0]) m_vdp[0]->screen_eof();
-		if (m_vdp[1]) m_vdp[1]->screen_eof();
+		m_vdp[0]->screen_eof();
+		m_vdp[1]->screen_eof();
 	}
 }
 
@@ -121,19 +113,12 @@ void dogyuun_state::screen_vblank(int state)
 u32 dogyuun_state::screen_update_dogyuun(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
 {
 	bitmap.fill(0, cliprect);
-
 	m_custom_priority_bitmap.fill(0, cliprect);
 	m_vdp[1]->render_vdp(bitmap, cliprect);
-
 	m_custom_priority_bitmap.fill(0, cliprect);
 	m_vdp[0]->render_vdp(bitmap, cliprect);
-	
-
 	return 0;
 }
-
-
-
 
 static INPUT_PORTS_START( toaplan2_2b )
 	PORT_START("IN1")

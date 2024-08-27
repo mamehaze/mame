@@ -91,18 +91,10 @@ VIDEO_START_MEMBER(batsugun_state,toaplan2)
 {
 	/* our current VDP implementation needs this bitmap to work with */
 	m_screen->register_screen_bitmap(m_custom_priority_bitmap);
-
-	if (m_vdp[0] != nullptr)
-	{
-		m_secondary_render_bitmap.reset();
-		m_vdp[0]->custom_priority_bitmap = &m_custom_priority_bitmap;
-	}
-
-	if (m_vdp[1] != nullptr)
-	{
-		m_screen->register_screen_bitmap(m_secondary_render_bitmap);
-		m_vdp[1]->custom_priority_bitmap = &m_custom_priority_bitmap;
-	}
+	m_secondary_render_bitmap.reset();
+	m_vdp[0]->custom_priority_bitmap = &m_custom_priority_bitmap;
+	m_screen->register_screen_bitmap(m_secondary_render_bitmap);
+	m_vdp[1]->custom_priority_bitmap = &m_custom_priority_bitmap;
 }
 
 void batsugun_state::screen_vblank(int state)
@@ -110,8 +102,8 @@ void batsugun_state::screen_vblank(int state)
 	// rising edge
 	if (state)
 	{
-		if (m_vdp[0]) m_vdp[0]->screen_eof();
-		if (m_vdp[1]) m_vdp[1]->screen_eof();
+		m_vdp[0]->screen_eof();
+		m_vdp[1]->screen_eof();
 	}
 }
 
@@ -192,9 +184,6 @@ u32 batsugun_state::screen_update_batsugun(screen_device &screen, bitmap_ind16 &
 
 	return 0;
 }
-
-
-
 
 VIDEO_START_MEMBER(batsugun_state, batsugunbl)
 {
