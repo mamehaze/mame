@@ -30,6 +30,10 @@ public:
 
 protected:
 private:
+
+	void bgaregga_68k_mem(address_map &map);
+	void bgaregga_sound_z80_mem(address_map &map);
+
 };
 
 // similar as NMK112, but GAL-driven; NOT actual NMK112 is present
@@ -46,6 +50,43 @@ void bgaregga_state::raizing_oki(address_map &map)
 	map(0x30000, 0x3ffff).bankr(m_raizing_okibank[Chip][7]);
 }
 
+void bgaregga_state::bgaregga_68k_mem(address_map &map)
+{
+	map(0x000000, 0x0fffff).rom();
+	map(0x100000, 0x10ffff).ram();
+	map(0x218000, 0x21bfff).rw(FUNC(truxton2_state::shared_ram_r), FUNC(truxton2_state::shared_ram_w)).umask16(0x00ff);
+	map(0x21c01d, 0x21c01d).w(FUNC(truxton2_state::coin_w));
+	map(0x21c020, 0x21c021).portr("IN1");
+	map(0x21c024, 0x21c025).portr("IN2");
+	map(0x21c028, 0x21c029).portr("SYS");
+	map(0x21c02c, 0x21c02d).portr("DSWA");
+	map(0x21c030, 0x21c031).portr("DSWB");
+	map(0x21c034, 0x21c035).portr("JMPR");
+	map(0x21c03c, 0x21c03d).r(FUNC(truxton2_state::video_count_r));
+	map(0x300000, 0x30000d).rw(m_vdp, FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
+	map(0x400000, 0x400fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
+	map(0x500000, 0x501fff).ram().w(FUNC(truxton2_state::tx_videoram_w)).share(m_tx_videoram);
+	map(0x502000, 0x502fff).ram().share(m_tx_lineselect);
+	map(0x503000, 0x5031ff).ram().w(FUNC(truxton2_state::tx_linescroll_w)).share(m_tx_linescroll);
+	map(0x503200, 0x503fff).ram();
+	map(0x600001, 0x600001).w(m_soundlatch[0], FUNC(generic_latch_8_device::write));
+}
+
+void bgaregga_state::bgaregga_sound_z80_mem(address_map &map)
+{
+	map(0x0000, 0x7fff).rom();
+	map(0x8000, 0xbfff).bankr(m_audiobank);
+	map(0xc000, 0xdfff).ram().share(m_shared_ram);
+	map(0xe000, 0xe001).rw("ymsnd", FUNC(ym2151_device::read), FUNC(ym2151_device::write));
+	map(0xe004, 0xe004).rw(m_oki[0], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
+	map(0xe006, 0xe008).w(FUNC(truxton2_state::raizing_oki_bankswitch_w));
+	map(0xe00a, 0xe00a).w(FUNC(truxton2_state::raizing_z80_bankswitch_w));
+	map(0xe00c, 0xe00c).w(m_soundlatch[0], FUNC(generic_latch_8_device::acknowledge_w));
+	map(0xe01c, 0xe01c).r(m_soundlatch[0], FUNC(generic_latch_8_device::read));
+	map(0xe01d, 0xe01d).r(FUNC(truxton2_state::bgaregga_E01D_r));
+}
+
+
 static GFXDECODE_START( gfx_textrom )
 	GFXDECODE_ENTRY( "text", 0, gfx_8x8x4_packed_msb, 64*16, 64 )
 GFXDECODE_END
@@ -55,11 +96,11 @@ void bgaregga_state::bgaregga(machine_config &config)
 {
 	/* basic machine hardware */
 	M68000(config, m_maincpu, 32_MHz_XTAL/2);   // 16MHz, 32MHz Oscillator
-	m_maincpu->set_addrmap(AS_PROGRAM, &truxton2_state::bgaregga_68k_mem);
+	m_maincpu->set_addrmap(AS_PROGRAM, &bgaregga_state::bgaregga_68k_mem);
 	m_maincpu->reset_cb().set(FUNC(truxton2_state::toaplan2_reset));
 
 	Z80(config, m_audiocpu, 32_MHz_XTAL/8);     // 4MHz, 32MHz Oscillator
-	m_audiocpu->set_addrmap(AS_PROGRAM, &truxton2_state::bgaregga_sound_z80_mem);
+	m_audiocpu->set_addrmap(AS_PROGRAM, &bgaregga_state::bgaregga_sound_z80_mem);
 
 	config.set_maximum_quantum(attotime::from_hz(6000));
 

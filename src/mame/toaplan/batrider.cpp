@@ -31,6 +31,11 @@ public:
 
 protected:
 private:
+
+	void batrider_68k_mem(address_map &map);
+	void batrider_sound_z80_mem(address_map &map);
+	void batrider_sound_z80_port(address_map &map);
+
 };
 
 
@@ -179,6 +184,60 @@ void batrider_state::raizing_oki(address_map &map)
 
 
 
+void batrider_state::batrider_68k_mem(address_map &map)
+{
+	map(0x000000, 0x1fffff).rom();
+	// actually 200000 - 20ffff is probably all main RAM, and the text and palette RAM are written via DMA
+	map(0x200000, 0x207fff).ram().share(m_mainram);
+	map(0x208000, 0x20ffff).ram();
+	map(0x300000, 0x37ffff).r(FUNC(truxton2_state::batrider_z80rom_r));
+	map(0x400000, 0x40000d).lrw16(
+							NAME([this](offs_t offset, u16 mem_mask) { return m_vdp->read(offset ^ (0xc/2), mem_mask); }),
+							NAME([this](offs_t offset, u16 data, u16 mem_mask) { m_vdp->write(offset ^ (0xc/2), data, mem_mask); }));
+	map(0x500000, 0x500001).portr("IN");
+	map(0x500002, 0x500003).portr("SYS-DSW");
+	map(0x500004, 0x500005).portr("DSW");
+	map(0x500006, 0x500007).r(FUNC(truxton2_state::video_count_r));
+	map(0x500009, 0x500009).r(m_soundlatch[2], FUNC(generic_latch_8_device::read));
+	map(0x50000b, 0x50000b).r(m_soundlatch[3], FUNC(generic_latch_8_device::read));
+	map(0x50000c, 0x50000d).r(FUNC(truxton2_state::batrider_z80_busack_r));
+	map(0x500011, 0x500011).w(FUNC(truxton2_state::coin_w));
+	map(0x500021, 0x500021).w(FUNC(truxton2_state::batrider_soundlatch_w));
+	map(0x500023, 0x500023).w(FUNC(truxton2_state::batrider_soundlatch2_w));
+	map(0x500024, 0x500025).w(FUNC(truxton2_state::batrider_unknown_sound_w));
+	map(0x500026, 0x500027).w(FUNC(truxton2_state::batrider_clear_sndirq_w));
+	map(0x500061, 0x500061).w(FUNC(truxton2_state::batrider_z80_busreq_w));
+	map(0x500080, 0x500081).w(FUNC(truxton2_state::batrider_textdata_dma_w));
+	map(0x500082, 0x500083).w(FUNC(truxton2_state::batrider_pal_text_dma_w));
+	map(0x5000c0, 0x5000cf).w(FUNC(truxton2_state::batrider_objectbank_w)).umask16(0x00ff);
+}
+
+
+void batrider_state::batrider_sound_z80_mem(address_map &map)
+{
+	map(0x0000, 0x7fff).rom();
+	map(0x8000, 0xbfff).bankr(m_audiobank);
+	map(0xc000, 0xdfff).ram();
+}
+
+
+void batrider_state::batrider_sound_z80_port(address_map &map)
+{
+	map.global_mask(0xff);
+	map(0x40, 0x40).w(m_soundlatch[2], FUNC(generic_latch_8_device::write));
+	map(0x42, 0x42).w(m_soundlatch[3], FUNC(generic_latch_8_device::write));
+	map(0x44, 0x44).w(FUNC(truxton2_state::batrider_sndirq_w));
+	map(0x46, 0x46).w(FUNC(truxton2_state::batrider_clear_nmi_w));
+	map(0x48, 0x48).r(m_soundlatch[0], FUNC(generic_latch_8_device::read));
+	map(0x4a, 0x4a).r(m_soundlatch[1], FUNC(generic_latch_8_device::read));
+	map(0x80, 0x81).rw("ymsnd", FUNC(ym2151_device::read), FUNC(ym2151_device::write));
+	map(0x82, 0x82).rw(m_oki[0], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
+	map(0x84, 0x84).rw(m_oki[1], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
+	map(0x88, 0x88).w(FUNC(truxton2_state::raizing_z80_bankswitch_w));
+	map(0xc0, 0xc6).w(FUNC(truxton2_state::raizing_oki_bankswitch_w));
+}
+
+
 void batrider_state::init_batrider()
 {
 	u8 *Z80 = memregion("audiocpu")->base();
@@ -212,12 +271,12 @@ void batrider_state::batrider(machine_config &config)
 {
 	/* basic machine hardware */
 	M68000(config, m_maincpu, 32_MHz_XTAL/2);   // 16MHz, 32MHz Oscillator (verified)
-	m_maincpu->set_addrmap(AS_PROGRAM, &truxton2_state::batrider_68k_mem);
+	m_maincpu->set_addrmap(AS_PROGRAM, &batrider_state::batrider_68k_mem);
 	m_maincpu->reset_cb().set(FUNC(truxton2_state::toaplan2_reset));
 
 	Z80(config, m_audiocpu, 32_MHz_XTAL/6);     // 5.333MHz, 32MHz Oscillator (verified)
-	m_audiocpu->set_addrmap(AS_PROGRAM, &truxton2_state::batrider_sound_z80_mem);
-	m_audiocpu->set_addrmap(AS_IO, &truxton2_state::batrider_sound_z80_port);
+	m_audiocpu->set_addrmap(AS_PROGRAM, &batrider_state::batrider_sound_z80_mem);
+	m_audiocpu->set_addrmap(AS_IO, &batrider_state::batrider_sound_z80_port);
 
 	config.set_maximum_quantum(attotime::from_hz(600));
 

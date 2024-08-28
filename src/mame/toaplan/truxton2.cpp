@@ -474,53 +474,11 @@ INTERRUPT_GEN_MEMBER(truxton2_state::bbakraid_snd_interrupt)
 }
 
 
-void truxton2_state::truxton2_68k_mem(address_map &map)
-{
-	map(0x000000, 0x07ffff).rom();
-	map(0x100000, 0x10ffff).ram();
-	map(0x200000, 0x20000d).rw(m_vdp, FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
-	map(0x300000, 0x300fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
-	map(0x400000, 0x401fff).ram().w(FUNC(truxton2_state::tx_videoram_w)).share(m_tx_videoram);
-	map(0x402000, 0x402fff).ram().share(m_tx_lineselect);
-	map(0x403000, 0x4031ff).ram().w(FUNC(truxton2_state::tx_linescroll_w)).share(m_tx_linescroll);
-	map(0x403200, 0x403fff).ram();
-	map(0x500000, 0x50ffff).ram().w(FUNC(truxton2_state::tx_gfxram_w)).share(m_tx_gfxram);
-	map(0x600000, 0x600001).r(FUNC(truxton2_state::video_count_r));
-	map(0x700000, 0x700001).portr("DSWA");
-	map(0x700002, 0x700003).portr("DSWB");
-	map(0x700004, 0x700005).portr("JMPR");
-	map(0x700006, 0x700007).portr("IN1");
-	map(0x700008, 0x700009).portr("IN2");
-	map(0x70000a, 0x70000b).portr("SYS");
-	map(0x700011, 0x700011).rw(m_oki[0], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
-	map(0x700014, 0x700017).rw("ymsnd", FUNC(ym2151_device::read), FUNC(ym2151_device::write)).umask16(0x00ff);
-	map(0x70001f, 0x70001f).w(FUNC(truxton2_state::coin_w));
-}
 
 
 void truxton2_state::sound_reset_w(u8 data)
 {
 	m_audiocpu->set_input_line(INPUT_LINE_RESET, (data & m_sound_reset_bit) ? CLEAR_LINE : ASSERT_LINE);
-}
-
-void truxton2_state::fixeight_68k_mem(address_map &map)
-{
-	map(0x000000, 0x07ffff).rom();
-	map(0x100000, 0x103fff).ram();
-	map(0x200000, 0x200001).portr("IN1");
-	map(0x200004, 0x200005).portr("IN2");
-	map(0x200008, 0x200009).portr("IN3");
-	map(0x200010, 0x200011).portr("SYS");
-	map(0x20001d, 0x20001d).w(FUNC(truxton2_state::coin_w));
-	map(0x280000, 0x28ffff).rw(FUNC(truxton2_state::shared_ram_r), FUNC(truxton2_state::shared_ram_w)).umask16(0x00ff);
-	map(0x300000, 0x30000d).rw(m_vdp, FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
-	map(0x400000, 0x400fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
-	map(0x500000, 0x501fff).ram().w(FUNC(truxton2_state::tx_videoram_w)).share(m_tx_videoram);
-	map(0x502000, 0x5021ff).ram().share(m_tx_lineselect);
-	map(0x503000, 0x5031ff).ram().w(FUNC(truxton2_state::tx_linescroll_w)).share(m_tx_linescroll);
-	map(0x600000, 0x60ffff).ram().w(FUNC(truxton2_state::tx_gfxram_w)).share(m_tx_gfxram);
-	map(0x700000, 0x700001).w(FUNC(truxton2_state::sound_reset_w)).umask16(0x00ff).cswidth(16);
-	map(0x800000, 0x800001).r(FUNC(truxton2_state::video_count_r));
 }
 
 
@@ -536,94 +494,8 @@ void truxton2_state::fixeightbl_oki(address_map &map)
 	map(0x30000, 0x3ffff).bankr(m_okibank);
 }
 
-void truxton2_state::fixeightbl_68k_mem(address_map &map)
-{
-	map(0x000000, 0x0fffff).rom();     // 0-7ffff ?
-	map(0x100000, 0x10ffff).ram();     // 100000-107fff  105000-105xxx  106000-106xxx  108000 - related to sound ?
-	map(0x200000, 0x200001).portr("IN1");
-	map(0x200004, 0x200005).portr("IN2");
-	map(0x200008, 0x200009).portr("IN3");
-	map(0x20000c, 0x20000d).portr("DSWB");
-	map(0x200010, 0x200011).portr("SYS");
-	map(0x200015, 0x200015).w(FUNC(truxton2_state::fixeightbl_oki_bankswitch_w));  // Sound banking. Code at $4084c, $5070
-	map(0x200019, 0x200019).rw(m_oki[0], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
-	map(0x20001c, 0x20001d).portr("DSWA");
-	map(0x300000, 0x30000d).rw(m_vdp, FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
-	map(0x400000, 0x400fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
-	map(0x500000, 0x501fff).ram().w(FUNC(truxton2_state::tx_videoram_w)).share(m_tx_videoram);
-	map(0x700000, 0x700001).r(FUNC(truxton2_state::video_count_r));
-	map(0x800000, 0x87ffff).rom().region("maincpu", 0x80000);
-}
 
 
-void truxton2_state::mahoudai_68k_mem(address_map &map)
-{
-	map(0x000000, 0x07ffff).rom();
-	map(0x100000, 0x10ffff).ram();
-	map(0x218000, 0x21bfff).rw(FUNC(truxton2_state::shared_ram_r), FUNC(truxton2_state::shared_ram_w)).umask16(0x00ff);
-	map(0x21c01d, 0x21c01d).w(FUNC(truxton2_state::coin_w));
-	map(0x21c020, 0x21c021).portr("IN1");
-	map(0x21c024, 0x21c025).portr("IN2");
-	map(0x21c028, 0x21c029).portr("SYS");
-	map(0x21c02c, 0x21c02d).portr("DSWA");
-	map(0x21c030, 0x21c031).portr("DSWB");
-	map(0x21c034, 0x21c035).portr("JMPR");
-	map(0x21c03c, 0x21c03d).r(FUNC(truxton2_state::video_count_r));
-	map(0x300000, 0x30000d).rw(m_vdp, FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
-	map(0x400000, 0x400fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
-	map(0x401000, 0x4017ff).ram();                         // Unused palette RAM
-	map(0x500000, 0x501fff).ram().w(FUNC(truxton2_state::tx_videoram_w)).share(m_tx_videoram);
-	map(0x502000, 0x502fff).ram().share(m_tx_lineselect);
-	map(0x503000, 0x5031ff).ram().w(FUNC(truxton2_state::tx_linescroll_w)).share(m_tx_linescroll);
-	map(0x503200, 0x503fff).ram();
-}
-
-
-void truxton2_state::shippumd_68k_mem(address_map &map)
-{
-	map(0x000000, 0x0fffff).rom();
-	map(0x100000, 0x10ffff).ram();
-	map(0x218000, 0x21bfff).rw(FUNC(truxton2_state::shared_ram_r), FUNC(truxton2_state::shared_ram_w)).umask16(0x00ff);
-//  map(0x21c008, 0x21c009).nopw();                    // ???
-	map(0x21c01d, 0x21c01d).w(FUNC(truxton2_state::shippumd_coin_w)); // Coin count/lock + oki bankswitch
-	map(0x21c020, 0x21c021).portr("IN1");
-	map(0x21c024, 0x21c025).portr("IN2");
-	map(0x21c028, 0x21c029).portr("SYS");
-	map(0x21c02c, 0x21c02d).portr("DSWA");
-	map(0x21c030, 0x21c031).portr("DSWB");
-	map(0x21c034, 0x21c035).portr("JMPR");
-	map(0x21c03c, 0x21c03d).r(FUNC(truxton2_state::video_count_r));
-	map(0x300000, 0x30000d).rw(m_vdp, FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
-	map(0x400000, 0x400fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
-	map(0x401000, 0x4017ff).ram();                         // Unused palette RAM
-	map(0x500000, 0x501fff).ram().w(FUNC(truxton2_state::tx_videoram_w)).share(m_tx_videoram);
-	map(0x502000, 0x502fff).ram().share(m_tx_lineselect);
-	map(0x503000, 0x5031ff).ram().w(FUNC(truxton2_state::tx_linescroll_w)).share(m_tx_linescroll);
-	map(0x503200, 0x503fff).ram();
-}
-
-
-void truxton2_state::bgaregga_68k_mem(address_map &map)
-{
-	map(0x000000, 0x0fffff).rom();
-	map(0x100000, 0x10ffff).ram();
-	map(0x218000, 0x21bfff).rw(FUNC(truxton2_state::shared_ram_r), FUNC(truxton2_state::shared_ram_w)).umask16(0x00ff);
-	map(0x21c01d, 0x21c01d).w(FUNC(truxton2_state::coin_w));
-	map(0x21c020, 0x21c021).portr("IN1");
-	map(0x21c024, 0x21c025).portr("IN2");
-	map(0x21c028, 0x21c029).portr("SYS");
-	map(0x21c02c, 0x21c02d).portr("DSWA");
-	map(0x21c030, 0x21c031).portr("DSWB");
-	map(0x21c034, 0x21c035).portr("JMPR");
-	map(0x21c03c, 0x21c03d).r(FUNC(truxton2_state::video_count_r));
-	map(0x300000, 0x30000d).rw(m_vdp, FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
-	map(0x400000, 0x400fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
-	map(0x500000, 0x501fff).ram().w(FUNC(truxton2_state::tx_videoram_w)).share(m_tx_videoram);
-	map(0x502000, 0x502fff).ram().share(m_tx_lineselect);
-	map(0x503000, 0x5031ff).ram().w(FUNC(truxton2_state::tx_linescroll_w)).share(m_tx_linescroll);
-	map(0x503200, 0x503fff).ram();
-	map(0x600001, 0x600001).w(m_soundlatch[0], FUNC(generic_latch_8_device::write));
-}
 
 
 void truxton2_state::batrider_dma_mem(address_map &map)
@@ -637,84 +509,7 @@ void truxton2_state::batrider_dma_mem(address_map &map)
 }
 
 
-void truxton2_state::batrider_68k_mem(address_map &map)
-{
-	map(0x000000, 0x1fffff).rom();
-	// actually 200000 - 20ffff is probably all main RAM, and the text and palette RAM are written via DMA
-	map(0x200000, 0x207fff).ram().share(m_mainram);
-	map(0x208000, 0x20ffff).ram();
-	map(0x300000, 0x37ffff).r(FUNC(truxton2_state::batrider_z80rom_r));
-	map(0x400000, 0x40000d).lrw16(
-							NAME([this](offs_t offset, u16 mem_mask) { return m_vdp->read(offset ^ (0xc/2), mem_mask); }),
-							NAME([this](offs_t offset, u16 data, u16 mem_mask) { m_vdp->write(offset ^ (0xc/2), data, mem_mask); }));
-	map(0x500000, 0x500001).portr("IN");
-	map(0x500002, 0x500003).portr("SYS-DSW");
-	map(0x500004, 0x500005).portr("DSW");
-	map(0x500006, 0x500007).r(FUNC(truxton2_state::video_count_r));
-	map(0x500009, 0x500009).r(m_soundlatch[2], FUNC(generic_latch_8_device::read));
-	map(0x50000b, 0x50000b).r(m_soundlatch[3], FUNC(generic_latch_8_device::read));
-	map(0x50000c, 0x50000d).r(FUNC(truxton2_state::batrider_z80_busack_r));
-	map(0x500011, 0x500011).w(FUNC(truxton2_state::coin_w));
-	map(0x500021, 0x500021).w(FUNC(truxton2_state::batrider_soundlatch_w));
-	map(0x500023, 0x500023).w(FUNC(truxton2_state::batrider_soundlatch2_w));
-	map(0x500024, 0x500025).w(FUNC(truxton2_state::batrider_unknown_sound_w));
-	map(0x500026, 0x500027).w(FUNC(truxton2_state::batrider_clear_sndirq_w));
-	map(0x500061, 0x500061).w(FUNC(truxton2_state::batrider_z80_busreq_w));
-	map(0x500080, 0x500081).w(FUNC(truxton2_state::batrider_textdata_dma_w));
-	map(0x500082, 0x500083).w(FUNC(truxton2_state::batrider_pal_text_dma_w));
-	map(0x5000c0, 0x5000cf).w(FUNC(truxton2_state::batrider_objectbank_w)).umask16(0x00ff);
-}
 
-
-void truxton2_state::bbakraid_68k_mem(address_map &map)
-{
-	map(0x000000, 0x1fffff).rom();
-	// actually 200000 - 20ffff is probably all main RAM, and the text and palette RAM are written via DMA
-	map(0x200000, 0x207fff).ram().share(m_mainram);
-	map(0x208000, 0x20ffff).ram();
-	map(0x300000, 0x33ffff).r(FUNC(truxton2_state::batrider_z80rom_r));
-	map(0x400000, 0x40000d).lrw16(
-							NAME([this](offs_t offset, u16 mem_mask) { return m_vdp->read(offset ^ (0xc/2), mem_mask); }),
-							NAME([this](offs_t offset, u16 data, u16 mem_mask) { m_vdp->write(offset ^ (0xc/2), data, mem_mask); }));
-	map(0x500000, 0x500001).portr("IN");
-	map(0x500002, 0x500003).portr("SYS-DSW");
-	map(0x500004, 0x500005).portr("DSW");
-	map(0x500006, 0x500007).r(FUNC(truxton2_state::video_count_r));
-	map(0x500009, 0x500009).w(FUNC(truxton2_state::coin_w));
-	map(0x500011, 0x500011).r(m_soundlatch[2], FUNC(generic_latch_8_device::read));
-	map(0x500013, 0x500013).r(m_soundlatch[3], FUNC(generic_latch_8_device::read));
-	map(0x500015, 0x500015).w(FUNC(truxton2_state::batrider_soundlatch_w));
-	map(0x500017, 0x500017).w(FUNC(truxton2_state::batrider_soundlatch2_w));
-	map(0x500018, 0x500019).r(FUNC(truxton2_state::bbakraid_eeprom_r));
-	map(0x50001a, 0x50001b).w(FUNC(truxton2_state::batrider_unknown_sound_w));
-	map(0x50001c, 0x50001d).w(FUNC(truxton2_state::batrider_clear_sndirq_w));
-	map(0x50001f, 0x50001f).w(FUNC(truxton2_state::bbakraid_eeprom_w));
-	map(0x500080, 0x500081).w(FUNC(truxton2_state::batrider_textdata_dma_w));
-	map(0x500082, 0x500083).w(FUNC(truxton2_state::batrider_pal_text_dma_w));
-	map(0x5000c0, 0x5000cf).w(FUNC(truxton2_state::batrider_objectbank_w)).umask16(0x00ff);
-}
-
-
-void truxton2_state::nprobowl_68k_mem(address_map &map) // TODO: verify everything, implement oki banking
-{
-	map(0x000000, 0x0fffff).rom();
-	map(0x200000, 0x207fff).ram().share(m_mainram);
-	map(0x208000, 0x20ffff).ram();
-	map(0x400000, 0x40000d).lrw16(
-							NAME([this](offs_t offset, u16 mem_mask) { return m_vdp->read(offset ^ (0xc/2), mem_mask); }),
-							NAME([this](offs_t offset, u16 data, u16 mem_mask) { m_vdp->write(offset ^ (0xc/2), data, mem_mask); }));
-	map(0x500000, 0x500001).portr("IN");
-	map(0x500002, 0x500003).portr("UNK");
-	map(0x500004, 0x500005).portr("DSW");
-	//map(0x500010, 0x500011).w();
-	//map(0x500012, 0x500013).w();
-	map(0x500021, 0x500021).w(m_oki[0], FUNC(okim6295_device::write));
-	//map(0x500040, 0x500041).w();
-	//map(0x500042, 0x500043).w();
-	map(0x500060, 0x500061).lr16(NAME([this] () -> u16 { return machine().rand(); })); // TODO: Hack, probably checks something in the mechanical part, verify
-	map(0x500080, 0x500081).w(FUNC(truxton2_state::batrider_textdata_dma_w));
-	map(0x500082, 0x500083).w(FUNC(truxton2_state::batrider_pal_text_dma_w));
-}
 
 
 void truxton2_state::raizing_sound_z80_mem(address_map &map)
@@ -727,64 +522,8 @@ void truxton2_state::raizing_sound_z80_mem(address_map &map)
 }
 
 
-void truxton2_state::bgaregga_sound_z80_mem(address_map &map)
-{
-	map(0x0000, 0x7fff).rom();
-	map(0x8000, 0xbfff).bankr(m_audiobank);
-	map(0xc000, 0xdfff).ram().share(m_shared_ram);
-	map(0xe000, 0xe001).rw("ymsnd", FUNC(ym2151_device::read), FUNC(ym2151_device::write));
-	map(0xe004, 0xe004).rw(m_oki[0], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
-	map(0xe006, 0xe008).w(FUNC(truxton2_state::raizing_oki_bankswitch_w));
-	map(0xe00a, 0xe00a).w(FUNC(truxton2_state::raizing_z80_bankswitch_w));
-	map(0xe00c, 0xe00c).w(m_soundlatch[0], FUNC(generic_latch_8_device::acknowledge_w));
-	map(0xe01c, 0xe01c).r(m_soundlatch[0], FUNC(generic_latch_8_device::read));
-	map(0xe01d, 0xe01d).r(FUNC(truxton2_state::bgaregga_E01D_r));
-}
 
 
-void truxton2_state::batrider_sound_z80_mem(address_map &map)
-{
-	map(0x0000, 0x7fff).rom();
-	map(0x8000, 0xbfff).bankr(m_audiobank);
-	map(0xc000, 0xdfff).ram();
-}
-
-
-void truxton2_state::batrider_sound_z80_port(address_map &map)
-{
-	map.global_mask(0xff);
-	map(0x40, 0x40).w(m_soundlatch[2], FUNC(generic_latch_8_device::write));
-	map(0x42, 0x42).w(m_soundlatch[3], FUNC(generic_latch_8_device::write));
-	map(0x44, 0x44).w(FUNC(truxton2_state::batrider_sndirq_w));
-	map(0x46, 0x46).w(FUNC(truxton2_state::batrider_clear_nmi_w));
-	map(0x48, 0x48).r(m_soundlatch[0], FUNC(generic_latch_8_device::read));
-	map(0x4a, 0x4a).r(m_soundlatch[1], FUNC(generic_latch_8_device::read));
-	map(0x80, 0x81).rw("ymsnd", FUNC(ym2151_device::read), FUNC(ym2151_device::write));
-	map(0x82, 0x82).rw(m_oki[0], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
-	map(0x84, 0x84).rw(m_oki[1], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
-	map(0x88, 0x88).w(FUNC(truxton2_state::raizing_z80_bankswitch_w));
-	map(0xc0, 0xc6).w(FUNC(truxton2_state::raizing_oki_bankswitch_w));
-}
-
-
-void truxton2_state::bbakraid_sound_z80_mem(address_map &map)
-{
-	map(0x0000, 0xbfff).rom();     // No banking? ROM only contains code and data up to 0x28DC
-	map(0xc000, 0xffff).ram();
-}
-
-
-void truxton2_state::bbakraid_sound_z80_port(address_map &map)
-{
-	map.global_mask(0xff);
-	map(0x40, 0x40).w(m_soundlatch[2], FUNC(generic_latch_8_device::write));
-	map(0x42, 0x42).w(m_soundlatch[3], FUNC(generic_latch_8_device::write));
-	map(0x44, 0x44).w(FUNC(truxton2_state::batrider_sndirq_w));
-	map(0x46, 0x46).w(FUNC(truxton2_state::batrider_clear_nmi_w));
-	map(0x48, 0x48).r(m_soundlatch[0], FUNC(generic_latch_8_device::read));
-	map(0x4a, 0x4a).r(m_soundlatch[1], FUNC(generic_latch_8_device::read));
-	map(0x80, 0x81).rw("ymz", FUNC(ymz280b_device::read), FUNC(ymz280b_device::write));
-}
 
 void truxton2_state::fixeight_v25_mem(address_map &map)
 {
@@ -800,145 +539,10 @@ void truxton2_state::fixeight_v25_mem(address_map &map)
 
 
 
-
-#define XOR(a) WORD_XOR_LE(a)
-#define LOC(x) (x+XOR(0))
-
-static const gfx_layout truxton2_tx_tilelayout =
-{
-	8,8,    /* 8x8 characters */
-	1024,   /* 1024 characters */
-	4,      /* 4 bits per pixel */
-	{ STEP4(0,1) },
-	{ LOC(0)*4, LOC(1)*4, LOC(4)*4, LOC(5)*4, LOC(8)*4, LOC(9)*4, LOC(12)*4, LOC(13)*4 },
-	{ STEP8(0,8*8) },
-	8*8*8
-};
-
-
-static GFXDECODE_START( gfx_truxton2 )
-	GFXDECODE_ENTRY( nullptr, 0, truxton2_tx_tilelayout, 64*16, 64 )
-GFXDECODE_END
-
-
-
-
-void truxton2_state::truxton2(machine_config &config)
-{
-	/* basic machine hardware */
-	M68000(config, m_maincpu, 16_MHz_XTAL);         /* verified on pcb */
-	m_maincpu->set_addrmap(AS_PROGRAM, &truxton2_state::truxton2_68k_mem);
-	m_maincpu->reset_cb().set(FUNC(truxton2_state::toaplan2_reset));
-
-	/* video hardware */
-	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
-	m_screen->set_video_attributes(VIDEO_UPDATE_BEFORE_VBLANK);
-	m_screen->set_raw(27_MHz_XTAL/4, 432, 0, 320, 262, 0, 240);
-	m_screen->set_screen_update(FUNC(truxton2_state::screen_update_truxton2));
-	m_screen->screen_vblank().set(FUNC(truxton2_state::screen_vblank));
-	m_screen->set_palette(m_palette);
-
-	toaplan2_screen_device& t2screen(TOAPLAN2_SCREEN(config, "t2screen", 27_MHz_XTAL / 4));
-	t2screen.set_screen(m_screen);
-
-	GFXDECODE(config, m_gfxdecode, m_palette, gfx_truxton2);
-	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, 0x10000);
-
-	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
-	m_vdp->set_palette(m_palette);
-	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_2);
-
-	MCFG_VIDEO_START_OVERRIDE(truxton2_state,truxton2)
-
-	/* sound hardware */
-#ifdef TRUXTON2_STEREO  // music data is stereo...
-	SPEAKER(config, "lspeaker").front_left();
-	SPEAKER(config, "rspeaker").front_right();
-
-	YM2151(config, "ymsnd", 27_MHz_XTAL/8).add_route(0, "lspeaker", 1.0).add_route(1, "rspeaker", 1.0);
-
-	OKIM6295(config, m_oki[0], 16_MHz_XTAL/4, okim6295_device::PIN7_LOW);
-	m_oki[0]->add_route(ALL_OUTPUTS, "lspeaker", 1.0);
-	m_oki[0]->add_route(ALL_OUTPUTS, "rspeaker", 1.0);
-#else   // ...but the hardware is mono
-	SPEAKER(config, "mono").front_center();
-
-	YM2151(config, "ymsnd", 27_MHz_XTAL/8).add_route(ALL_OUTPUTS, "mono", 1.0); // verified on PCB
-
-	OKIM6295(config, m_oki[0], 16_MHz_XTAL/4, okim6295_device::PIN7_LOW); // verified on PCB
-	m_oki[0]->add_route(ALL_OUTPUTS, "mono", 1.0);
-#endif
-}
-
-
 void truxton2_state::cpu_space_fixeightbl_map(address_map &map)
 {
 	map(0xfffff0, 0xffffff).m(m_maincpu, FUNC(m68000_base_device::autovectors_map));
 	map(0xfffff5, 0xfffff5).lr8(NAME([this] () { m_maincpu->set_input_line(M68K_IRQ_2, CLEAR_LINE); return m68000_device::autovector(2); }));
-}
-
-
-
-
-static const gfx_layout batrider_tx_tilelayout =
-{
-	8,8,    /* 8x8 characters */
-	1024,   /* 1024 characters */
-	4,      /* 4 bits per pixel */
-	{ STEP4(0,1) },
-	{ XOR(0)*4, XOR(1)*4, XOR(2)*4, XOR(3)*4, XOR(4)*4, XOR(5)*4, XOR(6)*4, XOR(7)*4 },
-	{ STEP8(0,4*8) },
-	8*8*4
-};
-
-
-static GFXDECODE_START( gfx_batrider )
-	GFXDECODE_ENTRY( nullptr, 0, batrider_tx_tilelayout, 64*16, 64 )
-GFXDECODE_END
-
-
-void truxton2_state::nprobowl(machine_config &config)
-{
-	// basic machine hardware
-	M68000(config, m_maincpu, 32_MHz_XTAL / 2);   // 32MHz Oscillator, divisor not verified
-	m_maincpu->set_addrmap(AS_PROGRAM, &truxton2_state::nprobowl_68k_mem);
-	m_maincpu->reset_cb().set(FUNC(truxton2_state::toaplan2_reset));
-
-	ADDRESS_MAP_BANK(config, m_dma_space, 0);
-	m_dma_space->set_addrmap(0, &truxton2_state::batrider_dma_mem);
-	m_dma_space->set_endianness(ENDIANNESS_BIG);
-	m_dma_space->set_data_width(16);
-	m_dma_space->set_addr_width(16);
-	m_dma_space->set_stride(0x8000);
-
-	// video hardware
-	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
-	m_screen->set_video_attributes(VIDEO_UPDATE_BEFORE_VBLANK);
-	m_screen->set_raw(27_MHz_XTAL/4, 432, 0, 320, 262, 0, 240);
-	//m_screen->set_refresh_hz(60);
-	//m_screen->set_size(432, 262);
-	//m_screen->set_visarea(0, 319, 0, 239);
-	m_screen->set_screen_update(FUNC(truxton2_state::screen_update_truxton2));
-	m_screen->screen_vblank().set(FUNC(truxton2_state::screen_vblank));
-	m_screen->set_palette(m_palette);
-
-	toaplan2_screen_device& t2screen(TOAPLAN2_SCREEN(config, "t2screen", 27_MHz_XTAL / 4));
-	t2screen.set_screen(m_screen);
-
-	GFXDECODE(config, m_gfxdecode, m_palette, gfx_batrider);
-	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, 0x10000);
-
-	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
-	m_vdp->set_palette(m_palette);
-	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_2);
-
-	MCFG_VIDEO_START_OVERRIDE(truxton2_state, batrider)
-
-	// sound hardware
-	SPEAKER(config, "mono").front_center();
-
-	OKIM6295(config, m_oki[0], 32_MHz_XTAL/8, okim6295_device::PIN7_HIGH).add_route(ALL_OUTPUTS, "mono", 1.0); // divisor not verified
-	// TODO: banking
 }
 
 

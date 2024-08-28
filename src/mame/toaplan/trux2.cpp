@@ -23,8 +23,14 @@ public:
 	trux2_state(const machine_config &mconfig, device_type type, const char *tag)
 		: truxton2_state(mconfig, type, tag)
 	{ }
+
+	void truxton2(machine_config &config);
+
 protected:
 private:
+
+	void truxton2_68k_mem(address_map &map);
+
 };
 
 
@@ -120,6 +126,102 @@ static INPUT_PORTS_START( truxton2 )
 //  PORT_CONFSETTING(        0x000e, DEF_STR( Unused ) )
 	PORT_CONFSETTING(       0x000f, "Japan (Taito Corp.)" )
 INPUT_PORTS_END
+
+
+
+
+
+#define XOR(a) WORD_XOR_LE(a)
+#define LOC(x) (x+XOR(0))
+
+static const gfx_layout truxton2_tx_tilelayout =
+{
+	8,8,    /* 8x8 characters */
+	1024,   /* 1024 characters */
+	4,      /* 4 bits per pixel */
+	{ STEP4(0,1) },
+	{ LOC(0)*4, LOC(1)*4, LOC(4)*4, LOC(5)*4, LOC(8)*4, LOC(9)*4, LOC(12)*4, LOC(13)*4 },
+	{ STEP8(0,8*8) },
+	8*8*8
+};
+
+
+static GFXDECODE_START( gfx_truxton2 )
+	GFXDECODE_ENTRY( nullptr, 0, truxton2_tx_tilelayout, 64*16, 64 )
+GFXDECODE_END
+
+
+void trux2_state::truxton2_68k_mem(address_map &map)
+{
+	map(0x000000, 0x07ffff).rom();
+	map(0x100000, 0x10ffff).ram();
+	map(0x200000, 0x20000d).rw(m_vdp, FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
+	map(0x300000, 0x300fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
+	map(0x400000, 0x401fff).ram().w(FUNC(truxton2_state::tx_videoram_w)).share(m_tx_videoram);
+	map(0x402000, 0x402fff).ram().share(m_tx_lineselect);
+	map(0x403000, 0x4031ff).ram().w(FUNC(truxton2_state::tx_linescroll_w)).share(m_tx_linescroll);
+	map(0x403200, 0x403fff).ram();
+	map(0x500000, 0x50ffff).ram().w(FUNC(truxton2_state::tx_gfxram_w)).share(m_tx_gfxram);
+	map(0x600000, 0x600001).r(FUNC(truxton2_state::video_count_r));
+	map(0x700000, 0x700001).portr("DSWA");
+	map(0x700002, 0x700003).portr("DSWB");
+	map(0x700004, 0x700005).portr("JMPR");
+	map(0x700006, 0x700007).portr("IN1");
+	map(0x700008, 0x700009).portr("IN2");
+	map(0x70000a, 0x70000b).portr("SYS");
+	map(0x700011, 0x700011).rw(m_oki[0], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
+	map(0x700014, 0x700017).rw("ymsnd", FUNC(ym2151_device::read), FUNC(ym2151_device::write)).umask16(0x00ff);
+	map(0x70001f, 0x70001f).w(FUNC(truxton2_state::coin_w));
+}
+
+
+void trux2_state::truxton2(machine_config &config)
+{
+	/* basic machine hardware */
+	M68000(config, m_maincpu, 16_MHz_XTAL);         /* verified on pcb */
+	m_maincpu->set_addrmap(AS_PROGRAM, &trux2_state::truxton2_68k_mem);
+	m_maincpu->reset_cb().set(FUNC(truxton2_state::toaplan2_reset));
+
+	/* video hardware */
+	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
+	m_screen->set_video_attributes(VIDEO_UPDATE_BEFORE_VBLANK);
+	m_screen->set_raw(27_MHz_XTAL/4, 432, 0, 320, 262, 0, 240);
+	m_screen->set_screen_update(FUNC(truxton2_state::screen_update_truxton2));
+	m_screen->screen_vblank().set(FUNC(truxton2_state::screen_vblank));
+	m_screen->set_palette(m_palette);
+
+	toaplan2_screen_device& t2screen(TOAPLAN2_SCREEN(config, "t2screen", 27_MHz_XTAL / 4));
+	t2screen.set_screen(m_screen);
+
+	GFXDECODE(config, m_gfxdecode, m_palette, gfx_truxton2);
+	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, 0x10000);
+
+	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
+	m_vdp->set_palette(m_palette);
+	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_2);
+
+	MCFG_VIDEO_START_OVERRIDE(truxton2_state,truxton2)
+
+	/* sound hardware */
+#ifdef TRUXTON2_STEREO  // music data is stereo...
+	SPEAKER(config, "lspeaker").front_left();
+	SPEAKER(config, "rspeaker").front_right();
+
+	YM2151(config, "ymsnd", 27_MHz_XTAL/8).add_route(0, "lspeaker", 1.0).add_route(1, "rspeaker", 1.0);
+
+	OKIM6295(config, m_oki[0], 16_MHz_XTAL/4, okim6295_device::PIN7_LOW);
+	m_oki[0]->add_route(ALL_OUTPUTS, "lspeaker", 1.0);
+	m_oki[0]->add_route(ALL_OUTPUTS, "rspeaker", 1.0);
+#else   // ...but the hardware is mono
+	SPEAKER(config, "mono").front_center();
+
+	YM2151(config, "ymsnd", 27_MHz_XTAL/8).add_route(ALL_OUTPUTS, "mono", 1.0); // verified on PCB
+
+	OKIM6295(config, m_oki[0], 16_MHz_XTAL/4, okim6295_device::PIN7_LOW); // verified on PCB
+	m_oki[0]->add_route(ALL_OUTPUTS, "mono", 1.0);
+#endif
+}
+
 
 ROM_START( truxton2 )
 	ROM_REGION( 0x080000, "maincpu", 0 )            /* Main 68K code */

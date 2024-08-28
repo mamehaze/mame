@@ -28,6 +28,10 @@ public:
 
 protected:
 private:
+
+	void mahoudai_68k_mem(address_map &map);
+	void shippumd_68k_mem(address_map &map);
+
 };
 
 static INPUT_PORTS_START( toaplan2_2b )
@@ -176,11 +180,60 @@ static GFXDECODE_START( gfx_textrom )
 GFXDECODE_END
 
 
+
+void sstriker_state::mahoudai_68k_mem(address_map &map)
+{
+	map(0x000000, 0x07ffff).rom();
+	map(0x100000, 0x10ffff).ram();
+	map(0x218000, 0x21bfff).rw(FUNC(truxton2_state::shared_ram_r), FUNC(truxton2_state::shared_ram_w)).umask16(0x00ff);
+	map(0x21c01d, 0x21c01d).w(FUNC(truxton2_state::coin_w));
+	map(0x21c020, 0x21c021).portr("IN1");
+	map(0x21c024, 0x21c025).portr("IN2");
+	map(0x21c028, 0x21c029).portr("SYS");
+	map(0x21c02c, 0x21c02d).portr("DSWA");
+	map(0x21c030, 0x21c031).portr("DSWB");
+	map(0x21c034, 0x21c035).portr("JMPR");
+	map(0x21c03c, 0x21c03d).r(FUNC(truxton2_state::video_count_r));
+	map(0x300000, 0x30000d).rw(m_vdp, FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
+	map(0x400000, 0x400fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
+	map(0x401000, 0x4017ff).ram();                         // Unused palette RAM
+	map(0x500000, 0x501fff).ram().w(FUNC(truxton2_state::tx_videoram_w)).share(m_tx_videoram);
+	map(0x502000, 0x502fff).ram().share(m_tx_lineselect);
+	map(0x503000, 0x5031ff).ram().w(FUNC(truxton2_state::tx_linescroll_w)).share(m_tx_linescroll);
+	map(0x503200, 0x503fff).ram();
+}
+
+
+void sstriker_state::shippumd_68k_mem(address_map &map)
+{
+	map(0x000000, 0x0fffff).rom();
+	map(0x100000, 0x10ffff).ram();
+	map(0x218000, 0x21bfff).rw(FUNC(truxton2_state::shared_ram_r), FUNC(truxton2_state::shared_ram_w)).umask16(0x00ff);
+//  map(0x21c008, 0x21c009).nopw();                    // ???
+	map(0x21c01d, 0x21c01d).w(FUNC(truxton2_state::shippumd_coin_w)); // Coin count/lock + oki bankswitch
+	map(0x21c020, 0x21c021).portr("IN1");
+	map(0x21c024, 0x21c025).portr("IN2");
+	map(0x21c028, 0x21c029).portr("SYS");
+	map(0x21c02c, 0x21c02d).portr("DSWA");
+	map(0x21c030, 0x21c031).portr("DSWB");
+	map(0x21c034, 0x21c035).portr("JMPR");
+	map(0x21c03c, 0x21c03d).r(FUNC(truxton2_state::video_count_r));
+	map(0x300000, 0x30000d).rw(m_vdp, FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
+	map(0x400000, 0x400fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
+	map(0x401000, 0x4017ff).ram();                         // Unused palette RAM
+	map(0x500000, 0x501fff).ram().w(FUNC(truxton2_state::tx_videoram_w)).share(m_tx_videoram);
+	map(0x502000, 0x502fff).ram().share(m_tx_lineselect);
+	map(0x503000, 0x5031ff).ram().w(FUNC(truxton2_state::tx_linescroll_w)).share(m_tx_linescroll);
+	map(0x503200, 0x503fff).ram();
+}
+
+
+
 void sstriker_state::mahoudai(machine_config &config)
 {
 	/* basic machine hardware */
 	M68000(config, m_maincpu, 32_MHz_XTAL/2);   // 16MHz, 32MHz Oscillator
-	m_maincpu->set_addrmap(AS_PROGRAM, &truxton2_state::mahoudai_68k_mem);
+	m_maincpu->set_addrmap(AS_PROGRAM, &sstriker_state::mahoudai_68k_mem);
 	m_maincpu->reset_cb().set(FUNC(truxton2_state::toaplan2_reset));
 
 	Z80(config, m_audiocpu, 32_MHz_XTAL/8);     // 4MHz, 32MHz Oscillator
@@ -225,7 +278,7 @@ void sstriker_state::shippumd(machine_config &config)
 {
 	mahoudai(config);
 	/* basic machine hardware */
-	m_maincpu->set_addrmap(AS_PROGRAM, &truxton2_state::shippumd_68k_mem);
+	m_maincpu->set_addrmap(AS_PROGRAM, &sstriker_state::shippumd_68k_mem);
 }
 
 

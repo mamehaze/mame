@@ -49,8 +49,6 @@ public:
 		, m_txlayer(*this, "txlayer")
 	{ }
 
-	void nprobowl(machine_config &config);
-	void truxton2(machine_config &config);
 
 	void init_bgaregga();
 
@@ -131,23 +129,12 @@ public:
 	INTERRUPT_GEN_MEMBER(bbakraid_snd_interrupt);
 	void create_tx_tilemap(int dx = 0, int dx_flipped = 0);
 
-	void batrider_68k_mem(address_map &map);
+
 	void batrider_dma_mem(address_map &map);
-	void batrider_sound_z80_mem(address_map &map);
-	void batrider_sound_z80_port(address_map &map);
-	void bbakraid_68k_mem(address_map &map);
-	void bbakraid_sound_z80_mem(address_map &map);
-	void bbakraid_sound_z80_port(address_map &map);
-	void bgaregga_68k_mem(address_map &map);
-	void bgaregga_sound_z80_mem(address_map &map);
-	void fixeight_68k_mem(address_map &map);
+
 	void fixeight_v25_mem(address_map &map);
-	void fixeightbl_68k_mem(address_map &map);
-	void mahoudai_68k_mem(address_map &map);
-	void nprobowl_68k_mem(address_map &map);
 	void raizing_sound_z80_mem(address_map &map);
-	void shippumd_68k_mem(address_map &map);
-	void truxton2_68k_mem(address_map &map);
+
 	void cpu_space_fixeightbl_map(address_map &map);
 
 	void fixeightbl_oki_bankswitch_w(u8 data);

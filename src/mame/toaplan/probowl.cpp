@@ -23,8 +23,13 @@ public:
 	probowl_state(const machine_config &mconfig, device_type type, const char *tag)
 		: truxton2_state(mconfig, type, tag)
 	{ }
+
+	void nprobowl(machine_config &config);
+
 protected:
 private:
+	void nprobowl_68k_mem(address_map &map);
+
 };
 
 
@@ -94,6 +99,94 @@ static INPUT_PORTS_START( nprobowl )
 	PORT_BIT( 0x4000, IP_ACTIVE_HIGH, IPT_UNKNOWN )
 	PORT_BIT( 0x8000, IP_ACTIVE_HIGH, IPT_UNKNOWN )
 INPUT_PORTS_END
+
+
+
+#define XOR(a) WORD_XOR_LE(a)
+
+static const gfx_layout batrider_tx_tilelayout =
+{
+	8,8,    /* 8x8 characters */
+	1024,   /* 1024 characters */
+	4,      /* 4 bits per pixel */
+	{ STEP4(0,1) },
+	{ XOR(0)*4, XOR(1)*4, XOR(2)*4, XOR(3)*4, XOR(4)*4, XOR(5)*4, XOR(6)*4, XOR(7)*4 },
+	{ STEP8(0,4*8) },
+	8*8*4
+};
+
+
+static GFXDECODE_START( gfx_batrider )
+	GFXDECODE_ENTRY( nullptr, 0, batrider_tx_tilelayout, 64*16, 64 )
+GFXDECODE_END
+
+
+void probowl_state::nprobowl_68k_mem(address_map &map) // TODO: verify everything, implement oki banking
+{
+	map(0x000000, 0x0fffff).rom();
+	map(0x200000, 0x207fff).ram().share(m_mainram);
+	map(0x208000, 0x20ffff).ram();
+	map(0x400000, 0x40000d).lrw16(
+							NAME([this](offs_t offset, u16 mem_mask) { return m_vdp->read(offset ^ (0xc/2), mem_mask); }),
+							NAME([this](offs_t offset, u16 data, u16 mem_mask) { m_vdp->write(offset ^ (0xc/2), data, mem_mask); }));
+	map(0x500000, 0x500001).portr("IN");
+	map(0x500002, 0x500003).portr("UNK");
+	map(0x500004, 0x500005).portr("DSW");
+	//map(0x500010, 0x500011).w();
+	//map(0x500012, 0x500013).w();
+	map(0x500021, 0x500021).w(m_oki[0], FUNC(okim6295_device::write));
+	//map(0x500040, 0x500041).w();
+	//map(0x500042, 0x500043).w();
+	map(0x500060, 0x500061).lr16(NAME([this] () -> u16 { return machine().rand(); })); // TODO: Hack, probably checks something in the mechanical part, verify
+	map(0x500080, 0x500081).w(FUNC(truxton2_state::batrider_textdata_dma_w));
+	map(0x500082, 0x500083).w(FUNC(truxton2_state::batrider_pal_text_dma_w));
+}
+
+
+void probowl_state::nprobowl(machine_config &config)
+{
+	// basic machine hardware
+	M68000(config, m_maincpu, 32_MHz_XTAL / 2);   // 32MHz Oscillator, divisor not verified
+	m_maincpu->set_addrmap(AS_PROGRAM, &probowl_state::nprobowl_68k_mem);
+	m_maincpu->reset_cb().set(FUNC(truxton2_state::toaplan2_reset));
+
+	ADDRESS_MAP_BANK(config, m_dma_space, 0);
+	m_dma_space->set_addrmap(0, &truxton2_state::batrider_dma_mem);
+	m_dma_space->set_endianness(ENDIANNESS_BIG);
+	m_dma_space->set_data_width(16);
+	m_dma_space->set_addr_width(16);
+	m_dma_space->set_stride(0x8000);
+
+	// video hardware
+	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
+	m_screen->set_video_attributes(VIDEO_UPDATE_BEFORE_VBLANK);
+	m_screen->set_raw(27_MHz_XTAL/4, 432, 0, 320, 262, 0, 240);
+	//m_screen->set_refresh_hz(60);
+	//m_screen->set_size(432, 262);
+	//m_screen->set_visarea(0, 319, 0, 239);
+	m_screen->set_screen_update(FUNC(truxton2_state::screen_update_truxton2));
+	m_screen->screen_vblank().set(FUNC(truxton2_state::screen_vblank));
+	m_screen->set_palette(m_palette);
+
+	toaplan2_screen_device& t2screen(TOAPLAN2_SCREEN(config, "t2screen", 27_MHz_XTAL / 4));
+	t2screen.set_screen(m_screen);
+
+	GFXDECODE(config, m_gfxdecode, m_palette, gfx_batrider);
+	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, 0x10000);
+
+	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
+	m_vdp->set_palette(m_palette);
+	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_2);
+
+	MCFG_VIDEO_START_OVERRIDE(truxton2_state, batrider)
+
+	// sound hardware
+	SPEAKER(config, "mono").front_center();
+
+	OKIM6295(config, m_oki[0], 32_MHz_XTAL/8, okim6295_device::PIN7_HIGH).add_route(ALL_OUTPUTS, "mono", 1.0); // divisor not verified
+	// TODO: banking
+}
+
 
 
 
