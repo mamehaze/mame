@@ -22,6 +22,7 @@ public:
 		, m_screen(*this, "screen")
 		, m_palette(*this, "palette")
 		, m_vdp(*this, "gp9001_%u", 0U)
+		, m_okibank(*this, "okibank")
 	{ }
 
 	void batsugun(machine_config &config);
@@ -64,6 +65,7 @@ private:
 	required_device<screen_device> m_screen;
 	required_device<palette_device> m_palette;
 	required_device_array<gp9001vdp_device, 2> m_vdp;
+	optional_memory_bank m_okibank;
 
 
 };

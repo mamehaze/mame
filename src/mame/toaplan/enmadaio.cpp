@@ -23,6 +23,7 @@ public:
 		, m_screen(*this, "screen")
 		, m_palette(*this, "palette")
 		, m_vdp(*this, "gp9001")
+		, m_okibank(*this, "okibank")
 	{ }
 
 	void enmadaio(machine_config &config);
@@ -48,6 +49,8 @@ private:
 	required_device<screen_device> m_screen;
 	required_device<palette_device> m_palette;
 	required_device<gp9001vdp_device> m_vdp;
+	optional_memory_bank m_okibank;
+
 
 };
 

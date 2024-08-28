@@ -28,16 +28,22 @@ public:
 		, m_screen(*this, "screen")
 		, m_palette(*this, "palette")
 		, m_vdp(*this, "gp9001")
+		, m_gfxdecode(*this, "gfxdecode")
 
+		, m_okibank(*this, "okibank")
+		, m_mainram(*this, "mainram")
 		, m_tx_videoram(*this, "tx_videoram")
 		, m_tx_lineselect(*this, "tx_lineselect")
 		, m_tx_linescroll(*this, "tx_linescroll")
 		, m_tx_gfxram(*this, "tx_gfxram")
 		, m_dma_space(*this, "dma_space")
+		, m_z80_rom(*this, "audiocpu")
+		, m_oki_rom(*this, "oki%u", 1U)
 		, m_audiobank(*this, "audiobank")
 		, m_raizing_okibank{
 			{ *this, "raizing_okibank0_%u", 0U },
 			{ *this, "raizing_okibank1_%u", 0U } }
+		, m_eeprom(*this, "eeprom")
 		, m_eepromout(*this, "EEPROMOUT")
 		, m_txlayer(*this, "txlayer")
 	{ }
@@ -68,17 +74,23 @@ private:
 	required_device<screen_device> m_screen;
 	required_device<palette_device> m_palette;
 	required_device<gp9001vdp_device> m_vdp;
+	optional_device<gfxdecode_device> m_gfxdecode;
+	optional_memory_bank m_okibank;
 
+	optional_shared_ptr<u16> m_mainram;
 	required_shared_ptr<u16> m_tx_videoram;
 	optional_shared_ptr<u16> m_tx_lineselect;
 	optional_shared_ptr<u16> m_tx_linescroll;
 	optional_shared_ptr<u16> m_tx_gfxram;
 
 	optional_device<address_map_bank_device> m_dma_space;
+	optional_region_ptr<u8> m_z80_rom;
+	optional_region_ptr_array<u8, 2> m_oki_rom;
 
 	optional_memory_bank m_audiobank;
 	optional_memory_bank_array<8> m_raizing_okibank[2];
 
+	optional_device<eeprom_serial_93cxx_device> m_eeprom;
 	optional_ioport m_eepromout;
 
 	optional_device<toaplan2_txlayer_device> m_txlayer;
