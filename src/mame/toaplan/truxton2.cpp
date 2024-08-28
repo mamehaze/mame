@@ -25,6 +25,7 @@ public:
 	truxton2_state(const machine_config &mconfig, device_type type, const char *tag)
 		: toaplan2_state(mconfig, type, tag)
 		, m_maincpu(*this, "maincpu")
+		, m_audiocpu(*this, "audiocpu")
 		, m_screen(*this, "screen")
 		, m_palette(*this, "palette")
 		, m_vdp(*this, "gp9001")
@@ -74,6 +75,7 @@ protected:
 
 private:
 	required_device<m68000_base_device> m_maincpu;
+	optional_device<cpu_device> m_audiocpu;
 	required_device<screen_device> m_screen;
 	required_device<palette_device> m_palette;
 	required_device<gp9001vdp_device> m_vdp;

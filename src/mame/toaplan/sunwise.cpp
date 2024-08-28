@@ -71,8 +71,6 @@ private:
 
 void pwrkick_state::toaplan2_reset(int state)
 {
-	if (m_audiocpu != nullptr)
-		m_audiocpu->pulse_input_line(INPUT_LINE_RESET, attotime::zero);
 }
 
 u16 pwrkick_state::video_count_r()

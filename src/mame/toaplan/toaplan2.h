@@ -27,12 +27,10 @@ class toaplan2_state : public driver_device
 public:
 	toaplan2_state(const machine_config &mconfig, device_type type, const char *tag)
 		: driver_device(mconfig, type, tag)
-		, m_audiocpu(*this, "audiocpu")
 		, m_oki(*this, "oki%u", 1U)
 	{ }
 
 
-	optional_device<cpu_device> m_audiocpu;
 	optional_device_array<okim6295_device, 2> m_oki;
 
 };

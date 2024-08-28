@@ -57,8 +57,6 @@ private:
 
 void enmadaio_state::toaplan2_reset(int state)
 {
-	if (m_audiocpu != nullptr)
-		m_audiocpu->pulse_input_line(INPUT_LINE_RESET, attotime::zero);
 }
 
 u16 enmadaio_state::video_count_r()

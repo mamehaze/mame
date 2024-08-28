@@ -53,8 +53,6 @@ private:
 
 void snowbro2_state::toaplan2_reset(int state)
 {
-	if (m_audiocpu != nullptr)
-		m_audiocpu->pulse_input_line(INPUT_LINE_RESET, attotime::zero);
 }
 
 

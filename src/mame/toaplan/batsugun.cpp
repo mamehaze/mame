@@ -19,6 +19,7 @@ public:
 	batsugun_state(const machine_config &mconfig, device_type type, const char *tag)
 		: toaplan2_state(mconfig, type, tag)
 		, m_maincpu(*this, "maincpu")
+		, m_audiocpu(*this, "audiocpu")
 		, m_screen(*this, "screen")
 		, m_palette(*this, "palette")
 		, m_vdp(*this, "gp9001_%u", 0U)
@@ -63,6 +64,7 @@ private:
 	bitmap_ind16 m_secondary_render_bitmap;
 
 	required_device<m68000_base_device> m_maincpu;
+	optional_device<cpu_device> m_audiocpu;
 	required_device<screen_device> m_screen;
 	required_device<palette_device> m_palette;
 	required_device_array<gp9001vdp_device, 2> m_vdp;
