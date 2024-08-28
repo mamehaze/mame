@@ -49,10 +49,6 @@ public:
 		, m_txlayer(*this, "txlayer")
 	{ }
 
-	void batrider(machine_config &config);
-	void bbakraid(machine_config &config);
-	void bgaregga(machine_config &config);
-	void bgareggabl(machine_config &config);
 	void fixeight(machine_config &config);
 	void fixeightbl(machine_config &config);
 	void mahoudai(machine_config &config);
@@ -60,17 +56,13 @@ public:
 	void shippumd(machine_config &config);
 	void truxton2(machine_config &config);
 
-	void init_batrider();
-	void init_bbakraid();
 	void init_bgaregga();
 	void init_fixeight();
 	void init_fixeightbl();
 
-protected:
 	virtual void machine_start() override;
 	virtual void device_post_load() override;
 
-private:
 	required_device<m68000_base_device> m_maincpu;
 	optional_device<cpu_device> m_audiocpu;
 	optional_device_array<okim6295_device, 2> m_oki;
@@ -159,7 +151,6 @@ private:
 	void fixeightbl_68k_mem(address_map &map);
 	void mahoudai_68k_mem(address_map &map);
 	void nprobowl_68k_mem(address_map &map);
-	template<unsigned Chip> void raizing_oki(address_map &map);
 	void raizing_sound_z80_mem(address_map &map);
 	void shippumd_68k_mem(address_map &map);
 	void truxton2_68k_mem(address_map &map);

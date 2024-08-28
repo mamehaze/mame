@@ -341,21 +341,9 @@ void truxton2_state::init_bgaregga()
 }
 
 
-void truxton2_state::init_batrider()
-{
-	u8 *Z80 = memregion("audiocpu")->base();
-
-	m_audiobank->configure_entries(0, 16, Z80, 0x4000);
-	install_raizing_okibank(0);
-	install_raizing_okibank(1);
-	m_sndirq_line = 4;
-}
 
 
-void truxton2_state::init_bbakraid()
-{
-	m_sndirq_line = 2;
-}
+
 
 
 void truxton2_state::shippumd_coin_w(u8 data)
@@ -812,21 +800,6 @@ void truxton2_state::fixeight_v25_mem(address_map &map)
 	map(0x80000, 0x87fff).mirror(0x78000).ram().share(m_shared_ram);
 }
 
-// similar as NMK112, but GAL-driven; NOT actual NMK112 is present
-template<unsigned Chip>
-void truxton2_state::raizing_oki(address_map &map)
-{
-	map(0x00000, 0x000ff).bankr(m_raizing_okibank[Chip][0]);
-	map(0x00100, 0x001ff).bankr(m_raizing_okibank[Chip][1]);
-	map(0x00200, 0x002ff).bankr(m_raizing_okibank[Chip][2]);
-	map(0x00300, 0x003ff).bankr(m_raizing_okibank[Chip][3]);
-	map(0x00400, 0x0ffff).bankr(m_raizing_okibank[Chip][4]);
-	map(0x10000, 0x1ffff).bankr(m_raizing_okibank[Chip][5]);
-	map(0x20000, 0x2ffff).bankr(m_raizing_okibank[Chip][6]);
-	map(0x30000, 0x3ffff).bankr(m_raizing_okibank[Chip][7]);
-}
-
-
 
 
 
@@ -846,24 +819,11 @@ static const gfx_layout truxton2_tx_tilelayout =
 	8*8*8
 };
 
-static const gfx_layout batrider_tx_tilelayout =
-{
-	8,8,    /* 8x8 characters */
-	1024,   /* 1024 characters */
-	4,      /* 4 bits per pixel */
-	{ STEP4(0,1) },
-	{ XOR(0)*4, XOR(1)*4, XOR(2)*4, XOR(3)*4, XOR(4)*4, XOR(5)*4, XOR(6)*4, XOR(7)*4 },
-	{ STEP8(0,4*8) },
-	8*8*4
-};
 
 static GFXDECODE_START( gfx_truxton2 )
 	GFXDECODE_ENTRY( nullptr, 0, truxton2_tx_tilelayout, 64*16, 64 )
 GFXDECODE_END
 
-static GFXDECODE_START( gfx_batrider )
-	GFXDECODE_ENTRY( nullptr, 0, batrider_tx_tilelayout, 64*16, 64 )
-GFXDECODE_END
 
 static GFXDECODE_START( gfx_textrom )
 	GFXDECODE_ENTRY( "text", 0, gfx_8x8x4_packed_msb, 64*16, 64 )
@@ -1099,194 +1059,23 @@ void truxton2_state::shippumd(machine_config &config)
 	m_maincpu->set_addrmap(AS_PROGRAM, &truxton2_state::shippumd_68k_mem);
 }
 
-void truxton2_state::bgaregga(machine_config &config)
+
+
+static const gfx_layout batrider_tx_tilelayout =
 {
-	/* basic machine hardware */
-	M68000(config, m_maincpu, 32_MHz_XTAL/2);   // 16MHz, 32MHz Oscillator
-	m_maincpu->set_addrmap(AS_PROGRAM, &truxton2_state::bgaregga_68k_mem);
-	m_maincpu->reset_cb().set(FUNC(truxton2_state::toaplan2_reset));
-
-	Z80(config, m_audiocpu, 32_MHz_XTAL/8);     // 4MHz, 32MHz Oscillator
-	m_audiocpu->set_addrmap(AS_PROGRAM, &truxton2_state::bgaregga_sound_z80_mem);
-
-	config.set_maximum_quantum(attotime::from_hz(6000));
-
-	MCFG_MACHINE_RESET_OVERRIDE(truxton2_state,bgaregga)
-
-	/* video hardware */
-	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
-	m_screen->set_video_attributes(VIDEO_UPDATE_BEFORE_VBLANK);
-	m_screen->set_raw(27_MHz_XTAL/4, 432, 0, 320, 262, 0, 240);
-	//m_screen->set_refresh_hz(60);
-	//m_screen->set_size(432, 262);
-	//m_screen->set_visarea(0, 319, 0, 239);
-	m_screen->set_screen_update(FUNC(truxton2_state::screen_update_truxton2));
-	m_screen->screen_vblank().set(FUNC(truxton2_state::screen_vblank));
-	m_screen->set_palette(m_palette);
-
-	toaplan2_screen_device& t2screen(TOAPLAN2_SCREEN(config, "t2screen", 27_MHz_XTAL / 4));
-	t2screen.set_screen(m_screen);
-
-	GFXDECODE(config, m_gfxdecode, m_palette, gfx_textrom);
-	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, 0x10000);
-
-	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
-	m_vdp->set_palette(m_palette);
-	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
-
-	MCFG_VIDEO_START_OVERRIDE(truxton2_state,bgaregga)
-
-	/* sound hardware */
-	SPEAKER(config, "mono").front_center();
-
-	GENERIC_LATCH_8(config, m_soundlatch[0]);
-	m_soundlatch[0]->data_pending_callback().set_inputline(m_audiocpu, 0);
-	m_soundlatch[0]->set_separate_acknowledge(true);
-
-	YM2151(config, "ymsnd", 32_MHz_XTAL/8).add_route(ALL_OUTPUTS, "mono", 0.35);
-
-	OKIM6295(config, m_oki[0], 32_MHz_XTAL/16, okim6295_device::PIN7_HIGH);
-	m_oki[0]->set_addrmap(0, &truxton2_state::raizing_oki<0>);
-	m_oki[0]->add_route(ALL_OUTPUTS, "mono", 0.7);
-}
+	8,8,    /* 8x8 characters */
+	1024,   /* 1024 characters */
+	4,      /* 4 bits per pixel */
+	{ STEP4(0,1) },
+	{ XOR(0)*4, XOR(1)*4, XOR(2)*4, XOR(3)*4, XOR(4)*4, XOR(5)*4, XOR(6)*4, XOR(7)*4 },
+	{ STEP8(0,4*8) },
+	8*8*4
+};
 
 
-void truxton2_state::bgareggabl(machine_config &config)
-{
-	bgaregga(config);
-	MCFG_VIDEO_START_OVERRIDE(truxton2_state,bgareggabl)
-
-	m_screen->set_screen_update(FUNC(truxton2_state::screen_update_bootleg));
-}
-
-void truxton2_state::batrider(machine_config &config)
-{
-	/* basic machine hardware */
-	M68000(config, m_maincpu, 32_MHz_XTAL/2);   // 16MHz, 32MHz Oscillator (verified)
-	m_maincpu->set_addrmap(AS_PROGRAM, &truxton2_state::batrider_68k_mem);
-	m_maincpu->reset_cb().set(FUNC(truxton2_state::toaplan2_reset));
-
-	Z80(config, m_audiocpu, 32_MHz_XTAL/6);     // 5.333MHz, 32MHz Oscillator (verified)
-	m_audiocpu->set_addrmap(AS_PROGRAM, &truxton2_state::batrider_sound_z80_mem);
-	m_audiocpu->set_addrmap(AS_IO, &truxton2_state::batrider_sound_z80_port);
-
-	config.set_maximum_quantum(attotime::from_hz(600));
-
-	MCFG_MACHINE_RESET_OVERRIDE(truxton2_state,bgaregga)
-
-	ADDRESS_MAP_BANK(config, m_dma_space, 0);
-	m_dma_space->set_addrmap(0, &truxton2_state::batrider_dma_mem);
-	m_dma_space->set_endianness(ENDIANNESS_BIG);
-	m_dma_space->set_data_width(16);
-	m_dma_space->set_addr_width(16);
-	m_dma_space->set_stride(0x8000);
-
-	/* video hardware */
-	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
-	m_screen->set_video_attributes(VIDEO_UPDATE_BEFORE_VBLANK);
-	m_screen->set_raw(27_MHz_XTAL/4, 432, 0, 320, 262, 0, 240);
-	//m_screen->set_refresh_hz(60);
-	//m_screen->set_size(432, 262);
-	//m_screen->set_visarea(0, 319, 0, 239);
-	m_screen->set_screen_update(FUNC(truxton2_state::screen_update_truxton2));
-	m_screen->screen_vblank().set(FUNC(truxton2_state::screen_vblank));
-	m_screen->set_palette(m_palette);
-
-	toaplan2_screen_device& t2screen(TOAPLAN2_SCREEN(config, "t2screen", 27_MHz_XTAL / 4));
-	t2screen.set_screen(m_screen);
-
-	TOAPLAN2_TXLAYER(config, m_txlayer, 0);
-
-	GFXDECODE(config, m_gfxdecode, m_palette, gfx_batrider);
-	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, 0x10000);
-
-	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
-	m_vdp->set_palette(m_palette);
-	m_vdp->set_tile_callback(FUNC(truxton2_state::batrider_bank_cb));
-	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_2);
-
-	MCFG_VIDEO_START_OVERRIDE(truxton2_state,batrider)
-
-	/* sound hardware */
-	SPEAKER(config, "mono").front_center();
-
-	// these two latches are always written together, via a single move.l instruction
-	GENERIC_LATCH_8(config, m_soundlatch[0]);
-	GENERIC_LATCH_8(config, m_soundlatch[1]);
-	GENERIC_LATCH_8(config, m_soundlatch[2]);
-	GENERIC_LATCH_8(config, m_soundlatch[3]);
-
-	YM2151(config, "ymsnd", 32_MHz_XTAL/8).add_route(ALL_OUTPUTS, "mono", 0.25); // 4MHz, 32MHz Oscillator (verified)
-
-	OKIM6295(config, m_oki[0], 32_MHz_XTAL/10, okim6295_device::PIN7_HIGH);
-	m_oki[0]->set_addrmap(0, &truxton2_state::raizing_oki<0>);
-	m_oki[0]->add_route(ALL_OUTPUTS, "mono", 0.5);
-
-	OKIM6295(config, m_oki[1], 32_MHz_XTAL/10, okim6295_device::PIN7_LOW);
-	m_oki[1]->set_addrmap(0, &truxton2_state::raizing_oki<1>);
-	m_oki[1]->add_route(ALL_OUTPUTS, "mono", 0.5);
-}
-
-
-void truxton2_state::bbakraid(machine_config &config)
-{
-	/* basic machine hardware */
-	M68000(config, m_maincpu, 32_MHz_XTAL/2);   // 16MHz, 32MHz Oscillator
-	m_maincpu->set_addrmap(AS_PROGRAM, &truxton2_state::bbakraid_68k_mem);
-	m_maincpu->reset_cb().set(FUNC(truxton2_state::toaplan2_reset));
-
-	Z80(config, m_audiocpu, XTAL(32'000'000)/6);     /* 5.3333MHz , 32MHz Oscillator */
-	m_audiocpu->set_addrmap(AS_PROGRAM, &truxton2_state::bbakraid_sound_z80_mem);
-	m_audiocpu->set_addrmap(AS_IO, &truxton2_state::bbakraid_sound_z80_port);
-	m_audiocpu->set_periodic_int(FUNC(truxton2_state::bbakraid_snd_interrupt), attotime::from_hz(XTAL(32'000'000) / 6 / 12000)); // sound CPU clock (divider unverified)
-
-	config.set_maximum_quantum(attotime::from_hz(600));
-
-	EEPROM_93C66_8BIT(config, m_eeprom);
-
-	ADDRESS_MAP_BANK(config, m_dma_space, 0);
-	m_dma_space->set_addrmap(0, &truxton2_state::batrider_dma_mem);
-	m_dma_space->set_endianness(ENDIANNESS_BIG);
-	m_dma_space->set_data_width(16);
-	m_dma_space->set_addr_width(16);
-	m_dma_space->set_stride(0x8000);
-
-	/* video hardware */
-	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
-	m_screen->set_video_attributes(VIDEO_UPDATE_BEFORE_VBLANK);
-	m_screen->set_raw(27_MHz_XTAL/4, 432, 0, 320, 262, 0, 240);
-	//m_screen->set_refresh_hz(60);
-	//m_screen->set_size(432, 262);
-	//m_screen->set_visarea(0, 319, 0, 239);
-	m_screen->set_screen_update(FUNC(truxton2_state::screen_update_truxton2));
-	m_screen->screen_vblank().set(FUNC(truxton2_state::screen_vblank));
-	m_screen->set_palette(m_palette);
-
-	toaplan2_screen_device& t2screen(TOAPLAN2_SCREEN(config, "t2screen", 27_MHz_XTAL / 4));
-	t2screen.set_screen(m_screen);
-
-	GFXDECODE(config, m_gfxdecode, m_palette, gfx_batrider);
-	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, 0x10000);
-
-	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
-	m_vdp->set_palette(m_palette);
-	m_vdp->set_tile_callback(FUNC(truxton2_state::batrider_bank_cb));
-	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_1);
-
-	MCFG_VIDEO_START_OVERRIDE(truxton2_state,batrider)
-
-	/* sound hardware */
-	SPEAKER(config, "mono").front_center();
-
-	// these two latches are always written together, via a single move.l instruction
-	GENERIC_LATCH_8(config, m_soundlatch[0]);
-	GENERIC_LATCH_8(config, m_soundlatch[1]);
-	GENERIC_LATCH_8(config, m_soundlatch[2]);
-	GENERIC_LATCH_8(config, m_soundlatch[3]);
-
-	YMZ280B(config, "ymz", 16.9344_MHz_XTAL).add_route(ALL_OUTPUTS, "mono", 1.0);
-	// IRQ not used ???  Connected to a test pin (TP082)
-}
+static GFXDECODE_START( gfx_batrider )
+	GFXDECODE_ENTRY( nullptr, 0, batrider_tx_tilelayout, 64*16, 64 )
+GFXDECODE_END
 
 
 void truxton2_state::nprobowl(machine_config &config)

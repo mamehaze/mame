@@ -22,12 +22,101 @@ public:
 	bbakraid_state(const machine_config &mconfig, device_type type, const char *tag)
 		: truxton2_state(mconfig, type, tag)
 	{ }
+
+
+	void bbakraid(machine_config &config);
+
+	void init_bbakraid();
+
+
 protected:
 private:
 };
 
+#define XOR(a) WORD_XOR_LE(a)
+
+static const gfx_layout batrider_tx_tilelayout =
+{
+	8,8,    /* 8x8 characters */
+	1024,   /* 1024 characters */
+	4,      /* 4 bits per pixel */
+	{ STEP4(0,1) },
+	{ XOR(0)*4, XOR(1)*4, XOR(2)*4, XOR(3)*4, XOR(4)*4, XOR(5)*4, XOR(6)*4, XOR(7)*4 },
+	{ STEP8(0,4*8) },
+	8*8*4
+};
 
 
+static GFXDECODE_START( gfx_batrider )
+	GFXDECODE_ENTRY( nullptr, 0, batrider_tx_tilelayout, 64*16, 64 )
+GFXDECODE_END
+
+
+
+void bbakraid_state::bbakraid(machine_config &config)
+{
+	/* basic machine hardware */
+	M68000(config, m_maincpu, 32_MHz_XTAL/2);   // 16MHz, 32MHz Oscillator
+	m_maincpu->set_addrmap(AS_PROGRAM, &truxton2_state::bbakraid_68k_mem);
+	m_maincpu->reset_cb().set(FUNC(truxton2_state::toaplan2_reset));
+
+	Z80(config, m_audiocpu, XTAL(32'000'000)/6);     /* 5.3333MHz , 32MHz Oscillator */
+	m_audiocpu->set_addrmap(AS_PROGRAM, &truxton2_state::bbakraid_sound_z80_mem);
+	m_audiocpu->set_addrmap(AS_IO, &truxton2_state::bbakraid_sound_z80_port);
+	m_audiocpu->set_periodic_int(FUNC(truxton2_state::bbakraid_snd_interrupt), attotime::from_hz(XTAL(32'000'000) / 6 / 12000)); // sound CPU clock (divider unverified)
+
+	config.set_maximum_quantum(attotime::from_hz(600));
+
+	EEPROM_93C66_8BIT(config, m_eeprom);
+
+	ADDRESS_MAP_BANK(config, m_dma_space, 0);
+	m_dma_space->set_addrmap(0, &truxton2_state::batrider_dma_mem);
+	m_dma_space->set_endianness(ENDIANNESS_BIG);
+	m_dma_space->set_data_width(16);
+	m_dma_space->set_addr_width(16);
+	m_dma_space->set_stride(0x8000);
+
+	/* video hardware */
+	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
+	m_screen->set_video_attributes(VIDEO_UPDATE_BEFORE_VBLANK);
+	m_screen->set_raw(27_MHz_XTAL/4, 432, 0, 320, 262, 0, 240);
+	//m_screen->set_refresh_hz(60);
+	//m_screen->set_size(432, 262);
+	//m_screen->set_visarea(0, 319, 0, 239);
+	m_screen->set_screen_update(FUNC(truxton2_state::screen_update_truxton2));
+	m_screen->screen_vblank().set(FUNC(truxton2_state::screen_vblank));
+	m_screen->set_palette(m_palette);
+
+	toaplan2_screen_device& t2screen(TOAPLAN2_SCREEN(config, "t2screen", 27_MHz_XTAL / 4));
+	t2screen.set_screen(m_screen);
+
+	GFXDECODE(config, m_gfxdecode, m_palette, gfx_batrider);
+	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, 0x10000);
+
+	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
+	m_vdp->set_palette(m_palette);
+	m_vdp->set_tile_callback(FUNC(truxton2_state::batrider_bank_cb));
+	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_1);
+
+	MCFG_VIDEO_START_OVERRIDE(truxton2_state,batrider)
+
+	/* sound hardware */
+	SPEAKER(config, "mono").front_center();
+
+	// these two latches are always written together, via a single move.l instruction
+	GENERIC_LATCH_8(config, m_soundlatch[0]);
+	GENERIC_LATCH_8(config, m_soundlatch[1]);
+	GENERIC_LATCH_8(config, m_soundlatch[2]);
+	GENERIC_LATCH_8(config, m_soundlatch[3]);
+
+	YMZ280B(config, "ymz", 16.9344_MHz_XTAL).add_route(ALL_OUTPUTS, "mono", 1.0);
+	// IRQ not used ???  Connected to a test pin (TP082)
+}
+
+void bbakraid_state::init_bbakraid()
+{
+	m_sndirq_line = 2;
+}
 
 static INPUT_PORTS_START( batrider )
 	PORT_START("IN")        // Player Inputs

@@ -22,9 +22,93 @@ public:
 	bgaregga_state(const machine_config &mconfig, device_type type, const char *tag)
 		: truxton2_state(mconfig, type, tag)
 	{ }
+
+	void bgaregga(machine_config &config);
+	void bgareggabl(machine_config &config);
+
+	template<unsigned Chip> void raizing_oki(address_map &map);
+
 protected:
 private:
 };
+
+// similar as NMK112, but GAL-driven; NOT actual NMK112 is present
+template<unsigned Chip>
+void bgaregga_state::raizing_oki(address_map &map)
+{
+	map(0x00000, 0x000ff).bankr(m_raizing_okibank[Chip][0]);
+	map(0x00100, 0x001ff).bankr(m_raizing_okibank[Chip][1]);
+	map(0x00200, 0x002ff).bankr(m_raizing_okibank[Chip][2]);
+	map(0x00300, 0x003ff).bankr(m_raizing_okibank[Chip][3]);
+	map(0x00400, 0x0ffff).bankr(m_raizing_okibank[Chip][4]);
+	map(0x10000, 0x1ffff).bankr(m_raizing_okibank[Chip][5]);
+	map(0x20000, 0x2ffff).bankr(m_raizing_okibank[Chip][6]);
+	map(0x30000, 0x3ffff).bankr(m_raizing_okibank[Chip][7]);
+}
+
+static GFXDECODE_START( gfx_textrom )
+	GFXDECODE_ENTRY( "text", 0, gfx_8x8x4_packed_msb, 64*16, 64 )
+GFXDECODE_END
+
+
+void bgaregga_state::bgaregga(machine_config &config)
+{
+	/* basic machine hardware */
+	M68000(config, m_maincpu, 32_MHz_XTAL/2);   // 16MHz, 32MHz Oscillator
+	m_maincpu->set_addrmap(AS_PROGRAM, &truxton2_state::bgaregga_68k_mem);
+	m_maincpu->reset_cb().set(FUNC(truxton2_state::toaplan2_reset));
+
+	Z80(config, m_audiocpu, 32_MHz_XTAL/8);     // 4MHz, 32MHz Oscillator
+	m_audiocpu->set_addrmap(AS_PROGRAM, &truxton2_state::bgaregga_sound_z80_mem);
+
+	config.set_maximum_quantum(attotime::from_hz(6000));
+
+	MCFG_MACHINE_RESET_OVERRIDE(truxton2_state,bgaregga)
+
+	/* video hardware */
+	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
+	m_screen->set_video_attributes(VIDEO_UPDATE_BEFORE_VBLANK);
+	m_screen->set_raw(27_MHz_XTAL/4, 432, 0, 320, 262, 0, 240);
+	//m_screen->set_refresh_hz(60);
+	//m_screen->set_size(432, 262);
+	//m_screen->set_visarea(0, 319, 0, 239);
+	m_screen->set_screen_update(FUNC(truxton2_state::screen_update_truxton2));
+	m_screen->screen_vblank().set(FUNC(truxton2_state::screen_vblank));
+	m_screen->set_palette(m_palette);
+
+	toaplan2_screen_device& t2screen(TOAPLAN2_SCREEN(config, "t2screen", 27_MHz_XTAL / 4));
+	t2screen.set_screen(m_screen);
+
+	GFXDECODE(config, m_gfxdecode, m_palette, gfx_textrom);
+	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, 0x10000);
+
+	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
+	m_vdp->set_palette(m_palette);
+	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
+
+	MCFG_VIDEO_START_OVERRIDE(truxton2_state,bgaregga)
+
+	/* sound hardware */
+	SPEAKER(config, "mono").front_center();
+
+	GENERIC_LATCH_8(config, m_soundlatch[0]);
+	m_soundlatch[0]->data_pending_callback().set_inputline(m_audiocpu, 0);
+	m_soundlatch[0]->set_separate_acknowledge(true);
+
+	YM2151(config, "ymsnd", 32_MHz_XTAL/8).add_route(ALL_OUTPUTS, "mono", 0.35);
+
+	OKIM6295(config, m_oki[0], 32_MHz_XTAL/16, okim6295_device::PIN7_HIGH);
+	m_oki[0]->set_addrmap(0, &bgaregga_state::raizing_oki<0>);
+	m_oki[0]->add_route(ALL_OUTPUTS, "mono", 0.7);
+}
+
+void bgaregga_state::bgareggabl(machine_config &config)
+{
+	bgaregga(config);
+	MCFG_VIDEO_START_OVERRIDE(truxton2_state,bgareggabl)
+
+	m_screen->set_screen_update(FUNC(truxton2_state::screen_update_bootleg));
+}
 
 
 
