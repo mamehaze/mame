@@ -19,13 +19,14 @@
 
 
 // with text layer
-class truxton2_state : public toaplan2_state
+class truxton2_state : public driver_device
 {
 public:
 	truxton2_state(const machine_config &mconfig, device_type type, const char *tag)
-		: toaplan2_state(mconfig, type, tag)
+		: driver_device(mconfig, type, tag)
 		, m_maincpu(*this, "maincpu")
 		, m_audiocpu(*this, "audiocpu")
+		, m_oki(*this, "oki%u", 1U)
 		, m_screen(*this, "screen")
 		, m_palette(*this, "palette")
 		, m_vdp(*this, "gp9001")
@@ -76,6 +77,7 @@ protected:
 private:
 	required_device<m68000_base_device> m_maincpu;
 	optional_device<cpu_device> m_audiocpu;
+	optional_device_array<okim6295_device, 2> m_oki;
 	required_device<screen_device> m_screen;
 	required_device<palette_device> m_palette;
 	required_device<gp9001vdp_device> m_vdp;
@@ -479,13 +481,11 @@ u32 truxton2_state::screen_update_truxton2(screen_device &screen, bitmap_ind16 &
 
 void truxton2_state::machine_start()
 {
-	toaplan2_state::machine_start();
 	save_item(NAME(m_z80_busreq));
 }
 
 MACHINE_RESET_MEMBER(truxton2_state, bgaregga)
 {
-	toaplan2_state::machine_reset();
 	for (int chip = 0; chip < 2; chip++)
 	{
 		for (int i = 0; i < 8; i++)

@@ -14,11 +14,11 @@
 #include "speaker.h"
 
 
-class pipibibs_state : public toaplan2_state
+class pipibibs_state : public driver_device
 {
 public:
 	pipibibs_state(const machine_config &mconfig, device_type type, const char *tag)
-		: toaplan2_state(mconfig, type, tag)
+		: driver_device(mconfig, type, tag)
 		, m_maincpu(*this, "maincpu")
 		, m_audiocpu(*this, "audiocpu")
 		, m_screen(*this, "screen")

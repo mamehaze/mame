@@ -14,11 +14,11 @@
 #include "speaker.h"
 
 
-class tekipaki_state : public toaplan2_state
+class tekipaki_state : public driver_device
 {
 public:
 	tekipaki_state(const machine_config &mconfig, device_type type, const char *tag)
-		: toaplan2_state(mconfig, type, tag)
+		: driver_device(mconfig, type, tag)
 		, m_maincpu(*this, "maincpu")
 		, m_audiocpu(*this, "audiocpu")
 		, m_screen(*this, "screen")

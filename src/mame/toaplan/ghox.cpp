@@ -20,11 +20,11 @@
 
 
 // with paddle
-class ghox_state : public toaplan2_state
+class ghox_state : public driver_device
 {
 public:
 	ghox_state(const machine_config &mconfig, device_type type, const char *tag)
-		: toaplan2_state(mconfig, type, tag)
+		: driver_device(mconfig, type, tag)
 		, m_maincpu(*this, "maincpu")
 		, m_audiocpu(*this, "audiocpu")
 		, m_screen(*this, "screen")
@@ -325,14 +325,12 @@ void ghox_state::ghox(machine_config &config)
 
 void ghox_state::machine_start()
 {
-	toaplan2_state::machine_start();
 	save_item(NAME(m_old_paddle_h));
 }
 
 
 void ghox_state::machine_reset()
 {
-	toaplan2_state::machine_reset();
 	m_old_paddle_h[0] = 0;
 	m_old_paddle_h[1] = 0;
 }

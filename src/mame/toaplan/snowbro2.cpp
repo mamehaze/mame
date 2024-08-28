@@ -14,12 +14,13 @@
 #include "sound/ymz280b.h"
 #include "speaker.h"
 
-class snowbro2_state : public toaplan2_state
+class snowbro2_state : public driver_device
 {
 public:
 	snowbro2_state(const machine_config &mconfig, device_type type, const char *tag)
-		: toaplan2_state(mconfig, type, tag)
+		: driver_device(mconfig, type, tag)
 		, m_maincpu(*this, "maincpu")
+		, m_oki(*this, "oki%u", 1U)
 		, m_screen(*this, "screen")
 		, m_palette(*this, "palette")
 		, m_vdp(*this, "gp9001")
@@ -44,6 +45,7 @@ private:
 	bitmap_ind8 m_custom_priority_bitmap;
 
 	required_device<m68000_base_device> m_maincpu;
+	optional_device_array<okim6295_device, 2> m_oki;
 	required_device<screen_device> m_screen;
 	required_device<palette_device> m_palette;
 	required_device<gp9001vdp_device> m_vdp;
@@ -395,7 +397,7 @@ void snowbro2_state::snowbro2b3(machine_config &config)
 	snowbro2(config);
 
 	m_maincpu->set_addrmap(AS_PROGRAM, &snowbro2_state::snowbro2b3_68k_mem);
-	m_maincpu->set_vblank_int("screen", FUNC(toaplan2_state::irq2_line_hold));
+	m_maincpu->set_vblank_int("screen", FUNC(snowbro2_state::irq2_line_hold));
 
 	m_vdp->vint_out_cb().set_nop();
 	m_vdp->set_bootleg_extra_offsets(0x02e, 0x1f0, 0x02e, 0x1ee, 0x02e, 0x1ef, 0x1e9, 0x1ef);

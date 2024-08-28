@@ -14,12 +14,13 @@
 #include "speaker.h"
 
 
-class enmadaio_state : public toaplan2_state
+class enmadaio_state : public driver_device
 {
 public:
 	enmadaio_state(const machine_config &mconfig, device_type type, const char *tag)
-		: toaplan2_state(mconfig, type, tag)
+		: driver_device(mconfig, type, tag)
 		, m_maincpu(*this, "maincpu")
+		, m_oki(*this, "oki%u", 1U)
 		, m_screen(*this, "screen")
 		, m_palette(*this, "palette")
 		, m_vdp(*this, "gp9001")
@@ -46,6 +47,7 @@ private:
 	bitmap_ind8 m_custom_priority_bitmap;
 
 	required_device<m68000_base_device> m_maincpu;
+	optional_device_array<okim6295_device, 2> m_oki;
 	required_device<screen_device> m_screen;
 	required_device<palette_device> m_palette;
 	required_device<gp9001vdp_device> m_vdp;
