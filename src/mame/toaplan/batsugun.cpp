@@ -23,6 +23,7 @@ public:
 		, m_palette(*this, "palette")
 		, m_vdp(*this, "gp9001_%u", 0U)
 		, m_okibank(*this, "okibank")
+		, m_shared_ram(*this, "shared_ram")
 	{ }
 
 	void batsugun(machine_config &config);
@@ -66,6 +67,7 @@ private:
 	required_device<palette_device> m_palette;
 	required_device_array<gp9001vdp_device, 2> m_vdp;
 	optional_memory_bank m_okibank;
+	optional_shared_ptr<u8> m_shared_ram; // 8 bit RAM shared between 68K and sound CPU
 
 
 };

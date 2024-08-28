@@ -23,6 +23,7 @@ public:
 		, m_screen(*this, "screen")
 		, m_palette(*this, "palette")
 		, m_vdp(*this, "gp9001")
+		, m_shared_ram(*this, "shared_ram")
 	{ }
 	void pipibibs(machine_config &config);
 	void pipibibsbl(machine_config &config);
@@ -51,6 +52,7 @@ private:
 	required_device<screen_device> m_screen;
 	required_device<palette_device> m_palette;
 	required_device<gp9001vdp_device> m_vdp;
+	optional_shared_ptr<u8> m_shared_ram; // 8 bit RAM shared between 68K and sound CPU
 
 };
 

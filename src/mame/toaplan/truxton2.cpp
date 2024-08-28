@@ -31,6 +31,9 @@ public:
 		, m_gfxdecode(*this, "gfxdecode")
 
 		, m_okibank(*this, "okibank")
+		, m_soundlatch(*this, "soundlatch%u", 1U)
+
+		, m_shared_ram(*this, "shared_ram")
 		, m_mainram(*this, "mainram")
 		, m_tx_videoram(*this, "tx_videoram")
 		, m_tx_lineselect(*this, "tx_lineselect")
@@ -76,7 +79,9 @@ private:
 	required_device<gp9001vdp_device> m_vdp;
 	optional_device<gfxdecode_device> m_gfxdecode;
 	optional_memory_bank m_okibank;
+	optional_device_array<generic_latch_8_device, 4> m_soundlatch; // tekipaki, batrider, bgaregga, batsugun
 
+	optional_shared_ptr<u8> m_shared_ram; // 8 bit RAM shared between 68K and sound CPU
 	optional_shared_ptr<u16> m_mainram;
 	required_shared_ptr<u16> m_tx_videoram;
 	optional_shared_ptr<u16> m_tx_lineselect;
