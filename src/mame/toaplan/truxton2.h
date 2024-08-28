@@ -49,16 +49,10 @@ public:
 		, m_txlayer(*this, "txlayer")
 	{ }
 
-	void fixeight(machine_config &config);
-	void fixeightbl(machine_config &config);
-	void mahoudai(machine_config &config);
 	void nprobowl(machine_config &config);
-	void shippumd(machine_config &config);
 	void truxton2(machine_config &config);
 
 	void init_bgaregga();
-	void init_fixeight();
-	void init_fixeightbl();
 
 	virtual void machine_start() override;
 	virtual void device_post_load() override;
