@@ -18,6 +18,9 @@ class batsugun_state : public toaplan2_state
 public:
 	batsugun_state(const machine_config &mconfig, device_type type, const char *tag)
 		: toaplan2_state(mconfig, type, tag)
+		, m_maincpu(*this, "maincpu")
+		, m_screen(*this, "screen")
+		, m_palette(*this, "palette")
 		, m_vdp(*this, "gp9001_%u", 0U)
 	{ }
 
@@ -52,6 +55,9 @@ private:
 	u16 video_count_r();
 	void toaplan2_reset(int state);
 
+	required_device<m68000_base_device> m_maincpu;
+	required_device<screen_device> m_screen;
+	required_device<palette_device> m_palette;
 	required_device_array<gp9001vdp_device, 2> m_vdp;
 
 

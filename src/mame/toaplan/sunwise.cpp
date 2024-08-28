@@ -28,19 +28,18 @@ class pwrkick_state : public toaplan2_state
 public:
 	pwrkick_state(const machine_config &mconfig, device_type type, const char *tag)
 		: toaplan2_state(mconfig, type, tag)
+		, m_maincpu(*this, "maincpu")
+		, m_screen(*this, "screen")
+		, m_palette(*this, "palette")
+		, m_vdp(*this, "gp9001")
 		, m_rtc(*this, "rtc")
 		, m_hopper(*this, "hopper")
-		, m_vdp(*this, "gp9001")
 	{ }
 
 	void othldrby(machine_config &config);
 	void pwrkick(machine_config &config);
 
 private:
-	required_device<upd4992_device> m_rtc;
-	optional_device<ticket_dispenser_device> m_hopper;
-	required_device<gp9001vdp_device> m_vdp;
-
 
 	void coin_w(u8 data);
 	void pwrkick_coin_w(u8 data);
@@ -57,6 +56,13 @@ private:
 
 	u16 video_count_r();
 	void toaplan2_reset(int state);
+
+	required_device<m68000_base_device> m_maincpu;
+	required_device<screen_device> m_screen;
+	required_device<palette_device> m_palette;
+	required_device<gp9001vdp_device> m_vdp;
+	required_device<upd4992_device> m_rtc;
+	optional_device<ticket_dispenser_device> m_hopper;
 
 };
 
@@ -563,7 +569,7 @@ ROM_START( pwrkick ) // Sunwise SW931201-1 PCB - 8-liner connections
 	ROM_REGION( 0x80000, "maincpu", ROMREGION_ERASE00 )
 	ROM_LOAD16_WORD_SWAP( "1.u61", 0x000000, 0x080000, CRC(118b5899) SHA1(7a1637a63eb17e3892d79aede5730013a1dc00f9) )
 
-	ROM_REGION( 0x100000, "gp9001_0", ROMREGION_ERASE00 )
+	ROM_REGION( 0x100000, "gp9001", ROMREGION_ERASE00 )
 	ROM_LOAD( "2.u26", 0x000000, 0x080000, CRC(a190eaea) SHA1(2c7b8c8026873e0f591fbcbc2e72b196ef84e162) )
 	ROM_LOAD( "3.u27", 0x080000, 0x080000, CRC(0b81e038) SHA1(8376617ae519a8ef604f20b26e941aa5b8066602) )
 
@@ -622,7 +628,7 @@ ROM_START( burgkids ) // Sunwise SW931201-1 PCB - 8-liner connections
 	ROM_REGION( 0x80000, "maincpu", ROMREGION_ERASE00 )
 	ROM_LOAD16_WORD_SWAP( "ffk1.u61", 0x000000, 0x080000, CRC(ac96cb0d) SHA1(2ce5c06d61f3ff18b222619e41d09e46d44c5bab) )
 
-	ROM_REGION( 0x100000, "gp9001_0", ROMREGION_ERASE00 )
+	ROM_REGION( 0x100000, "gp9001", ROMREGION_ERASE00 )
 	ROM_LOAD( "ffk2.u26", 0x000000, 0x080000, CRC(09f7b0ae) SHA1(f340f27a601ff89f143398263d822b8f340eea6e) )
 	ROM_LOAD( "ffk3.u27", 0x080000, 0x080000, CRC(63c761bc) SHA1(f0ee1dc6aaeacff23e55d072102b814c7ef30550) )
 
@@ -634,7 +640,7 @@ ROM_START( othldrby ) // Sunwise S951060-VGP PCB - JAMMA compliant (components i
 	ROM_REGION( 0x080000, "maincpu", 0 )
 	ROM_LOAD16_WORD_SWAP( "sunwise_db0_1.u61", 0x00000, 0x80000, CRC(6b4008d3) SHA1(4cf838c47563ba482be8364b2e115569a4a06c83) )
 
-	ROM_REGION( 0x400000, "gp9001_0", 0 )
+	ROM_REGION( 0x400000, "gp9001", 0 )
 	ROM_LOAD( "db0-r2.u26", 0x000000, 0x200000, CRC(4efff265) SHA1(4cd239ff42f532495946cb52bd1fee412f84e192) ) // mask ROMs
 	ROM_LOAD( "db0-r3.u27", 0x200000, 0x200000, CRC(5c142b38) SHA1(5466a8b061a0f2545493de0f96fd4387beea276a) )
 

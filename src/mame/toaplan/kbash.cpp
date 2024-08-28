@@ -19,6 +19,9 @@ class kbash_state : public toaplan2_state
 public:
 	kbash_state(const machine_config &mconfig, device_type type, const char *tag)
 		: toaplan2_state(mconfig, type, tag)
+		, m_maincpu(*this, "maincpu")
+		, m_screen(*this, "screen")
+		, m_palette(*this, "palette")
 		, m_vdp(*this, "gp9001")
 	{ }
 
@@ -44,6 +47,9 @@ private:
 	u16 video_count_r();
 	void toaplan2_reset(int state);
 
+	required_device<m68000_base_device> m_maincpu;
+	required_device<screen_device> m_screen;
+	required_device<palette_device> m_palette;
 	required_device<gp9001vdp_device> m_vdp;
 
 };
@@ -479,7 +485,7 @@ ROM_START( kbash )
 	ROM_REGION( 0x8000, "audiocpu", 0 )         /* Sound CPU code */
 	ROM_LOAD( "tp023_02.bin", 0x0000, 0x8000, CRC(4cd882a1) SHA1(7199a5c384918f775f0815e09c46b2a58141814a) )
 
-	ROM_REGION( 0x800000, "gp9001_0", 0 )
+	ROM_REGION( 0x800000, "gp9001", 0 )
 	ROM_LOAD( "tp023_3.bin", 0x000000, 0x200000, CRC(32ad508b) SHA1(e473489beaf649d3e5236770eb043327e309850c) )
 	ROM_LOAD( "tp023_5.bin", 0x200000, 0x200000, CRC(b84c90eb) SHA1(17a1531d884d9a9696d1b25d65f9155f02396e0e) )
 	ROM_LOAD( "tp023_4.bin", 0x400000, 0x200000, CRC(e493c077) SHA1(0edcfb70483ad07206695d9283031b85cd198a36) )
@@ -499,7 +505,7 @@ ROM_START( kbashk )
 	ROM_REGION( 0x8000, "audiocpu", 0 )         /* Sound CPU code */
 	ROM_LOAD( "tp023_02.bin", 0x0000, 0x8000, CRC(4cd882a1) SHA1(7199a5c384918f775f0815e09c46b2a58141814a) )
 
-	ROM_REGION( 0x800000, "gp9001_0", 0 )
+	ROM_REGION( 0x800000, "gp9001", 0 )
 	ROM_LOAD( "tp023_3.bin", 0x000000, 0x200000, CRC(32ad508b) SHA1(e473489beaf649d3e5236770eb043327e309850c) )
 	ROM_LOAD( "tp023_5.bin", 0x200000, 0x200000, CRC(b84c90eb) SHA1(17a1531d884d9a9696d1b25d65f9155f02396e0e) )
 	ROM_LOAD( "tp023_4.bin", 0x400000, 0x200000, CRC(e493c077) SHA1(0edcfb70483ad07206695d9283031b85cd198a36) )
@@ -522,7 +528,7 @@ ROM_START( kbashp )
 	ROM_REGION( 0x8000, "audiocpu", 0 )
 	ROM_LOAD( "aou-nb-sound.u34", 0x0000, 0x8000, CRC(26ba8fb1) SHA1(4259c4704f0fea0c8befa2e60a0838280b23a507) )
 
-	ROM_REGION( 0x800000, "gp9001_0", 0 )
+	ROM_REGION( 0x800000, "gp9001", 0 )
 	ROM_LOAD( "0.u1", 0x000000, 0x080000, CRC(1b87ffa5) SHA1(fbd5ac9e9635c1f5b1b896a3d504b827c0a99679) )
 	ROM_LOAD( "2.u2", 0x080000, 0x080000, CRC(a411457e) SHA1(6b515e6524aa4fb1785d99556fefb0434368de84) )
 	ROM_LOAD( "4.u3", 0x100000, 0x080000, CRC(631f770d) SHA1(0f0c11bc5549ed68d20dfc6ae51c3caec65aab88) )
@@ -588,7 +594,7 @@ ROM_START( kbash2 )
 	ROM_REGION( 0x80000, "maincpu", 0 )         /* Main 68K code */
 	ROM_LOAD16_WORD_SWAP( "mecat-m", 0x000000, 0x80000, CRC(bd2263c6) SHA1(eb794c0fc9c1fb4337114d48149283d42d22e4b3) )
 
-	ROM_REGION( 0x800000, "gp9001_0", 0 )
+	ROM_REGION( 0x800000, "gp9001", 0 )
 	ROM_LOAD( "mecat-34", 0x000000, 0x400000, CRC(6be7b37e) SHA1(13160ad0712fee932bb98cc226e651895b19228a) )
 	ROM_LOAD( "mecat-12", 0x400000, 0x400000, CRC(49e46b1f) SHA1(d12b12696a8473eb34f3cd247ab060289a6c0e9c) )
 

@@ -19,6 +19,9 @@ class enmadaio_state : public toaplan2_state
 public:
 	enmadaio_state(const machine_config &mconfig, device_type type, const char *tag)
 		: toaplan2_state(mconfig, type, tag)
+		, m_maincpu(*this, "maincpu")
+		, m_screen(*this, "screen")
+		, m_palette(*this, "palette")
 		, m_vdp(*this, "gp9001")
 	{ }
 
@@ -39,6 +42,9 @@ private:
 	u16 video_count_r();
 	void toaplan2_reset(int state);
 
+	required_device<m68000_base_device> m_maincpu;
+	required_device<screen_device> m_screen;
+	required_device<palette_device> m_palette;
 	required_device<gp9001vdp_device> m_vdp;
 
 };
@@ -420,7 +426,7 @@ ROM_START( enmadaio )
 	ROM_REGION( 0x080000, "maincpu", 0 )
 	ROM_LOAD16_WORD_SWAP( "03n_u53.c8",        0x00000, 0x80000, CRC(1a6ca2ee) SHA1(13d34a10004ca172db7953e2be8daa90fc5b62ed) )
 
-	ROM_REGION( 0x200000, "gp9001_0", 0 )
+	ROM_REGION( 0x200000, "gp9001", 0 )
 	ROM_LOAD( "rom4_u30.c19",       0x000000, 0x100000, CRC(7a012d8b) SHA1(a33d9490573a9fd1e799d3fe567f991926851c51) )
 	ROM_LOAD( "rom5_u31.c18",       0x100000, 0x100000, CRC(60b127ab) SHA1(98785dfd6a86b4bd2c9786f6f72796c023b5b73a) )
 

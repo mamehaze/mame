@@ -18,6 +18,9 @@ class grindstm_state : public toaplan2_state
 public:
 	grindstm_state(const machine_config &mconfig, device_type type, const char *tag)
 		: toaplan2_state(mconfig, type, tag)
+		, m_maincpu(*this, "maincpu")
+		, m_screen(*this, "screen")
+		, m_palette(*this, "palette")
 		, m_vdp(*this, "gp9001")
 	{ }
 
@@ -43,6 +46,9 @@ private:
 	u16 video_count_r();
 	void toaplan2_reset(int state);
 
+	required_device<m68000_base_device> m_maincpu;
+	required_device<screen_device> m_screen;
+	required_device<palette_device> m_palette;
 	required_device<gp9001vdp_device> m_vdp;
 
 };
@@ -406,7 +412,7 @@ ROM_START( grindstm )
 	/* Secondary CPU is a Toaplan marked chip, (TS-007-Spy  TOA PLAN) */
 	/* It's a NEC V25 (PLCC94) (encrypted program uploaded by main CPU) */
 
-	ROM_REGION( 0x200000, "gp9001_0", 0 )
+	ROM_REGION( 0x200000, "gp9001", 0 )
 	ROM_LOAD( "tp027_02.bin", 0x000000, 0x100000, CRC(877b45e8) SHA1(b3ed8d8dbbe51a1919afc55d619d2b6771971493) )
 	ROM_LOAD( "tp027_03.bin", 0x100000, 0x100000, CRC(b1fc6362) SHA1(5e97e3cce31be57689d394a50178cda4d80cce5f) )
 ROM_END
@@ -419,7 +425,7 @@ ROM_START( grindstma )
 	/* Secondary CPU is a Toaplan marked chip, (TS-007-Spy  TOA PLAN) */
 	/* It's a NEC V25 (PLCC94) (encrypted program uploaded by main CPU) */
 
-	ROM_REGION( 0x200000, "gp9001_0", 0 )
+	ROM_REGION( 0x200000, "gp9001", 0 )
 	ROM_LOAD( "tp027_02.bin", 0x000000, 0x100000, CRC(877b45e8) SHA1(b3ed8d8dbbe51a1919afc55d619d2b6771971493) )
 	ROM_LOAD( "tp027_03.bin", 0x100000, 0x100000, CRC(b1fc6362) SHA1(5e97e3cce31be57689d394a50178cda4d80cce5f) )
 ROM_END
@@ -432,7 +438,7 @@ ROM_START( vfive )
 	/* Secondary CPU is a Toaplan marked chip, (TS-007-Spy  TOA PLAN) */
 	/* It's a NEC V25 (PLCC94) (encrypted program uploaded by main CPU) */
 
-	ROM_REGION( 0x200000, "gp9001_0", 0 )
+	ROM_REGION( 0x200000, "gp9001", 0 )
 	ROM_LOAD( "tp027_02.bin", 0x000000, 0x100000, CRC(877b45e8) SHA1(b3ed8d8dbbe51a1919afc55d619d2b6771971493) )
 	ROM_LOAD( "tp027_03.bin", 0x100000, 0x100000, CRC(b1fc6362) SHA1(5e97e3cce31be57689d394a50178cda4d80cce5f) )
 ROM_END

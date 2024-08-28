@@ -19,6 +19,9 @@ class snowbro2_state : public toaplan2_state
 public:
 	snowbro2_state(const machine_config &mconfig, device_type type, const char *tag)
 		: toaplan2_state(mconfig, type, tag)
+		, m_maincpu(*this, "maincpu")
+		, m_screen(*this, "screen")
+		, m_palette(*this, "palette")
 		, m_vdp(*this, "gp9001")
 	{ }
 
@@ -38,6 +41,9 @@ private:
 
 	void toaplan2_reset(int state);
 
+	required_device<m68000_base_device> m_maincpu;
+	required_device<screen_device> m_screen;
+	required_device<palette_device> m_palette;
 	required_device<gp9001vdp_device> m_vdp;
 
 };
@@ -401,7 +407,7 @@ ROM_START( snowbro2 )
 	ROM_REGION( 0x080000, "maincpu", 0 )            /* Main 68K code */
 	ROM_LOAD16_WORD_SWAP( "pro-4", 0x000000, 0x080000, CRC(4c7ee341) SHA1(ad46c605a38565d0148daac301be4e4b72302fe7) )
 
-	ROM_REGION( 0x300000, "gp9001_0", 0 )
+	ROM_REGION( 0x300000, "gp9001", 0 )
 	ROM_LOAD( "rom2-l", 0x000000, 0x100000, CRC(e9d366a9) SHA1(e87e3966fce3395324b90db6c134b3345104c04b) )
 	ROM_LOAD( "rom2-h", 0x100000, 0x080000, CRC(9aab7a62) SHA1(611f6a15fdbac5d3063426a365538c1482e996bf) )
 	ROM_LOAD( "rom3-l", 0x180000, 0x100000, CRC(eb06e332) SHA1(7cd597bfffc153d178530c0f0903bebd751c9dd1) )
@@ -416,7 +422,7 @@ ROM_START( snowbro2b ) // seems to be the same data as the main set, but with th
 	ROM_LOAD16_BYTE( "sb2-prg1.u39", 0x000000, 0x040000, CRC(e1fec8a2) SHA1(30c1a351070d784da9ba0dca68be8a262dba2045) )
 	ROM_LOAD16_BYTE( "sb2-prg0.u23", 0x000001, 0x040000, CRC(b473cd57) SHA1(331130faa9de01b3ca93845174e8c3684bd269c7) )
 
-	ROM_REGION( 0x400000, "gp9001_0", 0 )
+	ROM_REGION( 0x400000, "gp9001", 0 )
 	ROM_LOAD( "sb2-gfx.u177", 0x000000, 0x200000, CRC(ebeec910) SHA1(e179f393b98135caa8419b68cd979038ab47a413) )
 	ROM_LOAD( "sb2-gfx.u175", 0x200000, 0x200000, CRC(e349c75b) SHA1(7d40d00fc0e15a68c427fe94db410bb7cbe00117) )
 
@@ -431,7 +437,7 @@ ROM_START( snowbro2b2 ) // seems to mostly be the same data, but with copyright 
 	ROM_REGION( 0x080000, "maincpu", 0 )            /* Main 68K code */
 	ROM_LOAD16_WORD_SWAP( "rom10.bin", 0x000000, 0x080000, CRC(3e96da41) SHA1(692211d40f506efb9cb49848521de2da7890e248) ) // 27c04002
 
-	ROM_REGION( 0x300000, "gp9001_0", 0 )
+	ROM_REGION( 0x300000, "gp9001", 0 )
 	ROM_LOAD16_BYTE( "rom07.bin", 0x000000, 0x080000, CRC(c54ae0b3) SHA1(94099b2da52eb12638799eab0819fe8a13aa3879) ) // 27c040
 	ROM_LOAD16_BYTE( "rom05.bin", 0x000001, 0x080000, CRC(af3c74d1) SHA1(e97a688db50dfe41723452a9f652564e89e367ed) ) // 27c040
 	ROM_LOAD16_BYTE( "rom08.bin", 0x100000, 0x040000, CRC(72812088) SHA1(1c0d410a7dd8de0bc48b7ff677979ad269966f7d) ) // 27c02001
@@ -449,7 +455,7 @@ ROM_START( snowbro2b3 ) // SK000616 PCB, no original parts, seems hardcoded on E
 	ROM_REGION( 0x080000, "maincpu", 0 )
 	ROM_LOAD16_WORD_SWAP( "prg", 0x000000, 0x080000, CRC(8ce2ede2) SHA1(ddd8a2aa442cd5bb3a7d393b9b5c06fd981e7c61) )
 
-	ROM_REGION( 0x400000, "gp9001_0", 0 ) // not actually a GP9001
+	ROM_REGION( 0x400000, "gp9001", 0 ) // not actually a GP9001
 	ROM_LOAD( "gfx2", 0x100000, 0x100000, CRC(a3be41af) SHA1(4cb1ce9c47bf8bbf7d1e36f6a1d276ce52957cfb) )
 	ROM_CONTINUE(     0x000000, 0x100000 )
 	ROM_LOAD( "gfx1", 0x300000, 0x100000, CRC(8df1ab06) SHA1(2a28caf7d545dc05acfcd2a8d2ffbd9f710af45d) )
@@ -463,7 +469,7 @@ ROM_START( snowbro2ny ) // Nyanko
 	ROM_REGION( 0x080000, "maincpu", 0 )            /* Main 68K code */
 	ROM_LOAD16_WORD_SWAP( "rom1_c8.u61", 0x000000, 0x080000, CRC(9e6eb76b) SHA1(9e8b356dabedeb4ae9e08d60fbf6ed4a09edc0bd) )
 
-	ROM_REGION( 0x300000, "gp9001_0", 0 )
+	ROM_REGION( 0x300000, "gp9001", 0 )
 	ROM_LOAD( "rom2-l_tp-033.u13", 0x000000, 0x100000, CRC(e9d366a9) SHA1(e87e3966fce3395324b90db6c134b3345104c04b) )
 	ROM_LOAD( "rom2-h_c10.u26",    0x100000, 0x080000, CRC(9aab7a62) SHA1(611f6a15fdbac5d3063426a365538c1482e996bf) )
 	ROM_LOAD( "rom3-l_tp-033.u12", 0x180000, 0x100000, CRC(eb06e332) SHA1(7cd597bfffc153d178530c0f0903bebd751c9dd1) )

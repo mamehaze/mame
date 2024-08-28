@@ -24,6 +24,11 @@ class truxton2_state : public toaplan2_state
 public:
 	truxton2_state(const machine_config &mconfig, device_type type, const char *tag)
 		: toaplan2_state(mconfig, type, tag)
+		, m_maincpu(*this, "maincpu")
+		, m_screen(*this, "screen")
+		, m_palette(*this, "palette")
+		, m_vdp(*this, "gp9001")
+
 		, m_tx_videoram(*this, "tx_videoram")
 		, m_tx_lineselect(*this, "tx_lineselect")
 		, m_tx_linescroll(*this, "tx_linescroll")
@@ -35,7 +40,6 @@ public:
 			{ *this, "raizing_okibank1_%u", 0U } }
 		, m_eepromout(*this, "EEPROMOUT")
 		, m_txlayer(*this, "txlayer")
-		, m_vdp(*this, "gp9001")
 	{ }
 
 	void batrider(machine_config &config);
@@ -60,6 +64,11 @@ protected:
 	virtual void device_post_load() override;
 
 private:
+	required_device<m68000_base_device> m_maincpu;
+	required_device<screen_device> m_screen;
+	required_device<palette_device> m_palette;
+	required_device<gp9001vdp_device> m_vdp;
+
 	required_shared_ptr<u16> m_tx_videoram;
 	optional_shared_ptr<u16> m_tx_lineselect;
 	optional_shared_ptr<u16> m_tx_linescroll;
@@ -73,7 +82,6 @@ private:
 	optional_ioport m_eepromout;
 
 	optional_device<toaplan2_txlayer_device> m_txlayer;
-	required_device<gp9001vdp_device> m_vdp;
 
 	u8 m_sndirq_line = 0;        /* IRQ4 for batrider, IRQ2 for bbakraid */
 	u8 m_z80_busreq = 0;
@@ -2186,7 +2194,7 @@ ROM_START( truxton2 )
 	/* program ROM is byte swapped ! */
 	ROM_LOAD16_WORD( "tp024_1.bin", 0x000000, 0x080000, CRC(f5cfe6ee) SHA1(30979888a4cd6500244117748f28386a7e20a169) )
 
-	ROM_REGION( 0x200000, "gp9001_0", 0 )
+	ROM_REGION( 0x200000, "gp9001", 0 )
 	ROM_LOAD( "tp024_4.bin", 0x000000, 0x100000, CRC(805c449e) SHA1(fdf985344145bd320b88b9b0c25e73066c9b2ada) )
 	ROM_LOAD( "tp024_3.bin", 0x100000, 0x100000, CRC(47587164) SHA1(bac493e2d5507286b984957b289c929335d27eaa) )
 
@@ -2199,7 +2207,7 @@ ROM_END
 #define ROMS_FIXEIGHT \
 	ROM_REGION( 0x080000, "maincpu", 0 ) \
 	ROM_LOAD16_WORD_SWAP( "tp-026-1", 0x000000, 0x080000, CRC(f7b1746a) SHA1(0bbea6f111b818bc9b9b2060af4fe900f37cf7f9) ) \
-	ROM_REGION( 0x400000, "gp9001_0", 0 ) \
+	ROM_REGION( 0x400000, "gp9001", 0 ) \
 	ROM_LOAD( "tp-026-3", 0x000000, 0x200000, CRC(e5578d98) SHA1(280d2b716d955e767d311fc9596823852435b6d7) ) \
 	ROM_LOAD( "tp-026-4", 0x200000, 0x200000, CRC(b760cb53) SHA1(bc9c5e49e45cdda0f774be0038aa4deb21d4d285) ) \
 	ROM_REGION( 0x40000, "oki1", 0 ) \
@@ -2333,7 +2341,7 @@ ROM_START( fixeightbl )
 	ROM_LOAD16_BYTE( "3.bin", 0x000000, 0x80000, CRC(cc77d4b4) SHA1(4d3376cbae13d90c6314d8bb9236c2183fc6253c) )
 	ROM_LOAD16_BYTE( "2.bin", 0x000001, 0x80000, CRC(ed715488) SHA1(37be9bc8ff6b54a1f660d89469c6c2da6301e9cd) )
 
-	ROM_REGION( 0x400000, "gp9001_0", 0 )
+	ROM_REGION( 0x400000, "gp9001", 0 )
 	ROM_LOAD( "tp-026-3", 0x000000, 0x200000, CRC(e5578d98) SHA1(280d2b716d955e767d311fc9596823852435b6d7) )
 	ROM_LOAD( "tp-026-4", 0x200000, 0x200000, CRC(b760cb53) SHA1(bc9c5e49e45cdda0f774be0038aa4deb21d4d285) )
 
@@ -2382,7 +2390,7 @@ ROM_START( sstriker )
 	ROM_REGION( 0x10000, "audiocpu", 0 )            /* Sound Z80 code */
 	ROM_LOAD( "ra-ma-01_02.u66", 0x00000, 0x10000, CRC(eabfa46d) SHA1(402c99ebf88f9025f74f0a28ced22b7882a65eb3) )
 
-	ROM_REGION( 0x200000, "gp9001_0", 0 )
+	ROM_REGION( 0x200000, "gp9001", 0 )
 	ROM_LOAD( "ra-ma01-rom2.u2",  0x000000, 0x100000, CRC(54e2bd95) SHA1(341359dd46152615675bb90e8a184216c8feebff) )
 	ROM_LOAD( "ra-ma01-rom3.u1",  0x100000, 0x100000, CRC(21cd378f) SHA1(e1695bccec949d18b1c03e9c42dca384554b0d7c) )
 
@@ -2401,7 +2409,7 @@ ROM_START( sstrikerk )
 	ROM_REGION( 0x10000, "audiocpu", 0 )            /* Sound Z80 code */
 	ROM_LOAD( "ra-ma-01_02.u66", 0x00000, 0x10000, CRC(eabfa46d) SHA1(402c99ebf88f9025f74f0a28ced22b7882a65eb3) )
 
-	ROM_REGION( 0x200000, "gp9001_0", 0 )
+	ROM_REGION( 0x200000, "gp9001", 0 )
 	ROM_LOAD( "ra-ma01-rom2.u2",  0x000000, 0x100000, CRC(54e2bd95) SHA1(341359dd46152615675bb90e8a184216c8feebff) )
 	ROM_LOAD( "ra-ma01-rom3.u1",  0x100000, 0x100000, CRC(21cd378f) SHA1(e1695bccec949d18b1c03e9c42dca384554b0d7c) )
 	// also seen with 4 smaller ROMs instead of 2
@@ -2425,7 +2433,7 @@ ROM_START( mahoudai )
 	ROM_REGION( 0x10000, "audiocpu", 0 )            /* Sound Z80 code */
 	ROM_LOAD( "ra-ma-01_02.u66", 0x00000, 0x10000, CRC(eabfa46d) SHA1(402c99ebf88f9025f74f0a28ced22b7882a65eb3) )
 
-	ROM_REGION( 0x200000, "gp9001_0", 0 )
+	ROM_REGION( 0x200000, "gp9001", 0 )
 	ROM_LOAD( "ra-ma01-rom2.u2",  0x000000, 0x100000, CRC(54e2bd95) SHA1(341359dd46152615675bb90e8a184216c8feebff) )
 	ROM_LOAD( "ra-ma01-rom3.u1",  0x100000, 0x100000, CRC(21cd378f) SHA1(e1695bccec949d18b1c03e9c42dca384554b0d7c) )
 
@@ -2445,7 +2453,7 @@ ROM_START( kingdmgp )
 	ROM_REGION( 0x10000, "audiocpu", 0 )            /* Sound Z80 code */
 	ROM_LOAD( "ma02rom2.bin", 0x00000, 0x10000, CRC(dde8a57e) SHA1(f522a3f17e229c71512464349760a9e27778bf6a) )
 
-	ROM_REGION( 0x400000, "gp9001_0", 0 )
+	ROM_REGION( 0x400000, "gp9001", 0 )
 	ROM_LOAD( "ma02rom3.bin",  0x000000, 0x200000, CRC(0e797142) SHA1(a480ccd151e49b886d3175a6deff56e1f2c26c3e) )
 	ROM_LOAD( "ma02rom4.bin",  0x200000, 0x200000, CRC(72a6fa53) SHA1(ce92e65205b84361cfb90305a61e9541b5c4dc2f) )
 
@@ -2465,7 +2473,7 @@ ROM_START( shippumd )
 	ROM_REGION( 0x10000, "audiocpu", 0 )            /* Sound Z80 code */
 	ROM_LOAD( "ma02rom2.bin", 0x00000, 0x10000, CRC(dde8a57e) SHA1(f522a3f17e229c71512464349760a9e27778bf6a) )
 
-	ROM_REGION( 0x400000, "gp9001_0", 0 )
+	ROM_REGION( 0x400000, "gp9001", 0 )
 	ROM_LOAD( "ma02rom3.bin",  0x000000, 0x200000, CRC(0e797142) SHA1(a480ccd151e49b886d3175a6deff56e1f2c26c3e) )
 	ROM_LOAD( "ma02rom4.bin",  0x200000, 0x200000, CRC(72a6fa53) SHA1(ce92e65205b84361cfb90305a61e9541b5c4dc2f) )
 
@@ -2503,7 +2511,7 @@ ROM_START( bgareggat )
 	ROM_LOAD( "battlegaregga-snd-8-1-18-loke-ver.bin", 0x00000, 0x20000, CRC(f5ea56f7) SHA1(9db04069b378dbad6626fd29d3762e3361b9aa0d) )
 
 	/* Stored on NEC ES23C16000W Mask ROMs with no Raizing/8ing custom markings.*/
-	ROM_REGION( 0x800000, "gp9001_0", 0 )
+	ROM_REGION( 0x800000, "gp9001", 0 )
 	ROM_LOAD( "rom4.bin",  0x000000, 0x200000, CRC(b333d81f) SHA1(5481465f1304334fd55798be2f44324c57c2dbcb) )
 	ROM_LOAD( "rom3.bin",  0x200000, 0x200000, CRC(51b9ebfb) SHA1(30e0c326f5175aa436df8dba08f6f4e08130b92f) )
 	ROM_LOAD( "rom2.bin",  0x400000, 0x200000, CRC(b330e5e2) SHA1(5d48e9d56f99d093b6390e0af1609fd796df2d35) )
@@ -2532,7 +2540,7 @@ ROM_START( bgaregga )
 	ROM_REGION( 0x20000, "audiocpu", 0 )            /* Sound Z80 code + bank */
 	ROM_LOAD( "snd.bin", 0x00000, 0x20000, CRC(68632952) SHA1(fb834db83157948e2b420b6051102a9c6ac3969b) )
 
-	ROM_REGION( 0x800000, "gp9001_0", 0 )
+	ROM_REGION( 0x800000, "gp9001", 0 )
 	ROM_LOAD( "rom4.bin",  0x000000, 0x200000, CRC(b333d81f) SHA1(5481465f1304334fd55798be2f44324c57c2dbcb) )
 	ROM_LOAD( "rom3.bin",  0x200000, 0x200000, CRC(51b9ebfb) SHA1(30e0c326f5175aa436df8dba08f6f4e08130b92f) )
 	ROM_LOAD( "rom2.bin",  0x400000, 0x200000, CRC(b330e5e2) SHA1(5d48e9d56f99d093b6390e0af1609fd796df2d35) )
@@ -2554,7 +2562,7 @@ ROM_START( bgareggahk )
 	ROM_REGION( 0x20000, "audiocpu", 0 )            /* Sound Z80 code + bank */
 	ROM_LOAD( "snd.bin", 0x00000, 0x20000, CRC(68632952) SHA1(fb834db83157948e2b420b6051102a9c6ac3969b) )
 
-	ROM_REGION( 0x800000, "gp9001_0", 0 )
+	ROM_REGION( 0x800000, "gp9001", 0 )
 	ROM_LOAD( "rom4.bin",  0x000000, 0x200000, CRC(b333d81f) SHA1(5481465f1304334fd55798be2f44324c57c2dbcb) )
 	ROM_LOAD( "rom3.bin",  0x200000, 0x200000, CRC(51b9ebfb) SHA1(30e0c326f5175aa436df8dba08f6f4e08130b92f) )
 	ROM_LOAD( "rom2.bin",  0x400000, 0x200000, CRC(b330e5e2) SHA1(5d48e9d56f99d093b6390e0af1609fd796df2d35) )
@@ -2576,7 +2584,7 @@ ROM_START( bgareggatw )
 	ROM_REGION( 0x20000, "audiocpu", 0 )            /* Sound Z80 code + bank */
 	ROM_LOAD( "snd.bin", 0x00000, 0x20000, CRC(68632952) SHA1(fb834db83157948e2b420b6051102a9c6ac3969b) )
 
-	ROM_REGION( 0x800000, "gp9001_0", 0 )
+	ROM_REGION( 0x800000, "gp9001", 0 )
 	ROM_LOAD( "rom4.bin",  0x000000, 0x200000, CRC(b333d81f) SHA1(5481465f1304334fd55798be2f44324c57c2dbcb) )
 	ROM_LOAD( "rom3.bin",  0x200000, 0x200000, CRC(51b9ebfb) SHA1(30e0c326f5175aa436df8dba08f6f4e08130b92f) )
 	ROM_LOAD( "rom2.bin",  0x400000, 0x200000, CRC(b330e5e2) SHA1(5d48e9d56f99d093b6390e0af1609fd796df2d35) )
@@ -2601,7 +2609,7 @@ ROM_START( bgareggak )
 	ROM_REGION( 0x20000, "audiocpu", 0 )            // Sound Z80 code + bank
 	ROM_LOAD( "snd.bin", 0x00000, 0x20000, BAD_DUMP CRC(68632952) SHA1(fb834db83157948e2b420b6051102a9c6ac3969b) )
 
-	ROM_REGION( 0x800000, "gp9001_0", 0 )
+	ROM_REGION( 0x800000, "gp9001", 0 )
 	ROM_LOAD( "rom4.bin",  0x000000, 0x200000, BAD_DUMP CRC(b333d81f) SHA1(5481465f1304334fd55798be2f44324c57c2dbcb) )
 	ROM_LOAD( "rom3.bin",  0x200000, 0x200000, BAD_DUMP CRC(51b9ebfb) SHA1(30e0c326f5175aa436df8dba08f6f4e08130b92f) )
 	ROM_LOAD( "rom2.bin",  0x400000, 0x200000, BAD_DUMP CRC(b330e5e2) SHA1(5d48e9d56f99d093b6390e0af1609fd796df2d35) )
@@ -2623,7 +2631,7 @@ ROM_START( bgaregganv )
 	ROM_REGION( 0x20000, "audiocpu", 0 )            /* Sound Z80 code + bank */
 	ROM_LOAD( "snd.bin", 0x00000, 0x20000, CRC(68632952) SHA1(fb834db83157948e2b420b6051102a9c6ac3969b) )
 
-	ROM_REGION( 0x800000, "gp9001_0", 0 )
+	ROM_REGION( 0x800000, "gp9001", 0 )
 	ROM_LOAD( "rom4.bin",  0x000000, 0x200000, CRC(b333d81f) SHA1(5481465f1304334fd55798be2f44324c57c2dbcb) )
 	ROM_LOAD( "rom3.bin",  0x200000, 0x200000, CRC(51b9ebfb) SHA1(30e0c326f5175aa436df8dba08f6f4e08130b92f) )
 	ROM_LOAD( "rom2.bin",  0x400000, 0x200000, CRC(b330e5e2) SHA1(5d48e9d56f99d093b6390e0af1609fd796df2d35) )
@@ -2645,7 +2653,7 @@ ROM_START( bgareggat2 )
 	ROM_REGION( 0x20000, "audiocpu", 0 )            /* Sound Z80 code + bank */
 	ROM_LOAD( "snd.bin", 0x00000, 0x20000, CRC(68632952) SHA1(fb834db83157948e2b420b6051102a9c6ac3969b) )
 
-	ROM_REGION( 0x800000, "gp9001_0", 0 )
+	ROM_REGION( 0x800000, "gp9001", 0 )
 	ROM_LOAD( "rom4.bin",  0x000000, 0x200000, CRC(b333d81f) SHA1(5481465f1304334fd55798be2f44324c57c2dbcb) )
 	ROM_LOAD( "rom3.bin",  0x200000, 0x200000, CRC(51b9ebfb) SHA1(30e0c326f5175aa436df8dba08f6f4e08130b92f) )
 	ROM_LOAD( "rom2.bin",  0x400000, 0x200000, CRC(b330e5e2) SHA1(5d48e9d56f99d093b6390e0af1609fd796df2d35) )
@@ -2667,7 +2675,7 @@ ROM_START( bgareggacn )
 	ROM_REGION( 0x20000, "audiocpu", 0 )            /* Sound Z80 code + bank */
 	ROM_LOAD( "snd.bin", 0x00000, 0x20000, CRC(68632952) SHA1(fb834db83157948e2b420b6051102a9c6ac3969b) )
 
-	ROM_REGION( 0x800000, "gp9001_0", 0 )
+	ROM_REGION( 0x800000, "gp9001", 0 )
 	ROM_LOAD( "rom4.bin",  0x000000, 0x200000, CRC(b333d81f) SHA1(5481465f1304334fd55798be2f44324c57c2dbcb) )
 	ROM_LOAD( "rom3.bin",  0x200000, 0x200000, CRC(51b9ebfb) SHA1(30e0c326f5175aa436df8dba08f6f4e08130b92f) )
 	ROM_LOAD( "rom2.bin",  0x400000, 0x200000, CRC(b330e5e2) SHA1(5d48e9d56f99d093b6390e0af1609fd796df2d35) )
@@ -2688,7 +2696,7 @@ ROM_START( bgareggabl )
 	ROM_REGION( 0x20000, "audiocpu", 0 )            /* Sound Z80 code + bank */
 	ROM_LOAD( "snd.bin", 0x00000, 0x20000, CRC(68632952) SHA1(fb834db83157948e2b420b6051102a9c6ac3969b) )
 
-	ROM_REGION( 0x800000, "gp9001_0", 0 )
+	ROM_REGION( 0x800000, "gp9001", 0 )
 	ROM_LOAD( "6@-322",  0x000000, 0x400000, CRC(37fe48ed) SHA1(ded5d13c33b4582310cdfb3dd52c052f741c00c5) ) /* == rom4.bin+rom3.bin */
 	ROM_LOAD( "5@-322",  0x400000, 0x400000, CRC(5a06c031) SHA1(ee241ff90117cec1f33ab163601a9d5c75609739) ) /* == rom2.bin+rom1.bin */
 
@@ -2710,7 +2718,7 @@ ROM_START( bgareggabla )
 	ROM_REGION( 0x20000, "audiocpu", 0 )            /* Sound Z80 code + bank */
 	ROM_LOAD( "snd.bin", 0x00000, 0x20000, CRC(68632952) SHA1(fb834db83157948e2b420b6051102a9c6ac3969b) )
 
-	ROM_REGION( 0x800000, "gp9001_0", 0 )
+	ROM_REGION( 0x800000, "gp9001", 0 )
 	ROM_LOAD( "rom4.bin",  0x000000, 0x200000, CRC(b333d81f) SHA1(5481465f1304334fd55798be2f44324c57c2dbcb) )
 	ROM_LOAD( "rom3.bin",  0x200000, 0x200000, CRC(51b9ebfb) SHA1(30e0c326f5175aa436df8dba08f6f4e08130b92f) )
 	ROM_LOAD( "rom2.bin",  0x400000, 0x200000, CRC(b330e5e2) SHA1(5d48e9d56f99d093b6390e0af1609fd796df2d35) )
@@ -2734,7 +2742,7 @@ ROM_START( bgareggablj ) // fixed on Japanese region
 	ROM_REGION( 0x20000, "audiocpu", 0 )            // Sound Z80 code + bank
 	ROM_LOAD( "snd.bin", 0x00000, 0x20000, CRC(68632952) SHA1(fb834db83157948e2b420b6051102a9c6ac3969b) )
 
-	ROM_REGION( 0x800000, "gp9001_0", 0 )
+	ROM_REGION( 0x800000, "gp9001", 0 )
 	ROM_LOAD( "322_2.bin",  0x000000, 0x400000, CRC(37fe48ed) SHA1(ded5d13c33b4582310cdfb3dd52c052f741c00c5) ) // == rom4.bin+rom3.bin
 	ROM_LOAD( "322_1.bin",  0x400000, 0x400000, CRC(5a06c031) SHA1(ee241ff90117cec1f33ab163601a9d5c75609739) ) // == rom2.bin+rom1.bin
 
@@ -2826,7 +2834,7 @@ ROM_START( batrider )
 	ROM_REGION( 0x40000, "audiocpu", 0 )            /* Sound Z80 code + bank */
 	ROM_LOAD( "snd.u77", 0x00000, 0x40000, CRC(56682696) SHA1(a372450d9a6d535123dfc31d8116074b168ab646) )
 
-	ROM_REGION( 0x1000000, "gp9001_0", 0 )
+	ROM_REGION( 0x1000000, "gp9001", 0 )
 	ROM_LOAD( "rom-1.bin", 0x000000, 0x400000, CRC(0df69ca2) SHA1(49670347ebd7e1067ff988cf842b275b7ee7b5f7) )
 	ROM_LOAD( "rom-3.bin", 0x400000, 0x400000, CRC(60167d38) SHA1(fd2429808c59ef51fd5f5db84ea89a8dc504186e) )
 	ROM_LOAD( "rom-2.bin", 0x800000, 0x400000, CRC(1bfea593) SHA1(ce06dc3097ae56b0df56d104bbf7efc9b5d968d4) )
@@ -2850,7 +2858,7 @@ ROM_START( batrideru )
 	ROM_REGION( 0x40000, "audiocpu", 0 )            /* Sound Z80 code + bank */
 	ROM_LOAD( "snd.u77", 0x00000, 0x40000, CRC(56682696) SHA1(a372450d9a6d535123dfc31d8116074b168ab646) )
 
-	ROM_REGION( 0x1000000, "gp9001_0", 0 )
+	ROM_REGION( 0x1000000, "gp9001", 0 )
 	ROM_LOAD( "rom-1.bin", 0x000000, 0x400000, CRC(0df69ca2) SHA1(49670347ebd7e1067ff988cf842b275b7ee7b5f7) )
 	ROM_LOAD( "rom-3.bin", 0x400000, 0x400000, CRC(60167d38) SHA1(fd2429808c59ef51fd5f5db84ea89a8dc504186e) )
 	ROM_LOAD( "rom-2.bin", 0x800000, 0x400000, CRC(1bfea593) SHA1(ce06dc3097ae56b0df56d104bbf7efc9b5d968d4) )
@@ -2874,7 +2882,7 @@ ROM_START( batriderc )
 	ROM_REGION( 0x40000, "audiocpu", 0 )            /* Sound Z80 code + bank */
 	ROM_LOAD( "snd.u77", 0x00000, 0x40000, CRC(56682696) SHA1(a372450d9a6d535123dfc31d8116074b168ab646) )
 
-	ROM_REGION( 0x1000000, "gp9001_0", 0 )
+	ROM_REGION( 0x1000000, "gp9001", 0 )
 	ROM_LOAD( "rom-1.bin", 0x000000, 0x400000, CRC(0df69ca2) SHA1(49670347ebd7e1067ff988cf842b275b7ee7b5f7) )
 	ROM_LOAD( "rom-3.bin", 0x400000, 0x400000, CRC(60167d38) SHA1(fd2429808c59ef51fd5f5db84ea89a8dc504186e) )
 	ROM_LOAD( "rom-2.bin", 0x800000, 0x400000, CRC(1bfea593) SHA1(ce06dc3097ae56b0df56d104bbf7efc9b5d968d4) )
@@ -2898,7 +2906,7 @@ ROM_START( batriderj )
 	ROM_REGION( 0x40000, "audiocpu", 0 )            /* Sound Z80 code + bank */
 	ROM_LOAD( "snd.u77", 0x00000, 0x40000, CRC(56682696) SHA1(a372450d9a6d535123dfc31d8116074b168ab646) )
 
-	ROM_REGION( 0x1000000, "gp9001_0", 0 )
+	ROM_REGION( 0x1000000, "gp9001", 0 )
 	ROM_LOAD( "rom-1.bin", 0x000000, 0x400000, CRC(0df69ca2) SHA1(49670347ebd7e1067ff988cf842b275b7ee7b5f7) )
 	ROM_LOAD( "rom-3.bin", 0x400000, 0x400000, CRC(60167d38) SHA1(fd2429808c59ef51fd5f5db84ea89a8dc504186e) )
 	ROM_LOAD( "rom-2.bin", 0x800000, 0x400000, CRC(1bfea593) SHA1(ce06dc3097ae56b0df56d104bbf7efc9b5d968d4) )
@@ -2922,7 +2930,7 @@ ROM_START( batriderk )
 	ROM_REGION( 0x40000, "audiocpu", 0 )            /* Sound Z80 code + bank */
 	ROM_LOAD( "snd.u77", 0x00000, 0x40000, CRC(56682696) SHA1(a372450d9a6d535123dfc31d8116074b168ab646) )
 
-	ROM_REGION( 0x1000000, "gp9001_0", 0 )
+	ROM_REGION( 0x1000000, "gp9001", 0 )
 	ROM_LOAD( "rom-1.bin", 0x000000, 0x400000, CRC(0df69ca2) SHA1(49670347ebd7e1067ff988cf842b275b7ee7b5f7) )
 	ROM_LOAD( "rom-3.bin", 0x400000, 0x400000, CRC(60167d38) SHA1(fd2429808c59ef51fd5f5db84ea89a8dc504186e) )
 	ROM_LOAD( "rom-2.bin", 0x800000, 0x400000, CRC(1bfea593) SHA1(ce06dc3097ae56b0df56d104bbf7efc9b5d968d4) )
@@ -2946,7 +2954,7 @@ ROM_START( batriderja )
 	ROM_REGION( 0x40000, "audiocpu", 0 )            /* Sound Z80 code + bank */
 	ROM_LOAD( "snd.u77", 0x00000, 0x40000, CRC(56682696) SHA1(a372450d9a6d535123dfc31d8116074b168ab646) )
 
-	ROM_REGION( 0x1000000, "gp9001_0", 0 )
+	ROM_REGION( 0x1000000, "gp9001", 0 )
 	ROM_LOAD( "rom-1.bin", 0x000000, 0x400000, CRC(0df69ca2) SHA1(49670347ebd7e1067ff988cf842b275b7ee7b5f7) )
 	ROM_LOAD( "rom-3.bin", 0x400000, 0x400000, CRC(60167d38) SHA1(fd2429808c59ef51fd5f5db84ea89a8dc504186e) )
 	ROM_LOAD( "rom-2.bin", 0x800000, 0x400000, CRC(1bfea593) SHA1(ce06dc3097ae56b0df56d104bbf7efc9b5d968d4) )
@@ -2970,7 +2978,7 @@ ROM_START( batriderhk )
 	ROM_REGION( 0x40000, "audiocpu", 0 )            /* Sound Z80 code + bank */
 	ROM_LOAD( "snd.u77", 0x00000, 0x40000, CRC(56682696) SHA1(a372450d9a6d535123dfc31d8116074b168ab646) )
 
-	ROM_REGION( 0x1000000, "gp9001_0", 0 )
+	ROM_REGION( 0x1000000, "gp9001", 0 )
 	ROM_LOAD( "rom-1.bin", 0x000000, 0x400000, CRC(0df69ca2) SHA1(49670347ebd7e1067ff988cf842b275b7ee7b5f7) )
 	ROM_LOAD( "rom-3.bin", 0x400000, 0x400000, CRC(60167d38) SHA1(fd2429808c59ef51fd5f5db84ea89a8dc504186e) )
 	ROM_LOAD( "rom-2.bin", 0x800000, 0x400000, CRC(1bfea593) SHA1(ce06dc3097ae56b0df56d104bbf7efc9b5d968d4) )
@@ -2994,7 +3002,7 @@ ROM_START( batridert )
 	ROM_REGION( 0x40000, "audiocpu", 0 )            /* Sound Z80 code + bank */
 	ROM_LOAD( "snd.u77", 0x00000, 0x40000, CRC(56682696) SHA1(a372450d9a6d535123dfc31d8116074b168ab646) )
 
-	ROM_REGION( 0x1000000, "gp9001_0", 0 )
+	ROM_REGION( 0x1000000, "gp9001", 0 )
 	ROM_LOAD( "rom-1.bin", 0x000000, 0x400000, CRC(0df69ca2) SHA1(49670347ebd7e1067ff988cf842b275b7ee7b5f7) )
 	ROM_LOAD( "rom-3.bin", 0x400000, 0x400000, CRC(60167d38) SHA1(fd2429808c59ef51fd5f5db84ea89a8dc504186e) )
 	ROM_LOAD( "rom-2.bin", 0x800000, 0x400000, CRC(1bfea593) SHA1(ce06dc3097ae56b0df56d104bbf7efc9b5d968d4) )
@@ -3069,7 +3077,7 @@ ROM_START( bbakraid )
 	ROM_REGION( 0x20000, "audiocpu", 0 )            /* Sound Z80 code */
 	ROM_LOAD( "sndu0720.bin", 0x00000, 0x20000, CRC(e62ab246) SHA1(00d23689dd423ecd4024c58b5903d16e890f1dff) )
 
-	ROM_REGION( 0x1000000, "gp9001_0", 0 )
+	ROM_REGION( 0x1000000, "gp9001", 0 )
 	ROM_LOAD( "gfxu0510.bin", 0x000000, 0x400000, CRC(9cca3446) SHA1(1123f8b8bfbe59a2c572cdf61f1ad27ff37f0f0d) )
 	ROM_LOAD( "gfxu0512.bin", 0x400000, 0x400000, CRC(a2a281d5) SHA1(d9a6623f9433ad682223f9780c26cd1523ebc5c5) )
 	ROM_LOAD( "gfxu0511.bin", 0x800000, 0x400000, CRC(e16472c0) SHA1(6068d679a8b3b65e05acd58a7ce9ead90177049f) )
@@ -3095,7 +3103,7 @@ ROM_START( bbakraidc )
 	ROM_REGION( 0x20000, "audiocpu", 0 )            /* Sound Z80 code */
 	ROM_LOAD( "sndu0720.bin", 0x00000, 0x20000, CRC(e62ab246) SHA1(00d23689dd423ecd4024c58b5903d16e890f1dff) )
 
-	ROM_REGION( 0x1000000, "gp9001_0", 0 )
+	ROM_REGION( 0x1000000, "gp9001", 0 )
 	ROM_LOAD( "gfxu0510.bin", 0x000000, 0x400000, CRC(9cca3446) SHA1(1123f8b8bfbe59a2c572cdf61f1ad27ff37f0f0d) )
 	ROM_LOAD( "gfxu0512.bin", 0x400000, 0x400000, CRC(a2a281d5) SHA1(d9a6623f9433ad682223f9780c26cd1523ebc5c5) )
 	ROM_LOAD( "gfxu0511.bin", 0x800000, 0x400000, CRC(e16472c0) SHA1(6068d679a8b3b65e05acd58a7ce9ead90177049f) )
@@ -3121,7 +3129,7 @@ ROM_START( bbakraidj )
 	ROM_REGION( 0x20000, "audiocpu", 0 )            /* Sound Z80 code */
 	ROM_LOAD( "sndu0720.bin", 0x00000, 0x20000, CRC(e62ab246) SHA1(00d23689dd423ecd4024c58b5903d16e890f1dff) )
 
-	ROM_REGION( 0x1000000, "gp9001_0", 0 )
+	ROM_REGION( 0x1000000, "gp9001", 0 )
 	ROM_LOAD( "gfxu0510.bin", 0x000000, 0x400000, CRC(9cca3446) SHA1(1123f8b8bfbe59a2c572cdf61f1ad27ff37f0f0d) )
 	ROM_LOAD( "gfxu0512.bin", 0x400000, 0x400000, CRC(a2a281d5) SHA1(d9a6623f9433ad682223f9780c26cd1523ebc5c5) )
 	ROM_LOAD( "gfxu0511.bin", 0x800000, 0x400000, CRC(e16472c0) SHA1(6068d679a8b3b65e05acd58a7ce9ead90177049f) )
@@ -3147,7 +3155,7 @@ ROM_START( bbakraidja )
 	ROM_REGION( 0x20000, "audiocpu", 0 )            /* Sound Z80 code */
 	ROM_LOAD( "sndu0720.bin", 0x00000, 0x20000, CRC(e62ab246) SHA1(00d23689dd423ecd4024c58b5903d16e890f1dff) )
 
-	ROM_REGION( 0x1000000, "gp9001_0", 0 )
+	ROM_REGION( 0x1000000, "gp9001", 0 )
 	ROM_LOAD( "gfxu0510.bin", 0x000000, 0x400000, CRC(9cca3446) SHA1(1123f8b8bfbe59a2c572cdf61f1ad27ff37f0f0d) )
 	ROM_LOAD( "gfxu0512.bin", 0x400000, 0x400000, CRC(a2a281d5) SHA1(d9a6623f9433ad682223f9780c26cd1523ebc5c5) )
 	ROM_LOAD( "gfxu0511.bin", 0x800000, 0x400000, CRC(e16472c0) SHA1(6068d679a8b3b65e05acd58a7ce9ead90177049f) )
@@ -3169,7 +3177,7 @@ ROM_START( nprobowl )
 	ROM_LOAD16_BYTE( "newprobowl-prg0-u021", 0x000000, 0x080000, CRC(3a57f122) SHA1(cc361c295f23bc0479ba49eb15de2ec6ca535a56) ) // 11xxxxxxxxxxxxxxxxx = 0xFF
 	ROM_LOAD16_BYTE( "newprobowl-prg1-u024", 0x000001, 0x080000, CRC(9e9bb58a) SHA1(3d2159bde418dee5d89e3df9a248b4b1989e6ee9) ) // 11xxxxxxxxxxxxxxxxx = 0xFF
 
-	ROM_REGION( 0x200000, "gp9001_0", 0 )
+	ROM_REGION( 0x200000, "gp9001", 0 )
 	ROM_LOAD16_BYTE( "newprobowl-chr1-u0519", 0x000000, 0x80000, CRC(6700a9bf) SHA1(12a72aa0b91119fbbed994aec702a6869af6f287) )
 	ROM_LOAD16_BYTE( "newprobowl-chr0-u0518", 0x000001, 0x80000, CRC(0736cccd) SHA1(5a4b691be1df697fef3847456c0f4bb3466c403f) )
 	ROM_LOAD16_BYTE( "newprobowl-chr2-u0520", 0x100000, 0x80000, CRC(e5f6d0b6) SHA1(6e1a4792698be4b478118e8c82edb0cf3e2286f2) )
@@ -3185,7 +3193,7 @@ ROM_START( probowl2 ) // identical to New Pro Bowl but for slight mods to the GF
 	ROM_LOAD16_BYTE( "probowl2.prg0.u021", 0x000000, 0x080000, CRC(3a57f122) SHA1(cc361c295f23bc0479ba49eb15de2ec6ca535a56) ) // 11xxxxxxxxxxxxxxxxx = 0xFF
 	ROM_LOAD16_BYTE( "probowl2.prg1.u024", 0x000001, 0x080000, CRC(9e9bb58a) SHA1(3d2159bde418dee5d89e3df9a248b4b1989e6ee9) ) // 11xxxxxxxxxxxxxxxxx = 0xFF
 
-	ROM_REGION( 0x200000, "gp9001_0", 0 )
+	ROM_REGION( 0x200000, "gp9001", 0 )
 	ROM_LOAD16_BYTE( "probowl2.chr1.u0519", 0x000000, 0x80000, CRC(66a5c9cd) SHA1(b8edc6a66e3929af2a1399e5fb6fc341b9789136) )
 	ROM_LOAD16_BYTE( "probowl2.chr0.u0518", 0x000001, 0x80000, CRC(b4439673) SHA1(5ca19d9c3c3cce9485fb9bd5224f0b14abe07f49) )
 	ROM_LOAD16_BYTE( "probowl2.chr2.u0520", 0x100000, 0x80000, CRC(e05be3a0) SHA1(922c6f094358cf3df790063e68d5dd4a32d46b06) )

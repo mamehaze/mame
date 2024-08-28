@@ -29,13 +29,10 @@ public:
 		: driver_device(mconfig, type, tag)
 		, m_shared_ram(*this, "shared_ram")
 		, m_mainram(*this, "mainram")
-		, m_maincpu(*this, "maincpu")
 		, m_audiocpu(*this, "audiocpu")
 		, m_oki(*this, "oki%u", 1U)
 		, m_eeprom(*this, "eeprom")
 		, m_gfxdecode(*this, "gfxdecode")
-		, m_screen(*this, "screen")
-		, m_palette(*this, "palette")
 		, m_soundlatch(*this, "soundlatch%u", 1U)
 		, m_z80_rom(*this, "audiocpu")
 		, m_oki_rom(*this, "oki%u", 1U)
@@ -51,13 +48,10 @@ public:
 	optional_shared_ptr<u8> m_shared_ram; // 8 bit RAM shared between 68K and sound CPU
 	optional_shared_ptr<u16> m_mainram;
 
-	required_device<m68000_base_device> m_maincpu;
 	optional_device<cpu_device> m_audiocpu;
 	optional_device_array<okim6295_device, 2> m_oki;
 	optional_device<eeprom_serial_93cxx_device> m_eeprom;
 	optional_device<gfxdecode_device> m_gfxdecode;
-	required_device<screen_device> m_screen;
-	required_device<palette_device> m_palette;
 	optional_device_array<generic_latch_8_device, 4> m_soundlatch; // tekipaki, batrider, bgaregga, batsugun
 
 	optional_region_ptr<u8> m_z80_rom;

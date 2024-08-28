@@ -19,6 +19,9 @@ class pipibibs_state : public toaplan2_state
 public:
 	pipibibs_state(const machine_config &mconfig, device_type type, const char *tag)
 		: toaplan2_state(mconfig, type, tag)
+		, m_maincpu(*this, "maincpu")
+		, m_screen(*this, "screen")
+		, m_palette(*this, "palette")
 		, m_vdp(*this, "gp9001")
 	{ }
 	void pipibibs(machine_config &config);
@@ -42,6 +45,9 @@ private:
 	void screen_vblank(int state);
 	void toaplan2_reset(int state);
 
+	required_device<m68000_base_device> m_maincpu;
+	required_device<screen_device> m_screen;
+	required_device<palette_device> m_palette;
 	required_device<gp9001vdp_device> m_vdp;
 
 };
@@ -387,7 +393,7 @@ ROM_START( pipibibs )
 	ROM_REGION( 0x10000, "audiocpu", 0 )            /* Sound Z80 code */
 	ROM_LOAD( "tp025-5.bin", 0x0000, 0x8000, CRC(bf8ffde5) SHA1(79c09cc9a0ea979f5af5a7e5ad671ea486f5f43e) )
 
-	ROM_REGION( 0x200000, "gp9001_0", 0 )
+	ROM_REGION( 0x200000, "gp9001", 0 )
 	ROM_LOAD( "tp025-4.bin", 0x000000, 0x100000, CRC(ab97f744) SHA1(c1620e614345dbd5c6567e4cb6f55c61b900d0ee) )
 	ROM_LOAD( "tp025-3.bin", 0x100000, 0x100000, CRC(7b16101e) SHA1(ae0119bbfa0937d18c4fbb0a3ef7cdc3b9fa6b56) )
 ROM_END
@@ -401,7 +407,7 @@ ROM_START( pipibibsa )
 	ROM_REGION( 0x10000, "audiocpu", 0 )            /* Sound Z80 code */
 	ROM_LOAD( "tp025-5.bin", 0x0000, 0x8000, CRC(bf8ffde5) SHA1(79c09cc9a0ea979f5af5a7e5ad671ea486f5f43e) )
 
-	ROM_REGION( 0x200000, "gp9001_0", 0 )
+	ROM_REGION( 0x200000, "gp9001", 0 )
 	ROM_LOAD( "tp025-4.bin", 0x000000, 0x100000, CRC(ab97f744) SHA1(c1620e614345dbd5c6567e4cb6f55c61b900d0ee) )
 	ROM_LOAD( "tp025-3.bin", 0x100000, 0x100000, CRC(7b16101e) SHA1(ae0119bbfa0937d18c4fbb0a3ef7cdc3b9fa6b56) )
 ROM_END
@@ -417,7 +423,7 @@ ROM_START( pipibibsp )
 	ROM_REGION( 0x10000, "audiocpu", 0 )            /* Sound Z80 code */
 	ROM_LOAD( "pip_snd", 0x0000, 0x8000, CRC(8ebf183b) SHA1(602b138c85b02d121d007f6788b322aa107c7d91) )
 
-	ROM_REGION( 0x200000, "gp9001_0", 0 )
+	ROM_REGION( 0x200000, "gp9001", 0 )
 	ROM_LOAD( "cg_01_l", 0x000000, 0x080000, CRC(21d1ef46) SHA1(d7ccbe56eb08be421c241065cbaa99cc9cca4d73) )
 	ROM_LOAD( "cg_01_h", 0x080000, 0x080000, CRC(d5726328) SHA1(26401ba8ce22fda161306b91d70afefa959cde8c) )
 	ROM_LOAD( "cg_23_l", 0x100000, 0x080000, CRC(114d41d0) SHA1(d1166d495d92c6082fffbed422deb7605c5a41a2) )
@@ -434,7 +440,7 @@ ROM_START( pipibibsbl ) /* Based off the proto code. */
 	ROM_REGION( 0x10000, "audiocpu", 0 )            /* Sound Z80 code */
 	ROM_LOAD( "ppbb08.bin", 0x0000, 0x8000, CRC(101c0358) SHA1(162e02d00b7bdcdd3b48a0cd0527b7428435ec50) ) // same data as komocomo in oneshot.cpp
 
-	ROM_REGION( 0x200000, "gp9001_0", 0 )
+	ROM_REGION( 0x200000, "gp9001", 0 )
 	/* GFX data differs slightly from Toaplan boards ??? */
 	ROM_LOAD16_BYTE( "ppbb01.bin", 0x000000, 0x080000, CRC(0fcae44b) SHA1(ac72bc79e3a5d0a81647c312d310d00ace017272) )
 	ROM_LOAD16_BYTE( "ppbb02.bin", 0x000001, 0x080000, CRC(8bfcdf87) SHA1(4537a7d646d3014f069c6fd0be457bb32e2f18ac) )
@@ -455,7 +461,7 @@ ROM_START( pipibibsbl2 ) // PIPI001 PCB
 	ROM_REGION( 0x20000, "audiocpu", 0 )            /* Sound Z80 code */
 	ROM_LOAD( "08.bin", 0x00000, 0x10000, CRC(f2080071) SHA1(68cbae9559879b2dc19c41a7efbd13ab4a569d3f) ) //  // 1ST AND 2ND HALF IDENTICAL, same as komocomo in oneshot.cpp
 
-	ROM_REGION( 0x200000, "gp9001_0", 0 )
+	ROM_REGION( 0x200000, "gp9001", 0 )
 	ROM_LOAD16_BYTE( "01.bin", 0x000000, 0x80000, CRC(505e9e9f) SHA1(998995d94585d785263cc926f68632065aa6c366) )
 	ROM_LOAD16_BYTE( "02.bin", 0x000001, 0x80000, CRC(860018f5) SHA1(7f42dffb27940629447d688e1771b4ecf04f3b43) )
 	ROM_LOAD16_BYTE( "03.bin", 0x100000, 0x80000, CRC(ece1bc0f) SHA1(d29f1520f1a3a9d276d36af650bc0d70bcb5b8da) )
@@ -473,7 +479,7 @@ ROM_START( pipibibsbl3 )
 	ROM_REGION( 0x10000, "audiocpu", 0 )            // Sound Z80 code
 	ROM_LOAD( "7.bin", 0x0000, 0x8000, CRC(101c0358) SHA1(162e02d00b7bdcdd3b48a0cd0527b7428435ec50) ) // same data as komocomo in oneshot.cpp
 
-	ROM_REGION( 0x200000, "gp9001_0", 0 )
+	ROM_REGION( 0x200000, "gp9001", 0 )
 	// GFX data differs slightly from Toaplan boards ???
 	ROM_LOAD16_BYTE( "4.bin", 0x000000, 0x080000, CRC(0fcae44b) SHA1(ac72bc79e3a5d0a81647c312d310d00ace017272) )
 	ROM_LOAD16_BYTE( "3.bin", 0x000001, 0x080000, CRC(8bfcdf87) SHA1(4537a7d646d3014f069c6fd0be457bb32e2f18ac) )

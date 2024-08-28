@@ -19,6 +19,9 @@ class tekipaki_state : public toaplan2_state
 public:
 	tekipaki_state(const machine_config &mconfig, device_type type, const char *tag)
 		: toaplan2_state(mconfig, type, tag)
+		, m_maincpu(*this, "maincpu")
+		, m_screen(*this, "screen")
+		, m_palette(*this, "palette")
 		, m_vdp(*this, "gp9001")
 	{ }
 
@@ -40,6 +43,9 @@ private:
 	void screen_vblank(int state);
 	void toaplan2_reset(int state);
 
+	required_device<m68000_base_device> m_maincpu;
+	required_device<screen_device> m_screen;
+	required_device<palette_device> m_palette;
 	required_device<gp9001vdp_device> m_vdp;
 
 };
@@ -332,7 +338,7 @@ ROM_START( tekipaki )
 	ROM_REGION( 0x8000, "audiocpu", 0 )    /* Sound HD647180 code */
 	ROM_LOAD( "hd647180.020", 0x00000, 0x08000, CRC(d5157c12) SHA1(b2c6c087bb539456a9e562d0b40f05dde26cacd3) )
 
-	ROM_REGION( 0x100000, "gp9001_0", 0 )
+	ROM_REGION( 0x100000, "gp9001", 0 )
 	ROM_LOAD( "tp020-4.bin", 0x000000, 0x080000, CRC(3ebbe41e) SHA1(cea196c5f83e1a23d5b538a0db9bbbffa7af5118) )
 	ROM_LOAD( "tp020-3.bin", 0x080000, 0x080000, CRC(2d5e2201) SHA1(5846c844eedd48305c1c67dc645b6e070b3f5b98) )
 ROM_END
@@ -346,7 +352,7 @@ ROM_START( tekipakit ) /* Location Test version */
 	ROM_REGION( 0x8000, "audiocpu", 0 )    /* Sound HD647180 code */
 	ROM_LOAD( "hd647180.020", 0x00000, 0x08000, CRC(d5157c12) SHA1(b2c6c087bb539456a9e562d0b40f05dde26cacd3) )
 
-	ROM_REGION( 0x100000, "gp9001_0", 0 )
+	ROM_REGION( 0x100000, "gp9001", 0 )
 	ROM_LOAD( "0-1_4.4_cb45.a16", 0x000000, 0x080000, CRC(35e14729) SHA1(8c929604953b78c6e72744a38e06a988510193a5) ) /* hand written "0-1  4/4  CB45"  27C402 chip */
 	ROM_LOAD( "3-4_4.4_547d.a15", 0x080000, 0x080000, CRC(41975fcc) SHA1(f850d5a9638d41bb69f204a9cd54e2fd693b57ef) ) /* hand written "3-4  4/4  547D"  27C402 chip */
 ROM_END
@@ -359,7 +365,7 @@ ROM_START( whoopee )
 	ROM_REGION( 0x10000, "audiocpu", 0 )            /* Sound HD647180 code */
 	ROM_LOAD( "hd647180.025", 0x00000, 0x08000, CRC(c02436f6) SHA1(385343f88991646ec23b385eaea82718f1251ea6) )
 
-	ROM_REGION( 0x200000, "gp9001_0", 0 )
+	ROM_REGION( 0x200000, "gp9001", 0 )
 	ROM_LOAD( "tp025-4.bin", 0x000000, 0x100000, CRC(ab97f744) SHA1(c1620e614345dbd5c6567e4cb6f55c61b900d0ee) )
 	ROM_LOAD( "tp025-3.bin", 0x100000, 0x100000, CRC(7b16101e) SHA1(ae0119bbfa0937d18c4fbb0a3ef7cdc3b9fa6b56) )
 ROM_END
