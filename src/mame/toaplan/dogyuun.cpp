@@ -52,6 +52,11 @@ private:
 	u16 video_count_r();
 	void toaplan2_reset(int state);
 
+	u8 m_sound_reset_bit = 0; /* 0x20 for dogyuun/batsugun, 0x10 for vfive, 0x08 for fixeight */
+
+	bitmap_ind8 m_custom_priority_bitmap;
+	bitmap_ind16 m_secondary_render_bitmap;
+
 	required_device<m68000_base_device> m_maincpu;
 	required_device<screen_device> m_screen;
 	required_device<palette_device> m_palette;
@@ -59,7 +64,7 @@ private:
 
 };
 
-constexpr unsigned toaplan2_state::T2PALETTE_LENGTH;
+
 
 
 void dogyuun_state::toaplan2_reset(int state)
@@ -442,7 +447,7 @@ void dogyuun_state::dogyuun(machine_config &config)
 	toaplan2_screen_device& t2screen(TOAPLAN2_SCREEN(config, "t2screen", 27_MHz_XTAL / 4));
 	t2screen.set_screen(m_screen);
 
-	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, T2PALETTE_LENGTH);
+	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, 0x10000);
 
 	GP9001_VDP(config, m_vdp[0], 27_MHz_XTAL);
 	m_vdp[0]->set_palette(m_palette);

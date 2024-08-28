@@ -47,6 +47,8 @@ private:
 	u16 video_count_r();
 	void toaplan2_reset(int state);
 
+	bitmap_ind8 m_custom_priority_bitmap;
+
 	required_device<m68000_base_device> m_maincpu;
 	required_device<screen_device> m_screen;
 	required_device<palette_device> m_palette;
@@ -94,7 +96,6 @@ VIDEO_START_MEMBER(kbash_state,toaplan2)
 {
 	/* our current VDP implementation needs this bitmap to work with */
 	m_screen->register_screen_bitmap(m_custom_priority_bitmap);
-	m_secondary_render_bitmap.reset();
 	m_vdp->custom_priority_bitmap = &m_custom_priority_bitmap;
 }
 
@@ -140,7 +141,7 @@ void kbash_state::coin_w(u8 data)
 	}
 }
 
-constexpr unsigned toaplan2_state::T2PALETTE_LENGTH;
+
 
 template<int Chip>
 void kbash_state::oki_bankswitch_w(u8 data)
@@ -417,7 +418,7 @@ void kbash_state::kbash(machine_config &config)
 	toaplan2_screen_device& t2screen(TOAPLAN2_SCREEN(config, "t2screen", 27_MHz_XTAL / 4));
 	t2screen.set_screen(m_screen);
 
-	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, T2PALETTE_LENGTH);
+	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, 0x10000);
 
 	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
 	m_vdp->set_palette(m_palette);
@@ -456,7 +457,7 @@ void kbash_state::kbash2(machine_config &config)
 	toaplan2_screen_device& t2screen(TOAPLAN2_SCREEN(config, "t2screen", 27_MHz_XTAL / 4));
 	t2screen.set_screen(m_screen);
 
-	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, T2PALETTE_LENGTH);
+	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, 0x10000);
 
 	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
 	m_vdp->set_palette(m_palette);

@@ -164,6 +164,9 @@ private:
 	u16 video_count_r();
 	void toaplan2_reset(int state);
 
+	u8 m_sound_reset_bit = 0; /* 0x20 for dogyuun/batsugun, 0x10 for vfive, 0x08 for fixeight */
+
+	bitmap_ind8 m_custom_priority_bitmap;
 };
 
 
@@ -208,7 +211,6 @@ VIDEO_START_MEMBER(truxton2_state,toaplan2)
 {
 	/* our current VDP implementation needs this bitmap to work with */
 	m_screen->register_screen_bitmap(m_custom_priority_bitmap);
-	m_secondary_render_bitmap.reset();
 	m_vdp->custom_priority_bitmap = &m_custom_priority_bitmap;
 }
 
@@ -1745,7 +1747,7 @@ void truxton2_state::truxton2(machine_config &config)
 	t2screen.set_screen(m_screen);
 
 	GFXDECODE(config, m_gfxdecode, m_palette, gfx_truxton2);
-	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, T2PALETTE_LENGTH);
+	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, 0x10000);
 
 	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
 	m_vdp->set_palette(m_palette);
@@ -1840,7 +1842,7 @@ void truxton2_state::fixeight(machine_config &config)
 	t2screen.set_screen(m_screen);
 
 	GFXDECODE(config, m_gfxdecode, m_palette, gfx_truxton2);
-	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, T2PALETTE_LENGTH);
+	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, 0x10000);
 
 	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
 	m_vdp->set_palette(m_palette);
@@ -1886,7 +1888,7 @@ void truxton2_state::fixeightbl(machine_config &config)
 	t2screen.set_screen(m_screen);
 
 	GFXDECODE(config, m_gfxdecode, m_palette, gfx_textrom);
-	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, T2PALETTE_LENGTH);
+	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, 0x10000);
 
 	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
 	m_vdp->set_palette(m_palette);
@@ -1930,7 +1932,7 @@ void truxton2_state::mahoudai(machine_config &config)
 	t2screen.set_screen(m_screen);
 
 	GFXDECODE(config, m_gfxdecode, m_palette, gfx_textrom);
-	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, T2PALETTE_LENGTH);
+	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, 0x10000);
 
 	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
 	m_vdp->set_palette(m_palette);
@@ -1984,7 +1986,7 @@ void truxton2_state::bgaregga(machine_config &config)
 	t2screen.set_screen(m_screen);
 
 	GFXDECODE(config, m_gfxdecode, m_palette, gfx_textrom);
-	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, T2PALETTE_LENGTH);
+	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, 0x10000);
 
 	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
 	m_vdp->set_palette(m_palette);
@@ -2054,7 +2056,7 @@ void truxton2_state::batrider(machine_config &config)
 	TOAPLAN2_TXLAYER(config, m_txlayer, 0);
 
 	GFXDECODE(config, m_gfxdecode, m_palette, gfx_batrider);
-	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, T2PALETTE_LENGTH);
+	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, 0x10000);
 
 	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
 	m_vdp->set_palette(m_palette);
@@ -2122,7 +2124,7 @@ void truxton2_state::bbakraid(machine_config &config)
 	t2screen.set_screen(m_screen);
 
 	GFXDECODE(config, m_gfxdecode, m_palette, gfx_batrider);
-	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, T2PALETTE_LENGTH);
+	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, 0x10000);
 
 	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
 	m_vdp->set_palette(m_palette);
@@ -2174,7 +2176,7 @@ void truxton2_state::nprobowl(machine_config &config)
 	t2screen.set_screen(m_screen);
 
 	GFXDECODE(config, m_gfxdecode, m_palette, gfx_batrider);
-	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, T2PALETTE_LENGTH);
+	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, 0x10000);
 
 	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
 	m_vdp->set_palette(m_palette);

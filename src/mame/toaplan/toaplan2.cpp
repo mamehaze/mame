@@ -403,7 +403,7 @@ To reset the NVRAM in Othello Derby, hold P1 Button 1 down while booting.
 #include "sound/ymz280b.h"
 #include "speaker.h"
 
-constexpr unsigned toaplan2_state::T2PALETTE_LENGTH;
+
 
 /*****************************************************************************
     Input Port definitions

@@ -39,12 +39,6 @@ public:
 		, m_okibank(*this, "okibank")
 	{ }
 
-
-
-
-	// We encode priority with colour in the tilemaps, so need a larger palette
-	static constexpr unsigned T2PALETTE_LENGTH = 0x10000;
-
 	optional_shared_ptr<u8> m_shared_ram; // 8 bit RAM shared between 68K and sound CPU
 	optional_shared_ptr<u16> m_mainram;
 
@@ -57,13 +51,6 @@ public:
 	optional_region_ptr<u8> m_z80_rom;
 	optional_region_ptr_array<u8, 2> m_oki_rom;
 	optional_memory_bank m_okibank;
-
-	u8 m_sound_reset_bit = 0; /* 0x20 for dogyuun/batsugun, 0x10 for vfive, 0x08 for fixeight */
-
-	bitmap_ind8 m_custom_priority_bitmap;
-	bitmap_ind16 m_secondary_render_bitmap;
-
-
 };
 
 

@@ -14,7 +14,7 @@
 #include "speaker.h"
 
 
-constexpr unsigned toaplan2_state::T2PALETTE_LENGTH;
+
 
 
 
@@ -56,6 +56,8 @@ private:
 
 	u16 video_count_r();
 	void toaplan2_reset(int state);
+
+	bitmap_ind8 m_custom_priority_bitmap;
 
 	required_device<m68000_base_device> m_maincpu;
 	required_device<screen_device> m_screen;
@@ -107,7 +109,6 @@ VIDEO_START_MEMBER(pwrkick_state,toaplan2)
 {
 	/* our current VDP implementation needs this bitmap to work with */
 	m_screen->register_screen_bitmap(m_custom_priority_bitmap);
-	m_secondary_render_bitmap.reset();
 	m_vdp->custom_priority_bitmap = &m_custom_priority_bitmap;
 }
 
@@ -496,7 +497,7 @@ void pwrkick_state::pwrkick(machine_config &config) // Sunwise SW931201-1 PCB (2
 	toaplan2_screen_device& t2screen(TOAPLAN2_SCREEN(config, "t2screen", 27_MHz_XTAL / 4));
 	t2screen.set_screen(m_screen);
 
-	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, T2PALETTE_LENGTH);
+	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, 0x10000);
 
 	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
 	m_vdp->set_palette(m_palette);
@@ -533,7 +534,7 @@ void pwrkick_state::othldrby(machine_config &config) // Sunwise S951060-VGP PCB 
 	toaplan2_screen_device& t2screen(TOAPLAN2_SCREEN(config, "t2screen", 27_MHz_XTAL / 4));
 	t2screen.set_screen(m_screen);
 
-	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, T2PALETTE_LENGTH);
+	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, 0x10000);
 
 	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
 	m_vdp->set_palette(m_palette);
