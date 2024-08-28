@@ -2,7 +2,7 @@
 // copyright-holders:Felipe Sanches
 /******************************************************************************
 
-	Technics SX-KN5000 music keyboard driver
+    Technics SX-KN5000 music keyboard driver
 
 ******************************************************************************/
 
@@ -18,15 +18,15 @@
 class mn89304_vga_device : public svga_device
 {
 public:
-    // construction/destruction
-    mn89304_vga_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
+	// construction/destruction
+	mn89304_vga_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
 
 protected:
-    virtual void device_reset() override;
+	virtual void device_reset() override;
 
-    virtual void palette_update() override;
-    virtual void recompute_params() override;
-    virtual uint16_t offset() override;
+	virtual void palette_update() override;
+	virtual void recompute_params() override;
+	virtual uint16_t offset() override;
 };
 
 DEFINE_DEVICE_TYPE(MN89304_VGA, mn89304_vga_device, "mn89304_vga", "MN89304 VGA")
@@ -35,51 +35,51 @@ DEFINE_DEVICE_TYPE(MN89304_VGA, mn89304_vga_device, "mn89304_vga", "MN89304 VGA"
 mn89304_vga_device::mn89304_vga_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
 	: svga_device(mconfig, MN89304_VGA, tag, owner, clock)
 {
-    // ...
+	// ...
 }
 
 void mn89304_vga_device::device_reset()
 {
-    svga_device::device_reset();
-    svga.rgb8_en = 1;
+	svga_device::device_reset();
+	svga.rgb8_en = 1;
 }
 
 // sets up mode 0, by default it will throw 155 Hz, assume divided by 3
 void mn89304_vga_device::recompute_params()
 {
-    u8 xtal_select = (vga.miscellaneous_output & 0x0c) >> 2;
-    int xtal;
+	u8 xtal_select = (vga.miscellaneous_output & 0x0c) >> 2;
+	int xtal;
 
-    switch(xtal_select & 3)
-    {
-        case 0: xtal = XTAL(25'174'800).value() / 3; break;
-        case 1: xtal = XTAL(28'636'363).value() / 3; break;
-        case 2:
-        default:
-            throw emu_fatalerror("MN89304: setup ext. clock select");
-    }
+	switch(xtal_select & 3)
+	{
+		case 0: xtal = XTAL(25'174'800).value() / 3; break;
+		case 1: xtal = XTAL(28'636'363).value() / 3; break;
+		case 2:
+		default:
+			throw emu_fatalerror("MN89304: setup ext. clock select");
+	}
 
-    recompute_params_clock(1, xtal);
+	recompute_params_clock(1, xtal);
 }
 
 
 void mn89304_vga_device::palette_update()
 {
-    // 4bpp RAMDAC
-    for (int i = 0; i < 256; i++)
-    {
-        set_pen_color(
-            i,
-            pal4bit(vga.dac.color[3*(i & vga.dac.mask) + 0]),
-            pal4bit(vga.dac.color[3*(i & vga.dac.mask) + 1]),
-            pal4bit(vga.dac.color[3*(i & vga.dac.mask) + 2])
-        );
-    }
+	// 4bpp RAMDAC
+	for (int i = 0; i < 256; i++)
+	{
+		set_pen_color(
+			i,
+			pal4bit(vga.dac.color[3*(i & vga.dac.mask) + 0]),
+			pal4bit(vga.dac.color[3*(i & vga.dac.mask) + 1]),
+			pal4bit(vga.dac.color[3*(i & vga.dac.mask) + 2])
+		);
+	}
 }
 
 uint16_t mn89304_vga_device::offset()
 {
-    return svga_device::offset() << 3;
+	return svga_device::offset() << 3;
 }
 
 
@@ -152,7 +152,7 @@ void kn5000_state::maincpu_mem(address_map &map)
 	map(0x300000, 0x3fffff).rom().region("custom_data", 0); // 8MBit FLASH ROM @ IC19 (CS5)
 	map(0x400000, 0x7fffff).rom().region("rhythm_data", 0); // 32MBit ROM @ IC14 (A22=1 and CS5)
 	map(0x800000, 0x82ffff).rom().region("subprogram", 0); // not sure yet in which chip this is stored, but I suspect it should be IC19
-//	map(0xc00000, 0xdfffff).mirror(0x200000).rom().region("table_data", 0); //2 * 8MBit ROMs @ IC1, IC3 (CS2)
+//  map(0xc00000, 0xdfffff).mirror(0x200000).rom().region("table_data", 0); //2 * 8MBit ROMs @ IC1, IC3 (CS2)
 	map(0xe00000, 0xffffff).mask(0x1fffff).rom().region("program", 0); //2 * 8MBit FLASH ROMs @ IC4, IC6
 }
 
@@ -558,8 +558,8 @@ void kn5000_state::cpanel_leds_w(offs_t offset, uint8_t data)
 				m_CPL_LED[26] = BIT(data, 1); // D126 - VARIATION & MSA 2
 				m_CPL_LED[27] = BIT(data, 2); // D127 - VARIATION & MSA 3
 				m_CPL_LED[28] = BIT(data, 3); // D128 - VARIATION & MSA 4
-				m_CPL_LED[29] = BIT(data, 2); // D129 - MUSIC STYLE ARRANGER
-				m_CPL_LED[30] = BIT(data, 3); // D130 - AUTO PLAY CHORD
+				m_CPL_LED[29] = BIT(data, 4); // D129 - MUSIC STYLE ARRANGER
+				m_CPL_LED[30] = BIT(data, 5); // D130 - AUTO PLAY CHORD
 				break;
 
 			case 0xc4:
@@ -574,7 +574,6 @@ void kn5000_state::cpanel_leds_w(offs_t offset, uint8_t data)
 				break;
 
 			case 0xc8:
-				// I'm not sure yet about this one...
 				m_CPL_LED[49] = BIT(data, 0); // D149 - OTHER PARTS/TR
 				break;
 
@@ -687,10 +686,10 @@ void kn5000_state::kn5000(machine_config &config)
 	//   bit 6 = (input) COM.MAC
 	//   bit 7 = (input) COM.MIDI
 	// TODO: m_maincpu->portz_read().set([this] {
-	// TODO: 	return ioport("COM_SELECT")->read() | (m_sstat << 2);
+	// TODO:    return ioport("COM_SELECT")->read() | (m_sstat << 2);
 	// TODO: });
 	// TODO: m_maincpu->portz_write().set([this] (u8 data) {
-	// TODO: 	m_mstat = data & 3;
+	// TODO:    m_mstat = data & 3;
 	// TODO: });
 
 
@@ -719,10 +718,10 @@ void kn5000_state::kn5000(machine_config &config)
 	//   bit 3 (not used)
 	//   bit 4 = (input) MSTAT1
 	// TODO: m_subcpu->portd_read().set([this] {
-	// TODO: 	return (BIT(m_mstat, 0) << 2) | (BIT(m_mstat, 1) << 4);
+	// TODO:    return (BIT(m_mstat, 0) << 2) | (BIT(m_mstat, 1) << 4);
 	// TODO: });
 	// TODO: m_subcpu->portd_write().set([this] (u8 data) {
-	// TODO: 	m_sstat = data & 3;
+	// TODO:    m_sstat = data & 3;
 	// TODO: });
 
 
@@ -759,8 +758,17 @@ void kn5000_state::kn5000(machine_config &config)
 }
 
 ROM_START(kn5000)
-	ROM_REGION16_LE(0x200000, "program" , 0) // main cpu
 	ROM_DEFAULT_BIOS("v10")
+	ROM_SYSTEM_BIOS(0, "v10", "Version 10 - August 2nd, 1999")
+	ROM_SYSTEM_BIOS(1, "v9", "Version 9 - January 26th, 1999")
+	ROM_SYSTEM_BIOS(2, "v8", "Version 8 - November 13th, 1998")
+	ROM_SYSTEM_BIOS(3, "v7", "Version 7 - June 26th, 1998")
+	ROM_SYSTEM_BIOS(4, "v6", "Version 6 - January 16th, 1998") // sometimes refered to as "update6v0"
+	ROM_SYSTEM_BIOS(5, "v5", "Version 5 - November 12th, 1997") // sometimes refered to as "update5v0"
+	ROM_SYSTEM_BIOS(6, "v4", "Version 4") // I have a v4 board but haven't dumped it yet
+	ROM_SYSTEM_BIOS(7, "v3", "Version 3") // I have a v3 board but haven't dumped it yet
+
+	ROM_REGION16_LE(0x200000, "program" , 0) // main cpu
 
 	// FIXME: These are actually stored in a couple flash rom chips IC6 (even) and IC4 (odd)
 	//
@@ -773,29 +781,14 @@ ROM_START(kn5000)
 	//       More info at:
 	//       https://github.com/felipesanches/kn5000_homebrew/blob/main/kn5000_extract.py
 
-	ROM_SYSTEM_BIOS(0, "v10", "Version 10 - August 2nd, 1999")
 	ROMX_LOAD("kn5000_v10_program.rom", 0x00000, 0x200000, CRC(00303406) SHA1(1f2abc5b1b7b9e16fdf796f26d939edaceded354), ROM_BIOS(0))
-
-	ROM_SYSTEM_BIOS(1, "v9", "Version 9 - January 26th, 1999")
-	ROMX_LOAD("kn5000_v9_program.rom", 0x00000, 0x200000, CRC(c791d765) SHA1(d9a3b462b1f9302402e8d37aacd15f069f56abd9), ROM_BIOS(1))
-
-	ROM_SYSTEM_BIOS(2, "v8", "Version 8 - November 13th, 1998")
-	ROMX_LOAD("kn5000_v8_program.rom", 0x00000, 0x200000, CRC(46b4b242) SHA1(a10a6f5a35175b74c3cfb42cef3bdf571c2858bb), ROM_BIOS(2))
-
-	ROM_SYSTEM_BIOS(3, "v7", "Version 7 - June 26th, 1998")
-	ROMX_LOAD("kn5000_v7_program.rom", 0x00000, 0x200000, CRC(a5a25eb0) SHA1(4c682cb248034a2de04c688b0a45654b8726bffb), ROM_BIOS(3))
-
-	ROM_SYSTEM_BIOS(4, "v6", "Version 6 - January 16th, 1998") // sometimes refered to as "update6v0"
-	ROMX_LOAD("kn5000_v6_program.rom", 0x00000, 0x200000, CRC(0205db30) SHA1(51108e2d75b180a034395e90bd40ca2bd2a0adfb), ROM_BIOS(4))
-
-	ROM_SYSTEM_BIOS(5, "v5", "Version 5 - November 12th, 1997") // sometimes refered to as "update5v0"
-	ROMX_LOAD("kn5000_v5_program.rom", 0x00000, 0x200000, CRC(fbd035e3) SHA1(7b69a8aaa84ee3d337acc0c29c34154c5da2df32), ROM_BIOS(5))
-
-	ROM_SYSTEM_BIOS(6, "v4", "Version 4") // I have a v4 board but haven't dumped it yet
-	ROMX_LOAD("kn5000_v4_program.rom", 0x00000, 0x200000, NO_DUMP, ROM_BIOS(6))
-
-	ROM_SYSTEM_BIOS(7, "v3", "Version 3") // I have a v3 board but haven't dumped it yet
-	ROMX_LOAD("kn5000_v3_program.rom", 0x00000, 0x200000, NO_DUMP, ROM_BIOS(7))
+	ROMX_LOAD("kn5000_v9_program.rom",  0x00000, 0x200000, CRC(c791d765) SHA1(d9a3b462b1f9302402e8d37aacd15f069f56abd9), ROM_BIOS(1))
+	ROMX_LOAD("kn5000_v8_program.rom",  0x00000, 0x200000, CRC(46b4b242) SHA1(a10a6f5a35175b74c3cfb42cef3bdf571c2858bb), ROM_BIOS(2))
+	ROMX_LOAD("kn5000_v7_program.rom",  0x00000, 0x200000, CRC(a5a25eb0) SHA1(4c682cb248034a2de04c688b0a45654b8726bffb), ROM_BIOS(3))
+	ROMX_LOAD("kn5000_v6_program.rom",  0x00000, 0x200000, CRC(0205db30) SHA1(51108e2d75b180a034395e90bd40ca2bd2a0adfb), ROM_BIOS(4))
+	ROMX_LOAD("kn5000_v5_program.rom",  0x00000, 0x200000, CRC(fbd035e3) SHA1(7b69a8aaa84ee3d337acc0c29c34154c5da2df32), ROM_BIOS(5))
+	ROMX_LOAD("kn5000_v4_program.rom",  0x00000, 0x200000, NO_DUMP, ROM_BIOS(6))
+	ROMX_LOAD("kn5000_v3_program.rom",  0x00000, 0x200000, NO_DUMP, ROM_BIOS(7))
 
 	// Note: I've never seen boards with versions 1 or 2.
 
@@ -822,7 +815,7 @@ ROM_START(kn5000)
 
 	ROM_REGION16_LE(0x200000, "table_data", 0)
 	ROM_LOAD16_BYTE("kn5000_table_data_rom_even.ic3", 0x000000, 0x100000, NO_DUMP)
-	ROM_LOAD16_BYTE("kn5000_table_data_rom_odd.ic1", 0x000001, 0x100000, CRC(cd907eac) SHA1(bedf09d606d476f3e6d03e590709715304cf7ea5))
+	ROM_LOAD16_BYTE("kn5000_table_data_rom_odd.ic1",  0x000001, 0x100000, CRC(cd907eac) SHA1(bedf09d606d476f3e6d03e590709715304cf7ea5))
 
 	ROM_REGION16_LE(0x100000, "custom_data", 0)
 	ROM_LOAD("kn5000_custom_data_rom.ic19", 0x000000, 0x100000, CRC(5de11a6b) SHA1(4709f815d3d03ce749c51f4af78c62bf4a5e3d94))

@@ -15034,6 +15034,7 @@ jxzh                            // (c) 1996 BMC
 koftball                        // (c) 1995 BMC
 
 @source:bmc/popobear.cpp
+magkengo                        // (c) 2005 Herb Home
 popobear                        // (c) 2000 BMC
 
 @source:bondwell/bw12.cpp
@@ -15117,6 +15118,7 @@ dkbanana                        // (c) 2007 Capcom
 dkbanans                        // (c) 2007 Capcom
 dkjfever                        // (c) 2005 Capcom
 dokodemo                        // (c) 2006 Capcom
+gekimaka                        // (c) 2005 Capcom
 mariojjl                        // (c) 2005 Capcom
 masmario                        // (c) 2004 Capcom
 masmarios                       // (c) 2004 Capcom
@@ -16336,10 +16338,11 @@ multy                           // (c) 1987  Deta
 trebol                          // (c) 1985  Regama
 
 @source:cirsa/neptunp2.cpp
-bg_barmy                        //
-bg_ddb                          //
-bg_max                          //
-bg_maxa                         //
+bg_barmy                        // (c) 1997 Cirsa / Unidesa / B Gaming Technology
+bg_dbells                       // (c) 2000 Cirsa / Unidesa / B Gaming Technology
+bg_ddb                          // (c) 1999 Cirsa / Unidesa / B Gaming Technology
+bg_max                          // (c) 2000 Cirsa / Unidesa / B Gaming Technology
+bg_maxa                         // (c) 2000 Cirsa / Unidesa / B Gaming Technology
 ccorsario                       // (c) 2002 Cirsa / Unidesa
 ccorsarioa                      // (c) 2002 Cirsa / Unidesa
 charles                         // (c) 2002? Cirsa / Unidesa / Europea
@@ -16969,6 +16972,7 @@ destiny                         // (c) 1983
 dietgo                          // MAY (c) 1993
 dietgoe                         // MAY (c) 1993
 dietgoea                        // MAY (c) 1993
+dietgoeb                        // MAY (c) 1993
 dietgoj                         // MAY (c) 1993
 dietgou                         // MAY (c) 1993
 
@@ -16985,6 +16989,7 @@ wexpressb2                      // bootleg
 wexpressb3                      // bootleg
 
 @source:dataeast/ffantasy_ms.cpp
+automatm                        //
 drgninjam                       //
 ffantasym                       //
 secretagm                       //
@@ -17831,6 +17836,7 @@ gcpinbal                        // (c) 1994 Excellent System
 pwrflip                         // (c) 1994 Excellent System
 
 @source:excellent/lastbank.cpp
+fever13                         // (c) 1995 Excellent System
 lastbank                        // (c) 1994 Excellent System
 
 @source:excellent/witch.cpp
@@ -18125,7 +18131,7 @@ fscc9c                          //
 fscc9ps                         //
 
 @source:fidelity/vcc.cpp
-uvc                             //
+avcc                            //
 vcc                             //
 vcca                            //
 
@@ -18444,19 +18450,22 @@ mastboyoa                       // (c) 1987 - No Ref on the PCB
 mastboyob
 mastboyoc
 
+@source:gaelco/radikaldarts.cpp
+radikaldrt                      // (c) 2011? Gaelco Darts
+
 @source:gaelco/rollext.cpp
 rollext                         // (c) 1999 - Ref 991015
 
 @source:gaelco/splash.cpp
-funystrp                        // not a gaelco game but on similar hw to splash
+funystrp                        // not a Gaelco game but on similar hw to splash
 paintlad                        // (c) 1992 - ver 1.3
-puckpepl                        // not a gaelco game but on similar hw to splash
-rebus                           // not a gaelco game but on similar hw to splash
-roldfrog                        // not a gaelco game but based on splash code
-roldfroga                       // not a gaelco game but based on splash code
+puckpepl                        // not a Gaelco game but on similar hw to splash
+rebus                           // not a Gaelco game but on similar hw to splash
+roldfrog                        // not a Gaelco game but based on splash code
+roldfroga                       // not a Gaelco game but based on splash code
 splash                          // (c) 1992 - Ref 922804
 splash10                        // (c) 1992 - Ref 922804
-ringball                        // not a gaelco game but based on splash code
+ringball                        // not a Gaelco game but based on splash code
 
 @source:gaelco/splash_ms.cpp
 splashms
@@ -20179,6 +20188,7 @@ lhb2                            // (c) 1996
 lhbv33c                         // (c) 1995
 nkishusp                        // (c) 1998
 ryukobou                        // (c) 1995
+tygn                            // (c) 1996
 vbowl                           // (c) 1996
 vbowlhk                         // (c) 1996
 vbowlj                          // (c) 1996
@@ -20196,11 +20206,13 @@ iqblockf                        // (c) 1996
 lhzb2                           // (c) 1998
 lhzb2a                          // (c) 1998
 mgcs                            // (c) 1998
+mgcsa                           // (c) 1998
 mgdh                            // (c) 1997
 mgdha                           // (c) 1997
 sdmg2                           // (c) 1997
 sdmg2p                          // (c) 2000
 slqz2                           // (c) 1998
+slqz2a                          // (c) 1998
 spkrform                        // (c) 2000?
 starzan                         // (c) 2000?
 tarzan                          // (c) 1999
@@ -20219,15 +20231,9 @@ amazoni2                        // (c) 2002
 amazonia                        // (c) 1999
 amazonkp                        // (c) 1999
 chessc2                         // (c) 200?
-crzybugs                        // (c) 2009
-crzybugsa                       // (c) 2006
-crzybugsb                       // (c) 2005
-crzybugsj                       // (c) 2007
 extradrw                        // (c) 200?
 fruitpar                        // (c) 200?
 gonefsh2                        // (c) 200?
-haunthig                        // (c) 2008
-haunthiga                       // (c) 2006
 jking02                         // (c) 200?
 klxyj                           // (c) 200?
 lhdmg                           // (c) 1999
@@ -20237,8 +20243,8 @@ lhzb4                           // (c) 200?
 lthy                            // (c) 1999
 luckycrs                        // (c) 200?
 mgcs3                           // (c) 200?
-mgfx                            // (c) 200?
 mgzz                            // (c) 2003
+mgzza                           // (c) 2003
 oceanpar                        //
 oceanpara                       //
 olympic5                        // (c) 2005
@@ -20247,9 +20253,23 @@ qlgs                            // (c) 1999
 sddz                            // (c) 200?
 sdwx                            // (c) 2002
 slqz3                           // (c) 1999
+zhongguo                        // (c) 2000
+
+@source:igs/igs_m027_link.cpp
+cjslh
+cjsll
+mgcs2h
+mgcs2l
+
+@source:igs/igs_m027xa.cpp
+crzybugs                        // (c) 2009
+crzybugsa                       // (c) 2006
+crzybugsb                       // (c) 2005
+crzybugsj                       // (c) 2007
+haunthig                        // (c) 2008
+haunthiga                       // (c) 2006
 tripfev                         // (c) 2006
 wldfruit                        // (c) 200?
-zhongguo                        // (c) 2000
 
 @source:igs/igs_m036.cpp
 cjddzsp                         // (c) 200?
@@ -20489,6 +20509,7 @@ kov3hd101
 @source:igs/spoker.cpp
 3super8                         // unknown
 jbell                           // (c) 1997 IGS
+jinhulu2                        // (c) 1995 IGS
 spk100                          // (c) 1996 IGS
 spk102ua                        // (c) 1996 IGS
 spk114it                        // (c) 199? IGS
@@ -25066,13 +25087,13 @@ jr100u                          //
 jr200                           //
 jr200u                          //
 
+@source:matsushita/kn5000.cpp
+kn5000                          // (c) 199? Technics SX-KN5000 PCM Keyboard
+
 @source:matsushita/myb3k.cpp
 myb3k                           //
 jb3000                          //
 stepone                         //
-
-@source:matsushita/kn5000.cpp
-kn5000                          // (c) 199? Technics SX-KN5000 PCM Keyboard
 
 @source:mattel/aquarius.cpp
 aquarius                        // 1983 Aquarius (NTSC)
@@ -27405,6 +27426,7 @@ jspecter                        // (c) 1979 Jatre
 jspecter2                       // (c) 1979 Jatre
 laser                           // (c) 1980 Leisure Time Electronics Inc.
 lrescue                         // LR  (c) 1979 Taito
+lrescueabl                      // Artic bootleg
 lrescuem                        // Model Racing bootleg set 1
 lrescuem2                       // Model Racing bootleg set 2
 lupin3                          // LP  (c) 1980 Taito
@@ -29219,6 +29241,7 @@ cowtippa                        //
 
 @source:misc/crazybal.cpp
 crazybal                        // EGS
+crazybala                       // EGS
 
 @source:misc/cromptons.cpp
 ffruits                         //
@@ -30548,6 +30571,7 @@ zoomaniaa
 
 @source:misc/hitpoker.cpp
 hitpoker                        // (c) 1997
+reelmtp                         // (c) 1999
 
 @source:misc/hobbyplay.cpp
 unkhpslt                        //
@@ -31656,9 +31680,6 @@ quizoa                          // (c) 1985 Seoul Coin Corp.
 @source:misc/quizpun2.cpp
 quizpun                         // (c) 1989 Space Computer System of Korea
 quizpun2                        // (c) 1989 Space Computer System of Korea
-
-@source:misc/radikaldarts.cpp
-radikaldrt                      // (c) 2011? Gaelco Darts
 
 @source:misc/rawthrillspc.cpp
 doodlejmp                       // (c) 2013 ICE / Raw Thrills / Lima Sky
@@ -34546,6 +34567,7 @@ sudopptv
 techni4
 timetp36
 timetp7
+tvmjfc
 vdogdeme
 vdogdemo
 vfootbal
@@ -35661,7 +35683,7 @@ pcd3nsl                         // Siemens-Nixdorf PCD-3Nsl
 pcd3nsx                         // Siemens-Nixdorf PCD-3Nsx
 php3239                         // Philips P3239
 ppm3333p                        // DTK Computer PPM-3333P
-pt319a                          // Pint PT-319A motherboard (386sx)
+pt319a                          // Pine PT-319A motherboard (386sx)
 scamp386sx                      // motherboards using the SCAMPSX chipset (386sx)
 scsxaio                         // Peacock 386sx Ver. 2.0 motherboard SCsxAIO (386sx)
 sh386sx20                       // Shuttle 386SX REV 2.0A motherboard (386sx)
@@ -35901,6 +35923,9 @@ calchase                        // (c) 1999 The Game Room
 eggsplc                         // (c) 2002 The Game Room
 hostinv                         // (c) 1998 The Game Room
 
+@source:pc/champ2.cpp
+champ2                          // (c) 1993 US Games
+
 @source:pc/compc.cpp
 compc10                         // 1984 Commodore PC-10, PC-20 and PC-30
 pc10iii                         // 1987 Commodore PC-10 III
@@ -35927,6 +35952,9 @@ ec1845                          //
 europc                          // 1988 Schneider Euro PC (CGA or Hercules)
 europc2                         // 1989 Schneider Euro PC II
 euroxt                          // Schneider Euro XT
+
+@source:pc/filetto.cpp
+filetto                         // (c) 1990 Novamatic
 
 @source:pc/fruitpc.cpp
 fruitpc                         // ???
@@ -36078,10 +36106,6 @@ so30h                           // SOYO 30H motherboard (486)
 so4saw2                         // SOYO SY-4SAW2 motherboard (486)
 zito4dps                        // ZIDA Tomato board 4DPS (486)
 
-@source:pc/pcxt.cpp
-filetto                         // (c) 1990 Novamatic
-tetriskr                        // (c) 1988? bootleg
-
 @source:pc/poisk1.cpp
 poisk1                          //
 
@@ -36124,6 +36148,9 @@ t1000tx                         // 1987 Tandy 1000 TX
 
 @source:pc/teradrive.cpp
 teradrive
+
+@source:pc/tetriskr.cpp
+tetriskr                        // (c) 1988? bootleg
 
 @source:pc/tosh1000.cpp
 tosh1000
@@ -37018,6 +37045,7 @@ sport2k                         //
 @source:pinball/micropin.cpp
 pentacup                        //
 pentacup2                       //
+pentacupt                       //
 
 @source:pinball/missamer.cpp
 missamer                        // (c) 1984 Sirmo
@@ -42552,6 +42580,9 @@ xor100                          //
 @source:skeleton/zeebo_qualcomm_adreno130.cpp
 zeebo
 
+@source:skeleton/zfirenze.cpp
+zfirenze                        // (c) 1995 Zanussi / Necta
+
 @source:skeleton/zms8085.cpp
 zephyr                          //
 
@@ -42560,6 +42591,10 @@ zorba                           //
 
 @source:skeleton/zt8802.cpp
 zt8802                          // (c) 19?? Olympia?
+
+@source:skeleton/zvenezia.cpp
+zunknecta                       // (c) 1992 Zanussi / Necta
+zvenezia                        // (c) 1995 Zanussi / Necta
 
 @source:slicer/slicer.cpp
 slicer                          // 1983 Slicer Computers
@@ -45596,6 +45631,8 @@ abl4play
 lexitvsprt
 my1stddr                        // (c) 2006 Konami
 shtscore
+teleshi
+teleship
 trkfldch                        // (c) 2007 Konami
 
 @source:tvgames/tvgame.cpp
