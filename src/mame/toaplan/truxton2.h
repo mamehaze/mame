@@ -84,63 +84,37 @@ public:
 
 	optional_device<toaplan2_txlayer_device> m_txlayer;
 
-	u8 m_sndirq_line = 0;        /* IRQ4 for batrider, IRQ2 for bbakraid */
-	u8 m_z80_busreq = 0;
-	u16 m_gfxrom_bank[8]{};       /* Batrider object bank */
 
 	tilemap_t *m_tx_tilemap = nullptr;    /* Tilemap for extra-text-layer */
 
-	void shippumd_coin_w(u8 data);
 	void raizing_z80_bankswitch_w(u8 data);
 	void raizing_oki_bankswitch_w(offs_t offset, u8 data);
-	u8 bgaregga_E01D_r();
-	u16 batrider_z80_busack_r();
-	void batrider_z80_busreq_w(u8 data);
-	u16 batrider_z80rom_r(offs_t offset);
-	void batrider_soundlatch_w(u8 data);
-	void batrider_soundlatch2_w(u8 data);
-	void batrider_unknown_sound_w(u16 data);
-	void batrider_clear_sndirq_w(u16 data);
-	void batrider_sndirq_w(u8 data);
-	void batrider_clear_nmi_w(u8 data);
-	u16 bbakraid_eeprom_r();
-	void bbakraid_eeprom_w(u8 data);
 	void tx_videoram_w(offs_t offset, u16 data, u16 mem_mask = ~0);
 	void tx_linescroll_w(offs_t offset, u16 data, u16 mem_mask = ~0);
 	void tx_gfxram_w(offs_t offset, u16 data, u16 mem_mask = ~0);
 	void batrider_tx_gfxram_w(offs_t offset, u16 data, u16 mem_mask = ~0);
 	void batrider_textdata_dma_w(u16 data);
 	void batrider_pal_text_dma_w(u16 data);
-	void batrider_objectbank_w(offs_t offset, u8 data);
-	void batrider_bank_cb(u8 layer, u32 &code);
 
 	void install_raizing_okibank(int chip);
 
 	TILE_GET_INFO_MEMBER(get_text_tile_info);
 	DECLARE_MACHINE_RESET(bgaregga);
 	DECLARE_VIDEO_START(truxton2);
-	DECLARE_VIDEO_START(fixeightbl);
+
 	DECLARE_VIDEO_START(bgaregga);
 	DECLARE_VIDEO_START(bgareggabl);
 	DECLARE_VIDEO_START(batrider);
 
 	u32 screen_update_truxton2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
 	u32 screen_update_bootleg(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
-	INTERRUPT_GEN_MEMBER(bbakraid_snd_interrupt);
 	void create_tx_tilemap(int dx = 0, int dx_flipped = 0);
 
 
-	void batrider_dma_mem(address_map &map);
 
-	void fixeight_v25_mem(address_map &map);
-	void raizing_sound_z80_mem(address_map &map);
 
-	void cpu_space_fixeightbl_map(address_map &map);
 
-	void fixeightbl_oki_bankswitch_w(u8 data);
-	void fixeightbl_oki(address_map &map);
 
-	void sound_reset_w(u8 data);
 
 	u8 shared_ram_r(offs_t offset) { return m_shared_ram[offset]; }
 	void shared_ram_w(offs_t offset, u8 data) { m_shared_ram[offset] = data; }
@@ -153,7 +127,6 @@ public:
 	u16 video_count_r();
 	void toaplan2_reset(int state);
 
-	u8 m_sound_reset_bit = 0; /* 0x20 for dogyuun/batsugun, 0x10 for vfive, 0x08 for fixeight */
 
 	bitmap_ind8 m_custom_priority_bitmap;
 };

@@ -30,6 +30,8 @@ protected:
 private:
 	void nprobowl_68k_mem(address_map &map);
 
+	void batrider_dma_mem(address_map &map);
+
 };
 
 
@@ -143,6 +145,17 @@ void probowl_state::nprobowl_68k_mem(address_map &map) // TODO: verify everythin
 }
 
 
+void probowl_state::batrider_dma_mem(address_map &map)
+{
+	map(0x0000, 0x1fff).ram().w(FUNC(truxton2_state::tx_videoram_w)).share(m_tx_videoram);
+	map(0x2000, 0x2fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
+	map(0x3000, 0x31ff).ram().share(m_tx_lineselect);
+	map(0x3200, 0x33ff).ram().w(FUNC(truxton2_state::tx_linescroll_w)).share(m_tx_linescroll);
+	map(0x3400, 0x7fff).ram();
+	map(0x8000, 0xffff).ram().w(FUNC(truxton2_state::batrider_tx_gfxram_w)).share(m_tx_gfxram);
+}
+
+
 void probowl_state::nprobowl(machine_config &config)
 {
 	// basic machine hardware
@@ -151,7 +164,7 @@ void probowl_state::nprobowl(machine_config &config)
 	m_maincpu->reset_cb().set(FUNC(truxton2_state::toaplan2_reset));
 
 	ADDRESS_MAP_BANK(config, m_dma_space, 0);
-	m_dma_space->set_addrmap(0, &truxton2_state::batrider_dma_mem);
+	m_dma_space->set_addrmap(0, &probowl_state::batrider_dma_mem);
 	m_dma_space->set_endianness(ENDIANNESS_BIG);
 	m_dma_space->set_data_width(16);
 	m_dma_space->set_addr_width(16);

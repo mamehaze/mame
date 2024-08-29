@@ -131,22 +131,6 @@ VIDEO_START_MEMBER(truxton2_state,truxton2)
 	create_tx_tilemap(0x1d5, 0x16a);
 }
 
-VIDEO_START_MEMBER(truxton2_state,fixeightbl)
-{
-	VIDEO_START_CALL_MEMBER(toaplan2);
-
-	/* Create the Text tilemap for this game */
-	create_tx_tilemap();
-
-	/* This bootleg has additional layer offsets on the VDP */
-	m_vdp->set_tm_extra_offsets(0, -0x1d6 - 26, -0x1ef - 15, 0, 0);
-	m_vdp->set_tm_extra_offsets(1, -0x1d8 - 22, -0x1ef - 15, 0, 0);
-	m_vdp->set_tm_extra_offsets(2, -0x1da - 18, -0x1ef - 15, 0, 0);
-	m_vdp->set_sp_extra_offsets(8/*-0x1cc - 64*/, 8/*-0x1ef - 128*/, 0, 0);
-
-	m_vdp->init_scroll_regs();
-}
-
 
 VIDEO_START_MEMBER(truxton2_state,bgaregga)
 {
@@ -243,20 +227,7 @@ void truxton2_state::batrider_pal_text_dma_w(u16 data)
 	}
 }
 
-void truxton2_state::batrider_objectbank_w(offs_t offset, u8 data)
-{
-	data &= 0xf;
-	if (m_gfxrom_bank[offset] != data)
-	{
-		m_gfxrom_bank[offset] = data;
-		m_vdp->set_dirty();
-	}
-}
 
-void truxton2_state::batrider_bank_cb(u8 layer, u32 &code)
-{
-	code = (m_gfxrom_bank[code >> 15] << 15) | (code & 0x7fff);
-}
 
 
 /* fixeightbl and bgareggabl do not use the lineselect or linescroll tables */
@@ -342,11 +313,6 @@ void truxton2_state::init_bgaregga()
 
 
 
-void truxton2_state::shippumd_coin_w(u8 data)
-{
-	coin_w(data & ~0x10);
-	m_oki[0]->set_rom_bank(BIT(data, 4));
-}
 
 
 void truxton2_state::raizing_z80_bankswitch_w(u8 data)
@@ -371,179 +337,38 @@ void truxton2_state::raizing_oki_bankswitch_w(offs_t offset, u8 data)
 }
 
 
-u8 truxton2_state::bgaregga_E01D_r()
-{
-	// the Z80 reads this address during its IRQ routine,
-	// and reads the soundlatch only if the lowest bit is clear.
-	return m_soundlatch[0]->pending_r() ? 0 : 1;
-}
-
-
-u16 truxton2_state::batrider_z80_busack_r()
-{
-	// Bit 0x01 returns the status of BUSAK from the Z80.
-	// These accesses are made when the 68K wants to read the Z80
-	// ROM code. Failure to return the correct status incurrs a Sound Error.
-
-	return m_z80_busreq;    // Loop BUSRQ to BUSAK
-}
-
-
-void truxton2_state::batrider_z80_busreq_w(u8 data)
-{
-	m_z80_busreq = (data & 0x01);   // see batrider_z80_busack_r above
-}
-
-
-u16 truxton2_state::batrider_z80rom_r(offs_t offset)
-{
-	return m_z80_rom[offset];
-}
-
-// these two latches are always written together, via a single move.l instruction
-void truxton2_state::batrider_soundlatch_w(u8 data)
-{
-	m_soundlatch[0]->write(data & 0xff);
-	m_audiocpu->set_input_line(INPUT_LINE_NMI, ASSERT_LINE);
-}
-
-
-void truxton2_state::batrider_soundlatch2_w(u8 data)
-{
-	m_soundlatch[1]->write(data & 0xff);
-	m_audiocpu->set_input_line(INPUT_LINE_NMI, ASSERT_LINE);
-}
-
-void truxton2_state::batrider_unknown_sound_w(u16 data)
-{
-	// the 68K writes here when it wants a sound acknowledge IRQ from the Z80
-	// for bbakraid this is on every sound command; for batrider, only on certain commands
-}
-
-
-void truxton2_state::batrider_clear_sndirq_w(u16 data)
-{
-	// not sure whether this is correct
-	// the 68K writes here during the sound IRQ handler, and nowhere else...
-	m_maincpu->set_input_line(m_sndirq_line, CLEAR_LINE);
-}
-
-
-void truxton2_state::batrider_sndirq_w(u8 data)
-{
-	// if batrider_clear_sndirq_w() is correct, should this be ASSERT_LINE?
-	m_maincpu->set_input_line(m_sndirq_line, HOLD_LINE);
-}
-
-
-void truxton2_state::batrider_clear_nmi_w(u8 data)
-{
-	m_audiocpu->set_input_line(INPUT_LINE_NMI, CLEAR_LINE);
-}
-
-
-u16 truxton2_state::bbakraid_eeprom_r()
-{
-	// Bit 0x01 returns the status of BUSAK from the Z80.
-	// BUSRQ is activated via bit 0x10 on the EEPROM write port.
-	// These accesses are made when the 68K wants to read the Z80
-	// ROM code. Failure to return the correct status incurrs a Sound Error.
-
-	u8 data;
-	data  = ((m_eeprom->do_read() & 0x01) << 4);
-	data |= ((m_z80_busreq >> 4) & 0x01);   // Loop BUSRQ to BUSAK
-
-	return data;
-}
-
-
-void truxton2_state::bbakraid_eeprom_w(u8 data)
-{
-	if (data & ~0x1f)
-		logerror("CPU #0 PC:%06X - Unknown EEPROM data being written %02X\n",m_maincpu->pc(),data);
-
-	m_eepromout->write(data, 0xff);
-
-	m_z80_busreq = data & 0x10; // see bbakraid_eeprom_r above
-}
-
-
-INTERRUPT_GEN_MEMBER(truxton2_state::bbakraid_snd_interrupt)
-{
-	device.execute().set_input_line(0, HOLD_LINE);
-}
-
-
-
-
-void truxton2_state::sound_reset_w(u8 data)
-{
-	m_audiocpu->set_input_line(INPUT_LINE_RESET, (data & m_sound_reset_bit) ? CLEAR_LINE : ASSERT_LINE);
-}
-
-
-void truxton2_state::fixeightbl_oki_bankswitch_w(u8 data)
-{
-	data &= 7;
-	if (data <= 4) m_okibank->set_entry(data);
-}
-
-void truxton2_state::fixeightbl_oki(address_map &map)
-{
-	map(0x00000, 0x2ffff).rom();
-	map(0x30000, 0x3ffff).bankr(m_okibank);
-}
 
 
 
 
 
-void truxton2_state::batrider_dma_mem(address_map &map)
-{
-	map(0x0000, 0x1fff).ram().w(FUNC(truxton2_state::tx_videoram_w)).share(m_tx_videoram);
-	map(0x2000, 0x2fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
-	map(0x3000, 0x31ff).ram().share(m_tx_lineselect);
-	map(0x3200, 0x33ff).ram().w(FUNC(truxton2_state::tx_linescroll_w)).share(m_tx_linescroll);
-	map(0x3400, 0x7fff).ram();
-	map(0x8000, 0xffff).ram().w(FUNC(truxton2_state::batrider_tx_gfxram_w)).share(m_tx_gfxram);
-}
 
 
 
 
 
-void truxton2_state::raizing_sound_z80_mem(address_map &map)
-{
-	map(0x0000, 0xbfff).rom();
-	map(0xc000, 0xdfff).ram().share(m_shared_ram);
-	map(0xe000, 0xe001).rw("ymsnd", FUNC(ym2151_device::read), FUNC(ym2151_device::write));
-	map(0xe004, 0xe004).rw(m_oki[0], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
-	map(0xe00e, 0xe00e).w(FUNC(truxton2_state::coin_w));
-}
 
 
 
 
 
-void truxton2_state::fixeight_v25_mem(address_map &map)
-{
-	map(0x00000, 0x00000).portr("IN1");
-	map(0x00002, 0x00002).portr("IN2");
-	map(0x00004, 0x00004).portr("IN3");
-	map(0x0000a, 0x0000b).rw("ymsnd", FUNC(ym2151_device::read), FUNC(ym2151_device::write));
-	map(0x0000c, 0x0000c).rw(m_oki[0], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
-	map(0x80000, 0x87fff).mirror(0x78000).ram().share(m_shared_ram);
-}
 
 
 
 
 
-void truxton2_state::cpu_space_fixeightbl_map(address_map &map)
-{
-	map(0xfffff0, 0xffffff).m(m_maincpu, FUNC(m68000_base_device::autovectors_map));
-	map(0xfffff5, 0xfffff5).lr8(NAME([this] () { m_maincpu->set_input_line(M68K_IRQ_2, CLEAR_LINE); return m68000_device::autovector(2); }));
-}
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

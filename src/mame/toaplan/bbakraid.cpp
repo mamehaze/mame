@@ -36,6 +36,31 @@ private:
 	void bbakraid_sound_z80_mem(address_map &map);
 	void bbakraid_sound_z80_port(address_map &map);
 
+	u16 bbakraid_eeprom_r();
+	void bbakraid_eeprom_w(u8 data);
+
+	INTERRUPT_GEN_MEMBER(bbakraid_snd_interrupt);
+
+
+	void batrider_bank_cb(u8 layer, u32 &code);
+
+	void batrider_dma_mem(address_map &map);
+
+	u16 batrider_z80rom_r(offs_t offset);
+	void batrider_soundlatch_w(u8 data);
+	void batrider_soundlatch2_w(u8 data);
+	void batrider_unknown_sound_w(u16 data);
+	void batrider_clear_sndirq_w(u16 data);
+	void batrider_sndirq_w(u8 data);
+	void batrider_clear_nmi_w(u8 data);
+
+	void batrider_objectbank_w(offs_t offset, u8 data);
+
+	u8 m_sndirq_line = 0;        /* IRQ4 for batrider, IRQ2 for bbakraid */
+	u8 m_z80_busreq = 0;
+	u16 m_gfxrom_bank[8]{};       /* Batrider object bank */
+
+
 };
 
 #define XOR(a) WORD_XOR_LE(a)
@@ -57,13 +82,96 @@ static GFXDECODE_START( gfx_batrider )
 GFXDECODE_END
 
 
+u16 bbakraid_state::bbakraid_eeprom_r()
+{
+	// Bit 0x01 returns the status of BUSAK from the Z80.
+	// BUSRQ is activated via bit 0x10 on the EEPROM write port.
+	// These accesses are made when the 68K wants to read the Z80
+	// ROM code. Failure to return the correct status incurrs a Sound Error.
+
+	u8 data;
+	data  = ((m_eeprom->do_read() & 0x01) << 4);
+	data |= ((m_z80_busreq >> 4) & 0x01);   // Loop BUSRQ to BUSAK
+
+	return data;
+}
+
+
+void bbakraid_state::bbakraid_eeprom_w(u8 data)
+{
+	if (data & ~0x1f)
+		logerror("CPU #0 PC:%06X - Unknown EEPROM data being written %02X\n",m_maincpu->pc(),data);
+
+	m_eepromout->write(data, 0xff);
+
+	m_z80_busreq = data & 0x10; // see bbakraid_eeprom_r above
+}
+
+
+
+u16 bbakraid_state::batrider_z80rom_r(offs_t offset)
+{
+	return m_z80_rom[offset];
+}
+
+// these two latches are always written together, via a single move.l instruction
+void bbakraid_state::batrider_soundlatch_w(u8 data)
+{
+	m_soundlatch[0]->write(data & 0xff);
+	m_audiocpu->set_input_line(INPUT_LINE_NMI, ASSERT_LINE);
+}
+
+
+void bbakraid_state::batrider_soundlatch2_w(u8 data)
+{
+	m_soundlatch[1]->write(data & 0xff);
+	m_audiocpu->set_input_line(INPUT_LINE_NMI, ASSERT_LINE);
+}
+
+void bbakraid_state::batrider_unknown_sound_w(u16 data)
+{
+	// the 68K writes here when it wants a sound acknowledge IRQ from the Z80
+	// for bbakraid this is on every sound command; for batrider, only on certain commands
+}
+
+
+void bbakraid_state::batrider_clear_sndirq_w(u16 data)
+{
+	// not sure whether this is correct
+	// the 68K writes here during the sound IRQ handler, and nowhere else...
+	m_maincpu->set_input_line(m_sndirq_line, CLEAR_LINE);
+}
+
+
+void bbakraid_state::batrider_sndirq_w(u8 data)
+{
+	// if batrider_clear_sndirq_w() is correct, should this be ASSERT_LINE?
+	m_maincpu->set_input_line(m_sndirq_line, HOLD_LINE);
+}
+
+
+void bbakraid_state::batrider_clear_nmi_w(u8 data)
+{
+	m_audiocpu->set_input_line(INPUT_LINE_NMI, CLEAR_LINE);
+}
+
+void bbakraid_state::batrider_objectbank_w(offs_t offset, u8 data)
+{
+	data &= 0xf;
+	if (m_gfxrom_bank[offset] != data)
+	{
+		m_gfxrom_bank[offset] = data;
+		m_vdp->set_dirty();
+	}
+}
+
 void bbakraid_state::bbakraid_68k_mem(address_map &map)
 {
 	map(0x000000, 0x1fffff).rom();
 	// actually 200000 - 20ffff is probably all main RAM, and the text and palette RAM are written via DMA
 	map(0x200000, 0x207fff).ram().share(m_mainram);
 	map(0x208000, 0x20ffff).ram();
-	map(0x300000, 0x33ffff).r(FUNC(truxton2_state::batrider_z80rom_r));
+	map(0x300000, 0x33ffff).r(FUNC(bbakraid_state::batrider_z80rom_r));
 	map(0x400000, 0x40000d).lrw16(
 							NAME([this](offs_t offset, u16 mem_mask) { return m_vdp->read(offset ^ (0xc/2), mem_mask); }),
 							NAME([this](offs_t offset, u16 data, u16 mem_mask) { m_vdp->write(offset ^ (0xc/2), data, mem_mask); }));
@@ -74,15 +182,15 @@ void bbakraid_state::bbakraid_68k_mem(address_map &map)
 	map(0x500009, 0x500009).w(FUNC(truxton2_state::coin_w));
 	map(0x500011, 0x500011).r(m_soundlatch[2], FUNC(generic_latch_8_device::read));
 	map(0x500013, 0x500013).r(m_soundlatch[3], FUNC(generic_latch_8_device::read));
-	map(0x500015, 0x500015).w(FUNC(truxton2_state::batrider_soundlatch_w));
-	map(0x500017, 0x500017).w(FUNC(truxton2_state::batrider_soundlatch2_w));
-	map(0x500018, 0x500019).r(FUNC(truxton2_state::bbakraid_eeprom_r));
-	map(0x50001a, 0x50001b).w(FUNC(truxton2_state::batrider_unknown_sound_w));
-	map(0x50001c, 0x50001d).w(FUNC(truxton2_state::batrider_clear_sndirq_w));
-	map(0x50001f, 0x50001f).w(FUNC(truxton2_state::bbakraid_eeprom_w));
+	map(0x500015, 0x500015).w(FUNC(bbakraid_state::batrider_soundlatch_w));
+	map(0x500017, 0x500017).w(FUNC(bbakraid_state::batrider_soundlatch2_w));
+	map(0x500018, 0x500019).r(FUNC(bbakraid_state::bbakraid_eeprom_r));
+	map(0x50001a, 0x50001b).w(FUNC(bbakraid_state::batrider_unknown_sound_w));
+	map(0x50001c, 0x50001d).w(FUNC(bbakraid_state::batrider_clear_sndirq_w));
+	map(0x50001f, 0x50001f).w(FUNC(bbakraid_state::bbakraid_eeprom_w));
 	map(0x500080, 0x500081).w(FUNC(truxton2_state::batrider_textdata_dma_w));
 	map(0x500082, 0x500083).w(FUNC(truxton2_state::batrider_pal_text_dma_w));
-	map(0x5000c0, 0x5000cf).w(FUNC(truxton2_state::batrider_objectbank_w)).umask16(0x00ff);
+	map(0x5000c0, 0x5000cf).w(FUNC(bbakraid_state::batrider_objectbank_w)).umask16(0x00ff);
 }
 
 
@@ -99,12 +207,35 @@ void bbakraid_state::bbakraid_sound_z80_port(address_map &map)
 	map.global_mask(0xff);
 	map(0x40, 0x40).w(m_soundlatch[2], FUNC(generic_latch_8_device::write));
 	map(0x42, 0x42).w(m_soundlatch[3], FUNC(generic_latch_8_device::write));
-	map(0x44, 0x44).w(FUNC(truxton2_state::batrider_sndirq_w));
-	map(0x46, 0x46).w(FUNC(truxton2_state::batrider_clear_nmi_w));
+	map(0x44, 0x44).w(FUNC(bbakraid_state::batrider_sndirq_w));
+	map(0x46, 0x46).w(FUNC(bbakraid_state::batrider_clear_nmi_w));
 	map(0x48, 0x48).r(m_soundlatch[0], FUNC(generic_latch_8_device::read));
 	map(0x4a, 0x4a).r(m_soundlatch[1], FUNC(generic_latch_8_device::read));
 	map(0x80, 0x81).rw("ymz", FUNC(ymz280b_device::read), FUNC(ymz280b_device::write));
 }
+
+INTERRUPT_GEN_MEMBER(bbakraid_state::bbakraid_snd_interrupt)
+{
+	device.execute().set_input_line(0, HOLD_LINE);
+}
+
+
+void bbakraid_state::batrider_bank_cb(u8 layer, u32 &code)
+{
+	code = (m_gfxrom_bank[code >> 15] << 15) | (code & 0x7fff);
+}
+
+
+void bbakraid_state::batrider_dma_mem(address_map &map)
+{
+	map(0x0000, 0x1fff).ram().w(FUNC(truxton2_state::tx_videoram_w)).share(m_tx_videoram);
+	map(0x2000, 0x2fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
+	map(0x3000, 0x31ff).ram().share(m_tx_lineselect);
+	map(0x3200, 0x33ff).ram().w(FUNC(truxton2_state::tx_linescroll_w)).share(m_tx_linescroll);
+	map(0x3400, 0x7fff).ram();
+	map(0x8000, 0xffff).ram().w(FUNC(truxton2_state::batrider_tx_gfxram_w)).share(m_tx_gfxram);
+}
+
 
 void bbakraid_state::bbakraid(machine_config &config)
 {
@@ -116,14 +247,14 @@ void bbakraid_state::bbakraid(machine_config &config)
 	Z80(config, m_audiocpu, XTAL(32'000'000)/6);     /* 5.3333MHz , 32MHz Oscillator */
 	m_audiocpu->set_addrmap(AS_PROGRAM, &bbakraid_state::bbakraid_sound_z80_mem);
 	m_audiocpu->set_addrmap(AS_IO, &bbakraid_state::bbakraid_sound_z80_port);
-	m_audiocpu->set_periodic_int(FUNC(truxton2_state::bbakraid_snd_interrupt), attotime::from_hz(XTAL(32'000'000) / 6 / 12000)); // sound CPU clock (divider unverified)
+	m_audiocpu->set_periodic_int(FUNC(bbakraid_state::bbakraid_snd_interrupt), attotime::from_hz(XTAL(32'000'000) / 6 / 12000)); // sound CPU clock (divider unverified)
 
 	config.set_maximum_quantum(attotime::from_hz(600));
 
 	EEPROM_93C66_8BIT(config, m_eeprom);
 
 	ADDRESS_MAP_BANK(config, m_dma_space, 0);
-	m_dma_space->set_addrmap(0, &truxton2_state::batrider_dma_mem);
+	m_dma_space->set_addrmap(0, &bbakraid_state::batrider_dma_mem);
 	m_dma_space->set_endianness(ENDIANNESS_BIG);
 	m_dma_space->set_data_width(16);
 	m_dma_space->set_addr_width(16);
@@ -148,7 +279,7 @@ void bbakraid_state::bbakraid(machine_config &config)
 
 	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
 	m_vdp->set_palette(m_palette);
-	m_vdp->set_tile_callback(FUNC(truxton2_state::batrider_bank_cb));
+	m_vdp->set_tile_callback(FUNC(bbakraid_state::batrider_bank_cb));
 	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_1);
 
 	MCFG_VIDEO_START_OVERRIDE(truxton2_state,batrider)

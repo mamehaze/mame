@@ -31,6 +31,9 @@ private:
 
 	void mahoudai_68k_mem(address_map &map);
 	void shippumd_68k_mem(address_map &map);
+	void raizing_sound_z80_mem(address_map &map);
+
+	void shippumd_coin_w(u8 data);
 
 };
 
@@ -203,6 +206,11 @@ void sstriker_state::mahoudai_68k_mem(address_map &map)
 	map(0x503200, 0x503fff).ram();
 }
 
+void sstriker_state::shippumd_coin_w(u8 data)
+{
+	coin_w(data & ~0x10);
+	m_oki[0]->set_rom_bank(BIT(data, 4));
+}
 
 void sstriker_state::shippumd_68k_mem(address_map &map)
 {
@@ -210,7 +218,7 @@ void sstriker_state::shippumd_68k_mem(address_map &map)
 	map(0x100000, 0x10ffff).ram();
 	map(0x218000, 0x21bfff).rw(FUNC(truxton2_state::shared_ram_r), FUNC(truxton2_state::shared_ram_w)).umask16(0x00ff);
 //  map(0x21c008, 0x21c009).nopw();                    // ???
-	map(0x21c01d, 0x21c01d).w(FUNC(truxton2_state::shippumd_coin_w)); // Coin count/lock + oki bankswitch
+	map(0x21c01d, 0x21c01d).w(FUNC(sstriker_state::shippumd_coin_w)); // Coin count/lock + oki bankswitch
 	map(0x21c020, 0x21c021).portr("IN1");
 	map(0x21c024, 0x21c025).portr("IN2");
 	map(0x21c028, 0x21c029).portr("SYS");
@@ -227,6 +235,14 @@ void sstriker_state::shippumd_68k_mem(address_map &map)
 	map(0x503200, 0x503fff).ram();
 }
 
+void sstriker_state::raizing_sound_z80_mem(address_map &map)
+{
+	map(0x0000, 0xbfff).rom();
+	map(0xc000, 0xdfff).ram().share(m_shared_ram);
+	map(0xe000, 0xe001).rw("ymsnd", FUNC(ym2151_device::read), FUNC(ym2151_device::write));
+	map(0xe004, 0xe004).rw(m_oki[0], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
+	map(0xe00e, 0xe00e).w(FUNC(truxton2_state::coin_w));
+}
 
 
 void sstriker_state::mahoudai(machine_config &config)
@@ -237,7 +253,7 @@ void sstriker_state::mahoudai(machine_config &config)
 	m_maincpu->reset_cb().set(FUNC(truxton2_state::toaplan2_reset));
 
 	Z80(config, m_audiocpu, 32_MHz_XTAL/8);     // 4MHz, 32MHz Oscillator
-	m_audiocpu->set_addrmap(AS_PROGRAM, &truxton2_state::raizing_sound_z80_mem);
+	m_audiocpu->set_addrmap(AS_PROGRAM, &sstriker_state::raizing_sound_z80_mem);
 
 	config.set_maximum_quantum(attotime::from_hz(600));
 

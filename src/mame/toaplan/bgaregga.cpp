@@ -34,6 +34,8 @@ private:
 	void bgaregga_68k_mem(address_map &map);
 	void bgaregga_sound_z80_mem(address_map &map);
 
+	u8 bgaregga_E01D_r();
+
 };
 
 // similar as NMK112, but GAL-driven; NOT actual NMK112 is present
@@ -72,6 +74,14 @@ void bgaregga_state::bgaregga_68k_mem(address_map &map)
 	map(0x600001, 0x600001).w(m_soundlatch[0], FUNC(generic_latch_8_device::write));
 }
 
+u8 bgaregga_state::bgaregga_E01D_r()
+{
+	// the Z80 reads this address during its IRQ routine,
+	// and reads the soundlatch only if the lowest bit is clear.
+	return m_soundlatch[0]->pending_r() ? 0 : 1;
+}
+
+
 void bgaregga_state::bgaregga_sound_z80_mem(address_map &map)
 {
 	map(0x0000, 0x7fff).rom();
@@ -83,7 +93,7 @@ void bgaregga_state::bgaregga_sound_z80_mem(address_map &map)
 	map(0xe00a, 0xe00a).w(FUNC(truxton2_state::raizing_z80_bankswitch_w));
 	map(0xe00c, 0xe00c).w(m_soundlatch[0], FUNC(generic_latch_8_device::acknowledge_w));
 	map(0xe01c, 0xe01c).r(m_soundlatch[0], FUNC(generic_latch_8_device::read));
-	map(0xe01d, 0xe01d).r(FUNC(truxton2_state::bgaregga_E01D_r));
+	map(0xe01d, 0xe01d).r(FUNC(bgaregga_state::bgaregga_E01D_r));
 }
 
 

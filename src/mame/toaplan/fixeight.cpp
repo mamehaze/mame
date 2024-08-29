@@ -34,9 +34,34 @@ private:
 
 	void fixeight_68k_mem(address_map &map);
 	void fixeightbl_68k_mem(address_map &map);
+	void fixeight_v25_mem(address_map &map);
+	void cpu_space_fixeightbl_map(address_map &map);
+	void fixeightbl_oki_bankswitch_w(u8 data);
+	void fixeightbl_oki(address_map &map);
 
+	void sound_reset_w(u8 data);
+
+	u8 m_sound_reset_bit = 0; /* 0x20 for dogyuun/batsugun, 0x10 for vfive, 0x08 for fixeight */
+
+	DECLARE_VIDEO_START(fixeightbl);
 };
 
+
+VIDEO_START_MEMBER(fixeight_state,fixeightbl)
+{
+	VIDEO_START_CALL_MEMBER(toaplan2);
+
+	/* Create the Text tilemap for this game */
+	create_tx_tilemap();
+
+	/* This bootleg has additional layer offsets on the VDP */
+	m_vdp->set_tm_extra_offsets(0, -0x1d6 - 26, -0x1ef - 15, 0, 0);
+	m_vdp->set_tm_extra_offsets(1, -0x1d8 - 22, -0x1ef - 15, 0, 0);
+	m_vdp->set_tm_extra_offsets(2, -0x1da - 18, -0x1ef - 15, 0, 0);
+	m_vdp->set_sp_extra_offsets(8/*-0x1cc - 64*/, 8/*-0x1ef - 128*/, 0, 0);
+
+	m_vdp->init_scroll_regs();
+}
 
 
 static INPUT_PORTS_START( fixeight )
@@ -236,6 +261,11 @@ static GFXDECODE_START( gfx_textrom )
 GFXDECODE_END
 
 
+void fixeight_state::sound_reset_w(u8 data)
+{
+	m_audiocpu->set_input_line(INPUT_LINE_RESET, (data & m_sound_reset_bit) ? CLEAR_LINE : ASSERT_LINE);
+}
+
 void fixeight_state::fixeight_68k_mem(address_map &map)
 {
 	map(0x000000, 0x07ffff).rom();
@@ -252,7 +282,7 @@ void fixeight_state::fixeight_68k_mem(address_map &map)
 	map(0x502000, 0x5021ff).ram().share(m_tx_lineselect);
 	map(0x503000, 0x5031ff).ram().w(FUNC(truxton2_state::tx_linescroll_w)).share(m_tx_linescroll);
 	map(0x600000, 0x60ffff).ram().w(FUNC(truxton2_state::tx_gfxram_w)).share(m_tx_gfxram);
-	map(0x700000, 0x700001).w(FUNC(truxton2_state::sound_reset_w)).umask16(0x00ff).cswidth(16);
+	map(0x700000, 0x700001).w(FUNC(fixeight_state::sound_reset_w)).umask16(0x00ff).cswidth(16);
 	map(0x800000, 0x800001).r(FUNC(truxton2_state::video_count_r));
 }
 
@@ -266,7 +296,7 @@ void fixeight_state::fixeightbl_68k_mem(address_map &map)
 	map(0x200008, 0x200009).portr("IN3");
 	map(0x20000c, 0x20000d).portr("DSWB");
 	map(0x200010, 0x200011).portr("SYS");
-	map(0x200015, 0x200015).w(FUNC(truxton2_state::fixeightbl_oki_bankswitch_w));  // Sound banking. Code at $4084c, $5070
+	map(0x200015, 0x200015).w(FUNC(fixeight_state::fixeightbl_oki_bankswitch_w));  // Sound banking. Code at $4084c, $5070
 	map(0x200019, 0x200019).rw(m_oki[0], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
 	map(0x20001c, 0x20001d).portr("DSWA");
 	map(0x300000, 0x30000d).rw(m_vdp, FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
@@ -274,6 +304,16 @@ void fixeight_state::fixeightbl_68k_mem(address_map &map)
 	map(0x500000, 0x501fff).ram().w(FUNC(truxton2_state::tx_videoram_w)).share(m_tx_videoram);
 	map(0x700000, 0x700001).r(FUNC(truxton2_state::video_count_r));
 	map(0x800000, 0x87ffff).rom().region("maincpu", 0x80000);
+}
+
+void fixeight_state::fixeight_v25_mem(address_map &map)
+{
+	map(0x00000, 0x00000).portr("IN1");
+	map(0x00002, 0x00002).portr("IN2");
+	map(0x00004, 0x00004).portr("IN3");
+	map(0x0000a, 0x0000b).rw("ymsnd", FUNC(ym2151_device::read), FUNC(ym2151_device::write));
+	map(0x0000c, 0x0000c).rw(m_oki[0], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
+	map(0x80000, 0x87fff).mirror(0x78000).ram().share(m_shared_ram);
 }
 
 void fixeight_state::fixeight(machine_config &config)
@@ -284,7 +324,7 @@ void fixeight_state::fixeight(machine_config &config)
 	m_maincpu->reset_cb().set(FUNC(truxton2_state::toaplan2_reset));
 
 	v25_device &audiocpu(V25(config, m_audiocpu, 16_MHz_XTAL));           // NEC V25 type Toaplan marked CPU ???
-	audiocpu.set_addrmap(AS_PROGRAM, &truxton2_state::fixeight_v25_mem);
+	audiocpu.set_addrmap(AS_PROGRAM, &fixeight_state::fixeight_v25_mem);
 	audiocpu.set_decryption_table(ts001turbo_decryption_table);
 	audiocpu.p0_in_cb().set_ioport("EEPROM");
 	audiocpu.p0_out_cb().set_ioport("EEPROM");
@@ -320,13 +360,31 @@ void fixeight_state::fixeight(machine_config &config)
 	m_oki[0]->add_route(ALL_OUTPUTS, "mono", 0.5);
 }
 
+void fixeight_state::cpu_space_fixeightbl_map(address_map &map)
+{
+	map(0xfffff0, 0xffffff).m(m_maincpu, FUNC(m68000_base_device::autovectors_map));
+	map(0xfffff5, 0xfffff5).lr8(NAME([this] () { m_maincpu->set_input_line(M68K_IRQ_2, CLEAR_LINE); return m68000_device::autovector(2); }));
+}
+
+void fixeight_state::fixeightbl_oki_bankswitch_w(u8 data)
+{
+	data &= 7;
+	if (data <= 4) m_okibank->set_entry(data);
+}
+
+void fixeight_state::fixeightbl_oki(address_map &map)
+{
+	map(0x00000, 0x2ffff).rom();
+	map(0x30000, 0x3ffff).bankr(m_okibank);
+}
+
 
 void fixeight_state::fixeightbl(machine_config &config)
 {
 	/* basic machine hardware */
 	M68000(config, m_maincpu, XTAL(10'000'000));         /* 10MHz Oscillator */
 	m_maincpu->set_addrmap(AS_PROGRAM, &fixeight_state::fixeightbl_68k_mem);
-	m_maincpu->set_addrmap(m68000_base_device::AS_CPU_SPACE, &truxton2_state::cpu_space_fixeightbl_map);
+	m_maincpu->set_addrmap(m68000_base_device::AS_CPU_SPACE, &fixeight_state::cpu_space_fixeightbl_map);
 	m_maincpu->reset_cb().set(FUNC(truxton2_state::toaplan2_reset));
 
 	/* video hardware */
@@ -350,14 +408,14 @@ void fixeight_state::fixeightbl(machine_config &config)
 	m_vdp->set_palette(m_palette);
 	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_2, ASSERT_LINE);
 
-	MCFG_VIDEO_START_OVERRIDE(truxton2_state,fixeightbl)
+	MCFG_VIDEO_START_OVERRIDE(fixeight_state,fixeightbl)
 
 	/* sound hardware */
 	SPEAKER(config, "mono").front_center();
 
 	OKIM6295(config, m_oki[0], 14_MHz_XTAL/16, okim6295_device::PIN7_LOW);
 	m_oki[0]->add_route(ALL_OUTPUTS, "mono", 1.0);
-	m_oki[0]->set_addrmap(0, &truxton2_state::fixeightbl_oki);
+	m_oki[0]->set_addrmap(0, &fixeight_state::fixeightbl_oki);
 }
 
 
