@@ -36,7 +36,29 @@ private:
 
 	u8 bgaregga_E01D_r();
 
+	DECLARE_VIDEO_START(bgaregga);
+	DECLARE_VIDEO_START(bgareggabl);
+	DECLARE_MACHINE_RESET(bgaregga);
+
 };
+
+
+VIDEO_START_MEMBER(bgaregga_state,bgaregga)
+{
+	VIDEO_START_CALL_MEMBER(toaplan2);
+
+	/* Create the Text tilemap for this game */
+	create_tx_tilemap(0x1d4, 0x16b);
+}
+
+VIDEO_START_MEMBER(bgaregga_state,bgareggabl)
+{
+	VIDEO_START_CALL_MEMBER(toaplan2);
+
+	/* Create the Text tilemap for this game */
+	create_tx_tilemap(4, 4);
+}
+
 
 // similar as NMK112, but GAL-driven; NOT actual NMK112 is present
 template<unsigned Chip>
@@ -102,6 +124,20 @@ static GFXDECODE_START( gfx_textrom )
 GFXDECODE_END
 
 
+
+MACHINE_RESET_MEMBER(bgaregga_state, bgaregga)
+{
+	for (int chip = 0; chip < 2; chip++)
+	{
+		for (int i = 0; i < 8; i++)
+		{
+			if (m_raizing_okibank[chip][i] != nullptr)
+				m_raizing_okibank[chip][i]->set_entry(0);
+		}
+	}
+}
+
+
 void bgaregga_state::bgaregga(machine_config &config)
 {
 	/* basic machine hardware */
@@ -114,7 +150,7 @@ void bgaregga_state::bgaregga(machine_config &config)
 
 	config.set_maximum_quantum(attotime::from_hz(6000));
 
-	MCFG_MACHINE_RESET_OVERRIDE(truxton2_state,bgaregga)
+	MCFG_MACHINE_RESET_OVERRIDE(bgaregga_state,bgaregga)
 
 	/* video hardware */
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
@@ -137,7 +173,7 @@ void bgaregga_state::bgaregga(machine_config &config)
 	m_vdp->set_palette(m_palette);
 	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
 
-	MCFG_VIDEO_START_OVERRIDE(truxton2_state,bgaregga)
+	MCFG_VIDEO_START_OVERRIDE(bgaregga_state,bgaregga)
 
 	/* sound hardware */
 	SPEAKER(config, "mono").front_center();
@@ -156,7 +192,7 @@ void bgaregga_state::bgaregga(machine_config &config)
 void bgaregga_state::bgareggabl(machine_config &config)
 {
 	bgaregga(config);
-	MCFG_VIDEO_START_OVERRIDE(truxton2_state,bgareggabl)
+	MCFG_VIDEO_START_OVERRIDE(bgaregga_state,bgareggabl)
 
 	m_screen->set_screen_update(FUNC(truxton2_state::screen_update_bootleg));
 }

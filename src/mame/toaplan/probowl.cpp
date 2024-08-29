@@ -32,8 +32,28 @@ private:
 
 	void batrider_dma_mem(address_map &map);
 
+	void batrider_tx_gfxram_w(offs_t offset, u16 data, u16 mem_mask = ~0);
+	void batrider_textdata_dma_w(u16 data);
+	void batrider_pal_text_dma_w(u16 data);
+
+	DECLARE_VIDEO_START(batrider);
+
 };
 
+VIDEO_START_MEMBER(probowl_state,batrider)
+{
+	VIDEO_START_CALL_MEMBER(toaplan2);
+
+	m_vdp->disable_sprite_buffer(); // disable buffering on this game
+
+	/* Create the Text tilemap for this game */
+	m_gfxdecode->gfx(0)->set_source(reinterpret_cast<u8 *>(m_tx_gfxram.target()));
+
+	create_tx_tilemap(0x1d4, 0x16b);
+
+	/* Has special banking */
+	//save_item(NAME(m_gfxrom_bank));
+}
 
 
 static INPUT_PORTS_START( nprobowl )
@@ -123,6 +143,45 @@ static GFXDECODE_START( gfx_batrider )
 GFXDECODE_END
 
 
+void probowl_state::batrider_tx_gfxram_w(offs_t offset, u16 data, u16 mem_mask)
+{
+	/*** Dynamic GFX decoding for Batrider / Battle Bakraid ***/
+
+	const u16 oldword = m_tx_gfxram[offset];
+
+	if (oldword != data)
+	{
+		COMBINE_DATA(&m_tx_gfxram[offset]);
+		m_gfxdecode->gfx(0)->mark_dirty(offset/16);
+	}
+}
+
+void probowl_state::batrider_textdata_dma_w(u16 data)
+{
+	/*** Dynamic Text GFX decoding for Batrider ***/
+	/*** Only done once during start-up ***/
+	m_dma_space->set_bank(1);
+	for (int i = 0; i < (0x8000 >> 1); i++)
+	{
+		m_dma_space->write16(i, m_mainram[i]);
+	}
+}
+
+void probowl_state::batrider_pal_text_dma_w(u16 data)
+{
+	// FIXME: In batrider and bbakraid, the text layer and palette RAM
+	// are probably DMA'd from main RAM by writing here at every vblank,
+	// rather than being directly accessible to the 68K like the other games
+	m_dma_space->set_bank(0);
+	for (int i = 0; i < (0x3400 >> 1); i++)
+	{
+		m_dma_space->write16(i, m_mainram[i]);
+	}
+}
+
+
+
+
 void probowl_state::nprobowl_68k_mem(address_map &map) // TODO: verify everything, implement oki banking
 {
 	map(0x000000, 0x0fffff).rom();
@@ -140,8 +199,8 @@ void probowl_state::nprobowl_68k_mem(address_map &map) // TODO: verify everythin
 	//map(0x500040, 0x500041).w();
 	//map(0x500042, 0x500043).w();
 	map(0x500060, 0x500061).lr16(NAME([this] () -> u16 { return machine().rand(); })); // TODO: Hack, probably checks something in the mechanical part, verify
-	map(0x500080, 0x500081).w(FUNC(truxton2_state::batrider_textdata_dma_w));
-	map(0x500082, 0x500083).w(FUNC(truxton2_state::batrider_pal_text_dma_w));
+	map(0x500080, 0x500081).w(FUNC(probowl_state::batrider_textdata_dma_w));
+	map(0x500082, 0x500083).w(FUNC(probowl_state::batrider_pal_text_dma_w));
 }
 
 
@@ -152,7 +211,7 @@ void probowl_state::batrider_dma_mem(address_map &map)
 	map(0x3000, 0x31ff).ram().share(m_tx_lineselect);
 	map(0x3200, 0x33ff).ram().w(FUNC(truxton2_state::tx_linescroll_w)).share(m_tx_linescroll);
 	map(0x3400, 0x7fff).ram();
-	map(0x8000, 0xffff).ram().w(FUNC(truxton2_state::batrider_tx_gfxram_w)).share(m_tx_gfxram);
+	map(0x8000, 0xffff).ram().w(FUNC(probowl_state::batrider_tx_gfxram_w)).share(m_tx_gfxram);
 }
 
 
@@ -191,7 +250,7 @@ void probowl_state::nprobowl(machine_config &config)
 	m_vdp->set_palette(m_palette);
 	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_2);
 
-	MCFG_VIDEO_START_OVERRIDE(truxton2_state, batrider)
+	MCFG_VIDEO_START_OVERRIDE(probowl_state, batrider)
 
 	// sound hardware
 	SPEAKER(config, "mono").front_center();

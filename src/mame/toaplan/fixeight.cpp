@@ -42,9 +42,23 @@ private:
 	void sound_reset_w(u8 data);
 
 	u8 m_sound_reset_bit = 0; /* 0x20 for dogyuun/batsugun, 0x10 for vfive, 0x08 for fixeight */
+	void tx_gfxram_w(offs_t offset, u16 data, u16 mem_mask = ~0);
+
+	DECLARE_VIDEO_START(truxton2);
 
 	DECLARE_VIDEO_START(fixeightbl);
 };
+
+VIDEO_START_MEMBER(fixeight_state,truxton2)
+{
+	VIDEO_START_CALL_MEMBER(toaplan2);
+
+	/* Create the Text tilemap for this game */
+	m_gfxdecode->gfx(0)->set_source(reinterpret_cast<u8 *>(m_tx_gfxram.target()));
+
+	create_tx_tilemap(0x1d5, 0x16a);
+}
+
 
 
 VIDEO_START_MEMBER(fixeight_state,fixeightbl)
@@ -266,6 +280,21 @@ void fixeight_state::sound_reset_w(u8 data)
 	m_audiocpu->set_input_line(INPUT_LINE_RESET, (data & m_sound_reset_bit) ? CLEAR_LINE : ASSERT_LINE);
 }
 
+void fixeight_state::tx_gfxram_w(offs_t offset, u16 data, u16 mem_mask)
+{
+	/*** Dynamic GFX decoding for Truxton 2 / FixEight ***/
+
+	const u16 oldword = m_tx_gfxram[offset];
+
+	if (oldword != data)
+	{
+		COMBINE_DATA(&m_tx_gfxram[offset]);
+		m_gfxdecode->gfx(0)->mark_dirty(offset/32);
+	}
+}
+
+
+
 void fixeight_state::fixeight_68k_mem(address_map &map)
 {
 	map(0x000000, 0x07ffff).rom();
@@ -281,7 +310,7 @@ void fixeight_state::fixeight_68k_mem(address_map &map)
 	map(0x500000, 0x501fff).ram().w(FUNC(truxton2_state::tx_videoram_w)).share(m_tx_videoram);
 	map(0x502000, 0x5021ff).ram().share(m_tx_lineselect);
 	map(0x503000, 0x5031ff).ram().w(FUNC(truxton2_state::tx_linescroll_w)).share(m_tx_linescroll);
-	map(0x600000, 0x60ffff).ram().w(FUNC(truxton2_state::tx_gfxram_w)).share(m_tx_gfxram);
+	map(0x600000, 0x60ffff).ram().w(FUNC(fixeight_state::tx_gfxram_w)).share(m_tx_gfxram);
 	map(0x700000, 0x700001).w(FUNC(fixeight_state::sound_reset_w)).umask16(0x00ff).cswidth(16);
 	map(0x800000, 0x800001).r(FUNC(truxton2_state::video_count_r));
 }
@@ -349,7 +378,7 @@ void fixeight_state::fixeight(machine_config &config)
 	m_vdp->set_palette(m_palette);
 	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
 
-	MCFG_VIDEO_START_OVERRIDE(truxton2_state,truxton2)
+	MCFG_VIDEO_START_OVERRIDE(fixeight_state,truxton2)
 
 	/* sound hardware */
 	SPEAKER(config, "mono").front_center();

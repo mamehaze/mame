@@ -121,47 +121,8 @@ void truxton2_state::device_post_load()
 }
 
 
-VIDEO_START_MEMBER(truxton2_state,truxton2)
-{
-	VIDEO_START_CALL_MEMBER(toaplan2);
-
-	/* Create the Text tilemap for this game */
-	m_gfxdecode->gfx(0)->set_source(reinterpret_cast<u8 *>(m_tx_gfxram.target()));
-
-	create_tx_tilemap(0x1d5, 0x16a);
-}
 
 
-VIDEO_START_MEMBER(truxton2_state,bgaregga)
-{
-	VIDEO_START_CALL_MEMBER(toaplan2);
-
-	/* Create the Text tilemap for this game */
-	create_tx_tilemap(0x1d4, 0x16b);
-}
-
-VIDEO_START_MEMBER(truxton2_state,bgareggabl)
-{
-	VIDEO_START_CALL_MEMBER(toaplan2);
-
-	/* Create the Text tilemap for this game */
-	create_tx_tilemap(4, 4);
-}
-
-VIDEO_START_MEMBER(truxton2_state,batrider)
-{
-	VIDEO_START_CALL_MEMBER(toaplan2);
-
-	m_vdp->disable_sprite_buffer(); // disable buffering on this game
-
-	/* Create the Text tilemap for this game */
-	m_gfxdecode->gfx(0)->set_source(reinterpret_cast<u8 *>(m_tx_gfxram.target()));
-
-	create_tx_tilemap(0x1d4, 0x16b);
-
-	/* Has special banking */
-	save_item(NAME(m_gfxrom_bank));
-}
 
 void truxton2_state::tx_videoram_w(offs_t offset, u16 data, u16 mem_mask)
 {
@@ -177,56 +138,6 @@ void truxton2_state::tx_linescroll_w(offs_t offset, u16 data, u16 mem_mask)
 
 	m_tx_tilemap->set_scrollx(offset, m_tx_linescroll[offset]);
 }
-
-void truxton2_state::tx_gfxram_w(offs_t offset, u16 data, u16 mem_mask)
-{
-	/*** Dynamic GFX decoding for Truxton 2 / FixEight ***/
-
-	const u16 oldword = m_tx_gfxram[offset];
-
-	if (oldword != data)
-	{
-		COMBINE_DATA(&m_tx_gfxram[offset]);
-		m_gfxdecode->gfx(0)->mark_dirty(offset/32);
-	}
-}
-
-void truxton2_state::batrider_tx_gfxram_w(offs_t offset, u16 data, u16 mem_mask)
-{
-	/*** Dynamic GFX decoding for Batrider / Battle Bakraid ***/
-
-	const u16 oldword = m_tx_gfxram[offset];
-
-	if (oldword != data)
-	{
-		COMBINE_DATA(&m_tx_gfxram[offset]);
-		m_gfxdecode->gfx(0)->mark_dirty(offset/16);
-	}
-}
-
-void truxton2_state::batrider_textdata_dma_w(u16 data)
-{
-	/*** Dynamic Text GFX decoding for Batrider ***/
-	/*** Only done once during start-up ***/
-	m_dma_space->set_bank(1);
-	for (int i = 0; i < (0x8000 >> 1); i++)
-	{
-		m_dma_space->write16(i, m_mainram[i]);
-	}
-}
-
-void truxton2_state::batrider_pal_text_dma_w(u16 data)
-{
-	// FIXME: In batrider and bbakraid, the text layer and palette RAM
-	// are probably DMA'd from main RAM by writing here at every vblank,
-	// rather than being directly accessible to the 68K like the other games
-	m_dma_space->set_bank(0);
-	for (int i = 0; i < (0x3400 >> 1); i++)
-	{
-		m_dma_space->write16(i, m_mainram[i]);
-	}
-}
-
 
 
 
@@ -264,22 +175,7 @@ u32 truxton2_state::screen_update_truxton2(screen_device &screen, bitmap_ind16 &
 
 ////////////////////////////////
 
-void truxton2_state::machine_start()
-{
-	save_item(NAME(m_z80_busreq));
-}
 
-MACHINE_RESET_MEMBER(truxton2_state, bgaregga)
-{
-	for (int chip = 0; chip < 2; chip++)
-	{
-		for (int i = 0; i < 8; i++)
-		{
-			if (m_raizing_okibank[chip][i] != nullptr)
-				m_raizing_okibank[chip][i]->set_entry(0);
-		}
-	}
-}
 
 
 

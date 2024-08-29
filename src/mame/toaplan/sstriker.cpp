@@ -35,7 +35,18 @@ private:
 
 	void shippumd_coin_w(u8 data);
 
+	DECLARE_VIDEO_START(bgaregga);
+
 };
+
+VIDEO_START_MEMBER(sstriker_state,bgaregga)
+{
+	VIDEO_START_CALL_MEMBER(toaplan2);
+
+	/* Create the Text tilemap for this game */
+	create_tx_tilemap(0x1d4, 0x16b);
+}
+
 
 static INPUT_PORTS_START( toaplan2_2b )
 	PORT_START("IN1")
@@ -278,7 +289,7 @@ void sstriker_state::mahoudai(machine_config &config)
 	m_vdp->set_palette(m_palette);
 	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
 
-	MCFG_VIDEO_START_OVERRIDE(truxton2_state,bgaregga)
+	MCFG_VIDEO_START_OVERRIDE(sstriker_state,bgaregga)
 
 	/* sound hardware */
 	SPEAKER(config, "mono").front_center();

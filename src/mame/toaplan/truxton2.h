@@ -52,7 +52,6 @@ public:
 
 	void init_bgaregga();
 
-	virtual void machine_start() override;
 	virtual void device_post_load() override;
 
 	required_device<m68000_base_device> m_maincpu;
@@ -91,20 +90,11 @@ public:
 	void raizing_oki_bankswitch_w(offs_t offset, u8 data);
 	void tx_videoram_w(offs_t offset, u16 data, u16 mem_mask = ~0);
 	void tx_linescroll_w(offs_t offset, u16 data, u16 mem_mask = ~0);
-	void tx_gfxram_w(offs_t offset, u16 data, u16 mem_mask = ~0);
-	void batrider_tx_gfxram_w(offs_t offset, u16 data, u16 mem_mask = ~0);
-	void batrider_textdata_dma_w(u16 data);
-	void batrider_pal_text_dma_w(u16 data);
 
 	void install_raizing_okibank(int chip);
 
 	TILE_GET_INFO_MEMBER(get_text_tile_info);
-	DECLARE_MACHINE_RESET(bgaregga);
-	DECLARE_VIDEO_START(truxton2);
 
-	DECLARE_VIDEO_START(bgaregga);
-	DECLARE_VIDEO_START(bgareggabl);
-	DECLARE_VIDEO_START(batrider);
 
 	u32 screen_update_truxton2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
 	u32 screen_update_bootleg(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);

@@ -30,9 +30,21 @@ protected:
 private:
 
 	void truxton2_68k_mem(address_map &map);
+	void tx_gfxram_w(offs_t offset, u16 data, u16 mem_mask = ~0);
+
+	DECLARE_VIDEO_START(truxton2);
 
 };
 
+VIDEO_START_MEMBER(trux2_state,truxton2)
+{
+	VIDEO_START_CALL_MEMBER(toaplan2);
+
+	/* Create the Text tilemap for this game */
+	m_gfxdecode->gfx(0)->set_source(reinterpret_cast<u8 *>(m_tx_gfxram.target()));
+
+	create_tx_tilemap(0x1d5, 0x16a);
+}
 
 
 static INPUT_PORTS_START( toaplan2_2b )
@@ -150,6 +162,20 @@ static GFXDECODE_START( gfx_truxton2 )
 	GFXDECODE_ENTRY( nullptr, 0, truxton2_tx_tilelayout, 64*16, 64 )
 GFXDECODE_END
 
+void trux2_state::tx_gfxram_w(offs_t offset, u16 data, u16 mem_mask)
+{
+	/*** Dynamic GFX decoding for Truxton 2 / FixEight ***/
+
+	const u16 oldword = m_tx_gfxram[offset];
+
+	if (oldword != data)
+	{
+		COMBINE_DATA(&m_tx_gfxram[offset]);
+		m_gfxdecode->gfx(0)->mark_dirty(offset/32);
+	}
+}
+
+
 
 void trux2_state::truxton2_68k_mem(address_map &map)
 {
@@ -161,7 +187,7 @@ void trux2_state::truxton2_68k_mem(address_map &map)
 	map(0x402000, 0x402fff).ram().share(m_tx_lineselect);
 	map(0x403000, 0x4031ff).ram().w(FUNC(truxton2_state::tx_linescroll_w)).share(m_tx_linescroll);
 	map(0x403200, 0x403fff).ram();
-	map(0x500000, 0x50ffff).ram().w(FUNC(truxton2_state::tx_gfxram_w)).share(m_tx_gfxram);
+	map(0x500000, 0x50ffff).ram().w(FUNC(trux2_state::tx_gfxram_w)).share(m_tx_gfxram);
 	map(0x600000, 0x600001).r(FUNC(truxton2_state::video_count_r));
 	map(0x700000, 0x700001).portr("DSWA");
 	map(0x700002, 0x700003).portr("DSWB");
@@ -200,7 +226,7 @@ void trux2_state::truxton2(machine_config &config)
 	m_vdp->set_palette(m_palette);
 	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_2);
 
-	MCFG_VIDEO_START_OVERRIDE(truxton2_state,truxton2)
+	MCFG_VIDEO_START_OVERRIDE(trux2_state,truxton2)
 
 	/* sound hardware */
 #ifdef TRUXTON2_STEREO  // music data is stereo...
