@@ -74,7 +74,52 @@ private:
 	u32 screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
 	void screen_vblank(int state);
 	u32 screen_update_truxton2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
+	void create_tx_tilemap(int dx = 0, int dx_flipped = 0);
+	u16 video_count_r();
+	bitmap_ind8 m_custom_priority_bitmap;
+
 };
+
+
+u16 bbakraid_state::video_count_r()
+{
+	/* +---------+---------+--------+---------------------------+ */
+	/* | /H-Sync | /V-Sync | /Blank |       Scanline Count      | */
+	/* | Bit 15  | Bit 14  | Bit 8  |  Bit 7-0 (count from #EF) | */
+	/* +---------+---------+--------+---------------------------+ */
+	/*************** Control Signals are active low ***************/
+
+	int vpos = m_screen->vpos();
+
+	u16 video_status = 0xff00;    // Set signals inactive
+
+	vpos = (vpos + 15) % 262;
+
+	if (!m_vdp->hsync_r())
+		video_status &= ~0x8000;
+	if (!m_vdp->vsync_r())
+		video_status &= ~0x4000;
+	if (!m_vdp->fblank_r())
+		video_status &= ~0x0100;
+	if (vpos < 256)
+		video_status |= (vpos & 0xff);
+	else
+		video_status |= 0xff;
+
+//  logerror("VC: vpos=%04x hpos=%04x VBL=%04x\n",vpos,hpos,m_screen->vblank());
+
+	return video_status;
+}
+
+void bbakraid_state::create_tx_tilemap(int dx, int dx_flipped)
+{
+	m_tx_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(truxton2_state::get_text_tile_info)), TILEMAP_SCAN_ROWS, 8, 8, 64, 32);
+
+	m_tx_tilemap->set_scroll_rows(8*32); /* line scrolling */
+	m_tx_tilemap->set_scroll_cols(1);
+	m_tx_tilemap->set_scrolldx(dx, dx_flipped);
+	m_tx_tilemap->set_transparent_pen(0);
+}
 
 
 VIDEO_START_MEMBER(bbakraid_state,toaplan2)
@@ -292,7 +337,7 @@ void bbakraid_state::bbakraid_68k_mem(address_map &map)
 	map(0x500000, 0x500001).portr("IN");
 	map(0x500002, 0x500003).portr("SYS-DSW");
 	map(0x500004, 0x500005).portr("DSW");
-	map(0x500006, 0x500007).r(FUNC(truxton2_state::video_count_r));
+	map(0x500006, 0x500007).r(FUNC(bbakraid_state::video_count_r));
 	map(0x500009, 0x500009).w(FUNC(truxton2_state::coin_w));
 	map(0x500011, 0x500011).r(m_soundlatch[2], FUNC(generic_latch_8_device::read));
 	map(0x500013, 0x500013).r(m_soundlatch[3], FUNC(generic_latch_8_device::read));

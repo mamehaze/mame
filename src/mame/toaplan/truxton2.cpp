@@ -11,36 +11,6 @@ void truxton2_state::toaplan2_reset(int state)
 		m_audiocpu->pulse_input_line(INPUT_LINE_RESET, attotime::zero);
 }
 
-u16 truxton2_state::video_count_r()
-{
-	/* +---------+---------+--------+---------------------------+ */
-	/* | /H-Sync | /V-Sync | /Blank |       Scanline Count      | */
-	/* | Bit 15  | Bit 14  | Bit 8  |  Bit 7-0 (count from #EF) | */
-	/* +---------+---------+--------+---------------------------+ */
-	/*************** Control Signals are active low ***************/
-
-	int vpos = m_screen->vpos();
-
-	u16 video_status = 0xff00;    // Set signals inactive
-
-	vpos = (vpos + 15) % 262;
-
-	if (!m_vdp->hsync_r())
-		video_status &= ~0x8000;
-	if (!m_vdp->vsync_r())
-		video_status &= ~0x4000;
-	if (!m_vdp->fblank_r())
-		video_status &= ~0x0100;
-	if (vpos < 256)
-		video_status |= (vpos & 0xff);
-	else
-		video_status |= 0xff;
-
-//  logerror("VC: vpos=%04x hpos=%04x VBL=%04x\n",vpos,hpos,m_screen->vblank());
-
-	return video_status;
-}
-
 
 
 void truxton2_state::coin_w(u8 data)
@@ -78,15 +48,6 @@ TILE_GET_INFO_MEMBER(truxton2_state::get_text_tile_info)
 }
 
 
-void truxton2_state::create_tx_tilemap(int dx, int dx_flipped)
-{
-	m_tx_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(truxton2_state::get_text_tile_info)), TILEMAP_SCAN_ROWS, 8, 8, 64, 32);
-
-	m_tx_tilemap->set_scroll_rows(8*32); /* line scrolling */
-	m_tx_tilemap->set_scroll_cols(1);
-	m_tx_tilemap->set_scrolldx(dx, dx_flipped);
-	m_tx_tilemap->set_transparent_pen(0);
-}
 
 void truxton2_state::device_post_load()
 {

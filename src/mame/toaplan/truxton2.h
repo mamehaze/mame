@@ -95,15 +95,12 @@ public:
 
 
 	
-	void create_tx_tilemap(int dx = 0, int dx_flipped = 0);
 
 
 	void coin_w(u8 data);
 
 
-	u16 video_count_r();
 	void toaplan2_reset(int state);
 
 
-	bitmap_ind8 m_custom_priority_bitmap;
 };

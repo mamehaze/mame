@@ -45,8 +45,22 @@ private:
 	u32 screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
 	void screen_vblank(int state);
 	u32 screen_update_truxton2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
+	void create_tx_tilemap(int dx = 0, int dx_flipped = 0);
+
+	bitmap_ind8 m_custom_priority_bitmap;
 
 };
+
+void probowl_state::create_tx_tilemap(int dx, int dx_flipped)
+{
+	m_tx_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(truxton2_state::get_text_tile_info)), TILEMAP_SCAN_ROWS, 8, 8, 64, 32);
+
+	m_tx_tilemap->set_scroll_rows(8*32); /* line scrolling */
+	m_tx_tilemap->set_scroll_cols(1);
+	m_tx_tilemap->set_scrolldx(dx, dx_flipped);
+	m_tx_tilemap->set_transparent_pen(0);
+}
+
 
 
 VIDEO_START_MEMBER(probowl_state,toaplan2)

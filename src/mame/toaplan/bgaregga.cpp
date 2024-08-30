@@ -53,8 +53,54 @@ private:
 	void screen_vblank(int state);
 	u32 screen_update_truxton2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
 	u32 screen_update_bootleg(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
+	void create_tx_tilemap(int dx = 0, int dx_flipped = 0);
+	u16 video_count_r();
+	bitmap_ind8 m_custom_priority_bitmap;
 
 };
+
+
+u16 bgaregga_state::video_count_r()
+{
+	/* +---------+---------+--------+---------------------------+ */
+	/* | /H-Sync | /V-Sync | /Blank |       Scanline Count      | */
+	/* | Bit 15  | Bit 14  | Bit 8  |  Bit 7-0 (count from #EF) | */
+	/* +---------+---------+--------+---------------------------+ */
+	/*************** Control Signals are active low ***************/
+
+	int vpos = m_screen->vpos();
+
+	u16 video_status = 0xff00;    // Set signals inactive
+
+	vpos = (vpos + 15) % 262;
+
+	if (!m_vdp->hsync_r())
+		video_status &= ~0x8000;
+	if (!m_vdp->vsync_r())
+		video_status &= ~0x4000;
+	if (!m_vdp->fblank_r())
+		video_status &= ~0x0100;
+	if (vpos < 256)
+		video_status |= (vpos & 0xff);
+	else
+		video_status |= 0xff;
+
+//  logerror("VC: vpos=%04x hpos=%04x VBL=%04x\n",vpos,hpos,m_screen->vblank());
+
+	return video_status;
+}
+
+
+void bgaregga_state::create_tx_tilemap(int dx, int dx_flipped)
+{
+	m_tx_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(truxton2_state::get_text_tile_info)), TILEMAP_SCAN_ROWS, 8, 8, 64, 32);
+
+	m_tx_tilemap->set_scroll_rows(8*32); /* line scrolling */
+	m_tx_tilemap->set_scroll_cols(1);
+	m_tx_tilemap->set_scrolldx(dx, dx_flipped);
+	m_tx_tilemap->set_transparent_pen(0);
+}
+
 
 
 VIDEO_START_MEMBER(bgaregga_state,toaplan2)
@@ -165,7 +211,7 @@ void bgaregga_state::bgaregga_68k_mem(address_map &map)
 	map(0x21c02c, 0x21c02d).portr("DSWA");
 	map(0x21c030, 0x21c031).portr("DSWB");
 	map(0x21c034, 0x21c035).portr("JMPR");
-	map(0x21c03c, 0x21c03d).r(FUNC(truxton2_state::video_count_r));
+	map(0x21c03c, 0x21c03d).r(FUNC(bgaregga_state::video_count_r));
 	map(0x300000, 0x30000d).rw(m_vdp, FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
 	map(0x400000, 0x400fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
 	map(0x500000, 0x501fff).ram().w(FUNC(bgaregga_state::tx_videoram_w)).share(m_tx_videoram);
