@@ -50,7 +50,7 @@ public:
 	{ }
 
 
-	void init_bgaregga();
+	
 
 	virtual void device_post_load() override;
 
@@ -88,31 +88,18 @@ public:
 
 	void raizing_z80_bankswitch_w(u8 data);
 	void raizing_oki_bankswitch_w(offs_t offset, u8 data);
-	void tx_videoram_w(offs_t offset, u16 data, u16 mem_mask = ~0);
-	void tx_linescroll_w(offs_t offset, u16 data, u16 mem_mask = ~0);
 
 	void install_raizing_okibank(int chip);
 
 	TILE_GET_INFO_MEMBER(get_text_tile_info);
 
 
-	u32 screen_update_truxton2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
-	u32 screen_update_bootleg(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
+	
 	void create_tx_tilemap(int dx = 0, int dx_flipped = 0);
 
 
-
-
-
-
-
-	u8 shared_ram_r(offs_t offset) { return m_shared_ram[offset]; }
-	void shared_ram_w(offs_t offset, u8 data) { m_shared_ram[offset] = data; }
 	void coin_w(u8 data);
 
-	DECLARE_VIDEO_START(toaplan2);
-	u32 screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
-	void screen_vblank(int state);
 
 	u16 video_count_r();
 	void toaplan2_reset(int state);

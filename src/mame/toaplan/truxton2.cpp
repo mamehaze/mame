@@ -42,32 +42,6 @@ u16 truxton2_state::video_count_r()
 }
 
 
-VIDEO_START_MEMBER(truxton2_state,toaplan2)
-{
-	/* our current VDP implementation needs this bitmap to work with */
-	m_screen->register_screen_bitmap(m_custom_priority_bitmap);
-	m_vdp->custom_priority_bitmap = &m_custom_priority_bitmap;
-}
-
-
-u32 truxton2_state::screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
-{
-	bitmap.fill(0, cliprect);
-	m_custom_priority_bitmap.fill(0, cliprect);
-	m_vdp->render_vdp(bitmap, cliprect);
-
-	return 0;
-}
-
-void truxton2_state::screen_vblank(int state)
-{
-	// rising edge
-	if (state)
-	{
-		m_vdp->screen_eof();
-	}
-}
-
 
 void truxton2_state::coin_w(u8 data)
 {
@@ -124,52 +98,7 @@ void truxton2_state::device_post_load()
 
 
 
-void truxton2_state::tx_videoram_w(offs_t offset, u16 data, u16 mem_mask)
-{
-	COMBINE_DATA(&m_tx_videoram[offset]);
-	if (offset < 64*32)
-		m_tx_tilemap->mark_tile_dirty(offset);
-}
 
-void truxton2_state::tx_linescroll_w(offs_t offset, u16 data, u16 mem_mask)
-{
-	/*** Line-Scroll RAM for Text Layer ***/
-	COMBINE_DATA(&m_tx_linescroll[offset]);
-
-	m_tx_tilemap->set_scrollx(offset, m_tx_linescroll[offset]);
-}
-
-
-
-/* fixeightbl and bgareggabl do not use the lineselect or linescroll tables */
-u32 truxton2_state::screen_update_bootleg(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
-{
-	screen_update_toaplan2(screen, bitmap, cliprect);
-	m_tx_tilemap->draw(screen, bitmap, cliprect, 0);
-	return 0;
-}
-
-
-u32 truxton2_state::screen_update_truxton2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
-{
-	screen_update_toaplan2(screen, bitmap, cliprect);
-
-	rectangle clip = cliprect;
-
-	/* it seems likely that flipx can be set per line! */
-	/* however, none of the games does it, and emulating it in the */
-	/* MAME tilemap system without being ultra slow would be tricky */
-	m_tx_tilemap->set_flip(m_tx_lineselect[0] & 0x8000 ? 0 : TILEMAP_FLIPX);
-
-	/* line select is used for 'for use in' and '8ing' screen on bbakraid, 'Raizing' logo on batrider */
-	for (int y = cliprect.min_y; y <= cliprect.max_y; y++)
-	{
-		clip.min_y = clip.max_y = y;
-		m_tx_tilemap->set_scrolly(0, m_tx_lineselect[y] - y);
-		m_tx_tilemap->draw(screen, bitmap, clip, 0);
-	}
-	return 0;
-}
 
 
 
@@ -192,15 +121,6 @@ void truxton2_state::install_raizing_okibank(int chip)
 	{
 		m_raizing_okibank[chip][i]->configure_entries(0, 16, &m_oki_rom[chip][0], 0x10000);
 	}
-}
-
-void truxton2_state::init_bgaregga()
-{
-	u8 *Z80 = memregion("audiocpu")->base();
-
-	m_audiobank->configure_entries(0, 8, Z80, 0x4000); // Test mode only, Mirror of First 128KB Areas?
-	m_audiobank->configure_entries(8, 8, Z80, 0x4000);
-	install_raizing_okibank(0);
 }
 
 

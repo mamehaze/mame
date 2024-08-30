@@ -47,7 +47,59 @@ private:
 	DECLARE_VIDEO_START(truxton2);
 
 	DECLARE_VIDEO_START(fixeightbl);
+
+	void tx_videoram_w(offs_t offset, u16 data, u16 mem_mask = ~0);
+	void tx_linescroll_w(offs_t offset, u16 data, u16 mem_mask = ~0);
+
+	u8 shared_ram_r(offs_t offset) { return m_shared_ram[offset]; }
+	void shared_ram_w(offs_t offset, u8 data) { m_shared_ram[offset] = data; }
+
+
+	DECLARE_VIDEO_START(toaplan2);
+	u32 screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
+	void screen_vblank(int state);
+	u32 screen_update_truxton2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
+	u32 screen_update_bootleg(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
+
 };
+
+
+/* fixeightbl and bgareggabl do not use the lineselect or linescroll tables */
+u32 fixeight_state::screen_update_bootleg(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
+{
+	screen_update_toaplan2(screen, bitmap, cliprect);
+	m_tx_tilemap->draw(screen, bitmap, cliprect, 0);
+	return 0;
+}
+
+
+
+VIDEO_START_MEMBER(fixeight_state,toaplan2)
+{
+	/* our current VDP implementation needs this bitmap to work with */
+	m_screen->register_screen_bitmap(m_custom_priority_bitmap);
+	m_vdp->custom_priority_bitmap = &m_custom_priority_bitmap;
+}
+
+
+u32 fixeight_state::screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
+{
+	bitmap.fill(0, cliprect);
+	m_custom_priority_bitmap.fill(0, cliprect);
+	m_vdp->render_vdp(bitmap, cliprect);
+
+	return 0;
+}
+
+void fixeight_state::screen_vblank(int state)
+{
+	// rising edge
+	if (state)
+	{
+		m_vdp->screen_eof();
+	}
+}
+
 
 VIDEO_START_MEMBER(fixeight_state,truxton2)
 {
@@ -294,6 +346,35 @@ void fixeight_state::tx_gfxram_w(offs_t offset, u16 data, u16 mem_mask)
 }
 
 
+void fixeight_state::tx_videoram_w(offs_t offset, u16 data, u16 mem_mask)
+{
+	COMBINE_DATA(&m_tx_videoram[offset]);
+	if (offset < 64*32)
+		m_tx_tilemap->mark_tile_dirty(offset);
+}
+
+void fixeight_state::tx_linescroll_w(offs_t offset, u16 data, u16 mem_mask)
+{
+	/*** Line-Scroll RAM for Text Layer ***/
+	COMBINE_DATA(&m_tx_linescroll[offset]);
+
+	m_tx_tilemap->set_scrollx(offset, m_tx_linescroll[offset]);
+}
+
+u32 fixeight_state::screen_update_truxton2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
+{
+	screen_update_toaplan2(screen, bitmap, cliprect);
+	rectangle clip = cliprect;
+	m_tx_tilemap->set_flip(m_tx_lineselect[0] & 0x8000 ? 0 : TILEMAP_FLIPX);
+	for (int y = cliprect.min_y; y <= cliprect.max_y; y++)
+	{
+		clip.min_y = clip.max_y = y;
+		m_tx_tilemap->set_scrolly(0, m_tx_lineselect[y] - y);
+		m_tx_tilemap->draw(screen, bitmap, clip, 0);
+	}
+	return 0;
+}
+
 
 void fixeight_state::fixeight_68k_mem(address_map &map)
 {
@@ -304,12 +385,12 @@ void fixeight_state::fixeight_68k_mem(address_map &map)
 	map(0x200008, 0x200009).portr("IN3");
 	map(0x200010, 0x200011).portr("SYS");
 	map(0x20001d, 0x20001d).w(FUNC(truxton2_state::coin_w));
-	map(0x280000, 0x28ffff).rw(FUNC(truxton2_state::shared_ram_r), FUNC(truxton2_state::shared_ram_w)).umask16(0x00ff);
+	map(0x280000, 0x28ffff).rw(FUNC(fixeight_state::shared_ram_r), FUNC(fixeight_state::shared_ram_w)).umask16(0x00ff);
 	map(0x300000, 0x30000d).rw(m_vdp, FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
 	map(0x400000, 0x400fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
-	map(0x500000, 0x501fff).ram().w(FUNC(truxton2_state::tx_videoram_w)).share(m_tx_videoram);
+	map(0x500000, 0x501fff).ram().w(FUNC(fixeight_state::tx_videoram_w)).share(m_tx_videoram);
 	map(0x502000, 0x5021ff).ram().share(m_tx_lineselect);
-	map(0x503000, 0x5031ff).ram().w(FUNC(truxton2_state::tx_linescroll_w)).share(m_tx_linescroll);
+	map(0x503000, 0x5031ff).ram().w(FUNC(fixeight_state::tx_linescroll_w)).share(m_tx_linescroll);
 	map(0x600000, 0x60ffff).ram().w(FUNC(fixeight_state::tx_gfxram_w)).share(m_tx_gfxram);
 	map(0x700000, 0x700001).w(FUNC(fixeight_state::sound_reset_w)).umask16(0x00ff).cswidth(16);
 	map(0x800000, 0x800001).r(FUNC(truxton2_state::video_count_r));
@@ -330,7 +411,7 @@ void fixeight_state::fixeightbl_68k_mem(address_map &map)
 	map(0x20001c, 0x20001d).portr("DSWA");
 	map(0x300000, 0x30000d).rw(m_vdp, FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
 	map(0x400000, 0x400fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
-	map(0x500000, 0x501fff).ram().w(FUNC(truxton2_state::tx_videoram_w)).share(m_tx_videoram);
+	map(0x500000, 0x501fff).ram().w(FUNC(fixeight_state::tx_videoram_w)).share(m_tx_videoram);
 	map(0x700000, 0x700001).r(FUNC(truxton2_state::video_count_r));
 	map(0x800000, 0x87ffff).rom().region("maincpu", 0x80000);
 }
@@ -364,8 +445,8 @@ void fixeight_state::fixeight(machine_config &config)
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
 	m_screen->set_video_attributes(VIDEO_UPDATE_BEFORE_VBLANK);
 	m_screen->set_raw(27_MHz_XTAL/4, 432, 0, 320, 262, 0, 240); // verified on PCB
-	m_screen->set_screen_update(FUNC(truxton2_state::screen_update_truxton2));
-	m_screen->screen_vblank().set(FUNC(truxton2_state::screen_vblank));
+	m_screen->set_screen_update(FUNC(fixeight_state::screen_update_truxton2));
+	m_screen->screen_vblank().set(FUNC(fixeight_state::screen_vblank));
 	m_screen->set_palette(m_palette);
 
 	toaplan2_screen_device& t2screen(TOAPLAN2_SCREEN(config, "t2screen", 27_MHz_XTAL / 4));
@@ -423,8 +504,8 @@ void fixeight_state::fixeightbl(machine_config &config)
 	//m_screen->set_refresh_hz(60);
 	//m_screen->set_size(432, 262);
 	//m_screen->set_visarea(0, 319, 0, 239);
-	m_screen->set_screen_update(FUNC(truxton2_state::screen_update_bootleg));
-	m_screen->screen_vblank().set(FUNC(truxton2_state::screen_vblank));
+	m_screen->set_screen_update(FUNC(fixeight_state::screen_update_bootleg));
+	m_screen->screen_vblank().set(FUNC(fixeight_state::screen_vblank));
 	m_screen->set_palette(m_palette);
 
 	toaplan2_screen_device& t2screen(TOAPLAN2_SCREEN(config, "t2screen", 27_MHz_XTAL / 4));
