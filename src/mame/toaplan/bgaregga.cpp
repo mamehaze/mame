@@ -56,9 +56,54 @@ private:
 	void create_tx_tilemap(int dx = 0, int dx_flipped = 0);
 	u16 video_count_r();
 	bitmap_ind8 m_custom_priority_bitmap;
-
+	void raizing_z80_bankswitch_w(u8 data);
+	void toaplan2_reset(int state);
+	void install_raizing_okibank(int chip);
+	void raizing_oki_bankswitch_w(offs_t offset, u8 data);
 };
 
+void bgaregga_state::install_raizing_okibank(int chip)
+{
+	assert(m_oki_rom[chip] && m_raizing_okibank[chip][0]);
+
+	for (int i = 0; i < 4; i++)
+	{
+		m_raizing_okibank[chip][i]->configure_entries(0, 16, &m_oki_rom[chip][(i * 0x100)], 0x10000);
+	}
+	m_raizing_okibank[chip][4]->configure_entries(0, 16, &m_oki_rom[chip][0x400], 0x10000);
+	for (int i = 5; i < 8; i++)
+	{
+		m_raizing_okibank[chip][i]->configure_entries(0, 16, &m_oki_rom[chip][0], 0x10000);
+	}
+}
+// bgaregga and batrider don't actually have a NMK112, but rather a GAL
+// programmed to bankswitch the sound ROMs in a similar fashion.
+// it may not be a coincidence that the composer and sound designer for
+// these two games, Manabu "Santaruru" Namiki, came to Raizing from NMK...
+
+void bgaregga_state::raizing_oki_bankswitch_w(offs_t offset, u8 data)
+{
+	m_raizing_okibank[(offset & 4) >> 2][offset & 3]->set_entry(data & 0xf);
+	m_raizing_okibank[(offset & 4) >> 2][4 + (offset & 3)]->set_entry(data & 0xf);
+	offset++;
+	data >>= 4;
+	m_raizing_okibank[(offset & 4) >> 2][offset & 3]->set_entry(data & 0xf);
+	m_raizing_okibank[(offset & 4) >> 2][4 + (offset & 3)]->set_entry(data & 0xf);
+}
+
+
+
+
+void bgaregga_state::toaplan2_reset(int state)
+{
+	if (m_audiocpu != nullptr)
+		m_audiocpu->pulse_input_line(INPUT_LINE_RESET, attotime::zero);
+}
+
+void bgaregga_state::raizing_z80_bankswitch_w(u8 data)
+{
+	m_audiobank->set_entry(data & 0x0f);
+}
 
 u16 bgaregga_state::video_count_r()
 {
@@ -236,8 +281,8 @@ void bgaregga_state::bgaregga_sound_z80_mem(address_map &map)
 	map(0xc000, 0xdfff).ram().share(m_shared_ram);
 	map(0xe000, 0xe001).rw("ymsnd", FUNC(ym2151_device::read), FUNC(ym2151_device::write));
 	map(0xe004, 0xe004).rw(m_oki[0], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
-	map(0xe006, 0xe008).w(FUNC(truxton2_state::raizing_oki_bankswitch_w));
-	map(0xe00a, 0xe00a).w(FUNC(truxton2_state::raizing_z80_bankswitch_w));
+	map(0xe006, 0xe008).w(FUNC(bgaregga_state::raizing_oki_bankswitch_w));
+	map(0xe00a, 0xe00a).w(FUNC(bgaregga_state::raizing_z80_bankswitch_w));
 	map(0xe00c, 0xe00c).w(m_soundlatch[0], FUNC(generic_latch_8_device::acknowledge_w));
 	map(0xe01c, 0xe01c).r(m_soundlatch[0], FUNC(generic_latch_8_device::read));
 	map(0xe01d, 0xe01d).r(FUNC(bgaregga_state::bgaregga_E01D_r));
@@ -268,7 +313,7 @@ void bgaregga_state::bgaregga(machine_config &config)
 	/* basic machine hardware */
 	M68000(config, m_maincpu, 32_MHz_XTAL/2);   // 16MHz, 32MHz Oscillator
 	m_maincpu->set_addrmap(AS_PROGRAM, &bgaregga_state::bgaregga_68k_mem);
-	m_maincpu->reset_cb().set(FUNC(truxton2_state::toaplan2_reset));
+	m_maincpu->reset_cb().set(FUNC(bgaregga_state::toaplan2_reset));
 
 	Z80(config, m_audiocpu, 32_MHz_XTAL/8);     // 4MHz, 32MHz Oscillator
 	m_audiocpu->set_addrmap(AS_PROGRAM, &bgaregga_state::bgaregga_sound_z80_mem);

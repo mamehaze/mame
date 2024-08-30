@@ -64,8 +64,15 @@ private:
 	u16 video_count_r();
 
 	bitmap_ind8 m_custom_priority_bitmap;
+	void toaplan2_reset(int state);
 
 };
+
+void fixeight_state::toaplan2_reset(int state)
+{
+	if (m_audiocpu != nullptr)
+		m_audiocpu->pulse_input_line(INPUT_LINE_RESET, attotime::zero);
+}
 
 
 u16 fixeight_state::video_count_r()
@@ -477,7 +484,7 @@ void fixeight_state::fixeight(machine_config &config)
 	/* basic machine hardware */
 	M68000(config, m_maincpu, 16_MHz_XTAL);         // verified on PCB
 	m_maincpu->set_addrmap(AS_PROGRAM, &fixeight_state::fixeight_68k_mem);
-	m_maincpu->reset_cb().set(FUNC(truxton2_state::toaplan2_reset));
+	m_maincpu->reset_cb().set(FUNC(fixeight_state::toaplan2_reset));
 
 	v25_device &audiocpu(V25(config, m_audiocpu, 16_MHz_XTAL));           // NEC V25 type Toaplan marked CPU ???
 	audiocpu.set_addrmap(AS_PROGRAM, &fixeight_state::fixeight_v25_mem);
@@ -541,7 +548,7 @@ void fixeight_state::fixeightbl(machine_config &config)
 	M68000(config, m_maincpu, XTAL(10'000'000));         /* 10MHz Oscillator */
 	m_maincpu->set_addrmap(AS_PROGRAM, &fixeight_state::fixeightbl_68k_mem);
 	m_maincpu->set_addrmap(m68000_base_device::AS_CPU_SPACE, &fixeight_state::cpu_space_fixeightbl_map);
-	m_maincpu->reset_cb().set(FUNC(truxton2_state::toaplan2_reset));
+	m_maincpu->reset_cb().set(FUNC(fixeight_state::toaplan2_reset));
 
 	/* video hardware */
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);

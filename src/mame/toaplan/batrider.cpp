@@ -75,9 +75,54 @@ private:
 	void create_tx_tilemap(int dx = 0, int dx_flipped = 0);
 	u16 video_count_r();
 	bitmap_ind8 m_custom_priority_bitmap;
-
+	void raizing_z80_bankswitch_w(u8 data);
+	void toaplan2_reset(int state);
+	void install_raizing_okibank(int chip);
+	void raizing_oki_bankswitch_w(offs_t offset, u8 data);
 };
 
+void batrider_state::install_raizing_okibank(int chip)
+{
+	assert(m_oki_rom[chip] && m_raizing_okibank[chip][0]);
+
+	for (int i = 0; i < 4; i++)
+	{
+		m_raizing_okibank[chip][i]->configure_entries(0, 16, &m_oki_rom[chip][(i * 0x100)], 0x10000);
+	}
+	m_raizing_okibank[chip][4]->configure_entries(0, 16, &m_oki_rom[chip][0x400], 0x10000);
+	for (int i = 5; i < 8; i++)
+	{
+		m_raizing_okibank[chip][i]->configure_entries(0, 16, &m_oki_rom[chip][0], 0x10000);
+	}
+}
+// bgaregga and batrider don't actually have a NMK112, but rather a GAL
+// programmed to bankswitch the sound ROMs in a similar fashion.
+// it may not be a coincidence that the composer and sound designer for
+// these two games, Manabu "Santaruru" Namiki, came to Raizing from NMK...
+
+void batrider_state::raizing_oki_bankswitch_w(offs_t offset, u8 data)
+{
+	m_raizing_okibank[(offset & 4) >> 2][offset & 3]->set_entry(data & 0xf);
+	m_raizing_okibank[(offset & 4) >> 2][4 + (offset & 3)]->set_entry(data & 0xf);
+	offset++;
+	data >>= 4;
+	m_raizing_okibank[(offset & 4) >> 2][offset & 3]->set_entry(data & 0xf);
+	m_raizing_okibank[(offset & 4) >> 2][4 + (offset & 3)]->set_entry(data & 0xf);
+}
+
+
+
+
+void batrider_state::toaplan2_reset(int state)
+{
+	if (m_audiocpu != nullptr)
+		m_audiocpu->pulse_input_line(INPUT_LINE_RESET, attotime::zero);
+}
+
+void batrider_state::raizing_z80_bankswitch_w(u8 data)
+{
+	m_audiobank->set_entry(data & 0x0f);
+}
 
 u16 batrider_state::video_count_r()
 {
@@ -488,8 +533,8 @@ void batrider_state::batrider_sound_z80_port(address_map &map)
 	map(0x80, 0x81).rw("ymsnd", FUNC(ym2151_device::read), FUNC(ym2151_device::write));
 	map(0x82, 0x82).rw(m_oki[0], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
 	map(0x84, 0x84).rw(m_oki[1], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
-	map(0x88, 0x88).w(FUNC(truxton2_state::raizing_z80_bankswitch_w));
-	map(0xc0, 0xc6).w(FUNC(truxton2_state::raizing_oki_bankswitch_w));
+	map(0x88, 0x88).w(FUNC(batrider_state::raizing_z80_bankswitch_w));
+	map(0xc0, 0xc6).w(FUNC(batrider_state::raizing_oki_bankswitch_w));
 }
 
 
@@ -573,7 +618,7 @@ void batrider_state::batrider(machine_config &config)
 	/* basic machine hardware */
 	M68000(config, m_maincpu, 32_MHz_XTAL/2);   // 16MHz, 32MHz Oscillator (verified)
 	m_maincpu->set_addrmap(AS_PROGRAM, &batrider_state::batrider_68k_mem);
-	m_maincpu->reset_cb().set(FUNC(truxton2_state::toaplan2_reset));
+	m_maincpu->reset_cb().set(FUNC(batrider_state::toaplan2_reset));
 
 	Z80(config, m_audiocpu, 32_MHz_XTAL/6);     // 5.333MHz, 32MHz Oscillator (verified)
 	m_audiocpu->set_addrmap(AS_PROGRAM, &batrider_state::batrider_sound_z80_mem);

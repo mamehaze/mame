@@ -49,9 +49,6 @@ public:
 		, m_txlayer(*this, "txlayer")
 	{ }
 
-
-	
-
 	virtual void device_post_load() override;
 
 	required_device<m68000_base_device> m_maincpu;
@@ -83,24 +80,9 @@ public:
 
 	optional_device<toaplan2_txlayer_device> m_txlayer;
 
-
 	tilemap_t *m_tx_tilemap = nullptr;    /* Tilemap for extra-text-layer */
-
-	void raizing_z80_bankswitch_w(u8 data);
-	void raizing_oki_bankswitch_w(offs_t offset, u8 data);
-
-	void install_raizing_okibank(int chip);
 
 	TILE_GET_INFO_MEMBER(get_text_tile_info);
 
-
-	
-
-
 	void coin_w(u8 data);
-
-
-	void toaplan2_reset(int state);
-
-
 };

@@ -77,9 +77,15 @@ private:
 	void create_tx_tilemap(int dx = 0, int dx_flipped = 0);
 	u16 video_count_r();
 	bitmap_ind8 m_custom_priority_bitmap;
+	void toaplan2_reset(int state);
 
 };
 
+void bbakraid_state::toaplan2_reset(int state)
+{
+	if (m_audiocpu != nullptr)
+		m_audiocpu->pulse_input_line(INPUT_LINE_RESET, attotime::zero);
+}
 
 u16 bbakraid_state::video_count_r()
 {
@@ -417,7 +423,7 @@ void bbakraid_state::bbakraid(machine_config &config)
 	/* basic machine hardware */
 	M68000(config, m_maincpu, 32_MHz_XTAL/2);   // 16MHz, 32MHz Oscillator
 	m_maincpu->set_addrmap(AS_PROGRAM, &bbakraid_state::bbakraid_68k_mem);
-	m_maincpu->reset_cb().set(FUNC(truxton2_state::toaplan2_reset));
+	m_maincpu->reset_cb().set(FUNC(bbakraid_state::toaplan2_reset));
 
 	Z80(config, m_audiocpu, XTAL(32'000'000)/6);     /* 5.3333MHz , 32MHz Oscillator */
 	m_audiocpu->set_addrmap(AS_PROGRAM, &bbakraid_state::bbakraid_sound_z80_mem);

@@ -300,7 +300,6 @@ void probowl_state::nprobowl(machine_config &config)
 	// basic machine hardware
 	M68000(config, m_maincpu, 32_MHz_XTAL / 2);   // 32MHz Oscillator, divisor not verified
 	m_maincpu->set_addrmap(AS_PROGRAM, &probowl_state::nprobowl_68k_mem);
-	m_maincpu->reset_cb().set(FUNC(truxton2_state::toaplan2_reset));
 
 	ADDRESS_MAP_BANK(config, m_dma_space, 0);
 	m_dma_space->set_addrmap(0, &probowl_state::batrider_dma_mem);
