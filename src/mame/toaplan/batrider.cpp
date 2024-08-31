@@ -467,7 +467,7 @@ void batrider_state::batrider_objectbank_w(offs_t offset, u8 data)
 
 
 
-void truxton2_state::device_post_load()
+void batrider_state::device_post_load()
 {
 	if (m_tx_gfxram != nullptr)
 		m_gfxdecode->gfx(0)->mark_all_dirty();

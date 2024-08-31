@@ -138,7 +138,7 @@ void trux2_state::screen_vblank(int state)
 
 
 
-void truxton2_state::device_post_load()
+void trux2_state::device_post_load()
 {
 	if (m_tx_gfxram != nullptr)
 		m_gfxdecode->gfx(0)->mark_all_dirty();
