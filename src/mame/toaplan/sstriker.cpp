@@ -26,8 +26,6 @@ public:
 	void shippumd(machine_config &config);
 	void mahoudai(machine_config &config);
 
-	virtual void device_post_load() override;
-
 protected:
 private:
 
