@@ -26,6 +26,8 @@ public:
 
 	void nprobowl(machine_config &config);
 
+	virtual void device_post_load() override;
+
 protected:
 private:
 	void nprobowl_68k_mem(address_map &map);
@@ -48,12 +50,28 @@ private:
 	void create_tx_tilemap(int dx = 0, int dx_flipped = 0);
 
 	bitmap_ind8 m_custom_priority_bitmap;
+	TILE_GET_INFO_MEMBER(get_text_tile_info);
+	tilemap_t *m_tx_tilemap = nullptr;    /* Tilemap for extra-text-layer */
 
 };
 
+
+
+TILE_GET_INFO_MEMBER(probowl_state::get_text_tile_info)
+{
+	const u16 attrib = m_tx_videoram[tile_index];
+	const u32 tile_number = attrib & 0x3ff;
+	const u32 color = attrib >> 10;
+	tileinfo.set(0,
+			tile_number,
+			color,
+			0);
+}
+
+
 void probowl_state::create_tx_tilemap(int dx, int dx_flipped)
 {
-	m_tx_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(truxton2_state::get_text_tile_info)), TILEMAP_SCAN_ROWS, 8, 8, 64, 32);
+	m_tx_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(probowl_state::get_text_tile_info)), TILEMAP_SCAN_ROWS, 8, 8, 64, 32);
 
 	m_tx_tilemap->set_scroll_rows(8*32); /* line scrolling */
 	m_tx_tilemap->set_scroll_cols(1);
@@ -206,6 +224,14 @@ static GFXDECODE_START( gfx_batrider )
 	GFXDECODE_ENTRY( nullptr, 0, batrider_tx_tilelayout, 64*16, 64 )
 GFXDECODE_END
 
+
+
+
+void truxton2_state::device_post_load()
+{
+	if (m_tx_gfxram != nullptr)
+		m_gfxdecode->gfx(0)->mark_all_dirty();
+}
 
 void probowl_state::batrider_tx_gfxram_w(offs_t offset, u16 data, u16 mem_mask)
 {

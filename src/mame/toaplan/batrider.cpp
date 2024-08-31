@@ -29,6 +29,8 @@ public:
 
 	template<unsigned Chip> void raizing_oki(address_map &map);
 
+	virtual void device_post_load() override;
+
 protected:
 	virtual void machine_start() override;
 
@@ -79,7 +81,24 @@ private:
 	void toaplan2_reset(int state);
 	void install_raizing_okibank(int chip);
 	void raizing_oki_bankswitch_w(offs_t offset, u8 data);
+	TILE_GET_INFO_MEMBER(get_text_tile_info);
+	void coin_w(u8 data);
+	tilemap_t *m_tx_tilemap = nullptr;    /* Tilemap for extra-text-layer */
+
 };
+
+
+TILE_GET_INFO_MEMBER(batrider_state::get_text_tile_info)
+{
+	const u16 attrib = m_tx_videoram[tile_index];
+	const u32 tile_number = attrib & 0x3ff;
+	const u32 color = attrib >> 10;
+	tileinfo.set(0,
+			tile_number,
+			color,
+			0);
+}
+
 
 void batrider_state::install_raizing_okibank(int chip)
 {
@@ -157,7 +176,7 @@ u16 batrider_state::video_count_r()
 
 void batrider_state::create_tx_tilemap(int dx, int dx_flipped)
 {
-	m_tx_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(truxton2_state::get_text_tile_info)), TILEMAP_SCAN_ROWS, 8, 8, 64, 32);
+	m_tx_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(batrider_state::get_text_tile_info)), TILEMAP_SCAN_ROWS, 8, 8, 64, 32);
 
 	m_tx_tilemap->set_scroll_rows(8*32); /* line scrolling */
 	m_tx_tilemap->set_scroll_cols(1);
@@ -446,6 +465,14 @@ void batrider_state::batrider_objectbank_w(offs_t offset, u8 data)
 }
 
 
+
+
+void truxton2_state::device_post_load()
+{
+	if (m_tx_gfxram != nullptr)
+		m_gfxdecode->gfx(0)->mark_all_dirty();
+}
+
 void batrider_state::batrider_tx_gfxram_w(offs_t offset, u16 data, u16 mem_mask)
 {
 	/*** Dynamic GFX decoding for Batrider / Battle Bakraid ***/
@@ -482,6 +509,29 @@ void batrider_state::batrider_pal_text_dma_w(u16 data)
 	}
 }
 
+void batrider_state::coin_w(u8 data)
+{
+	/* +----------------+------ Bits 7-5 not used ------+--------------+ */
+	/* | Coin Lockout 2 | Coin Lockout 1 | Coin Count 2 | Coin Count 1 | */
+	/* |     Bit 3      |     Bit 2      |     Bit 1    |     Bit 0    | */
+
+	if (data & 0x0f)
+	{
+		machine().bookkeeping().coin_lockout_w(0, BIT(~data, 2));
+		machine().bookkeeping().coin_lockout_w(1, BIT(~data, 3));
+		machine().bookkeeping().coin_counter_w(0, BIT( data, 0));
+		machine().bookkeeping().coin_counter_w(1, BIT( data, 1));
+	}
+	else
+	{
+		machine().bookkeeping().coin_lockout_global_w(1);    // Lock all coin slots
+	}
+	if (data & 0xf0)
+	{
+		logerror("Writing unknown upper bits (%02x) to coin control\n",data);
+	}
+}
+
 
 
 void batrider_state::batrider_68k_mem(address_map &map)
@@ -501,7 +551,7 @@ void batrider_state::batrider_68k_mem(address_map &map)
 	map(0x500009, 0x500009).r(m_soundlatch[2], FUNC(generic_latch_8_device::read));
 	map(0x50000b, 0x50000b).r(m_soundlatch[3], FUNC(generic_latch_8_device::read));
 	map(0x50000c, 0x50000d).r(FUNC(batrider_state::batrider_z80_busack_r));
-	map(0x500011, 0x500011).w(FUNC(truxton2_state::coin_w));
+	map(0x500011, 0x500011).w(FUNC(batrider_state::coin_w));
 	map(0x500021, 0x500021).w(FUNC(batrider_state::batrider_soundlatch_w));
 	map(0x500023, 0x500023).w(FUNC(batrider_state::batrider_soundlatch2_w));
 	map(0x500024, 0x500025).w(FUNC(batrider_state::batrider_unknown_sound_w));

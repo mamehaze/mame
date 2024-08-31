@@ -28,6 +28,7 @@ public:
 
 	void init_bbakraid();
 
+	virtual void device_post_load() override;
 
 protected:
 	virtual void machine_start() override;
@@ -78,8 +79,24 @@ private:
 	u16 video_count_r();
 	bitmap_ind8 m_custom_priority_bitmap;
 	void toaplan2_reset(int state);
+	TILE_GET_INFO_MEMBER(get_text_tile_info);
+	void coin_w(u8 data);
+	tilemap_t *m_tx_tilemap = nullptr;    /* Tilemap for extra-text-layer */
 
 };
+
+
+TILE_GET_INFO_MEMBER(bbakraid_state::get_text_tile_info)
+{
+	const u16 attrib = m_tx_videoram[tile_index];
+	const u32 tile_number = attrib & 0x3ff;
+	const u32 color = attrib >> 10;
+	tileinfo.set(0,
+			tile_number,
+			color,
+			0);
+}
+
 
 void bbakraid_state::toaplan2_reset(int state)
 {
@@ -119,7 +136,7 @@ u16 bbakraid_state::video_count_r()
 
 void bbakraid_state::create_tx_tilemap(int dx, int dx_flipped)
 {
-	m_tx_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(truxton2_state::get_text_tile_info)), TILEMAP_SCAN_ROWS, 8, 8, 64, 32);
+	m_tx_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(bbakraid_state::get_text_tile_info)), TILEMAP_SCAN_ROWS, 8, 8, 64, 32);
 
 	m_tx_tilemap->set_scroll_rows(8*32); /* line scrolling */
 	m_tx_tilemap->set_scroll_cols(1);
@@ -168,6 +185,14 @@ void bbakraid_state::screen_vblank(int state)
 	}
 }
 
+
+
+
+void truxton2_state::device_post_load()
+{
+	if (m_tx_gfxram != nullptr)
+		m_gfxdecode->gfx(0)->mark_all_dirty();
+}
 
 VIDEO_START_MEMBER(bbakraid_state,batrider)
 {
@@ -328,6 +353,29 @@ void bbakraid_state::batrider_pal_text_dma_w(u16 data)
 	}
 }
 
+void bbakraid_state::coin_w(u8 data)
+{
+	/* +----------------+------ Bits 7-5 not used ------+--------------+ */
+	/* | Coin Lockout 2 | Coin Lockout 1 | Coin Count 2 | Coin Count 1 | */
+	/* |     Bit 3      |     Bit 2      |     Bit 1    |     Bit 0    | */
+
+	if (data & 0x0f)
+	{
+		machine().bookkeeping().coin_lockout_w(0, BIT(~data, 2));
+		machine().bookkeeping().coin_lockout_w(1, BIT(~data, 3));
+		machine().bookkeeping().coin_counter_w(0, BIT( data, 0));
+		machine().bookkeeping().coin_counter_w(1, BIT( data, 1));
+	}
+	else
+	{
+		machine().bookkeeping().coin_lockout_global_w(1);    // Lock all coin slots
+	}
+	if (data & 0xf0)
+	{
+		logerror("Writing unknown upper bits (%02x) to coin control\n",data);
+	}
+}
+
 
 
 void bbakraid_state::bbakraid_68k_mem(address_map &map)
@@ -344,7 +392,7 @@ void bbakraid_state::bbakraid_68k_mem(address_map &map)
 	map(0x500002, 0x500003).portr("SYS-DSW");
 	map(0x500004, 0x500005).portr("DSW");
 	map(0x500006, 0x500007).r(FUNC(bbakraid_state::video_count_r));
-	map(0x500009, 0x500009).w(FUNC(truxton2_state::coin_w));
+	map(0x500009, 0x500009).w(FUNC(bbakraid_state::coin_w));
 	map(0x500011, 0x500011).r(m_soundlatch[2], FUNC(generic_latch_8_device::read));
 	map(0x500013, 0x500013).r(m_soundlatch[3], FUNC(generic_latch_8_device::read));
 	map(0x500015, 0x500015).w(FUNC(bbakraid_state::batrider_soundlatch_w));

@@ -26,6 +26,8 @@ public:
 
 	void truxton2(machine_config &config);
 
+	virtual void device_post_load() override;
+
 protected:
 private:
 
@@ -45,8 +47,24 @@ private:
 	void create_tx_tilemap(int dx = 0, int dx_flipped = 0);
 	u16 video_count_r();
 	bitmap_ind8 m_custom_priority_bitmap;
+	TILE_GET_INFO_MEMBER(get_text_tile_info);
+
+	void coin_w(u8 data);
+	tilemap_t *m_tx_tilemap = nullptr;    /* Tilemap for extra-text-layer */
 
 };
+
+
+TILE_GET_INFO_MEMBER(trux2_state::get_text_tile_info)
+{
+	const u16 attrib = m_tx_videoram[tile_index];
+	const u32 tile_number = attrib & 0x3ff;
+	const u32 color = attrib >> 10;
+	tileinfo.set(0,
+			tile_number,
+			color,
+			0);
+}
 
 
 u16 trux2_state::video_count_r()
@@ -82,7 +100,7 @@ u16 trux2_state::video_count_r()
 
 void trux2_state::create_tx_tilemap(int dx, int dx_flipped)
 {
-	m_tx_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(truxton2_state::get_text_tile_info)), TILEMAP_SCAN_ROWS, 8, 8, 64, 32);
+	m_tx_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(trux2_state::get_text_tile_info)), TILEMAP_SCAN_ROWS, 8, 8, 64, 32);
 
 	m_tx_tilemap->set_scroll_rows(8*32); /* line scrolling */
 	m_tx_tilemap->set_scroll_cols(1);
@@ -117,6 +135,14 @@ void trux2_state::screen_vblank(int state)
 	}
 }
 
+
+
+
+void truxton2_state::device_post_load()
+{
+	if (m_tx_gfxram != nullptr)
+		m_gfxdecode->gfx(0)->mark_all_dirty();
+}
 
 VIDEO_START_MEMBER(trux2_state,truxton2)
 {
@@ -287,6 +313,29 @@ void trux2_state::tx_linescroll_w(offs_t offset, u16 data, u16 mem_mask)
 	m_tx_tilemap->set_scrollx(offset, m_tx_linescroll[offset]);
 }
 
+void trux2_state::coin_w(u8 data)
+{
+	/* +----------------+------ Bits 7-5 not used ------+--------------+ */
+	/* | Coin Lockout 2 | Coin Lockout 1 | Coin Count 2 | Coin Count 1 | */
+	/* |     Bit 3      |     Bit 2      |     Bit 1    |     Bit 0    | */
+
+	if (data & 0x0f)
+	{
+		machine().bookkeeping().coin_lockout_w(0, BIT(~data, 2));
+		machine().bookkeeping().coin_lockout_w(1, BIT(~data, 3));
+		machine().bookkeeping().coin_counter_w(0, BIT( data, 0));
+		machine().bookkeeping().coin_counter_w(1, BIT( data, 1));
+	}
+	else
+	{
+		machine().bookkeeping().coin_lockout_global_w(1);    // Lock all coin slots
+	}
+	if (data & 0xf0)
+	{
+		logerror("Writing unknown upper bits (%02x) to coin control\n",data);
+	}
+}
+
 
 void trux2_state::truxton2_68k_mem(address_map &map)
 {
@@ -308,7 +357,7 @@ void trux2_state::truxton2_68k_mem(address_map &map)
 	map(0x70000a, 0x70000b).portr("SYS");
 	map(0x700011, 0x700011).rw(m_oki[0], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
 	map(0x700014, 0x700017).rw("ymsnd", FUNC(ym2151_device::read), FUNC(ym2151_device::write)).umask16(0x00ff);
-	map(0x70001f, 0x70001f).w(FUNC(truxton2_state::coin_w));
+	map(0x70001f, 0x70001f).w(FUNC(trux2_state::coin_w));
 }
 
 

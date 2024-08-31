@@ -49,7 +49,6 @@ public:
 		, m_txlayer(*this, "txlayer")
 	{ }
 
-	virtual void device_post_load() override;
 
 	required_device<m68000_base_device> m_maincpu;
 	optional_device<cpu_device> m_audiocpu;
@@ -79,10 +78,4 @@ public:
 	optional_ioport m_eepromout;
 
 	optional_device<toaplan2_txlayer_device> m_txlayer;
-
-	tilemap_t *m_tx_tilemap = nullptr;    /* Tilemap for extra-text-layer */
-
-	TILE_GET_INFO_MEMBER(get_text_tile_info);
-
-	void coin_w(u8 data);
 };

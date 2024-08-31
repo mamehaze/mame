@@ -29,6 +29,8 @@ public:
 	void init_fixeight();
 	void init_fixeightbl();
 
+	virtual void device_post_load() override;
+
 protected:
 private:
 
@@ -65,8 +67,24 @@ private:
 
 	bitmap_ind8 m_custom_priority_bitmap;
 	void toaplan2_reset(int state);
+	TILE_GET_INFO_MEMBER(get_text_tile_info);
+	void coin_w(u8 data);
+	tilemap_t *m_tx_tilemap = nullptr;    /* Tilemap for extra-text-layer */
 
 };
+
+
+TILE_GET_INFO_MEMBER(fixeight_state::get_text_tile_info)
+{
+	const u16 attrib = m_tx_videoram[tile_index];
+	const u32 tile_number = attrib & 0x3ff;
+	const u32 color = attrib >> 10;
+	tileinfo.set(0,
+			tile_number,
+			color,
+			0);
+}
+
 
 void fixeight_state::toaplan2_reset(int state)
 {
@@ -108,7 +126,7 @@ u16 fixeight_state::video_count_r()
 
 void fixeight_state::create_tx_tilemap(int dx, int dx_flipped)
 {
-	m_tx_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(truxton2_state::get_text_tile_info)), TILEMAP_SCAN_ROWS, 8, 8, 64, 32);
+	m_tx_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(fixeight_state::get_text_tile_info)), TILEMAP_SCAN_ROWS, 8, 8, 64, 32);
 
 	m_tx_tilemap->set_scroll_rows(8*32); /* line scrolling */
 	m_tx_tilemap->set_scroll_cols(1);
@@ -153,6 +171,14 @@ void fixeight_state::screen_vblank(int state)
 	}
 }
 
+
+
+
+void truxton2_state::device_post_load()
+{
+	if (m_tx_gfxram != nullptr)
+		m_gfxdecode->gfx(0)->mark_all_dirty();
+}
 
 VIDEO_START_MEMBER(fixeight_state,truxton2)
 {
@@ -428,6 +454,29 @@ u32 fixeight_state::screen_update_truxton2(screen_device &screen, bitmap_ind16 &
 	return 0;
 }
 
+void fixeight_state::coin_w(u8 data)
+{
+	/* +----------------+------ Bits 7-5 not used ------+--------------+ */
+	/* | Coin Lockout 2 | Coin Lockout 1 | Coin Count 2 | Coin Count 1 | */
+	/* |     Bit 3      |     Bit 2      |     Bit 1    |     Bit 0    | */
+
+	if (data & 0x0f)
+	{
+		machine().bookkeeping().coin_lockout_w(0, BIT(~data, 2));
+		machine().bookkeeping().coin_lockout_w(1, BIT(~data, 3));
+		machine().bookkeeping().coin_counter_w(0, BIT( data, 0));
+		machine().bookkeeping().coin_counter_w(1, BIT( data, 1));
+	}
+	else
+	{
+		machine().bookkeeping().coin_lockout_global_w(1);    // Lock all coin slots
+	}
+	if (data & 0xf0)
+	{
+		logerror("Writing unknown upper bits (%02x) to coin control\n",data);
+	}
+}
+
 
 void fixeight_state::fixeight_68k_mem(address_map &map)
 {
@@ -437,7 +486,7 @@ void fixeight_state::fixeight_68k_mem(address_map &map)
 	map(0x200004, 0x200005).portr("IN2");
 	map(0x200008, 0x200009).portr("IN3");
 	map(0x200010, 0x200011).portr("SYS");
-	map(0x20001d, 0x20001d).w(FUNC(truxton2_state::coin_w));
+	map(0x20001d, 0x20001d).w(FUNC(fixeight_state::coin_w));
 	map(0x280000, 0x28ffff).rw(FUNC(fixeight_state::shared_ram_r), FUNC(fixeight_state::shared_ram_w)).umask16(0x00ff);
 	map(0x300000, 0x30000d).rw(m_vdp, FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
 	map(0x400000, 0x400fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
