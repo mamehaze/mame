@@ -16,11 +16,27 @@
 
 
 
-class fixeight_state : public truxton2_state
+class fixeight_state : public driver_device
 {
 public:
 	fixeight_state(const machine_config &mconfig, device_type type, const char *tag)
-		: truxton2_state(mconfig, type, tag)
+		: driver_device(mconfig, type, tag)
+		, m_eeprom(*this, "eeprom")
+		, m_okibank(*this, "okibank")
+		, m_maincpu(*this, "maincpu")
+		, m_audiocpu(*this, "audiocpu")
+		, m_oki(*this, "oki%u", 1U)
+		, m_screen(*this, "screen")
+		, m_palette(*this, "palette")
+		, m_vdp(*this, "gp9001")
+		, m_gfxdecode(*this, "gfxdecode")
+		, m_shared_ram(*this, "shared_ram")
+		, m_mainram(*this, "mainram")
+		, m_tx_videoram(*this, "tx_videoram")
+		, m_tx_lineselect(*this, "tx_lineselect")
+		, m_tx_linescroll(*this, "tx_linescroll")
+		, m_tx_gfxram(*this, "tx_gfxram")
+		, m_txlayer(*this, "txlayer")
 	{ }
 
 	void fixeight(machine_config &config);
@@ -70,6 +86,24 @@ private:
 	TILE_GET_INFO_MEMBER(get_text_tile_info);
 	void coin_w(u8 data);
 	tilemap_t *m_tx_tilemap = nullptr;    /* Tilemap for extra-text-layer */
+
+	optional_device<eeprom_serial_93cxx_device> m_eeprom;
+	optional_memory_bank m_okibank;
+
+	required_device<m68000_base_device> m_maincpu;
+	optional_device<cpu_device> m_audiocpu;
+	optional_device_array<okim6295_device, 2> m_oki;
+	required_device<screen_device> m_screen;
+	required_device<palette_device> m_palette;
+	required_device<gp9001vdp_device> m_vdp;
+	optional_device<gfxdecode_device> m_gfxdecode;
+	optional_shared_ptr<u8> m_shared_ram; // 8 bit RAM shared between 68K and sound CPU
+	optional_shared_ptr<u16> m_mainram;
+	required_shared_ptr<u16> m_tx_videoram;
+	optional_shared_ptr<u16> m_tx_lineselect;
+	optional_shared_ptr<u16> m_tx_linescroll;
+	optional_shared_ptr<u16> m_tx_gfxram;
+	optional_device<toaplan2_txlayer_device> m_txlayer;
 
 };
 
