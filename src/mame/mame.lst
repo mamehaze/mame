@@ -42654,6 +42654,9 @@ systel100                       //
 @source:skeleton/syvg.cpp
 luckyvl
 
+@source:skeleton/tamagotchi_pix.cpp
+tamapix
+
 @source:skeleton/tavernie.cpp
 cpu09                           //
 ivg09                           //
@@ -45498,6 +45501,7 @@ beambox
 
 @source:tvgames/generalplus_gpl16250_rom.cpp
 beijuehh
+bornkidh
 gameu50
 gormiti
 imgame
