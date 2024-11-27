@@ -2,34 +2,19 @@
 // copyright-holders:David Haywood
 
 #include "emu.h"
-#include "toaplan_v25_tables.h"
-
-#include "cpu/m68000/m68000.h"
-#include "machine/bankdev.h"
-#include "machine/eepromser.h"
-#include "machine/gen_latch.h"
-#include "machine/ticket.h"
-#include "machine/upd4992.h"
-#include "gp9001.h"
-#include "sound/okim6295.h"
-#include "emupal.h"
-#include "screen.h"
-#include "tilemap.h"
-
-
-#include "toaplipt.h"
-#include "gp9001.h"
-
-#include "cpu/m68000/m68000.h"
-#include "cpu/nec/v25.h"
-#include "cpu/z80/z80.h"
-#include "sound/okim6295.h"
-#include "sound/ymopm.h"
 
 #include "emupal.h"
 #include "screen.h"
 #include "speaker.h"
 #include "tilemap.h"
+
+#include "toaplipt.h"
+#include "gp9001.h"
+
+#include "cpu/m68000/m68000.h"
+#include "sound/okim6295.h"
+#include "sound/ymopm.h"
+
 
 //#define TRUXTON2_STEREO       /* Uncomment to hear truxton2 music in stereo */
 
@@ -42,32 +27,23 @@ public:
 		, m_tx_lineselect(*this, "tx_lineselect")
 		, m_tx_linescroll(*this, "tx_linescroll")
 		, m_tx_gfxram(*this, "tx_gfxram")
-		, m_shared_ram(*this, "shared_ram")
-		, m_mainram(*this, "mainram")
 		, m_maincpu(*this, "maincpu")
-		, m_audiocpu(*this, "audiocpu")
 		, m_vdp(*this, "gp9001")
-		, m_oki(*this, "oki%u", 1U)
-		, m_eeprom(*this, "eeprom")
+		, m_oki(*this, "oki")
 		, m_gfxdecode(*this, "gfxdecode")
 		, m_screen(*this, "screen")
 		, m_palette(*this, "palette")
-		, m_soundlatch(*this, "soundlatch%u", 1U)
-		, m_z80_rom(*this, "audiocpu")
-		, m_oki_rom(*this, "oki%u", 1U)
-		, m_okibank(*this, "okibank")
 	{ }
 
 	void truxton2(machine_config &config);
 
 protected:
+	virtual void video_start() override ATTR_COLD;
+
 	u32 screen_update_truxton2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
-	DECLARE_VIDEO_START(truxton2);
 	void create_tx_tilemap(int dx = 0, int dx_flipped = 0);
 	virtual void device_post_load() override;
 
-	DECLARE_VIDEO_START(toaplan2);
-	u32 screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
 	void screen_vblank(int state);
 	void tx_gfxram_w(offs_t offset, u16 data, u16 mem_mask = ~0);
 	void truxton2_68k_mem(address_map &map) ATTR_COLD;
@@ -79,37 +55,21 @@ protected:
 private:
 	tilemap_t *m_tx_tilemap = nullptr;    /* Tilemap for extra-text-layer */
 	required_shared_ptr<u16> m_tx_videoram;
-	optional_shared_ptr<u16> m_tx_lineselect;
-	optional_shared_ptr<u16> m_tx_linescroll;
-	optional_shared_ptr<u16> m_tx_gfxram;
+	required_shared_ptr<u16> m_tx_lineselect;
+	required_shared_ptr<u16> m_tx_linescroll;
+	required_shared_ptr<u16> m_tx_gfxram;
 	void coin_w(u8 data);
-	void reset(int state);
-
-	optional_shared_ptr<u8> m_shared_ram; // 8 bit RAM shared between 68K and sound CPU
-	optional_shared_ptr<u16> m_mainram;
 
 	required_device<m68000_base_device> m_maincpu;
-	optional_device<cpu_device> m_audiocpu;
 	required_device<gp9001vdp_device> m_vdp;
-	optional_device_array<okim6295_device, 2> m_oki;
-	optional_device<eeprom_serial_93cxx_device> m_eeprom;
-	optional_device<gfxdecode_device> m_gfxdecode;
+	required_device<okim6295_device> m_oki;
+	required_device<gfxdecode_device> m_gfxdecode;
 	required_device<screen_device> m_screen;
 	required_device<palette_device> m_palette;
-	optional_device_array<generic_latch_8_device, 4> m_soundlatch; // tekipaki, batrider, bgaregga, batsugun
-	optional_region_ptr<u8> m_z80_rom;
-	optional_region_ptr_array<u8, 2> m_oki_rom;
-	optional_memory_bank m_okibank;
 	bitmap_ind8 m_custom_priority_bitmap;
-	bitmap_ind16 m_secondary_render_bitmap;
 };
 
 
-void truxton2_state::reset(int state)
-{
-	if (m_audiocpu != nullptr)
-		m_audiocpu->pulse_input_line(INPUT_LINE_RESET, attotime::zero);
-}
 
 void truxton2_state::coin_w(u8 data) // MOVE TO DEVICE!
 {
@@ -187,30 +147,9 @@ void truxton2_state::tx_linescroll_w(offs_t offset, u16 data, u16 mem_mask)
 
 
 
-
-VIDEO_START_MEMBER(truxton2_state,toaplan2)
-{
-	/* our current VDP implementation needs this bitmap to work with */
-	m_screen->register_screen_bitmap(m_custom_priority_bitmap);
-
-	m_secondary_render_bitmap.reset();
-	m_vdp->custom_priority_bitmap = &m_custom_priority_bitmap;
-}
-
-
-u32 truxton2_state::screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
-{
-	bitmap.fill(0, cliprect);
-	m_custom_priority_bitmap.fill(0, cliprect);
-	m_vdp->render_vdp(bitmap, cliprect);
-
-	return 0;
-}
-
 void truxton2_state::screen_vblank(int state)
-{
-	// rising edge
-	if (state)
+{	
+	if (state) // rising edge
 	{
 		m_vdp->screen_eof();
 	}
@@ -220,8 +159,9 @@ void truxton2_state::screen_vblank(int state)
 
 u32 truxton2_state::screen_update_truxton2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
 {
-	screen_update_toaplan2(screen, bitmap, cliprect);
-
+	bitmap.fill(0, cliprect);
+	m_custom_priority_bitmap.fill(0, cliprect);
+	m_vdp->render_vdp(bitmap, cliprect);
 	rectangle clip = cliprect;
 
 	/* it seems likely that flipx can be set per line! */
@@ -251,10 +191,7 @@ void truxton2_state::create_tx_tilemap(int dx, int dx_flipped)
 
 void truxton2_state::tx_gfxram_w(offs_t offset, u16 data, u16 mem_mask)
 {
-	/*** Dynamic GFX decoding for Truxton 2 / FixEight ***/
-
 	const u16 oldword = m_tx_gfxram[offset];
-
 	if (oldword != data)
 	{
 		COMBINE_DATA(&m_tx_gfxram[offset]);
@@ -262,23 +199,22 @@ void truxton2_state::tx_gfxram_w(offs_t offset, u16 data, u16 mem_mask)
 	}
 }
 
-VIDEO_START_MEMBER(truxton2_state,truxton2)
+void truxton2_state::video_start()
 {
-	VIDEO_START_CALL_MEMBER(toaplan2);
+	m_screen->register_screen_bitmap(m_custom_priority_bitmap);
+	m_vdp->custom_priority_bitmap = &m_custom_priority_bitmap;
 
-	/* Create the Text tilemap for this game */
 	m_gfxdecode->gfx(0)->set_source(reinterpret_cast<u8 *>(m_tx_gfxram.target()));
-
 	create_tx_tilemap(0x1d5, 0x16a);
 }
 
 
-static INPUT_PORTS_START( 2b )
+static INPUT_PORTS_START( base )
 	PORT_START("IN1")
-	TOAPLAN_JOY_UDLR_2_BUTTONS( 1 )
+	TOAPLAN_JOY_UDLR_3_BUTTONS( 1 )
 
 	PORT_START("IN2")
-	TOAPLAN_JOY_UDLR_2_BUTTONS( 2 )
+	TOAPLAN_JOY_UDLR_3_BUTTONS( 2 )
 
 	PORT_START("SYS")
 	PORT_BIT( 0x0001, IP_ACTIVE_HIGH, IPT_SERVICE1 )
@@ -301,19 +237,8 @@ static INPUT_PORTS_START( 2b )
 	PORT_BIT( 0x00fc, IP_ACTIVE_HIGH, IPT_UNKNOWN ) // Modified below
 INPUT_PORTS_END
 
-
-static INPUT_PORTS_START( 3b )
-	PORT_INCLUDE( 2b )
-
-	PORT_MODIFY("IN1")
-	TOAPLAN_JOY_UDLR_3_BUTTONS( 1 )
-
-	PORT_MODIFY("IN2")
-	TOAPLAN_JOY_UDLR_3_BUTTONS( 2 )
-INPUT_PORTS_END
-
 static INPUT_PORTS_START( truxton2 )
-	PORT_INCLUDE( 3b )
+	PORT_INCLUDE( base )
 
 	PORT_MODIFY("IN1")
 	PORT_BIT( 0x0080, IP_ACTIVE_HIGH, IPT_OTHER ) PORT_NAME("Fast Scrolling (Cheat)")
@@ -383,7 +308,7 @@ void truxton2_state::truxton2_68k_mem(address_map &map)
 	map(0x700006, 0x700007).portr("IN1");
 	map(0x700008, 0x700009).portr("IN2");
 	map(0x70000a, 0x70000b).portr("SYS");
-	map(0x700011, 0x700011).rw(m_oki[0], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
+	map(0x700011, 0x700011).rw(m_oki, FUNC(okim6295_device::read), FUNC(okim6295_device::write));
 	map(0x700014, 0x700017).rw("ymsnd", FUNC(ym2151_device::read), FUNC(ym2151_device::write)).umask16(0x00ff);
 	map(0x70001f, 0x70001f).w(FUNC(truxton2_state::coin_w));
 }
@@ -413,7 +338,6 @@ void truxton2_state::truxton2(machine_config &config)
 	/* basic machine hardware */
 	M68000(config, m_maincpu, 16_MHz_XTAL);         /* verified on pcb */
 	m_maincpu->set_addrmap(AS_PROGRAM, &truxton2_state::truxton2_68k_mem);
-	m_maincpu->reset_cb().set(FUNC(truxton2_state::reset));
 
 	/* video hardware */
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
@@ -430,8 +354,6 @@ void truxton2_state::truxton2(machine_config &config)
 	m_vdp->set_palette(m_palette);
 	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_2);
 
-	MCFG_VIDEO_START_OVERRIDE(truxton2_state,truxton2)
-
 	/* sound hardware */
 #ifdef TRUXTON2_STEREO  // music data is stereo...
 	SPEAKER(config, "lspeaker").front_left();
@@ -439,16 +361,16 @@ void truxton2_state::truxton2(machine_config &config)
 
 	YM2151(config, "ymsnd", 27_MHz_XTAL/8).add_route(0, "lspeaker", 0.5).add_route(1, "rspeaker", 0.5);
 
-	OKIM6295(config, m_oki[0], 16_MHz_XTAL/4, okim6295_device::PIN7_LOW);
-	m_oki[0]->add_route(ALL_OUTPUTS, "lspeaker", 0.5);
-	m_oki[0]->add_route(ALL_OUTPUTS, "rspeaker", 0.5);
+	OKIM6295(config, m_oki, 16_MHz_XTAL/4, okim6295_device::PIN7_LOW);
+	m_oki->add_route(ALL_OUTPUTS, "lspeaker", 0.5);
+	m_oki->add_route(ALL_OUTPUTS, "rspeaker", 0.5);
 #else   // ...but the hardware is mono
 	SPEAKER(config, "mono").front_center();
 
 	YM2151(config, "ymsnd", 27_MHz_XTAL/8).add_route(ALL_OUTPUTS, "mono", 0.5); // verified on PCB
 
-	OKIM6295(config, m_oki[0], 16_MHz_XTAL/4, okim6295_device::PIN7_LOW); // verified on PCB
-	m_oki[0]->add_route(ALL_OUTPUTS, "mono", 0.5);
+	OKIM6295(config, m_oki, 16_MHz_XTAL/4, okim6295_device::PIN7_LOW); // verified on PCB
+	m_oki->add_route(ALL_OUTPUTS, "mono", 0.5);
 #endif
 }
 
@@ -462,7 +384,7 @@ ROM_START( truxton2 )
 	ROM_LOAD( "tp024_4.bin", 0x000000, 0x100000, CRC(805c449e) SHA1(fdf985344145bd320b88b9b0c25e73066c9b2ada) )
 	ROM_LOAD( "tp024_3.bin", 0x100000, 0x100000, CRC(47587164) SHA1(bac493e2d5507286b984957b289c929335d27eaa) )
 
-	ROM_REGION( 0x80000, "oki1", 0 )         /* ADPCM Samples */
+	ROM_REGION( 0x80000, "oki", 0 )         /* ADPCM Samples */
 	ROM_LOAD( "tp024_2.bin", 0x00000, 0x80000, CRC(f2f6cae4) SHA1(bb4e8c36531bed97ced4696ca12fd40ede2531aa) )
 ROM_END
 
