@@ -1,0 +1,417 @@
+// license:BSD-3-Clause
+// copyright-holders:David Haywood
+
+#include "emu.h"
+#include "toaplan_v25_tables.h"
+
+#include "cpu/m68000/m68000.h"
+#include "machine/bankdev.h"
+#include "machine/eepromser.h"
+#include "machine/gen_latch.h"
+#include "machine/ticket.h"
+#include "machine/upd4992.h"
+#include "gp9001.h"
+#include "sound/okim6295.h"
+#include "emupal.h"
+#include "screen.h"
+#include "tilemap.h"
+
+
+#include "toaplipt.h"
+#include "gp9001.h"
+
+#include "cpu/m68000/m68000.h"
+#include "cpu/nec/v25.h"
+#include "cpu/z80/z80.h"
+#include "sound/okim6295.h"
+#include "sound/ymopm.h"
+
+#include "emupal.h"
+#include "screen.h"
+#include "speaker.h"
+#include "tilemap.h"
+
+class toaplan2_vfive_state : public driver_device
+{
+public:
+	toaplan2_vfive_state(const machine_config &mconfig, device_type type, const char *tag)
+		: driver_device(mconfig, type, tag)
+		, m_shared_ram(*this, "shared_ram")
+		, m_mainram(*this, "mainram")
+		, m_maincpu(*this, "maincpu")
+		, m_audiocpu(*this, "audiocpu")
+		, m_vdp(*this, "gp9001_%u", 0U)
+		, m_oki(*this, "oki%u", 1U)
+		, m_eeprom(*this, "eeprom")
+		, m_gfxdecode(*this, "gfxdecode")
+		, m_screen(*this, "screen")
+		, m_palette(*this, "palette")
+		, m_soundlatch(*this, "soundlatch%u", 1U)
+		, m_z80_rom(*this, "audiocpu")
+		, m_oki_rom(*this, "oki%u", 1U)
+		, m_okibank(*this, "okibank")
+	{ }
+	void vfive(machine_config &config);
+
+	void init_vfive();
+
+protected:
+	DECLARE_VIDEO_START(toaplan2);
+	u32 screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
+	void screen_vblank(int state);
+	void coin_sound_reset_w(u8 data);
+
+private:
+	void vfive_68k_mem(address_map &map) ATTR_COLD;
+	void vfive_v25_mem(address_map &map) ATTR_COLD;
+
+	u8 shared_ram_r(offs_t offset) { return m_shared_ram[offset]; }
+	void shared_ram_w(offs_t offset, u8 data) { m_shared_ram[offset] = data; }
+	u8 m_sound_reset_bit = 0; /* 0x20 for dogyuun/batsugun, 0x10 for vfive, 0x08 for fixeight */
+	void sound_reset_w(u8 data);
+	void coin_w(u8 data);
+	void toaplan2_reset(int state);
+
+	optional_shared_ptr<u8> m_shared_ram; // 8 bit RAM shared between 68K and sound CPU
+	optional_shared_ptr<u16> m_mainram;
+
+	required_device<m68000_base_device> m_maincpu;
+	optional_device<cpu_device> m_audiocpu;
+	optional_device_array<gp9001vdp_device, 2> m_vdp;
+	optional_device_array<okim6295_device, 2> m_oki;
+	optional_device<eeprom_serial_93cxx_device> m_eeprom;
+	optional_device<gfxdecode_device> m_gfxdecode;
+	required_device<screen_device> m_screen;
+	required_device<palette_device> m_palette;
+	optional_device_array<generic_latch_8_device, 4> m_soundlatch; // tekipaki, batrider, bgaregga, batsugun
+	optional_region_ptr<u8> m_z80_rom;
+	optional_region_ptr_array<u8, 2> m_oki_rom;
+	optional_memory_bank m_okibank;
+	bitmap_ind8 m_custom_priority_bitmap;
+	bitmap_ind16 m_secondary_render_bitmap;
+};
+
+
+void toaplan2_vfive_state::toaplan2_reset(int state)
+{
+	if (m_audiocpu != nullptr)
+		m_audiocpu->pulse_input_line(INPUT_LINE_RESET, attotime::zero);
+}
+
+void toaplan2_vfive_state::coin_w(u8 data) // MOVE TO DEVICE!
+{
+	/* +----------------+------ Bits 7-5 not used ------+--------------+ */
+	/* | Coin Lockout 2 | Coin Lockout 1 | Coin Count 2 | Coin Count 1 | */
+	/* |     Bit 3      |     Bit 2      |     Bit 1    |     Bit 0    | */
+
+	if (data & 0x0f)
+	{
+		machine().bookkeeping().coin_lockout_w(0, BIT(~data, 2));
+		machine().bookkeeping().coin_lockout_w(1, BIT(~data, 3));
+		machine().bookkeeping().coin_counter_w(0, BIT( data, 0));
+		machine().bookkeeping().coin_counter_w(1, BIT( data, 1));
+	}
+	else
+	{
+		machine().bookkeeping().coin_lockout_global_w(1);    // Lock all coin slots
+	}
+	if (data & 0xf0)
+	{
+		logerror("Writing unknown upper bits (%02x) to coin control\n",data);
+	}
+}
+
+
+void toaplan2_vfive_state::sound_reset_w(u8 data)
+{
+	m_audiocpu->set_input_line(INPUT_LINE_RESET, (data & m_sound_reset_bit) ? CLEAR_LINE : ASSERT_LINE);
+}
+
+VIDEO_START_MEMBER(toaplan2_vfive_state,toaplan2)
+{
+	/* our current VDP implementation needs this bitmap to work with */
+	m_screen->register_screen_bitmap(m_custom_priority_bitmap);
+
+	if (m_vdp[0] != nullptr)
+	{
+		m_secondary_render_bitmap.reset();
+		m_vdp[0]->custom_priority_bitmap = &m_custom_priority_bitmap;
+	}
+
+	if (m_vdp[1] != nullptr)
+	{
+		m_screen->register_screen_bitmap(m_secondary_render_bitmap);
+		m_vdp[1]->custom_priority_bitmap = &m_custom_priority_bitmap;
+	}
+}
+
+
+u32 toaplan2_vfive_state::screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
+{
+	bitmap.fill(0, cliprect);
+	m_custom_priority_bitmap.fill(0, cliprect);
+	m_vdp[0]->render_vdp(bitmap, cliprect);
+
+	return 0;
+}
+
+void toaplan2_vfive_state::screen_vblank(int state)
+{
+	// rising edge
+	if (state)
+	{
+		if (m_vdp[0]) m_vdp[0]->screen_eof();
+		if (m_vdp[1]) m_vdp[1]->screen_eof();
+	}
+}
+
+static INPUT_PORTS_START( toaplan2_2b )
+	PORT_START("IN1")
+	TOAPLAN_JOY_UDLR_2_BUTTONS( 1 )
+
+	PORT_START("IN2")
+	TOAPLAN_JOY_UDLR_2_BUTTONS( 2 )
+
+	PORT_START("SYS")
+	PORT_BIT( 0x0001, IP_ACTIVE_HIGH, IPT_SERVICE1 )
+	PORT_BIT( 0x0002, IP_ACTIVE_HIGH, IPT_TILT )
+	TOAPLAN_TEST_SWITCH( 0x04, IP_ACTIVE_HIGH )
+	PORT_BIT( 0x0008, IP_ACTIVE_HIGH, IPT_COIN1 )
+	PORT_BIT( 0x0010, IP_ACTIVE_HIGH, IPT_COIN2 )
+	PORT_BIT( 0x0020, IP_ACTIVE_HIGH, IPT_START1 )
+	PORT_BIT( 0x0040, IP_ACTIVE_HIGH, IPT_START2 )
+	PORT_BIT( 0x0080, IP_ACTIVE_HIGH, IPT_UNKNOWN )
+
+	PORT_START("DSWA")
+	TOAPLAN_MACHINE_NO_COCKTAIL_LOC(SW1)
+	// Coinage on bit mask 0x00f0
+	PORT_BIT( 0x00f0, IP_ACTIVE_HIGH, IPT_UNKNOWN ) // Modified below
+
+	PORT_START("DSWB")
+	TOAPLAN_DIFFICULTY_LOC(SW2)
+	// Per-game features on bit mask 0x00fc
+	PORT_BIT( 0x00fc, IP_ACTIVE_HIGH, IPT_UNKNOWN ) // Modified below
+INPUT_PORTS_END
+
+
+static INPUT_PORTS_START( grindstm )
+	PORT_INCLUDE( toaplan2_2b )
+
+	PORT_MODIFY("DSWA")
+	PORT_DIPNAME( 0x0001,   0x0000, DEF_STR( Cabinet ) )        PORT_DIPLOCATION("SW1:!1")
+	PORT_DIPSETTING(        0x0000, DEF_STR( Upright ) )
+	PORT_DIPSETTING(        0x0001, DEF_STR( Cocktail ) )
+	// Various features on bit mask 0x000e - see above
+	TOAPLAN_COINAGE_DUAL_LOC( JMPR, 0xe0, 0x80, SW1 )
+
+	PORT_MODIFY("DSWB")
+	// Difficulty on bit mask 0x0003 - see above
+	PORT_DIPNAME( 0x000c,   0x0000, DEF_STR( Bonus_Life ) )     PORT_DIPLOCATION("SW2:!3,!4")
+	PORT_DIPSETTING(        0x000c, DEF_STR( None ) )
+	PORT_DIPSETTING(        0x0008, "200k only" )
+	PORT_DIPSETTING(        0x0000, "300k and 800k" )
+	PORT_DIPSETTING(        0x0004, "300k and every 800k" )
+	PORT_DIPNAME( 0x0030,   0x0000, DEF_STR( Lives ) )          PORT_DIPLOCATION("SW2:!5,!6")
+	PORT_DIPSETTING(        0x0030, "1" )
+	PORT_DIPSETTING(        0x0020, "2" )
+	PORT_DIPSETTING(        0x0000, "3" )
+	PORT_DIPSETTING(        0x0010, "5" )
+	PORT_DIPNAME( 0x0040,   0x0000, "Invulnerability (Cheat)" )         PORT_DIPLOCATION("SW2:!7")
+	PORT_DIPSETTING(        0x0000, DEF_STR( Off ) )
+	PORT_DIPSETTING(        0x0040, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0080,   0x0000, DEF_STR( Allow_Continue ) ) PORT_DIPLOCATION("SW2:!8")
+	PORT_DIPSETTING(        0x0080, DEF_STR( No ) )
+	PORT_DIPSETTING(        0x0000, DEF_STR( Yes ) )
+
+	PORT_START("JMPR")
+	// Code in many places in game tests if region is >= 0xC. Effects on gameplay?
+	PORT_CONFNAME( 0x00f0,  0x0090, DEF_STR( Region ) ) //PORT_CONFLOCATION("JP:!4,!3,!2,!1")
+	PORT_CONFSETTING(       0x0090, DEF_STR( Europe ) )
+//  PORT_CONFSETTING(        0x0080, DEF_STR( Europe ) )
+	PORT_CONFSETTING(       0x00b0, DEF_STR( USA ) )
+	PORT_CONFSETTING(       0x00a0, "USA (American Sammy Corporation)" )
+	PORT_CONFSETTING(       0x0070, DEF_STR( Southeast_Asia ) )
+	PORT_CONFSETTING(       0x0060, "Southeast Asia (Charterfield)" )
+	PORT_CONFSETTING(       0x0050, DEF_STR( Taiwan ) )
+	PORT_CONFSETTING(       0x0040, "Taiwan (Anomoto International Inc.)" )
+	PORT_CONFSETTING(       0x0030, DEF_STR( Hong_Kong ) )
+	PORT_CONFSETTING(       0x0020, "Hong Kong (Charterfield)" )
+	PORT_CONFSETTING(       0x0010, DEF_STR( Korea ) )
+	PORT_CONFSETTING(       0x0000, "Korea (Unite Trading)" )
+	PORT_CONFSETTING(       0x00d0, "USA; different?" )
+	PORT_CONFSETTING(       0x00c0, "USA (American Sammy Corporation); different?" )
+	PORT_CONFSETTING(       0x00e0, "Korea; different?" )
+//  PORT_CONFSETTING(        0x00f0, "Korea; different?" )
+INPUT_PORTS_END
+
+
+static INPUT_PORTS_START( grindstma )
+	PORT_INCLUDE( grindstm )
+
+	PORT_MODIFY("JMPR")
+	// Code in many places in game tests if region is >= 0xC. Effects on gameplay?
+	PORT_CONFNAME( 0x00f0,  0x0090, DEF_STR( Region ) ) //PORT_CONFLOCATION("JP:!4,!3,!2,!1")
+	PORT_CONFSETTING(       0x0090, DEF_STR( Europe ) )
+//  PORT_CONFSETTING(        0x0080, DEF_STR( Europe ) )
+	PORT_CONFSETTING(       0x00b0, DEF_STR( USA ) )
+	PORT_CONFSETTING(       0x00a0, "USA (Atari Games Corp.)" )
+	PORT_CONFSETTING(       0x0070, DEF_STR( Southeast_Asia ) )
+	PORT_CONFSETTING(       0x0060, "Southeast Asia (Charterfield)" )
+	PORT_CONFSETTING(       0x0050, DEF_STR( Taiwan ) )
+//  PORT_CONFSETTING(        0x0040, DEF_STR( Taiwan ) )
+	PORT_CONFSETTING(       0x0030, DEF_STR( Hong_Kong ) )
+	PORT_CONFSETTING(       0x0020, "Hong Kong (Charterfield)" )
+	PORT_CONFSETTING(       0x0010, DEF_STR( Korea ) )
+	PORT_CONFSETTING(       0x0000, "Korea (Unite Trading)" )
+	PORT_CONFSETTING(       0x00c0, "Korea; different?" )
+//  PORT_CONFSETTING(        0x00d0, "Korea; different?" )
+//  PORT_CONFSETTING(        0x00e0, "Korea; different?" )
+//  PORT_CONFSETTING(        0x00f0, "Korea; different?" )
+INPUT_PORTS_END
+
+
+static INPUT_PORTS_START( vfive )
+	PORT_INCLUDE( grindstm )
+
+	PORT_MODIFY("DSWA")
+	TOAPLAN_COINAGE_JAPAN_LOC(SW1)
+
+	PORT_MODIFY("JMPR")
+	// Region is forced to Japan in this set.
+	// Code at $9238 tests bit 7.
+	// (Actually bit 3, but the V25 shifts the jumper byte before storing it in shared RAM)
+	// Runs twice near end of stage 1, once when each of the two boss tanks appears. Effect?
+	// Also, if bit 7 is set and bits 6-5 are clear, service mode wrongly shows European coinage
+	// (due to code left in from Grind Stormer: see code at $210A4 and lookup table at $211FA)
+	PORT_CONFNAME( 0x0030,  0x0000, "Copyright" )           //PORT_CONFLOCATION("JP:!4,!3")
+	PORT_CONFSETTING(       0x0000, "All Rights Reserved" )
+//  PORT_CONFSETTING(        0x0010, "All Rights Reserved" )
+//  PORT_CONFSETTING(        0x0020, "All Rights Reserved" )
+	PORT_CONFSETTING(       0x0030, "Licensed to Taito Corp." )
+	PORT_CONFNAME( 0x0040,  0x0000, DEF_STR( Unused ) )     //PORT_CONFLOCATION("JP:!2")
+	PORT_CONFSETTING(       0x0000, DEF_STR( Off ) )
+	PORT_CONFSETTING(       0x0040, DEF_STR( On ) )
+	PORT_CONFNAME( 0x0080,  0x0000, DEF_STR( Unknown ) )    //PORT_CONFLOCATION("JP:!1")
+	PORT_CONFSETTING(       0x0000, DEF_STR( Off ) )
+	PORT_CONFSETTING(       0x0080, DEF_STR( On ) )
+INPUT_PORTS_END
+
+void toaplan2_vfive_state::coin_sound_reset_w(u8 data)
+{
+	logerror("coin_sound_reset_w %02x\n",data);
+
+	coin_w(data & ~m_sound_reset_bit);
+	sound_reset_w(data & m_sound_reset_bit);
+}
+
+
+void toaplan2_vfive_state::vfive_68k_mem(address_map &map)
+{
+	map(0x000000, 0x07ffff).rom();
+	map(0x100000, 0x103fff).ram();
+//  map(0x200000, 0x20ffff).noprw(); // Read at startup by broken ROM checksum code - see notes
+	map(0x200010, 0x200011).portr("IN1");
+	map(0x200014, 0x200015).portr("IN2");
+	map(0x200018, 0x200019).portr("SYS");
+	map(0x20001d, 0x20001d).w(FUNC(toaplan2_vfive_state::coin_sound_reset_w)); // Coin count/lock + v25 reset line
+	map(0x210000, 0x21ffff).rw(FUNC(toaplan2_vfive_state::shared_ram_r), FUNC(toaplan2_vfive_state::shared_ram_w)).umask16(0x00ff);
+	map(0x300000, 0x30000d).rw(m_vdp[0], FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
+	map(0x400000, 0x400fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
+	map(0x700000, 0x700001).r(m_vdp[0], FUNC(gp9001vdp_device::vdpcount_r));
+}
+
+
+void toaplan2_vfive_state::vfive_v25_mem(address_map &map)
+{
+	map(0x00000, 0x00001).rw("ymsnd", FUNC(ym2151_device::read), FUNC(ym2151_device::write));
+	map(0x80000, 0x87fff).mirror(0x78000).ram().share(m_shared_ram);
+}
+
+
+void toaplan2_vfive_state::vfive(machine_config &config)
+{
+	/* basic machine hardware */
+	M68000(config, m_maincpu, 20_MHz_XTAL/2);   // verified on PCB
+	m_maincpu->set_addrmap(AS_PROGRAM, &toaplan2_vfive_state::vfive_68k_mem);
+	m_maincpu->reset_cb().set(FUNC(toaplan2_vfive_state::toaplan2_reset));
+
+	v25_device &audiocpu(V25(config, m_audiocpu, 20_MHz_XTAL/2)); // Verified on PCB, NEC V25 type Toaplan mark scratched out
+	audiocpu.set_addrmap(AS_PROGRAM, &toaplan2_vfive_state::vfive_v25_mem);
+	audiocpu.set_decryption_table(toaplan_v25_tables::nitro_decryption_table);
+	audiocpu.pt_in_cb().set_ioport("DSWA").exor(0xff);
+	audiocpu.p0_in_cb().set_ioport("DSWB").exor(0xff);
+	audiocpu.p1_in_cb().set_ioport("JMPR").exor(0xff);
+	audiocpu.p2_out_cb().set_nop();  // bit 0 is FAULT according to kbash schematic
+
+	/* video hardware */
+	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
+	m_screen->set_video_attributes(VIDEO_UPDATE_BEFORE_VBLANK);
+	m_screen->set_raw(27_MHz_XTAL/4, 432, 0, 320, 262, 0, 240); // verified on PCB
+	m_screen->set_screen_update(FUNC(toaplan2_vfive_state::screen_update_toaplan2));
+	m_screen->screen_vblank().set(FUNC(toaplan2_vfive_state::screen_vblank));
+	m_screen->set_palette(m_palette);
+
+	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, gp9001vdp_device::VDP_PALETTE_LENGTH);
+
+	GP9001_VDP(config, m_vdp[0], 27_MHz_XTAL);
+	m_vdp[0]->set_palette(m_palette);
+	m_vdp[0]->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
+
+	MCFG_VIDEO_START_OVERRIDE(toaplan2_vfive_state,toaplan2)
+
+	/* sound hardware */
+	SPEAKER(config, "mono").front_center();
+
+	YM2151(config, "ymsnd", 27_MHz_XTAL/8).add_route(ALL_OUTPUTS, "mono", 0.5); // verified on PCB
+}
+
+
+
+ROM_START( grindstm )
+	ROM_REGION( 0x080000, "maincpu", 0 )            /* Main 68K code */
+	ROM_LOAD16_WORD_SWAP( "01.bin", 0x000000, 0x080000, CRC(4923f790) SHA1(1c2d66b432d190d0fb6ac7ca0ec0687aea3ccbf4) )
+
+	/* Secondary CPU is a Toaplan marked chip, (TS-007-Spy  TOA PLAN) */
+	/* It's a NEC V25 (PLCC94) (encrypted program uploaded by main CPU) */
+
+	ROM_REGION( 0x200000, "gp9001_0", 0 )
+	ROM_LOAD( "tp027_02.bin", 0x000000, 0x100000, CRC(877b45e8) SHA1(b3ed8d8dbbe51a1919afc55d619d2b6771971493) )
+	ROM_LOAD( "tp027_03.bin", 0x100000, 0x100000, CRC(b1fc6362) SHA1(5e97e3cce31be57689d394a50178cda4d80cce5f) )
+ROM_END
+
+
+ROM_START( grindstma )
+	ROM_REGION( 0x080000, "maincpu", 0 )            /* Main 68K code */
+	ROM_LOAD16_WORD_SWAP( "tp027-01.rom", 0x000000, 0x080000, CRC(8d8c0392) SHA1(824dde274c8bef8a87c54d8ccdda7f0feb8d11e1) )
+
+	/* Secondary CPU is a Toaplan marked chip, (TS-007-Spy  TOA PLAN) */
+	/* It's a NEC V25 (PLCC94) (encrypted program uploaded by main CPU) */
+
+	ROM_REGION( 0x200000, "gp9001_0", 0 )
+	ROM_LOAD( "tp027_02.bin", 0x000000, 0x100000, CRC(877b45e8) SHA1(b3ed8d8dbbe51a1919afc55d619d2b6771971493) )
+	ROM_LOAD( "tp027_03.bin", 0x100000, 0x100000, CRC(b1fc6362) SHA1(5e97e3cce31be57689d394a50178cda4d80cce5f) )
+ROM_END
+
+
+ROM_START( vfive )
+	ROM_REGION( 0x080000, "maincpu", 0 )            /* Main 68K code */
+	ROM_LOAD16_WORD_SWAP( "tp027_01.bin", 0x000000, 0x080000, CRC(731d50f4) SHA1(794255d0a809cda9170f5bac473df9d7f0efdac8) )
+
+	/* Secondary CPU is a Toaplan marked chip, (TS-007-Spy  TOA PLAN) */
+	/* It's a NEC V25 (PLCC94) (encrypted program uploaded by main CPU) */
+
+	ROM_REGION( 0x200000, "gp9001_0", 0 )
+	ROM_LOAD( "tp027_02.bin", 0x000000, 0x100000, CRC(877b45e8) SHA1(b3ed8d8dbbe51a1919afc55d619d2b6771971493) )
+	ROM_LOAD( "tp027_03.bin", 0x100000, 0x100000, CRC(b1fc6362) SHA1(5e97e3cce31be57689d394a50178cda4d80cce5f) )
+ROM_END
+
+void toaplan2_vfive_state::init_vfive()
+{
+	m_sound_reset_bit = 0x10;
+}
+
+
+GAME( 1992, grindstm,    0,        vfive,      grindstm,   toaplan2_vfive_state, init_vfive,      ROT270, "Toaplan", "Grind Stormer",             MACHINE_SUPPORTS_SAVE )
+GAME( 1992, grindstma,   grindstm, vfive,      grindstma,  toaplan2_vfive_state, init_vfive,      ROT270, "Toaplan", "Grind Stormer (older set)", MACHINE_SUPPORTS_SAVE )
+GAME( 1993, vfive,       grindstm, vfive,      vfive,      toaplan2_vfive_state, init_vfive,      ROT270, "Toaplan", "V-Five (Japan)",            MACHINE_SUPPORTS_SAVE )
+
