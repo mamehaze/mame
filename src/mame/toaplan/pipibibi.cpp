@@ -2,36 +2,21 @@
 // copyright-holders:David Haywood
 
 #include "emu.h"
-#include "toaplan_v25_tables.h"
-
-#include "cpu/m68000/m68000.h"
-#include "machine/bankdev.h"
-#include "machine/eepromser.h"
-#include "machine/gen_latch.h"
-#include "machine/ticket.h"
-#include "machine/upd4992.h"
-#include "gp9001.h"
-#include "sound/okim6295.h"
-#include "emupal.h"
-#include "screen.h"
-#include "tilemap.h"
-
-
-#include "toaplipt.h"
-#include "gp9001.h"
-
-#include "cpu/m68000/m68000.h"
-#include "cpu/nec/v25.h"
-#include "cpu/z180/hd647180x.h"
-#include "cpu/z80/z80.h"
-#include "sound/okim6295.h"
-#include "sound/ymopm.h"
-#include "sound/ymopl.h"
 
 #include "emupal.h"
 #include "screen.h"
 #include "speaker.h"
 #include "tilemap.h"
+
+#include "toaplipt.h"
+#include "gp9001.h"
+
+#include "cpu/m68000/m68000.h"
+#include "cpu/z80/z80.h"
+#include "sound/ymopm.h"
+#include "sound/ymopl.h"
+
+
 
 class pipibibi_state : public driver_device
 {
@@ -39,73 +24,57 @@ public:
 	pipibibi_state(const machine_config &mconfig, device_type type, const char *tag)
 		: driver_device(mconfig, type, tag)
 		, m_shared_ram(*this, "shared_ram")
-		, m_mainram(*this, "mainram")
 		, m_maincpu(*this, "maincpu")
 		, m_audiocpu(*this, "audiocpu")
 		, m_vdp(*this, "gp9001")
-		, m_oki(*this, "oki%u", 1U)
-		, m_eeprom(*this, "eeprom")
-		, m_gfxdecode(*this, "gfxdecode")
 		, m_screen(*this, "screen")
 		, m_palette(*this, "palette")
-		, m_soundlatch(*this, "soundlatch%u", 1U)
-		, m_z80_rom(*this, "audiocpu")
-		, m_oki_rom(*this, "oki%u", 1U)
-		, m_okibank(*this, "okibank")
 	{ }
 
 	void pipibibs(machine_config &config);
-	void pipibibsbl(machine_config &config);
-	void tekipaki(machine_config &config);
 
-	void init_pipibibsbl();
-
-	int c2map_r();
-
-protected:
-	DECLARE_VIDEO_START(toaplan2);
+	virtual void video_start() override ATTR_COLD;
 	u32 screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
 	void screen_vblank(int state);
-	u8 tekipaki_cmdavailable_r();
 
-private:
 	u8 shared_ram_r(offs_t offset) { return m_shared_ram[offset]; }
 	void shared_ram_w(offs_t offset, u8 data) { m_shared_ram[offset] = data; }
 
-	void cpu_space_pipibibsbl_map(address_map &map) ATTR_COLD;
-	void pipibibi_bootleg_68k_mem(address_map &map) ATTR_COLD;
 	void pipibibs_68k_mem(address_map &map) ATTR_COLD;
 	void pipibibs_sound_z80_mem(address_map &map) ATTR_COLD;
-	void tekipaki_68k_mem(address_map &map) ATTR_COLD;
-	void hd647180_io_map(address_map &map) ATTR_COLD;
 	void coin_w(u8 data);
 	void reset(int state);
 
 	optional_shared_ptr<u8> m_shared_ram; // 8 bit RAM shared between 68K and sound CPU
-	optional_shared_ptr<u16> m_mainram;
 
 	required_device<m68000_base_device> m_maincpu;
 	optional_device<cpu_device> m_audiocpu;
 	required_device<gp9001vdp_device> m_vdp;
-	optional_device_array<okim6295_device, 2> m_oki;
-	optional_device<eeprom_serial_93cxx_device> m_eeprom;
-	optional_device<gfxdecode_device> m_gfxdecode;
 	required_device<screen_device> m_screen;
 	required_device<palette_device> m_palette;
-	optional_device_array<generic_latch_8_device, 4> m_soundlatch; // tekipaki, batrider, bgaregga, batsugun
-	optional_region_ptr<u8> m_z80_rom;
-	optional_region_ptr_array<u8, 2> m_oki_rom;
-	optional_memory_bank m_okibank;
 	bitmap_ind8 m_custom_priority_bitmap;
-	bitmap_ind16 m_secondary_render_bitmap;
+};
+
+class pipibibi_bootleg_state : public pipibibi_state
+{
+public:
+	pipibibi_bootleg_state(const machine_config &mconfig, device_type type, const char *tag)
+		: pipibibi_state(mconfig, type, tag)
+	{ }
+
+	void pipibibsbl(machine_config &config);
+
+	void init_pipibibsbl();
+
+private:
+	void cpu_space_pipibibsbl_map(address_map &map) ATTR_COLD;
+	void pipibibi_bootleg_68k_mem(address_map &map) ATTR_COLD;
 
 };
 
-
 void pipibibi_state::reset(int state)
 {
-	if (m_audiocpu != nullptr)
-		m_audiocpu->pulse_input_line(INPUT_LINE_RESET, attotime::zero);
+	m_audiocpu->pulse_input_line(INPUT_LINE_RESET, attotime::zero);
 }
 
 void pipibibi_state::coin_w(u8 data) // MOVE TO DEVICE!
@@ -132,13 +101,9 @@ void pipibibi_state::coin_w(u8 data) // MOVE TO DEVICE!
 }
 
 
-
-VIDEO_START_MEMBER(pipibibi_state,toaplan2)
+void pipibibi_state::video_start()
 {
-	/* our current VDP implementation needs this bitmap to work with */
 	m_screen->register_screen_bitmap(m_custom_priority_bitmap);
-
-	m_secondary_render_bitmap.reset();
 	m_vdp->custom_priority_bitmap = &m_custom_priority_bitmap;
 }
 
@@ -148,14 +113,12 @@ u32 pipibibi_state::screen_update_toaplan2(screen_device &screen, bitmap_ind16 &
 	bitmap.fill(0, cliprect);
 	m_custom_priority_bitmap.fill(0, cliprect);
 	m_vdp->render_vdp(bitmap, cliprect);
-
 	return 0;
 }
 
 void pipibibi_state::screen_vblank(int state)
 {
-	// rising edge
-	if (state)
+	if (state) // rising edge
 	{
 		m_vdp->screen_eof();
 	}
@@ -163,7 +126,7 @@ void pipibibi_state::screen_vblank(int state)
 
 
 
-static INPUT_PORTS_START( 2b )
+static INPUT_PORTS_START( base )
 	PORT_START("IN1")
 	TOAPLAN_JOY_UDLR_2_BUTTONS( 1 )
 
@@ -192,7 +155,7 @@ static INPUT_PORTS_START( 2b )
 INPUT_PORTS_END
 
 static INPUT_PORTS_START( pipibibs )
-	PORT_INCLUDE( 2b )
+	PORT_INCLUDE( base )
 
 	PORT_MODIFY("DSWA")
 	// Various features on bit mask 0x000f - see above
@@ -251,7 +214,6 @@ static INPUT_PORTS_START( pipibibsp )
 	PORT_CONFSETTING(       0x00007, "World (Ryouta Kikaku)" )
 INPUT_PORTS_END
 
-
 static INPUT_PORTS_START( pipibibsbl )
 	PORT_INCLUDE( pipibibs )
 
@@ -274,43 +236,6 @@ static INPUT_PORTS_START( pipibibsbl )
 	PORT_CONFSETTING(       0x00007, "World (Ryouta Kikaku)" )
 INPUT_PORTS_END
 
-int pipibibi_state::c2map_r()
-{
-	// For Teki Paki hardware
-	// bit 4 high signifies secondary CPU is ready
-	// bit 5 is tested low before V-Blank bit ???
-
-	return m_soundlatch[0]->pending_r() ? 0x00 : 0x01;
-}
-
-u8 pipibibi_state::tekipaki_cmdavailable_r()
-{
-	if (m_soundlatch[0]->pending_r()) return 0xff;
-	else return 0x00;
-};
-
-
-void pipibibi_state::tekipaki_68k_mem(address_map &map)
-{
-	map(0x000000, 0x01ffff).rom();
-	map(0x020000, 0x03ffff).rom();                     // extra for Whoopee
-	map(0x080000, 0x082fff).ram();
-	map(0x0c0000, 0x0c0fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
-	map(0x140000, 0x14000d).rw(m_vdp, FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
-	map(0x180000, 0x180001).portr("DSWA");
-	map(0x180010, 0x180011).portr("DSWB");
-	map(0x180020, 0x180021).portr("SYS");
-	map(0x180030, 0x180031).portr("JMPR");           // CPU 2 busy and Region Jumper block
-	map(0x180041, 0x180041).w(FUNC(pipibibi_state::coin_w));
-	map(0x180050, 0x180051).portr("IN1");
-	map(0x180060, 0x180061).portr("IN2");
-	map(0x180071, 0x180071).w(m_soundlatch[0], FUNC(generic_latch_8_device::write));
-}
-
-
-
-
-
 void pipibibi_state::pipibibs_68k_mem(address_map &map)
 {
 	map(0x000000, 0x03ffff).rom();
@@ -328,7 +253,7 @@ void pipibibi_state::pipibibs_68k_mem(address_map &map)
 }
 
 // odd scroll registers
-void pipibibi_state::pipibibi_bootleg_68k_mem(address_map &map)
+void pipibibi_bootleg_state::pipibibi_bootleg_68k_mem(address_map &map)
 {
 	map(0x000000, 0x03ffff).rom();
 	map(0x080000, 0x082fff).ram();
@@ -351,13 +276,11 @@ void pipibibi_state::pipibibi_bootleg_68k_mem(address_map &map)
 }
 
 
-void pipibibi_state::cpu_space_pipibibsbl_map(address_map &map)
+void pipibibi_bootleg_state::cpu_space_pipibibsbl_map(address_map &map)
 {
 	map(0xfffff0, 0xffffff).m(m_maincpu, FUNC(m68000_base_device::autovectors_map));
 	map(0xfffff9, 0xfffff9).lr8(NAME([this] () { m_maincpu->set_input_line(M68K_IRQ_4, CLEAR_LINE); return m68000_device::autovector(4); }));
 }
-
-
 
 void pipibibi_state::pipibibs_sound_z80_mem(address_map &map)
 {
@@ -365,65 +288,6 @@ void pipibibi_state::pipibibs_sound_z80_mem(address_map &map)
 	map(0x8000, 0x87ff).ram().share(m_shared_ram);
 	map(0xe000, 0xe001).rw("ymsnd", FUNC(ym3812_device::read), FUNC(ym3812_device::write));
 }
-
-void pipibibi_state::hd647180_io_map(address_map &map)
-{
-	map.global_mask(0xff);
-
-	map(0x60, 0x60).nopr();
-	map(0x70, 0x75).nopw(); // DDRs are written with the wrong upper addresses!
-	map(0x84, 0x84).r(m_soundlatch[0], FUNC(generic_latch_8_device::read));
-
-	map(0x82, 0x82).rw("ymsnd", FUNC(ym3812_device::status_r), FUNC(ym3812_device::address_w));
-	map(0x83, 0x83).w("ymsnd", FUNC(ym3812_device::data_w));
-}
-
-
-void pipibibi_state::tekipaki(machine_config &config)
-{
-	/* basic machine hardware */
-	M68000(config, m_maincpu, 10_MHz_XTAL);         // 10MHz Oscillator
-	m_maincpu->set_addrmap(AS_PROGRAM, &pipibibi_state::tekipaki_68k_mem);
-	m_maincpu->reset_cb().set(FUNC(pipibibi_state::reset));
-
-	hd647180x_device &audiocpu(HD647180X(config, m_audiocpu, 10_MHz_XTAL));
-	// 16k byte ROM and 512 byte RAM are internal
-	audiocpu.set_addrmap(AS_IO, &pipibibi_state::hd647180_io_map);
-	audiocpu.in_pa_callback().set(FUNC(pipibibi_state::tekipaki_cmdavailable_r));
-
-	config.set_maximum_quantum(attotime::from_hz(600));
-
-	/* video hardware */
-	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
-	m_screen->set_video_attributes(VIDEO_UPDATE_BEFORE_VBLANK);
-	m_screen->set_raw(27_MHz_XTAL/4, 432, 0, 320, 262, 0, 240);
-	//m_screen->set_refresh_hz(60);
-	//m_screen->set_size(432, 262);
-	//m_screen->set_visarea(0, 319, 0, 239);
-	m_screen->set_screen_update(FUNC(pipibibi_state::screen_update_toaplan2));
-	m_screen->screen_vblank().set(FUNC(pipibibi_state::screen_vblank));
-	m_screen->set_palette(m_palette);
-
-	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, gp9001vdp_device::VDP_PALETTE_LENGTH);
-
-	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
-	m_vdp->set_palette(m_palette);
-	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
-
-	MCFG_VIDEO_START_OVERRIDE(pipibibi_state,toaplan2)
-
-	/* sound hardware */
-	SPEAKER(config, "mono").front_center();
-
-	GENERIC_LATCH_8(config, m_soundlatch[0]);
-
-	ym3812_device &ymsnd(YM3812(config, "ymsnd", 27_MHz_XTAL/8));
-	ymsnd.irq_handler().set_inputline(m_audiocpu, 0);
-	ymsnd.add_route(ALL_OUTPUTS, "mono", 1.0);
-}
-
-
-
 
 void pipibibi_state::pipibibs(machine_config &config)
 {
@@ -441,9 +305,6 @@ void pipibibi_state::pipibibs(machine_config &config)
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
 	m_screen->set_video_attributes(VIDEO_UPDATE_BEFORE_VBLANK);
 	m_screen->set_raw(27_MHz_XTAL/4, 432, 0, 320, 262, 0, 240);
-	//m_screen->set_refresh_hz(60);
-	//m_screen->set_size(432, 262);
-	//m_screen->set_visarea(0, 319, 0, 239);
 	m_screen->set_screen_update(FUNC(pipibibi_state::screen_update_toaplan2));
 	m_screen->screen_vblank().set(FUNC(pipibibi_state::screen_vblank));
 	m_screen->set_palette(m_palette);
@@ -454,8 +315,6 @@ void pipibibi_state::pipibibs(machine_config &config)
 	m_vdp->set_palette(m_palette);
 	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
 
-	MCFG_VIDEO_START_OVERRIDE(pipibibi_state,toaplan2)
-
 	/* sound hardware */
 	SPEAKER(config, "mono").front_center();
 
@@ -465,16 +324,16 @@ void pipibibi_state::pipibibs(machine_config &config)
 }
 
 
-void pipibibi_state::pipibibsbl(machine_config &config)
+void pipibibi_bootleg_state::pipibibsbl(machine_config &config)
 {
 	/* basic machine hardware */
 	M68000(config, m_maincpu, 12_MHz_XTAL); // ??? (position labeled "68000-12" but 10 MHz-rated parts used)
-	m_maincpu->set_addrmap(AS_PROGRAM, &pipibibi_state::pipibibi_bootleg_68k_mem);
-	m_maincpu->set_addrmap(m68000_base_device::AS_CPU_SPACE, &pipibibi_state::cpu_space_pipibibsbl_map);
-	m_maincpu->reset_cb().set(FUNC(pipibibi_state::reset));
+	m_maincpu->set_addrmap(AS_PROGRAM, &pipibibi_bootleg_state::pipibibi_bootleg_68k_mem);
+	m_maincpu->set_addrmap(m68000_base_device::AS_CPU_SPACE, &pipibibi_bootleg_state::cpu_space_pipibibsbl_map);
+	m_maincpu->reset_cb().set(FUNC(pipibibi_bootleg_state::reset));
 
 	Z80(config, m_audiocpu, 12_MHz_XTAL / 2); // GoldStar Z8400B; clock source and divider unknown
-	m_audiocpu->set_addrmap(AS_PROGRAM, &pipibibi_state::pipibibs_sound_z80_mem);
+	m_audiocpu->set_addrmap(AS_PROGRAM, &pipibibi_bootleg_state::pipibibs_sound_z80_mem);
 
 	config.set_maximum_quantum(attotime::from_hz(600));
 
@@ -482,8 +341,8 @@ void pipibibi_state::pipibibsbl(machine_config &config)
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
 	m_screen->set_video_attributes(VIDEO_UPDATE_BEFORE_VBLANK);
 	m_screen->set_raw(28.322_MHz_XTAL / 4, 450, 0, 320, 262, 0, 240); // guess, but this is within NTSC parameters
-	m_screen->set_screen_update(FUNC(pipibibi_state::screen_update_toaplan2));
-	m_screen->screen_vblank().set(FUNC(pipibibi_state::screen_vblank));
+	m_screen->set_screen_update(FUNC(pipibibi_bootleg_state::screen_update_toaplan2));
+	m_screen->screen_vblank().set(FUNC(pipibibi_bootleg_state::screen_vblank));
 	m_screen->set_palette(m_palette);
 
 	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, gp9001vdp_device::VDP_PALETTE_LENGTH);
@@ -493,8 +352,6 @@ void pipibibi_state::pipibibsbl(machine_config &config)
 	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4, ASSERT_LINE);
 	m_vdp->set_bootleg_extra_offsets(0x01f, 0x1ef, 0x01d, 0x1ef, 0x01b, 0x1ef, 0x1d4, 0x1f7);
 
-	MCFG_VIDEO_START_OVERRIDE(pipibibi_state,toaplan2)
-
 	/* sound hardware */
 	SPEAKER(config, "mono").front_center();
 
@@ -503,7 +360,7 @@ void pipibibi_state::pipibibsbl(machine_config &config)
 	ymsnd.add_route(ALL_OUTPUTS, "mono", 1.0);
 }
 
-void pipibibi_state::init_pipibibsbl()
+void pipibibi_bootleg_state::init_pipibibsbl()
 {
 	u16 *ROM = (u16 *)(memregion("maincpu")->base());
 
@@ -638,8 +495,8 @@ GAME( 1991, pipibibs,    0,        pipibibs,     pipibibs,   pipibibi_state, emp
 GAME( 1991, pipibibsa,   pipibibs, pipibibs,     pipibibs,   pipibibi_state, empty_init,    ROT0,   "Toaplan",         "Pipi & Bibis / Whoopee!! (Z80 sound cpu, set 2)", MACHINE_SUPPORTS_SAVE )
 GAME( 1991, pipibibsp,   pipibibs, pipibibs,     pipibibsp,  pipibibi_state, empty_init,    ROT0,   "Toaplan",         "Pipi & Bibis / Whoopee!! (prototype)",            MACHINE_SUPPORTS_SAVE )
 
-GAME( 1991, pipibibsbl,  pipibibs, pipibibsbl,   pipibibsbl, pipibibi_state, init_pipibibsbl, ROT0, "bootleg (Ryouta Kikaku)", "Pipi & Bibis / Whoopee!! (Ryouta Kikaku bootleg, encrypted)", MACHINE_SUPPORTS_SAVE )
-GAME( 1991, pipibibsbl2, pipibibs, pipibibsbl,   pipibibsbl, pipibibi_state, empty_init,    ROT0,   "bootleg",                 "Pipi & Bibis / Whoopee!! (bootleg, decrypted)", MACHINE_NOT_WORKING | MACHINE_SUPPORTS_SAVE ) // different memory map, not scrambled
-GAME( 1991, pipibibsbl3, pipibibs, pipibibsbl,   pipibibsbl, pipibibi_state, empty_init,    ROT0,   "bootleg (Ryouta Kikaku)", "Pipi & Bibis / Whoopee!! (Ryouta Kikaku bootleg, decrypted)", MACHINE_SUPPORTS_SAVE )
+GAME( 1991, pipibibsbl,  pipibibs, pipibibsbl,   pipibibsbl, pipibibi_bootleg_state, init_pipibibsbl, ROT0, "bootleg (Ryouta Kikaku)", "Pipi & Bibis / Whoopee!! (Ryouta Kikaku bootleg, encrypted)", MACHINE_SUPPORTS_SAVE )
+GAME( 1991, pipibibsbl2, pipibibs, pipibibsbl,   pipibibsbl, pipibibi_bootleg_state, empty_init,    ROT0,   "bootleg",                 "Pipi & Bibis / Whoopee!! (bootleg, decrypted)", MACHINE_NOT_WORKING | MACHINE_SUPPORTS_SAVE ) // different memory map, not scrambled
+GAME( 1991, pipibibsbl3, pipibibs, pipibibsbl,   pipibibsbl, pipibibi_bootleg_state, empty_init,    ROT0,   "bootleg (Ryouta Kikaku)", "Pipi & Bibis / Whoopee!! (Ryouta Kikaku bootleg, decrypted)", MACHINE_SUPPORTS_SAVE )
 
 
