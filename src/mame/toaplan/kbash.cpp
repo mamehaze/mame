@@ -2,34 +2,21 @@
 // copyright-holders:David Haywood
 
 #include "emu.h"
-#include "toaplan_v25_tables.h"
-
-#include "cpu/m68000/m68000.h"
-#include "machine/bankdev.h"
-#include "machine/eepromser.h"
-#include "machine/gen_latch.h"
-#include "machine/ticket.h"
-#include "machine/upd4992.h"
-#include "gp9001.h"
-#include "sound/okim6295.h"
-#include "emupal.h"
-#include "screen.h"
-#include "tilemap.h"
-
-
-#include "toaplipt.h"
-#include "gp9001.h"
-
-#include "cpu/m68000/m68000.h"
-#include "cpu/nec/v25.h"
-#include "cpu/z80/z80.h"
-#include "sound/okim6295.h"
-#include "sound/ymopm.h"
 
 #include "emupal.h"
 #include "screen.h"
 #include "speaker.h"
 #include "tilemap.h"
+
+#include "toaplan_v25_tables.h"
+#include "toaplipt.h"
+#include "gp9001.h"
+
+#include "cpu/m68000/m68000.h"
+#include "cpu/nec/v25.h"
+#include "sound/okim6295.h"
+#include "sound/ymopm.h"
+
 
 class kbash_state : public driver_device
 {
@@ -37,37 +24,24 @@ public:
 	kbash_state(const machine_config &mconfig, device_type type, const char *tag)
 		: driver_device(mconfig, type, tag)
 		, m_shared_ram(*this, "shared_ram")
-		, m_mainram(*this, "mainram")
 		, m_maincpu(*this, "maincpu")
 		, m_audiocpu(*this, "audiocpu")
 		, m_vdp(*this, "gp9001")
-		, m_oki(*this, "oki%u", 1U)
-		, m_eeprom(*this, "eeprom")
-		, m_gfxdecode(*this, "gfxdecode")
+		, m_oki(*this, "oki")
 		, m_screen(*this, "screen")
 		, m_palette(*this, "palette")
-		, m_soundlatch(*this, "soundlatch%u", 1U)
-		, m_z80_rom(*this, "audiocpu")
-		, m_oki_rom(*this, "oki%u", 1U)
-		, m_okibank(*this, "okibank")
 	{ }
 
 	void kbash(machine_config &config);
-	void kbash2(machine_config &config);
 
-protected:
-	void kbash2_68k_mem(address_map &map) ATTR_COLD;
+
 	void kbash_68k_mem(address_map &map) ATTR_COLD;
 	void kbash_v25_mem(address_map &map) ATTR_COLD;
 
-	template<int Chip> void kbash_oki_bankswitch_w(u8 data);
+	void kbash_oki_bankswitch_w(u8 data);
 
-	DECLARE_VIDEO_START(toaplan2);
 	u32 screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
 	void screen_vblank(int state);
-
-
-private:
 
 	u8 shared_ram_r(offs_t offset) { return m_shared_ram[offset]; }
 	void shared_ram_w(offs_t offset, u8 data) { m_shared_ram[offset] = data; }
@@ -75,30 +49,38 @@ private:
 	void reset(int state);
 
 	optional_shared_ptr<u8> m_shared_ram; // 8 bit RAM shared between 68K and sound CPU
-	optional_shared_ptr<u16> m_mainram;
 
 	required_device<m68000_base_device> m_maincpu;
 	optional_device<cpu_device> m_audiocpu;
 	required_device<gp9001vdp_device> m_vdp;
-	optional_device_array<okim6295_device, 2> m_oki;
-	optional_device<eeprom_serial_93cxx_device> m_eeprom;
-	optional_device<gfxdecode_device> m_gfxdecode;
+	required_device<okim6295_device> m_oki;
 	required_device<screen_device> m_screen;
 	required_device<palette_device> m_palette;
-	optional_device_array<generic_latch_8_device, 4> m_soundlatch; // tekipaki, batrider, bgaregga, batsugun
-	optional_region_ptr<u8> m_z80_rom;
-	optional_region_ptr_array<u8, 2> m_oki_rom;
-	optional_memory_bank m_okibank;
 	bitmap_ind8 m_custom_priority_bitmap;
-	bitmap_ind16 m_secondary_render_bitmap;
+
+protected:
+	virtual void video_start() override ATTR_COLD;
 
 };
 
+class kbash2_state : public kbash_state
+{
+public:
+	kbash2_state(const machine_config &mconfig, device_type type, const char *tag)
+		: kbash_state(mconfig, type, tag)
+		, m_musicoki(*this, "musicoki")
+	{ }
+
+	void kbash2(machine_config &config);
+
+	void kbash2_68k_mem(address_map &map) ATTR_COLD;
+
+	optional_device<okim6295_device> m_musicoki;
+};
 
 void kbash_state::reset(int state)
 {
-	if (m_audiocpu != nullptr)
-		m_audiocpu->pulse_input_line(INPUT_LINE_RESET, attotime::zero);
+	m_audiocpu->pulse_input_line(INPUT_LINE_RESET, attotime::zero);
 }
 
 void kbash_state::coin_w(u8 data) // MOVE TO DEVICE!
@@ -126,48 +108,42 @@ void kbash_state::coin_w(u8 data) // MOVE TO DEVICE!
 
 
 
-VIDEO_START_MEMBER(kbash_state,toaplan2)
+void kbash_state::video_start()
 {
-	/* our current VDP implementation needs this bitmap to work with */
 	m_screen->register_screen_bitmap(m_custom_priority_bitmap);
-
-	m_secondary_render_bitmap.reset();
 	m_vdp->custom_priority_bitmap = &m_custom_priority_bitmap;
 }
-
 
 u32 kbash_state::screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
 {
 	bitmap.fill(0, cliprect);
 	m_custom_priority_bitmap.fill(0, cliprect);
 	m_vdp->render_vdp(bitmap, cliprect);
-
 	return 0;
 }
 
 void kbash_state::screen_vblank(int state)
 {
-	// rising edge
-	if (state)
+	if (state) // rising edge
 	{
 		m_vdp->screen_eof();
 	}
 }
 
 
-template<int Chip>
+
 void kbash_state::kbash_oki_bankswitch_w(u8 data)
 {
-	m_oki[Chip]->set_rom_bank(data & 1);
+	m_oki->set_rom_bank(data & 1);
 }
 
 
-static INPUT_PORTS_START( 2b )
+static INPUT_PORTS_START( base )
 	PORT_START("IN1")
-	TOAPLAN_JOY_UDLR_2_BUTTONS( 1 )
+	TOAPLAN_JOY_UDLR_3_BUTTONS( 1 )
 
 	PORT_START("IN2")
-	TOAPLAN_JOY_UDLR_2_BUTTONS( 2 )
+	TOAPLAN_JOY_UDLR_3_BUTTONS( 2 )
 
 	PORT_START("SYS")
 	PORT_BIT( 0x0001, IP_ACTIVE_HIGH, IPT_SERVICE1 )
@@ -191,18 +167,8 @@ static INPUT_PORTS_START( 2b )
 INPUT_PORTS_END
 
 
-static INPUT_PORTS_START( 3b )
-	PORT_INCLUDE( 2b )
-
-	PORT_MODIFY("IN1")
-	TOAPLAN_JOY_UDLR_3_BUTTONS( 1 )
-
-	PORT_MODIFY("IN2")
-	TOAPLAN_JOY_UDLR_3_BUTTONS( 2 )
-INPUT_PORTS_END
-
 static INPUT_PORTS_START( kbash )
-	PORT_INCLUDE( 3b )
+	PORT_INCLUDE( base )
 
 	PORT_MODIFY("DSWA")
 	PORT_DIPNAME( 0x0001,   0x0000, DEF_STR( Continue_Price ) ) PORT_DIPLOCATION("SW1:!1")
@@ -317,7 +283,7 @@ void kbash_state::kbash_68k_mem(address_map &map)
 }
 
 
-void kbash_state::kbash2_68k_mem(address_map &map)
+void kbash2_state::kbash2_68k_mem(address_map &map)
 {
 	map(0x000000, 0x07ffff).rom();
 	map(0x100000, 0x103fff).ram();
@@ -330,9 +296,9 @@ void kbash_state::kbash2_68k_mem(address_map &map)
 	map(0x200010, 0x200011).portr("IN1");
 	map(0x200014, 0x200015).portr("IN2");
 	map(0x200018, 0x200019).portr("SYS");
-	map(0x200021, 0x200021).rw(m_oki[1], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
-	map(0x200025, 0x200025).rw(m_oki[0], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
-	map(0x200029, 0x200029).w(FUNC(kbash_state::kbash_oki_bankswitch_w<0>));
+	map(0x200021, 0x200021).rw(m_musicoki, FUNC(okim6295_device::read), FUNC(okim6295_device::write));
+	map(0x200025, 0x200025).rw(m_oki, FUNC(okim6295_device::read), FUNC(okim6295_device::write));
+	map(0x200029, 0x200029).w(FUNC(kbash2_state::kbash_oki_bankswitch_w));
 	map(0x20002c, 0x20002d).r(m_vdp, FUNC(gp9001vdp_device::vdpcount_r));
 	map(0x300000, 0x30000d).rw(m_vdp, FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
 	map(0x400000, 0x400fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
@@ -342,7 +308,7 @@ void kbash_state::kbash_v25_mem(address_map &map)
 {
 	map(0x00000, 0x007ff).ram().share(m_shared_ram);
 	map(0x04000, 0x04001).rw("ymsnd", FUNC(ym2151_device::read), FUNC(ym2151_device::write));
-	map(0x04002, 0x04002).rw(m_oki[0], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
+	map(0x04002, 0x04002).rw(m_oki, FUNC(okim6295_device::read), FUNC(okim6295_device::write));
 	map(0x80000, 0x87fff).mirror(0x78000).rom().region("audiocpu", 0);
 }
 
@@ -367,9 +333,6 @@ void kbash_state::kbash(machine_config &config)
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
 	m_screen->set_video_attributes(VIDEO_UPDATE_BEFORE_VBLANK);
 	m_screen->set_raw(27_MHz_XTAL/4, 432, 0, 320, 262, 0, 240);
-	//m_screen->set_refresh_hz(60);
-	//m_screen->set_size(432, 262);
-	//m_screen->set_visarea(0, 319, 0, 239);
 	m_screen->set_screen_update(FUNC(kbash_state::screen_update_toaplan2));
 	m_screen->screen_vblank().set(FUNC(kbash_state::screen_vblank));
 	m_screen->set_palette(m_palette);
@@ -379,35 +342,29 @@ void kbash_state::kbash(machine_config &config)
 	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
 	m_vdp->set_palette(m_palette);
 	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
-
-	MCFG_VIDEO_START_OVERRIDE(kbash_state,toaplan2)
 
 	/* sound hardware */
 	SPEAKER(config, "mono").front_center();
 
 	YM2151(config, "ymsnd", 27_MHz_XTAL/8).add_route(ALL_OUTPUTS, "mono", 0.5);
 
-	OKIM6295(config, m_oki[0], 32_MHz_XTAL/32, okim6295_device::PIN7_HIGH);
-	m_oki[0]->add_route(ALL_OUTPUTS, "mono", 0.5);
+	OKIM6295(config, m_oki, 32_MHz_XTAL/32, okim6295_device::PIN7_HIGH);
+	m_oki->add_route(ALL_OUTPUTS, "mono", 0.5);
 }
 
 
-void kbash_state::kbash2(machine_config &config)
+void kbash2_state::kbash2(machine_config &config)
 {
 	/* basic machine hardware */
 	M68000(config, m_maincpu, 16_MHz_XTAL);         /* 16MHz Oscillator */
-	m_maincpu->set_addrmap(AS_PROGRAM, &kbash_state::kbash2_68k_mem);
-	m_maincpu->reset_cb().set(FUNC(kbash_state::reset));
+	m_maincpu->set_addrmap(AS_PROGRAM, &kbash2_state::kbash2_68k_mem);
 
 	/* video hardware */
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
 	m_screen->set_video_attributes(VIDEO_UPDATE_BEFORE_VBLANK);
 	m_screen->set_raw(27_MHz_XTAL/4, 432, 0, 320, 262, 0, 240);
-	//m_screen->set_refresh_hz(60);
-	//m_screen->set_size(432, 262);
-	//m_screen->set_visarea(0, 319, 0, 239);
-	m_screen->set_screen_update(FUNC(kbash_state::screen_update_toaplan2));
-	m_screen->screen_vblank().set(FUNC(kbash_state::screen_vblank));
+	m_screen->set_screen_update(FUNC(kbash2_state::screen_update_toaplan2));
+	m_screen->screen_vblank().set(FUNC(kbash2_state::screen_vblank));
 	m_screen->set_palette(m_palette);
 
 	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, gp9001vdp_device::VDP_PALETTE_LENGTH);
@@ -416,16 +373,14 @@ void kbash_state::kbash2(machine_config &config)
 	m_vdp->set_palette(m_palette);
 	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
 
-	MCFG_VIDEO_START_OVERRIDE(kbash_state,toaplan2)
-
 	/* sound hardware */
 	SPEAKER(config, "mono").front_center();
 
-	OKIM6295(config, m_oki[0], 16_MHz_XTAL/16, okim6295_device::PIN7_HIGH);
-	m_oki[0]->add_route(ALL_OUTPUTS, "mono", 0.5);
+	OKIM6295(config, m_oki, 16_MHz_XTAL/16, okim6295_device::PIN7_HIGH);
+	m_oki->add_route(ALL_OUTPUTS, "mono", 0.5);
 
-	OKIM6295(config, m_oki[1], 16_MHz_XTAL/16, okim6295_device::PIN7_HIGH);
-	m_oki[1]->add_route(ALL_OUTPUTS, "mono", 0.5);
+	OKIM6295(config, m_musicoki, 16_MHz_XTAL/16, okim6295_device::PIN7_HIGH);
+	m_musicoki->add_route(ALL_OUTPUTS, "mono", 0.5);
 }
 
 
@@ -445,7 +400,7 @@ ROM_START( kbash )
 	ROM_LOAD( "tp023_4.bin", 0x400000, 0x200000, CRC(e493c077) SHA1(0edcfb70483ad07206695d9283031b85cd198a36) )
 	ROM_LOAD( "tp023_6.bin", 0x600000, 0x200000, CRC(9084b50a) SHA1(03b58278619524d2f09a4b1c152d5e057e792a56) )
 
-	ROM_REGION( 0x40000, "oki1", 0 )     /* ADPCM Samples */
+	ROM_REGION( 0x40000, "oki", 0 )     /* ADPCM Samples */
 	ROM_LOAD( "tp023_7.bin", 0x00000, 0x40000, CRC(3732318f) SHA1(f0768459f5ad2dee53d408a0a5ae3a314864e667) )
 ROM_END
 
@@ -465,7 +420,7 @@ ROM_START( kbashk )
 	ROM_LOAD( "tp023_4.bin", 0x400000, 0x200000, CRC(e493c077) SHA1(0edcfb70483ad07206695d9283031b85cd198a36) )
 	ROM_LOAD( "tp023_6.bin", 0x600000, 0x200000, CRC(9084b50a) SHA1(03b58278619524d2f09a4b1c152d5e057e792a56) )
 
-	ROM_REGION( 0x40000, "oki1", 0 )     /* ADPCM Samples */
+	ROM_REGION( 0x40000, "oki", 0 )     /* ADPCM Samples */
 	ROM_LOAD( "tp023_7.bin", 0x00000, 0x40000, CRC(3732318f) SHA1(f0768459f5ad2dee53d408a0a5ae3a314864e667) )
 ROM_END
 
@@ -500,7 +455,7 @@ ROM_START( kbashp )
 	ROM_LOAD( "d.u3", 0x700000, 0x080000, CRC(40ac17d5) SHA1(140c67cf86ce545469fbe899b1f38c3a070908c9) )
 	ROM_LOAD( "f.u4", 0x780000, 0x080000, CRC(2ca4eb83) SHA1(0d7c4242a82aba49cafd96ee5b051918d1b23b08) )
 
-	ROM_REGION( 0x40000, "oki1", 0 )
+	ROM_REGION( 0x40000, "oki", 0 )
 	ROM_LOAD( "2m-nb-pcm.u40", 0x00000, 0x40000, CRC(3732318f) SHA1(f0768459f5ad2dee53d408a0a5ae3a314864e667) )
 ROM_END
 
@@ -552,10 +507,10 @@ ROM_START( kbash2 )
 	ROM_LOAD( "mecat-34", 0x000000, 0x400000, CRC(6be7b37e) SHA1(13160ad0712fee932bb98cc226e651895b19228a) )
 	ROM_LOAD( "mecat-12", 0x400000, 0x400000, CRC(49e46b1f) SHA1(d12b12696a8473eb34f3cd247ab060289a6c0e9c) )
 
-	ROM_REGION( 0x80000, "oki1", 0 )            /* ADPCM Music */
+	ROM_REGION( 0x80000, "oki", 0 )            /* ADPCM Music */
 	ROM_LOAD( "mecat-s", 0x00000, 0x80000, CRC(3eb7adf4) SHA1(b0e6e99726b854858bd0e69eb77f12b9664b35e6) )
 
-	ROM_REGION( 0x40000, "oki2", 0 )            /* ADPCM Samples */
+	ROM_REGION( 0x40000, "musicoki", 0 )            /* ADPCM Samples */
 	ROM_LOAD( "eprom",   0x00000, 0x40000, CRC(31115cb9) SHA1(c79ea01bd865e2fc3aaab3ff05483c8fd27e5c98) )
 
 	ROM_REGION( 0x10000, "user1", 0 )           /* ??? Some sort of table  - same as in pipibibi*/
@@ -567,4 +522,4 @@ GAME( 1993, kbash,       0,        kbash,        kbash,      kbash_state, empty_
 GAME( 1993, kbashk,      kbash,    kbash,        kbashk,     kbash_state, empty_init,    ROT0,   "Toaplan / Taito", "Knuckle Bash (Korean PCB)",    MACHINE_SUPPORTS_SAVE ) // Japan region has optional Taito license, maybe the original Japan release?
 GAME( 1993, kbashp,      kbash,    kbash,        kbash,      kbash_state, empty_init,    ROT0,   "Toaplan / Taito", "Knuckle Bash (location test)", MACHINE_SUPPORTS_SAVE )
 
-GAME( 1999, kbash2,      0,        kbash2,       kbash2,     kbash_state, empty_init,    ROT0,   "bootleg",         "Knuckle Bash 2 (bootleg)",  MACHINE_SUPPORTS_SAVE )
+GAME( 1999, kbash2,      0,        kbash2,       kbash2,     kbash2_state, empty_init,    ROT0,   "bootleg",         "Knuckle Bash 2 (bootleg)",  MACHINE_SUPPORTS_SAVE )
