@@ -3,31 +3,19 @@
 
 #include "emu.h"
 
-#include "cpu/m68000/m68000.h"
-#include "machine/bankdev.h"
-#include "machine/eepromser.h"
-#include "machine/gen_latch.h"
-#include "machine/ticket.h"
-#include "machine/upd4992.h"
-#include "gp9001.h"
-#include "sound/okim6295.h"
-#include "emupal.h"
-#include "screen.h"
-#include "tilemap.h"
-
-
 #include "toaplipt.h"
 #include "gp9001.h"
-
-#include "cpu/m68000/m68000.h"
-#include "machine/nvram.h"
-#include "sound/okim6295.h"
-#include "sound/ymopm.h"
 
 #include "emupal.h"
 #include "screen.h"
 #include "speaker.h"
 #include "tilemap.h"
+
+#include "cpu/m68000/m68000.h"
+#include "machine/nvram.h"
+#include "machine/ticket.h"
+#include "machine/upd4992.h"
+#include "sound/okim6295.h"
 
 /*****************************************************************************
 
@@ -42,89 +30,50 @@ To reset the NVRAM in Othello Derby, hold P1 Button 1 down while booting.
 
 *****************************************************************************/
 
-// with RTC, hopper
-class pwrkick_state : public driver_device
-{
-public:
-	pwrkick_state(const machine_config &mconfig, device_type type, const char *tag)
-		: driver_device(mconfig, type, tag)
-		, m_rtc(*this, "rtc")
-		, m_hopper(*this, "hopper")
-	{ }
 
-
-	required_device<upd4992_device> m_rtc;
-	optional_device<ticket_dispenser_device> m_hopper;
-
-	void pwrkick_coin_w(u8 data);
-	void pwrkick_coin_lockout_w(u8 data);
-
-};
-
-
-class sunwise_state : public pwrkick_state
+class sunwise_state : public driver_device
 {
 public:
 	sunwise_state(const machine_config &mconfig, device_type type, const char *tag)
-		: pwrkick_state(mconfig, type, tag)
-		, m_shared_ram(*this, "shared_ram")
-		, m_mainram(*this, "mainram")
+		: driver_device(mconfig, type, tag)
+		, m_rtc(*this, "rtc")
+		, m_hopper(*this, "hopper")
 		, m_maincpu(*this, "maincpu")
-		, m_audiocpu(*this, "audiocpu")
 		, m_vdp(*this, "gp9001")
-		, m_oki(*this, "oki%u", 1U)
-		, m_eeprom(*this, "eeprom")
-		, m_gfxdecode(*this, "gfxdecode")
+		, m_oki(*this, "oki")
 		, m_screen(*this, "screen")
 		, m_palette(*this, "palette")
-		, m_soundlatch(*this, "soundlatch%u", 1U)
-		, m_z80_rom(*this, "audiocpu")
-		, m_oki_rom(*this, "oki%u", 1U)
-		, m_okibank(*this, "okibank")
 	{ }
 
 	void othldrby(machine_config &config);
 	void pwrkick(machine_config &config);
 
 protected:
+	virtual void video_start() override ATTR_COLD;
+
 	void othldrby_68k_mem(address_map &map) ATTR_COLD;
 	void pwrkick_68k_mem(address_map &map) ATTR_COLD;
 
-	DECLARE_VIDEO_START(toaplan2);
 	u32 screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
 	void screen_vblank(int state);
 
-
-	template<int Chip> void sw_oki_bankswitch_w(u8 data);
+	void sw_oki_bankswitch_w(u8 data);
 private:
 	void coin_w(u8 data);
-	void reset(int state);
 
-	optional_shared_ptr<u8> m_shared_ram; // 8 bit RAM shared between 68K and sound CPU
-	optional_shared_ptr<u16> m_mainram;
+	void pwrkick_coin_w(u8 data);
+	void pwrkick_coin_lockout_w(u8 data);
+
+	required_device<upd4992_device> m_rtc;
+	optional_device<ticket_dispenser_device> m_hopper;
 
 	required_device<m68000_base_device> m_maincpu;
-	optional_device<cpu_device> m_audiocpu;
 	required_device<gp9001vdp_device> m_vdp;
-	optional_device_array<okim6295_device, 2> m_oki;
-	optional_device<eeprom_serial_93cxx_device> m_eeprom;
-	optional_device<gfxdecode_device> m_gfxdecode;
+	optional_device<okim6295_device> m_oki;
 	required_device<screen_device> m_screen;
 	required_device<palette_device> m_palette;
-	optional_device_array<generic_latch_8_device, 4> m_soundlatch; // tekipaki, batrider, bgaregga, batsugun
-	optional_region_ptr<u8> m_z80_rom;
-	optional_region_ptr_array<u8, 2> m_oki_rom;
-	optional_memory_bank m_okibank;
 	bitmap_ind8 m_custom_priority_bitmap;
-	bitmap_ind16 m_secondary_render_bitmap;
 };
-
-
-void sunwise_state::reset(int state)
-{
-	if (m_audiocpu != nullptr)
-		m_audiocpu->pulse_input_line(INPUT_LINE_RESET, attotime::zero);
-}
 
 void sunwise_state::coin_w(u8 data) // MOVE TO DEVICE!
 {
@@ -152,12 +101,9 @@ void sunwise_state::coin_w(u8 data) // MOVE TO DEVICE!
 
 
 
-VIDEO_START_MEMBER(sunwise_state,toaplan2)
+void sunwise_state::video_start()
 {
-	/* our current VDP implementation needs this bitmap to work with */
 	m_screen->register_screen_bitmap(m_custom_priority_bitmap);
-
-	m_secondary_render_bitmap.reset();
 	m_vdp->custom_priority_bitmap = &m_custom_priority_bitmap;
 }
 
@@ -167,23 +113,20 @@ u32 sunwise_state::screen_update_toaplan2(screen_device &screen, bitmap_ind16 &b
 	bitmap.fill(0, cliprect);
 	m_custom_priority_bitmap.fill(0, cliprect);
 	m_vdp->render_vdp(bitmap, cliprect);
-
 	return 0;
 }
 
 void sunwise_state::screen_vblank(int state)
 {
-	// rising edge
-	if (state)
+	if (state) // rising edge
 	{
 		m_vdp->screen_eof();
 	}
 }
 
-template<int Chip>
 void sunwise_state::sw_oki_bankswitch_w(u8 data)
 {
-	m_oki[Chip]->set_rom_bank(data & 1);
+	m_oki->set_rom_bank(data & 1);
 }
 
 
@@ -386,7 +329,7 @@ static INPUT_PORTS_START( 2b )
 INPUT_PORTS_END
 
 
-static INPUT_PORTS_START( 3b )
+static INPUT_PORTS_START( base )
 	PORT_INCLUDE( 2b )
 
 	PORT_MODIFY("IN1")
@@ -398,7 +341,7 @@ INPUT_PORTS_END
 
 
 static INPUT_PORTS_START( othldrby )
-	PORT_INCLUDE( 3b )
+	PORT_INCLUDE( base )
 
 	PORT_MODIFY("SYS")
 	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_COIN1 ) PORT_IMPULSE(1)
@@ -453,7 +396,7 @@ static INPUT_PORTS_START( othldrby )
 INPUT_PORTS_END
 
 
-void pwrkick_state::pwrkick_coin_w(u8 data)
+void sunwise_state::pwrkick_coin_w(u8 data)
 {
 	machine().bookkeeping().coin_counter_w(0, BIT(data, 1)); // medal
 	machine().bookkeeping().coin_counter_w(1, BIT(data, 3)); // 10 yen
@@ -461,7 +404,7 @@ void pwrkick_state::pwrkick_coin_w(u8 data)
 	m_hopper->motor_w(BIT(data, 7));
 }
 
-void pwrkick_state::pwrkick_coin_lockout_w(u8 data)
+void sunwise_state::pwrkick_coin_lockout_w(u8 data)
 {
 	machine().bookkeeping().coin_lockout_w(0, BIT(~data, 2));
 	machine().bookkeeping().coin_lockout_w(1, BIT(~data, 2));
@@ -478,7 +421,7 @@ void sunwise_state::pwrkick_68k_mem(address_map &map)
 	map(0x200000, 0x20000f).rw(m_rtc, FUNC(upd4992_device::read), FUNC(upd4992_device::write)).umask16(0x00ff);
 	map(0x300000, 0x30000d).rw(m_vdp, FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
 	map(0x400000, 0x400fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
-	map(0x600001, 0x600001).rw(m_oki[0], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
+	map(0x600001, 0x600001).rw(m_oki, FUNC(okim6295_device::read), FUNC(okim6295_device::write));
 
 	map(0x700000, 0x700001).r(m_vdp, FUNC(gp9001vdp_device::vdpcount_r));
 	map(0x700004, 0x700005).portr("DSWA");
@@ -487,7 +430,7 @@ void sunwise_state::pwrkick_68k_mem(address_map &map)
 	map(0x700014, 0x700015).portr("IN2");
 	map(0x700018, 0x700019).portr("DSWC");
 	map(0x70001c, 0x70001d).portr("SYS");
-	map(0x700031, 0x700031).w(FUNC(sunwise_state::sw_oki_bankswitch_w<0>));
+	map(0x700031, 0x700031).w(FUNC(sunwise_state::sw_oki_bankswitch_w));
 	map(0x700035, 0x700035).w(FUNC(sunwise_state::pwrkick_coin_w));
 	map(0x700039, 0x700039).w(FUNC(sunwise_state::pwrkick_coin_lockout_w));
 }
@@ -501,7 +444,7 @@ void sunwise_state::othldrby_68k_mem(address_map &map)
 	map(0x200000, 0x20000f).rw(m_rtc, FUNC(upd4992_device::read), FUNC(upd4992_device::write)).umask16(0x00ff);
 	map(0x300000, 0x30000d).rw(m_vdp, FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
 	map(0x400000, 0x400fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
-	map(0x600001, 0x600001).rw(m_oki[0], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
+	map(0x600001, 0x600001).rw(m_oki, FUNC(okim6295_device::read), FUNC(okim6295_device::write));
 
 	map(0x700000, 0x700001).r(m_vdp, FUNC(gp9001vdp_device::vdpcount_r));
 	map(0x700004, 0x700005).portr("DSWA");
@@ -509,7 +452,7 @@ void sunwise_state::othldrby_68k_mem(address_map &map)
 	map(0x70000c, 0x70000d).portr("IN1");
 	map(0x700010, 0x700011).portr("IN2");
 	map(0x70001c, 0x70001d).portr("SYS");
-	map(0x700031, 0x700031).w(FUNC(sunwise_state::sw_oki_bankswitch_w<0>));
+	map(0x700031, 0x700031).w(FUNC(sunwise_state::sw_oki_bankswitch_w));
 	map(0x700035, 0x700035).w(FUNC(sunwise_state::coin_w));
 }
 
@@ -519,7 +462,6 @@ void sunwise_state::pwrkick(machine_config &config) // Sunwise SW931201-1 PCB (2
 	/* basic machine hardware */
 	M68000(config, m_maincpu, 20_MHz_XTAL/2); // verified on PCB
 	m_maincpu->set_addrmap(AS_PROGRAM, &sunwise_state::pwrkick_68k_mem);
-	m_maincpu->reset_cb().set(FUNC(sunwise_state::reset));
 
 	UPD4992(config, m_rtc, 32.768_kHz_XTAL);
 
@@ -541,13 +483,11 @@ void sunwise_state::pwrkick(machine_config &config) // Sunwise SW931201-1 PCB (2
 	m_vdp->set_palette(m_palette);
 	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
 
-	MCFG_VIDEO_START_OVERRIDE(sunwise_state,toaplan2)
-
 	/* sound hardware */
 	SPEAKER(config, "mono").front_center();
 	// empty YM2151 socket
-	OKIM6295(config, m_oki[0], 16_MHz_XTAL/4, okim6295_device::PIN7_LOW); // verified on PCB
-	m_oki[0]->add_route(ALL_OUTPUTS, "mono", 0.5);
+	OKIM6295(config, m_oki, 16_MHz_XTAL/4, okim6295_device::PIN7_LOW); // verified on PCB
+	m_oki->add_route(ALL_OUTPUTS, "mono", 0.5);
 }
 
 void sunwise_state::othldrby(machine_config &config) // Sunwise S951060-VGP PCB (27.000MHz, 20.000MHz & 16.000MHz OSCs)
@@ -555,7 +495,6 @@ void sunwise_state::othldrby(machine_config &config) // Sunwise S951060-VGP PCB 
 	/* basic machine hardware */
 	M68000(config, m_maincpu, 20_MHz_XTAL/2); // assumed same as pwrkick
 	m_maincpu->set_addrmap(AS_PROGRAM, &sunwise_state::othldrby_68k_mem);
-	m_maincpu->reset_cb().set(FUNC(sunwise_state::reset));
 
 	UPD4992(config, m_rtc, 32.768_kHz_XTAL);
 
@@ -575,13 +514,11 @@ void sunwise_state::othldrby(machine_config &config) // Sunwise S951060-VGP PCB 
 	m_vdp->set_palette(m_palette);
 	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
 
-	MCFG_VIDEO_START_OVERRIDE(sunwise_state,toaplan2)
-
 	/* sound hardware */
 	SPEAKER(config, "mono").front_center();
 
-	OKIM6295(config, m_oki[0], 16_MHz_XTAL/4, okim6295_device::PIN7_LOW); // assumed same as pwrkick
-	m_oki[0]->add_route(ALL_OUTPUTS, "mono", 0.5);
+	OKIM6295(config, m_oki, 16_MHz_XTAL/4, okim6295_device::PIN7_LOW); // assumed same as pwrkick
+	m_oki->add_route(ALL_OUTPUTS, "mono", 0.5);
 }
 
 
@@ -593,7 +530,7 @@ ROM_START( pwrkick ) // Sunwise SW931201-1 PCB - 8-liner connections
 	ROM_LOAD( "2.u26", 0x000000, 0x080000, CRC(a190eaea) SHA1(2c7b8c8026873e0f591fbcbc2e72b196ef84e162) )
 	ROM_LOAD( "3.u27", 0x080000, 0x080000, CRC(0b81e038) SHA1(8376617ae519a8ef604f20b26e941aa5b8066602) )
 
-	ROM_REGION( 0x80000, "oki1", ROMREGION_ERASE00 )
+	ROM_REGION( 0x80000, "oki", ROMREGION_ERASE00 )
 	ROM_LOAD( "4.u33", 0x000000, 0x080000, CRC(3ab742f1) SHA1(ce8ca02ca57fd77872e421ce601afd017d3518a0) )
 ROM_END
 
@@ -652,7 +589,7 @@ ROM_START( burgkids ) // Sunwise SW931201-1 PCB - 8-liner connections
 	ROM_LOAD( "ffk2.u26", 0x000000, 0x080000, CRC(09f7b0ae) SHA1(f340f27a601ff89f143398263d822b8f340eea6e) )
 	ROM_LOAD( "ffk3.u27", 0x080000, 0x080000, CRC(63c761bc) SHA1(f0ee1dc6aaeacff23e55d072102b814c7ef30550) )
 
-	ROM_REGION( 0x80000, "oki1", ROMREGION_ERASE00 )
+	ROM_REGION( 0x80000, "oki", ROMREGION_ERASE00 )
 	ROM_LOAD( "ffk4.u33", 0x000000, 0x080000,  CRC(3b032d4f) SHA1(69056bf205aadf6c9fee56ce396b11a5187caa03) )
 ROM_END
 
@@ -664,7 +601,7 @@ ROM_START( othldrby ) // Sunwise S951060-VGP PCB - JAMMA compliant (components i
 	ROM_LOAD( "db0-r2.u26", 0x000000, 0x200000, CRC(4efff265) SHA1(4cd239ff42f532495946cb52bd1fee412f84e192) ) // mask ROMs
 	ROM_LOAD( "db0-r3.u27", 0x200000, 0x200000, CRC(5c142b38) SHA1(5466a8b061a0f2545493de0f96fd4387beea276a) )
 
-	ROM_REGION( 0x080000, "oki1", 0 )    /* OKIM6295 samples */
+	ROM_REGION( 0x080000, "oki", 0 )    /* OKIM6295 samples */
 	ROM_LOAD( "sunwise_db0_4.u33", 0x00000, 0x80000, CRC(a9701868) SHA1(9ee89556666d358e8d3915622573b3ba660048b8) )
 ROM_END
 
