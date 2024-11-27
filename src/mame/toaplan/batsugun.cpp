@@ -404,9 +404,6 @@ void batsugun_state::batsugun(machine_config &config)
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
 	m_screen->set_video_attributes(VIDEO_UPDATE_BEFORE_VBLANK);
 	m_screen->set_raw(27_MHz_XTAL/4, 432, 0, 320, 262, 0, 240);
-	//m_screen->set_refresh_hz(60);
-	//m_screen->set_size(432, 262);
-	//m_screen->set_visarea(0, 319, 0, 239);
 	m_screen->set_screen_update(FUNC(batsugun_state::screen_update_batsugun));
 	m_screen->screen_vblank().set(FUNC(batsugun_state::screen_vblank));
 	m_screen->set_palette(m_palette);
