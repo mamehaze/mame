@@ -40,7 +40,7 @@ public:
 		, m_mainram(*this, "mainram")
 		, m_maincpu(*this, "maincpu")
 		, m_audiocpu(*this, "audiocpu")
-		, m_vdp(*this, "gp9001_%u", 0U)
+		, m_vdp(*this, "gp9001")
 		, m_oki(*this, "oki%u", 1U)
 		, m_eeprom(*this, "eeprom")
 		, m_gfxdecode(*this, "gfxdecode")
@@ -77,7 +77,7 @@ private:
 
 	required_device<m68000_base_device> m_maincpu;
 	optional_device<cpu_device> m_audiocpu;
-	optional_device_array<gp9001vdp_device, 2> m_vdp;
+	required_device<gp9001vdp_device> m_vdp;
 	optional_device_array<okim6295_device, 2> m_oki;
 	optional_device<eeprom_serial_93cxx_device> m_eeprom;
 	optional_device<gfxdecode_device> m_gfxdecode;
@@ -132,17 +132,8 @@ VIDEO_START_MEMBER(vfive_state,toaplan2)
 	/* our current VDP implementation needs this bitmap to work with */
 	m_screen->register_screen_bitmap(m_custom_priority_bitmap);
 
-	if (m_vdp[0] != nullptr)
-	{
-		m_secondary_render_bitmap.reset();
-		m_vdp[0]->custom_priority_bitmap = &m_custom_priority_bitmap;
-	}
-
-	if (m_vdp[1] != nullptr)
-	{
-		m_screen->register_screen_bitmap(m_secondary_render_bitmap);
-		m_vdp[1]->custom_priority_bitmap = &m_custom_priority_bitmap;
-	}
+	m_secondary_render_bitmap.reset();
+	m_vdp->custom_priority_bitmap = &m_custom_priority_bitmap;
 }
 
 
@@ -150,7 +141,7 @@ u32 vfive_state::screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bit
 {
 	bitmap.fill(0, cliprect);
 	m_custom_priority_bitmap.fill(0, cliprect);
-	m_vdp[0]->render_vdp(bitmap, cliprect);
+	m_vdp->render_vdp(bitmap, cliprect);
 
 	return 0;
 }
@@ -160,10 +151,10 @@ void vfive_state::screen_vblank(int state)
 	// rising edge
 	if (state)
 	{
-		if (m_vdp[0]) m_vdp[0]->screen_eof();
-		if (m_vdp[1]) m_vdp[1]->screen_eof();
+		m_vdp->screen_eof();
 	}
 }
+
 
 static INPUT_PORTS_START( 2b )
 	PORT_START("IN1")
@@ -315,9 +306,9 @@ void vfive_state::vfive_68k_mem(address_map &map)
 	map(0x200018, 0x200019).portr("SYS");
 	map(0x20001d, 0x20001d).w(FUNC(vfive_state::coin_sound_reset_w)); // Coin count/lock + v25 reset line
 	map(0x210000, 0x21ffff).rw(FUNC(vfive_state::shared_ram_r), FUNC(vfive_state::shared_ram_w)).umask16(0x00ff);
-	map(0x300000, 0x30000d).rw(m_vdp[0], FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
+	map(0x300000, 0x30000d).rw(m_vdp, FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
 	map(0x400000, 0x400fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
-	map(0x700000, 0x700001).r(m_vdp[0], FUNC(gp9001vdp_device::vdpcount_r));
+	map(0x700000, 0x700001).r(m_vdp, FUNC(gp9001vdp_device::vdpcount_r));
 }
 
 
@@ -353,9 +344,9 @@ void vfive_state::vfive(machine_config &config)
 
 	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, gp9001vdp_device::VDP_PALETTE_LENGTH);
 
-	GP9001_VDP(config, m_vdp[0], 27_MHz_XTAL);
-	m_vdp[0]->set_palette(m_palette);
-	m_vdp[0]->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
+	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
+	m_vdp->set_palette(m_palette);
+	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
 
 	MCFG_VIDEO_START_OVERRIDE(vfive_state,toaplan2)
 
@@ -374,7 +365,7 @@ ROM_START( grindstm )
 	/* Secondary CPU is a Toaplan marked chip, (TS-007-Spy  TOA PLAN) */
 	/* It's a NEC V25 (PLCC94) (encrypted program uploaded by main CPU) */
 
-	ROM_REGION( 0x200000, "gp9001_0", 0 )
+	ROM_REGION( 0x200000, "gp9001", 0 )
 	ROM_LOAD( "tp027_02.bin", 0x000000, 0x100000, CRC(877b45e8) SHA1(b3ed8d8dbbe51a1919afc55d619d2b6771971493) )
 	ROM_LOAD( "tp027_03.bin", 0x100000, 0x100000, CRC(b1fc6362) SHA1(5e97e3cce31be57689d394a50178cda4d80cce5f) )
 ROM_END
@@ -387,7 +378,7 @@ ROM_START( grindstma )
 	/* Secondary CPU is a Toaplan marked chip, (TS-007-Spy  TOA PLAN) */
 	/* It's a NEC V25 (PLCC94) (encrypted program uploaded by main CPU) */
 
-	ROM_REGION( 0x200000, "gp9001_0", 0 )
+	ROM_REGION( 0x200000, "gp9001", 0 )
 	ROM_LOAD( "tp027_02.bin", 0x000000, 0x100000, CRC(877b45e8) SHA1(b3ed8d8dbbe51a1919afc55d619d2b6771971493) )
 	ROM_LOAD( "tp027_03.bin", 0x100000, 0x100000, CRC(b1fc6362) SHA1(5e97e3cce31be57689d394a50178cda4d80cce5f) )
 ROM_END
@@ -400,7 +391,7 @@ ROM_START( vfive )
 	/* Secondary CPU is a Toaplan marked chip, (TS-007-Spy  TOA PLAN) */
 	/* It's a NEC V25 (PLCC94) (encrypted program uploaded by main CPU) */
 
-	ROM_REGION( 0x200000, "gp9001_0", 0 )
+	ROM_REGION( 0x200000, "gp9001", 0 )
 	ROM_LOAD( "tp027_02.bin", 0x000000, 0x100000, CRC(877b45e8) SHA1(b3ed8d8dbbe51a1919afc55d619d2b6771971493) )
 	ROM_LOAD( "tp027_03.bin", 0x100000, 0x100000, CRC(b1fc6362) SHA1(5e97e3cce31be57689d394a50178cda4d80cce5f) )
 ROM_END

@@ -71,7 +71,7 @@ public:
 		, m_mainram(*this, "mainram")
 		, m_maincpu(*this, "maincpu")
 		, m_audiocpu(*this, "audiocpu")
-		, m_vdp(*this, "gp9001_%u", 0U)
+		, m_vdp(*this, "gp9001")
 		, m_oki(*this, "oki%u", 1U)
 		, m_eeprom(*this, "eeprom")
 		, m_gfxdecode(*this, "gfxdecode")
@@ -105,7 +105,7 @@ private:
 
 	required_device<m68000_base_device> m_maincpu;
 	optional_device<cpu_device> m_audiocpu;
-	optional_device_array<gp9001vdp_device, 2> m_vdp;
+	required_device<gp9001vdp_device> m_vdp;
 	optional_device_array<okim6295_device, 2> m_oki;
 	optional_device<eeprom_serial_93cxx_device> m_eeprom;
 	optional_device<gfxdecode_device> m_gfxdecode;
@@ -151,22 +151,14 @@ void sunwise_state::coin_w(u8 data) // MOVE TO DEVICE!
 
 
 
+
 VIDEO_START_MEMBER(sunwise_state,toaplan2)
 {
 	/* our current VDP implementation needs this bitmap to work with */
 	m_screen->register_screen_bitmap(m_custom_priority_bitmap);
 
-	if (m_vdp[0] != nullptr)
-	{
-		m_secondary_render_bitmap.reset();
-		m_vdp[0]->custom_priority_bitmap = &m_custom_priority_bitmap;
-	}
-
-	if (m_vdp[1] != nullptr)
-	{
-		m_screen->register_screen_bitmap(m_secondary_render_bitmap);
-		m_vdp[1]->custom_priority_bitmap = &m_custom_priority_bitmap;
-	}
+	m_secondary_render_bitmap.reset();
+	m_vdp->custom_priority_bitmap = &m_custom_priority_bitmap;
 }
 
 
@@ -174,7 +166,7 @@ u32 sunwise_state::screen_update_toaplan2(screen_device &screen, bitmap_ind16 &b
 {
 	bitmap.fill(0, cliprect);
 	m_custom_priority_bitmap.fill(0, cliprect);
-	m_vdp[0]->render_vdp(bitmap, cliprect);
+	m_vdp->render_vdp(bitmap, cliprect);
 
 	return 0;
 }
@@ -184,8 +176,7 @@ void sunwise_state::screen_vblank(int state)
 	// rising edge
 	if (state)
 	{
-		if (m_vdp[0]) m_vdp[0]->screen_eof();
-		if (m_vdp[1]) m_vdp[1]->screen_eof();
+		m_vdp->screen_eof();
 	}
 }
 
@@ -485,11 +476,11 @@ void sunwise_state::pwrkick_68k_mem(address_map &map)
 	map(0x104000, 0x10ffff).ram();
 
 	map(0x200000, 0x20000f).rw(m_rtc, FUNC(upd4992_device::read), FUNC(upd4992_device::write)).umask16(0x00ff);
-	map(0x300000, 0x30000d).rw(m_vdp[0], FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
+	map(0x300000, 0x30000d).rw(m_vdp, FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
 	map(0x400000, 0x400fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
 	map(0x600001, 0x600001).rw(m_oki[0], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
 
-	map(0x700000, 0x700001).r(m_vdp[0], FUNC(gp9001vdp_device::vdpcount_r));
+	map(0x700000, 0x700001).r(m_vdp, FUNC(gp9001vdp_device::vdpcount_r));
 	map(0x700004, 0x700005).portr("DSWA");
 	map(0x700008, 0x700009).portr("DSWB");
 	map(0x70000c, 0x70000d).portr("IN1");
@@ -508,11 +499,11 @@ void sunwise_state::othldrby_68k_mem(address_map &map)
 	map(0x104000, 0x10ffff).ram();
 
 	map(0x200000, 0x20000f).rw(m_rtc, FUNC(upd4992_device::read), FUNC(upd4992_device::write)).umask16(0x00ff);
-	map(0x300000, 0x30000d).rw(m_vdp[0], FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
+	map(0x300000, 0x30000d).rw(m_vdp, FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
 	map(0x400000, 0x400fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
 	map(0x600001, 0x600001).rw(m_oki[0], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
 
-	map(0x700000, 0x700001).r(m_vdp[0], FUNC(gp9001vdp_device::vdpcount_r));
+	map(0x700000, 0x700001).r(m_vdp, FUNC(gp9001vdp_device::vdpcount_r));
 	map(0x700004, 0x700005).portr("DSWA");
 	map(0x700008, 0x700009).portr("DSWB");
 	map(0x70000c, 0x70000d).portr("IN1");
@@ -546,9 +537,9 @@ void sunwise_state::pwrkick(machine_config &config) // Sunwise SW931201-1 PCB (2
 
 	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, gp9001vdp_device::VDP_PALETTE_LENGTH);
 
-	GP9001_VDP(config, m_vdp[0], 27_MHz_XTAL);
-	m_vdp[0]->set_palette(m_palette);
-	m_vdp[0]->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
+	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
+	m_vdp->set_palette(m_palette);
+	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
 
 	MCFG_VIDEO_START_OVERRIDE(sunwise_state,toaplan2)
 
@@ -580,9 +571,9 @@ void sunwise_state::othldrby(machine_config &config) // Sunwise S951060-VGP PCB 
 
 	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, gp9001vdp_device::VDP_PALETTE_LENGTH);
 
-	GP9001_VDP(config, m_vdp[0], 27_MHz_XTAL);
-	m_vdp[0]->set_palette(m_palette);
-	m_vdp[0]->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
+	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
+	m_vdp->set_palette(m_palette);
+	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
 
 	MCFG_VIDEO_START_OVERRIDE(sunwise_state,toaplan2)
 
@@ -598,7 +589,7 @@ ROM_START( pwrkick ) // Sunwise SW931201-1 PCB - 8-liner connections
 	ROM_REGION( 0x80000, "maincpu", ROMREGION_ERASE00 )
 	ROM_LOAD16_WORD_SWAP( "1.u61", 0x000000, 0x080000, CRC(118b5899) SHA1(7a1637a63eb17e3892d79aede5730013a1dc00f9) )
 
-	ROM_REGION( 0x100000, "gp9001_0", ROMREGION_ERASE00 )
+	ROM_REGION( 0x100000, "gp9001", ROMREGION_ERASE00 )
 	ROM_LOAD( "2.u26", 0x000000, 0x080000, CRC(a190eaea) SHA1(2c7b8c8026873e0f591fbcbc2e72b196ef84e162) )
 	ROM_LOAD( "3.u27", 0x080000, 0x080000, CRC(0b81e038) SHA1(8376617ae519a8ef604f20b26e941aa5b8066602) )
 
@@ -657,7 +648,7 @@ ROM_START( burgkids ) // Sunwise SW931201-1 PCB - 8-liner connections
 	ROM_REGION( 0x80000, "maincpu", ROMREGION_ERASE00 )
 	ROM_LOAD16_WORD_SWAP( "ffk1.u61", 0x000000, 0x080000, CRC(ac96cb0d) SHA1(2ce5c06d61f3ff18b222619e41d09e46d44c5bab) )
 
-	ROM_REGION( 0x100000, "gp9001_0", ROMREGION_ERASE00 )
+	ROM_REGION( 0x100000, "gp9001", ROMREGION_ERASE00 )
 	ROM_LOAD( "ffk2.u26", 0x000000, 0x080000, CRC(09f7b0ae) SHA1(f340f27a601ff89f143398263d822b8f340eea6e) )
 	ROM_LOAD( "ffk3.u27", 0x080000, 0x080000, CRC(63c761bc) SHA1(f0ee1dc6aaeacff23e55d072102b814c7ef30550) )
 
@@ -669,7 +660,7 @@ ROM_START( othldrby ) // Sunwise S951060-VGP PCB - JAMMA compliant (components i
 	ROM_REGION( 0x080000, "maincpu", 0 )
 	ROM_LOAD16_WORD_SWAP( "sunwise_db0_1.u61", 0x00000, 0x80000, CRC(6b4008d3) SHA1(4cf838c47563ba482be8364b2e115569a4a06c83) )
 
-	ROM_REGION( 0x400000, "gp9001_0", 0 )
+	ROM_REGION( 0x400000, "gp9001", 0 )
 	ROM_LOAD( "db0-r2.u26", 0x000000, 0x200000, CRC(4efff265) SHA1(4cd239ff42f532495946cb52bd1fee412f84e192) ) // mask ROMs
 	ROM_LOAD( "db0-r3.u27", 0x200000, 0x200000, CRC(5c142b38) SHA1(5466a8b061a0f2545493de0f96fd4387beea276a) )
 

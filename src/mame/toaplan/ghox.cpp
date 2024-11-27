@@ -42,7 +42,7 @@ public:
 		, m_mainram(*this, "mainram")
 		, m_maincpu(*this, "maincpu")
 		, m_audiocpu(*this, "audiocpu")
-		, m_vdp(*this, "gp9001_%u", 0U)
+		, m_vdp(*this, "gp9001")
 		, m_oki(*this, "oki%u", 1U)
 		, m_eeprom(*this, "eeprom")
 		, m_gfxdecode(*this, "gfxdecode")
@@ -86,7 +86,7 @@ private:
 
 	required_device<m68000_base_device> m_maincpu;
 	optional_device<cpu_device> m_audiocpu;
-	optional_device_array<gp9001vdp_device, 2> m_vdp;
+	required_device<gp9001vdp_device> m_vdp;
 	optional_device_array<okim6295_device, 2> m_oki;
 	optional_device<eeprom_serial_93cxx_device> m_eeprom;
 	optional_device<gfxdecode_device> m_gfxdecode;
@@ -130,22 +130,14 @@ void ghox_state::coin_w(u8 data) // MOVE TO DEVICE!
 	}
 }
 
+
 VIDEO_START_MEMBER(ghox_state,toaplan2)
 {
 	/* our current VDP implementation needs this bitmap to work with */
 	m_screen->register_screen_bitmap(m_custom_priority_bitmap);
 
-	if (m_vdp[0] != nullptr)
-	{
-		m_secondary_render_bitmap.reset();
-		m_vdp[0]->custom_priority_bitmap = &m_custom_priority_bitmap;
-	}
-
-	if (m_vdp[1] != nullptr)
-	{
-		m_screen->register_screen_bitmap(m_secondary_render_bitmap);
-		m_vdp[1]->custom_priority_bitmap = &m_custom_priority_bitmap;
-	}
+	m_secondary_render_bitmap.reset();
+	m_vdp->custom_priority_bitmap = &m_custom_priority_bitmap;
 }
 
 
@@ -153,7 +145,7 @@ u32 ghox_state::screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitm
 {
 	bitmap.fill(0, cliprect);
 	m_custom_priority_bitmap.fill(0, cliprect);
-	m_vdp[0]->render_vdp(bitmap, cliprect);
+	m_vdp->render_vdp(bitmap, cliprect);
 
 	return 0;
 }
@@ -163,8 +155,7 @@ void ghox_state::screen_vblank(int state)
 	// rising edge
 	if (state)
 	{
-		if (m_vdp[0]) m_vdp[0]->screen_eof();
-		if (m_vdp[1]) m_vdp[1]->screen_eof();
+		m_vdp->screen_eof();
 	}
 }
 
@@ -312,7 +303,7 @@ void ghox_state::ghox_68k_mem(address_map &map)
 	map(0x080000, 0x083fff).ram();
 	map(0x0c0000, 0x0c0fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
 	map(0x100000, 0x100001).r(FUNC(ghox_state::ghox_h_analog_r<0>));
-	map(0x140000, 0x14000d).rw(m_vdp[0], FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
+	map(0x140000, 0x14000d).rw(m_vdp, FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
 	map(0x180000, 0x180fff).rw(FUNC(ghox_state::shared_ram_r), FUNC(ghox_state::shared_ram_w)).umask16(0x00ff);
 	map(0x181001, 0x181001).w(FUNC(ghox_state::coin_w));
 	map(0x18100c, 0x18100d).portr("JMPR");
@@ -360,9 +351,9 @@ void ghox_state::ghox(machine_config &config)
 
 	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, gp9001vdp_device::VDP_PALETTE_LENGTH);
 
-	GP9001_VDP(config, m_vdp[0], 27_MHz_XTAL);
-	m_vdp[0]->set_palette(m_palette);
-	m_vdp[0]->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
+	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
+	m_vdp->set_palette(m_palette);
+	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
 
 	MCFG_VIDEO_START_OVERRIDE(ghox_state,toaplan2)
 
@@ -381,7 +372,7 @@ ROM_START( ghox ) /* Spinner with single axis (up/down) controls */
 	ROM_REGION( 0x10000, "audiocpu", 0 )            /* Sound HD647180 code */
 	ROM_LOAD( "hd647180.021", 0x00000, 0x08000, CRC(6ab59e5b) SHA1(d814dd3a8f1ee638794e2bd422eed4247ba4a15e) )
 
-	ROM_REGION( 0x100000, "gp9001_0", 0 )
+	ROM_REGION( 0x100000, "gp9001", 0 )
 	ROM_LOAD( "tp021-03.u36", 0x000000, 0x080000, CRC(a15d8e9d) SHA1(640a33997bdce8e84bea6a944139716379839037) )
 	ROM_LOAD( "tp021-04.u37", 0x080000, 0x080000, CRC(26ed1c9a) SHA1(37da8af86ea24327444c2d4ad3dfbd936208d43d) )
 ROM_END
@@ -395,7 +386,7 @@ ROM_START( ghoxj ) /* 8-way joystick for controls */
 	ROM_REGION( 0x10000, "audiocpu", 0 )            /* Sound HD647180 code */
 	ROM_LOAD( "hd647180.021", 0x00000, 0x08000, CRC(6ab59e5b) SHA1(d814dd3a8f1ee638794e2bd422eed4247ba4a15e) )
 
-	ROM_REGION( 0x100000, "gp9001_0", 0 )
+	ROM_REGION( 0x100000, "gp9001", 0 )
 	ROM_LOAD( "tp021-03.u36", 0x000000, 0x080000, CRC(a15d8e9d) SHA1(640a33997bdce8e84bea6a944139716379839037) )
 	ROM_LOAD( "tp021-04.u37", 0x080000, 0x080000, CRC(26ed1c9a) SHA1(37da8af86ea24327444c2d4ad3dfbd936208d43d) )
 ROM_END
@@ -408,7 +399,7 @@ ROM_START( ghoxjo ) /* older version (with fewer regions) of the 8-way joystick 
 	ROM_REGION( 0x10000, "audiocpu", 0 )            /* Sound HD647180 code */
 	ROM_LOAD( "hd647180.021", 0x00000, 0x08000, CRC(6ab59e5b) SHA1(d814dd3a8f1ee638794e2bd422eed4247ba4a15e) )
 
-	ROM_REGION( 0x100000, "gp9001_0", 0 )
+	ROM_REGION( 0x100000, "gp9001", 0 )
 	ROM_LOAD( "tp021-03.u36", 0x000000, 0x080000, CRC(a15d8e9d) SHA1(640a33997bdce8e84bea6a944139716379839037) )
 	ROM_LOAD( "tp021-04.u37", 0x080000, 0x080000, CRC(26ed1c9a) SHA1(37da8af86ea24327444c2d4ad3dfbd936208d43d) )
 ROM_END

@@ -379,7 +379,7 @@ public:
 		, m_mainram(*this, "mainram")
 		, m_maincpu(*this, "maincpu")
 		, m_audiocpu(*this, "audiocpu")
-		, m_vdp(*this, "gp9001_%u", 0U)
+		, m_vdp(*this, "gp9001")
 		, m_oki(*this, "oki%u", 1U)
 		, m_eeprom(*this, "eeprom")
 		, m_gfxdecode(*this, "gfxdecode")
@@ -493,7 +493,7 @@ private:
 
 	required_device<m68000_base_device> m_maincpu;
 	optional_device<cpu_device> m_audiocpu;
-	optional_device_array<gp9001vdp_device, 2> m_vdp;
+	required_device<gp9001vdp_device> m_vdp;
 	optional_device_array<okim6295_device, 2> m_oki;
 	optional_device<eeprom_serial_93cxx_device> m_eeprom;
 	optional_device<gfxdecode_device> m_gfxdecode;
@@ -579,17 +579,8 @@ VIDEO_START_MEMBER(raizing_state,toaplan2)
 	/* our current VDP implementation needs this bitmap to work with */
 	m_screen->register_screen_bitmap(m_custom_priority_bitmap);
 
-	if (m_vdp[0] != nullptr)
-	{
-		m_secondary_render_bitmap.reset();
-		m_vdp[0]->custom_priority_bitmap = &m_custom_priority_bitmap;
-	}
-
-	if (m_vdp[1] != nullptr)
-	{
-		m_screen->register_screen_bitmap(m_secondary_render_bitmap);
-		m_vdp[1]->custom_priority_bitmap = &m_custom_priority_bitmap;
-	}
+	m_secondary_render_bitmap.reset();
+	m_vdp->custom_priority_bitmap = &m_custom_priority_bitmap;
 }
 
 
@@ -597,7 +588,7 @@ u32 raizing_state::screen_update_toaplan2(screen_device &screen, bitmap_ind16 &b
 {
 	bitmap.fill(0, cliprect);
 	m_custom_priority_bitmap.fill(0, cliprect);
-	m_vdp[0]->render_vdp(bitmap, cliprect);
+	m_vdp->render_vdp(bitmap, cliprect);
 
 	return 0;
 }
@@ -607,11 +598,9 @@ void raizing_state::screen_vblank(int state)
 	// rising edge
 	if (state)
 	{
-		if (m_vdp[0]) m_vdp[0]->screen_eof();
-		if (m_vdp[1]) m_vdp[1]->screen_eof();
+		m_vdp->screen_eof();
 	}
 }
-
 
 u32 raizing_state::screen_update_truxton2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
 {
@@ -677,7 +666,7 @@ void raizing_state::batrider_objectbank_w(offs_t offset, u8 data)
 	if (m_gfxrom_bank[offset] != data)
 	{
 		m_gfxrom_bank[offset] = data;
-		m_vdp[0]->set_dirty();
+		m_vdp->set_dirty();
 	}
 }
 
@@ -717,7 +706,7 @@ VIDEO_START_MEMBER(raizing_state,batrider)
 {
 	VIDEO_START_CALL_MEMBER(toaplan2);
 
-	m_vdp[0]->disable_sprite_buffer(); // disable buffering on this game
+	m_vdp->disable_sprite_buffer(); // disable buffering on this game
 
 	/* Create the Text tilemap for this game */
 	m_gfxdecode->gfx(0)->set_source(reinterpret_cast<u8 *>(m_tx_gfxram.target()));
@@ -1488,8 +1477,8 @@ void raizing_state::mahoudai_68k_mem(address_map &map)
 	map(0x21c02c, 0x21c02d).portr("DSWA");
 	map(0x21c030, 0x21c031).portr("DSWB");
 	map(0x21c034, 0x21c035).portr("JMPR");
-	map(0x21c03c, 0x21c03d).r(m_vdp[0], FUNC(gp9001vdp_device::vdpcount_r));
-	map(0x300000, 0x30000d).rw(m_vdp[0], FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
+	map(0x21c03c, 0x21c03d).r(m_vdp, FUNC(gp9001vdp_device::vdpcount_r));
+	map(0x300000, 0x30000d).rw(m_vdp, FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
 	map(0x400000, 0x400fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
 	map(0x401000, 0x4017ff).ram();                         // Unused palette RAM
 	map(0x500000, 0x501fff).ram().w(FUNC(raizing_state::tx_videoram_w)).share(m_tx_videoram);
@@ -1512,8 +1501,8 @@ void raizing_state::shippumd_68k_mem(address_map &map)
 	map(0x21c02c, 0x21c02d).portr("DSWA");
 	map(0x21c030, 0x21c031).portr("DSWB");
 	map(0x21c034, 0x21c035).portr("JMPR");
-	map(0x21c03c, 0x21c03d).r(m_vdp[0], FUNC(gp9001vdp_device::vdpcount_r));
-	map(0x300000, 0x30000d).rw(m_vdp[0], FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
+	map(0x21c03c, 0x21c03d).r(m_vdp, FUNC(gp9001vdp_device::vdpcount_r));
+	map(0x300000, 0x30000d).rw(m_vdp, FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
 	map(0x400000, 0x400fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
 	map(0x401000, 0x4017ff).ram();                         // Unused palette RAM
 	map(0x500000, 0x501fff).ram().w(FUNC(raizing_state::tx_videoram_w)).share(m_tx_videoram);
@@ -1535,8 +1524,8 @@ void raizing_state::bgaregga_68k_mem(address_map &map)
 	map(0x21c02c, 0x21c02d).portr("DSWA");
 	map(0x21c030, 0x21c031).portr("DSWB");
 	map(0x21c034, 0x21c035).portr("JMPR");
-	map(0x21c03c, 0x21c03d).r(m_vdp[0], FUNC(gp9001vdp_device::vdpcount_r));
-	map(0x300000, 0x30000d).rw(m_vdp[0], FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
+	map(0x21c03c, 0x21c03d).r(m_vdp, FUNC(gp9001vdp_device::vdpcount_r));
+	map(0x300000, 0x30000d).rw(m_vdp, FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
 	map(0x400000, 0x400fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
 	map(0x500000, 0x501fff).ram().w(FUNC(raizing_state::tx_videoram_w)).share(m_tx_videoram);
 	map(0x502000, 0x502fff).ram().share(m_tx_lineselect);
@@ -1565,12 +1554,12 @@ void raizing_state::batrider_68k_mem(address_map &map)
 	map(0x208000, 0x20ffff).ram();
 	map(0x300000, 0x37ffff).r(FUNC(raizing_state::batrider_z80rom_r));
 	map(0x400000, 0x40000d).lrw16(
-							NAME([this](offs_t offset, u16 mem_mask) { return m_vdp[0]->read(offset ^ (0xc/2), mem_mask); }),
-							NAME([this](offs_t offset, u16 data, u16 mem_mask) { m_vdp[0]->write(offset ^ (0xc/2), data, mem_mask); }));
+							NAME([this](offs_t offset, u16 mem_mask) { return m_vdp->read(offset ^ (0xc/2), mem_mask); }),
+							NAME([this](offs_t offset, u16 data, u16 mem_mask) { m_vdp->write(offset ^ (0xc/2), data, mem_mask); }));
 	map(0x500000, 0x500001).portr("IN");
 	map(0x500002, 0x500003).portr("SYS-DSW");
 	map(0x500004, 0x500005).portr("DSW");
-	map(0x500006, 0x500007).r(m_vdp[0], FUNC(gp9001vdp_device::vdpcount_r));
+	map(0x500006, 0x500007).r(m_vdp, FUNC(gp9001vdp_device::vdpcount_r));
 	map(0x500009, 0x500009).r(m_soundlatch[2], FUNC(generic_latch_8_device::read));
 	map(0x50000b, 0x50000b).r(m_soundlatch[3], FUNC(generic_latch_8_device::read));
 	map(0x50000c, 0x50000d).r(FUNC(raizing_state::batrider_z80_busack_r));
@@ -1594,12 +1583,12 @@ void raizing_state::bbakraid_68k_mem(address_map &map)
 	map(0x208000, 0x20ffff).ram();
 	map(0x300000, 0x33ffff).r(FUNC(raizing_state::batrider_z80rom_r));
 	map(0x400000, 0x40000d).lrw16(
-							NAME([this](offs_t offset, u16 mem_mask) { return m_vdp[0]->read(offset ^ (0xc/2), mem_mask); }),
-							NAME([this](offs_t offset, u16 data, u16 mem_mask) { m_vdp[0]->write(offset ^ (0xc/2), data, mem_mask); }));
+							NAME([this](offs_t offset, u16 mem_mask) { return m_vdp->read(offset ^ (0xc/2), mem_mask); }),
+							NAME([this](offs_t offset, u16 data, u16 mem_mask) { m_vdp->write(offset ^ (0xc/2), data, mem_mask); }));
 	map(0x500000, 0x500001).portr("IN");
 	map(0x500002, 0x500003).portr("SYS-DSW");
 	map(0x500004, 0x500005).portr("DSW");
-	map(0x500006, 0x500007).r(m_vdp[0], FUNC(gp9001vdp_device::vdpcount_r));
+	map(0x500006, 0x500007).r(m_vdp, FUNC(gp9001vdp_device::vdpcount_r));
 	map(0x500009, 0x500009).w(FUNC(raizing_state::coin_w));
 	map(0x500011, 0x500011).r(m_soundlatch[2], FUNC(generic_latch_8_device::read));
 	map(0x500013, 0x500013).r(m_soundlatch[3], FUNC(generic_latch_8_device::read));
@@ -1621,8 +1610,8 @@ void raizing_state::nprobowl_68k_mem(address_map &map) // TODO: verify everythin
 	map(0x200000, 0x207fff).ram().share(m_mainram);
 	map(0x208000, 0x20ffff).ram();
 	map(0x400000, 0x40000d).lrw16(
-							NAME([this](offs_t offset, u16 mem_mask) { return m_vdp[0]->read(offset ^ (0xc/2), mem_mask); }),
-							NAME([this](offs_t offset, u16 data, u16 mem_mask) { m_vdp[0]->write(offset ^ (0xc/2), data, mem_mask); }));
+							NAME([this](offs_t offset, u16 mem_mask) { return m_vdp->read(offset ^ (0xc/2), mem_mask); }),
+							NAME([this](offs_t offset, u16 data, u16 mem_mask) { m_vdp->write(offset ^ (0xc/2), data, mem_mask); }));
 	map(0x500000, 0x500001).portr("IN");
 	map(0x500002, 0x500003).portr("UNK");
 	map(0x500004, 0x500005).portr("DSW");
@@ -1769,9 +1758,9 @@ void raizing_state::mahoudai(machine_config &config)
 	GFXDECODE(config, m_gfxdecode, m_palette, gfx_textrom);
 	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, gp9001vdp_device::VDP_PALETTE_LENGTH);
 
-	GP9001_VDP(config, m_vdp[0], 27_MHz_XTAL);
-	m_vdp[0]->set_palette(m_palette);
-	m_vdp[0]->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
+	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
+	m_vdp->set_palette(m_palette);
+	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
 
 	MCFG_VIDEO_START_OVERRIDE(raizing_state,bgaregga)
 
@@ -1820,9 +1809,9 @@ void raizing_state::bgaregga(machine_config &config)
 	GFXDECODE(config, m_gfxdecode, m_palette, gfx_textrom);
 	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, gp9001vdp_device::VDP_PALETTE_LENGTH);
 
-	GP9001_VDP(config, m_vdp[0], 27_MHz_XTAL);
-	m_vdp[0]->set_palette(m_palette);
-	m_vdp[0]->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
+	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
+	m_vdp->set_palette(m_palette);
+	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
 
 	MCFG_VIDEO_START_OVERRIDE(raizing_state,bgaregga)
 
@@ -1885,10 +1874,10 @@ void raizing_state::batrider(machine_config &config)
 	GFXDECODE(config, m_gfxdecode, m_palette, gfx_batrider);
 	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, gp9001vdp_device::VDP_PALETTE_LENGTH);
 
-	GP9001_VDP(config, m_vdp[0], 27_MHz_XTAL);
-	m_vdp[0]->set_palette(m_palette);
-	m_vdp[0]->set_tile_callback(FUNC(raizing_state::batrider_bank_cb));
-	m_vdp[0]->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_2);
+	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
+	m_vdp->set_palette(m_palette);
+	m_vdp->set_tile_callback(FUNC(raizing_state::batrider_bank_cb));
+	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_2);
 
 	MCFG_VIDEO_START_OVERRIDE(raizing_state,batrider)
 
@@ -1950,10 +1939,10 @@ void raizing_state::bbakraid(machine_config &config)
 	GFXDECODE(config, m_gfxdecode, m_palette, gfx_batrider);
 	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, gp9001vdp_device::VDP_PALETTE_LENGTH);
 
-	GP9001_VDP(config, m_vdp[0], 27_MHz_XTAL);
-	m_vdp[0]->set_palette(m_palette);
-	m_vdp[0]->set_tile_callback(FUNC(raizing_state::batrider_bank_cb));
-	m_vdp[0]->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_1);
+	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
+	m_vdp->set_palette(m_palette);
+	m_vdp->set_tile_callback(FUNC(raizing_state::batrider_bank_cb));
+	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_1);
 
 	MCFG_VIDEO_START_OVERRIDE(raizing_state,batrider)
 
@@ -1999,9 +1988,9 @@ void raizing_state::nprobowl(machine_config &config)
 	GFXDECODE(config, m_gfxdecode, m_palette, gfx_batrider);
 	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, gp9001vdp_device::VDP_PALETTE_LENGTH);
 
-	GP9001_VDP(config, m_vdp[0], 27_MHz_XTAL);
-	m_vdp[0]->set_palette(m_palette);
-	m_vdp[0]->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_2);
+	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
+	m_vdp->set_palette(m_palette);
+	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_2);
 
 	MCFG_VIDEO_START_OVERRIDE(raizing_state, batrider)
 
@@ -2088,7 +2077,7 @@ ROM_START( sstriker )
 	ROM_REGION( 0x10000, "audiocpu", 0 )            /* Sound Z80 code */
 	ROM_LOAD( "ra-ma-01_02.u66", 0x00000, 0x10000, CRC(eabfa46d) SHA1(402c99ebf88f9025f74f0a28ced22b7882a65eb3) )
 
-	ROM_REGION( 0x200000, "gp9001_0", 0 )
+	ROM_REGION( 0x200000, "gp9001", 0 )
 	ROM_LOAD( "ra-ma01-rom2.u2",  0x000000, 0x100000, CRC(54e2bd95) SHA1(341359dd46152615675bb90e8a184216c8feebff) )
 	ROM_LOAD( "ra-ma01-rom3.u1",  0x100000, 0x100000, CRC(21cd378f) SHA1(e1695bccec949d18b1c03e9c42dca384554b0d7c) )
 
@@ -2107,7 +2096,7 @@ ROM_START( sstrikerk )
 	ROM_REGION( 0x10000, "audiocpu", 0 )            /* Sound Z80 code */
 	ROM_LOAD( "ra-ma-01_02.u66", 0x00000, 0x10000, CRC(eabfa46d) SHA1(402c99ebf88f9025f74f0a28ced22b7882a65eb3) )
 
-	ROM_REGION( 0x200000, "gp9001_0", 0 )
+	ROM_REGION( 0x200000, "gp9001", 0 )
 	ROM_LOAD( "ra-ma01-rom2.u2",  0x000000, 0x100000, CRC(54e2bd95) SHA1(341359dd46152615675bb90e8a184216c8feebff) )
 	ROM_LOAD( "ra-ma01-rom3.u1",  0x100000, 0x100000, CRC(21cd378f) SHA1(e1695bccec949d18b1c03e9c42dca384554b0d7c) )
 	// also seen with 4 smaller ROMs instead of 2
@@ -2131,7 +2120,7 @@ ROM_START( mahoudai )
 	ROM_REGION( 0x10000, "audiocpu", 0 )            /* Sound Z80 code */
 	ROM_LOAD( "ra-ma-01_02.u66", 0x00000, 0x10000, CRC(eabfa46d) SHA1(402c99ebf88f9025f74f0a28ced22b7882a65eb3) )
 
-	ROM_REGION( 0x200000, "gp9001_0", 0 )
+	ROM_REGION( 0x200000, "gp9001", 0 )
 	ROM_LOAD( "ra-ma01-rom2.u2",  0x000000, 0x100000, CRC(54e2bd95) SHA1(341359dd46152615675bb90e8a184216c8feebff) )
 	ROM_LOAD( "ra-ma01-rom3.u1",  0x100000, 0x100000, CRC(21cd378f) SHA1(e1695bccec949d18b1c03e9c42dca384554b0d7c) )
 
@@ -2151,7 +2140,7 @@ ROM_START( kingdmgp )
 	ROM_REGION( 0x10000, "audiocpu", 0 )            /* Sound Z80 code */
 	ROM_LOAD( "ma02rom2.bin", 0x00000, 0x10000, CRC(dde8a57e) SHA1(f522a3f17e229c71512464349760a9e27778bf6a) )
 
-	ROM_REGION( 0x400000, "gp9001_0", 0 )
+	ROM_REGION( 0x400000, "gp9001", 0 )
 	ROM_LOAD( "ma02rom3.bin",  0x000000, 0x200000, CRC(0e797142) SHA1(a480ccd151e49b886d3175a6deff56e1f2c26c3e) )
 	ROM_LOAD( "ma02rom4.bin",  0x200000, 0x200000, CRC(72a6fa53) SHA1(ce92e65205b84361cfb90305a61e9541b5c4dc2f) )
 
@@ -2171,7 +2160,7 @@ ROM_START( shippumd )
 	ROM_REGION( 0x10000, "audiocpu", 0 )            /* Sound Z80 code */
 	ROM_LOAD( "ma02rom2.bin", 0x00000, 0x10000, CRC(dde8a57e) SHA1(f522a3f17e229c71512464349760a9e27778bf6a) )
 
-	ROM_REGION( 0x400000, "gp9001_0", 0 )
+	ROM_REGION( 0x400000, "gp9001", 0 )
 	ROM_LOAD( "ma02rom3.bin",  0x000000, 0x200000, CRC(0e797142) SHA1(a480ccd151e49b886d3175a6deff56e1f2c26c3e) )
 	ROM_LOAD( "ma02rom4.bin",  0x200000, 0x200000, CRC(72a6fa53) SHA1(ce92e65205b84361cfb90305a61e9541b5c4dc2f) )
 
@@ -2209,7 +2198,7 @@ ROM_START( bgareggat )
 	ROM_LOAD( "battlegaregga-snd-8-1-18-loke-ver.bin", 0x00000, 0x20000, CRC(f5ea56f7) SHA1(9db04069b378dbad6626fd29d3762e3361b9aa0d) )
 
 	/* Stored on NEC ES23C16000W Mask ROMs with no Raizing/8ing custom markings.*/
-	ROM_REGION( 0x800000, "gp9001_0", 0 )
+	ROM_REGION( 0x800000, "gp9001", 0 )
 	ROM_LOAD( "rom4.bin",  0x000000, 0x200000, CRC(b333d81f) SHA1(5481465f1304334fd55798be2f44324c57c2dbcb) )
 	ROM_LOAD( "rom3.bin",  0x200000, 0x200000, CRC(51b9ebfb) SHA1(30e0c326f5175aa436df8dba08f6f4e08130b92f) )
 	ROM_LOAD( "rom2.bin",  0x400000, 0x200000, CRC(b330e5e2) SHA1(5d48e9d56f99d093b6390e0af1609fd796df2d35) )
@@ -2238,7 +2227,7 @@ ROM_START( bgaregga )
 	ROM_REGION( 0x20000, "audiocpu", 0 )            /* Sound Z80 code + bank */
 	ROM_LOAD( "snd.bin", 0x00000, 0x20000, CRC(68632952) SHA1(fb834db83157948e2b420b6051102a9c6ac3969b) )
 
-	ROM_REGION( 0x800000, "gp9001_0", 0 )
+	ROM_REGION( 0x800000, "gp9001", 0 )
 	ROM_LOAD( "rom4.bin",  0x000000, 0x200000, CRC(b333d81f) SHA1(5481465f1304334fd55798be2f44324c57c2dbcb) )
 	ROM_LOAD( "rom3.bin",  0x200000, 0x200000, CRC(51b9ebfb) SHA1(30e0c326f5175aa436df8dba08f6f4e08130b92f) )
 	ROM_LOAD( "rom2.bin",  0x400000, 0x200000, CRC(b330e5e2) SHA1(5d48e9d56f99d093b6390e0af1609fd796df2d35) )
@@ -2260,7 +2249,7 @@ ROM_START( bgareggahk )
 	ROM_REGION( 0x20000, "audiocpu", 0 )            /* Sound Z80 code + bank */
 	ROM_LOAD( "snd.bin", 0x00000, 0x20000, CRC(68632952) SHA1(fb834db83157948e2b420b6051102a9c6ac3969b) )
 
-	ROM_REGION( 0x800000, "gp9001_0", 0 )
+	ROM_REGION( 0x800000, "gp9001", 0 )
 	ROM_LOAD( "rom4.bin",  0x000000, 0x200000, CRC(b333d81f) SHA1(5481465f1304334fd55798be2f44324c57c2dbcb) )
 	ROM_LOAD( "rom3.bin",  0x200000, 0x200000, CRC(51b9ebfb) SHA1(30e0c326f5175aa436df8dba08f6f4e08130b92f) )
 	ROM_LOAD( "rom2.bin",  0x400000, 0x200000, CRC(b330e5e2) SHA1(5d48e9d56f99d093b6390e0af1609fd796df2d35) )
@@ -2282,7 +2271,7 @@ ROM_START( bgareggatw )
 	ROM_REGION( 0x20000, "audiocpu", 0 )            /* Sound Z80 code + bank */
 	ROM_LOAD( "snd.bin", 0x00000, 0x20000, CRC(68632952) SHA1(fb834db83157948e2b420b6051102a9c6ac3969b) )
 
-	ROM_REGION( 0x800000, "gp9001_0", 0 )
+	ROM_REGION( 0x800000, "gp9001", 0 )
 	ROM_LOAD( "rom4.bin",  0x000000, 0x200000, CRC(b333d81f) SHA1(5481465f1304334fd55798be2f44324c57c2dbcb) )
 	ROM_LOAD( "rom3.bin",  0x200000, 0x200000, CRC(51b9ebfb) SHA1(30e0c326f5175aa436df8dba08f6f4e08130b92f) )
 	ROM_LOAD( "rom2.bin",  0x400000, 0x200000, CRC(b330e5e2) SHA1(5d48e9d56f99d093b6390e0af1609fd796df2d35) )
@@ -2307,7 +2296,7 @@ ROM_START( bgareggak )
 	ROM_REGION( 0x20000, "audiocpu", 0 )            // Sound Z80 code + bank
 	ROM_LOAD( "snd.bin", 0x00000, 0x20000, BAD_DUMP CRC(68632952) SHA1(fb834db83157948e2b420b6051102a9c6ac3969b) )
 
-	ROM_REGION( 0x800000, "gp9001_0", 0 )
+	ROM_REGION( 0x800000, "gp9001", 0 )
 	ROM_LOAD( "rom4.bin",  0x000000, 0x200000, BAD_DUMP CRC(b333d81f) SHA1(5481465f1304334fd55798be2f44324c57c2dbcb) )
 	ROM_LOAD( "rom3.bin",  0x200000, 0x200000, BAD_DUMP CRC(51b9ebfb) SHA1(30e0c326f5175aa436df8dba08f6f4e08130b92f) )
 	ROM_LOAD( "rom2.bin",  0x400000, 0x200000, BAD_DUMP CRC(b330e5e2) SHA1(5d48e9d56f99d093b6390e0af1609fd796df2d35) )
@@ -2329,7 +2318,7 @@ ROM_START( bgaregganv )
 	ROM_REGION( 0x20000, "audiocpu", 0 )            /* Sound Z80 code + bank */
 	ROM_LOAD( "snd.bin", 0x00000, 0x20000, CRC(68632952) SHA1(fb834db83157948e2b420b6051102a9c6ac3969b) )
 
-	ROM_REGION( 0x800000, "gp9001_0", 0 )
+	ROM_REGION( 0x800000, "gp9001", 0 )
 	ROM_LOAD( "rom4.bin",  0x000000, 0x200000, CRC(b333d81f) SHA1(5481465f1304334fd55798be2f44324c57c2dbcb) )
 	ROM_LOAD( "rom3.bin",  0x200000, 0x200000, CRC(51b9ebfb) SHA1(30e0c326f5175aa436df8dba08f6f4e08130b92f) )
 	ROM_LOAD( "rom2.bin",  0x400000, 0x200000, CRC(b330e5e2) SHA1(5d48e9d56f99d093b6390e0af1609fd796df2d35) )
@@ -2351,7 +2340,7 @@ ROM_START( bgareggat2 )
 	ROM_REGION( 0x20000, "audiocpu", 0 )            /* Sound Z80 code + bank */
 	ROM_LOAD( "snd.bin", 0x00000, 0x20000, CRC(68632952) SHA1(fb834db83157948e2b420b6051102a9c6ac3969b) )
 
-	ROM_REGION( 0x800000, "gp9001_0", 0 )
+	ROM_REGION( 0x800000, "gp9001", 0 )
 	ROM_LOAD( "rom4.bin",  0x000000, 0x200000, CRC(b333d81f) SHA1(5481465f1304334fd55798be2f44324c57c2dbcb) )
 	ROM_LOAD( "rom3.bin",  0x200000, 0x200000, CRC(51b9ebfb) SHA1(30e0c326f5175aa436df8dba08f6f4e08130b92f) )
 	ROM_LOAD( "rom2.bin",  0x400000, 0x200000, CRC(b330e5e2) SHA1(5d48e9d56f99d093b6390e0af1609fd796df2d35) )
@@ -2373,7 +2362,7 @@ ROM_START( bgareggacn )
 	ROM_REGION( 0x20000, "audiocpu", 0 )            /* Sound Z80 code + bank */
 	ROM_LOAD( "snd.bin", 0x00000, 0x20000, CRC(68632952) SHA1(fb834db83157948e2b420b6051102a9c6ac3969b) )
 
-	ROM_REGION( 0x800000, "gp9001_0", 0 )
+	ROM_REGION( 0x800000, "gp9001", 0 )
 	ROM_LOAD( "rom4.bin",  0x000000, 0x200000, CRC(b333d81f) SHA1(5481465f1304334fd55798be2f44324c57c2dbcb) )
 	ROM_LOAD( "rom3.bin",  0x200000, 0x200000, CRC(51b9ebfb) SHA1(30e0c326f5175aa436df8dba08f6f4e08130b92f) )
 	ROM_LOAD( "rom2.bin",  0x400000, 0x200000, CRC(b330e5e2) SHA1(5d48e9d56f99d093b6390e0af1609fd796df2d35) )
@@ -2394,7 +2383,7 @@ ROM_START( bgareggabl )
 	ROM_REGION( 0x20000, "audiocpu", 0 )            /* Sound Z80 code + bank */
 	ROM_LOAD( "snd.bin", 0x00000, 0x20000, CRC(68632952) SHA1(fb834db83157948e2b420b6051102a9c6ac3969b) )
 
-	ROM_REGION( 0x800000, "gp9001_0", 0 )
+	ROM_REGION( 0x800000, "gp9001", 0 )
 	ROM_LOAD( "6@-322",  0x000000, 0x400000, CRC(37fe48ed) SHA1(ded5d13c33b4582310cdfb3dd52c052f741c00c5) ) /* == rom4.bin+rom3.bin */
 	ROM_LOAD( "5@-322",  0x400000, 0x400000, CRC(5a06c031) SHA1(ee241ff90117cec1f33ab163601a9d5c75609739) ) /* == rom2.bin+rom1.bin */
 
@@ -2416,7 +2405,7 @@ ROM_START( bgareggabla )
 	ROM_REGION( 0x20000, "audiocpu", 0 )            /* Sound Z80 code + bank */
 	ROM_LOAD( "snd.bin", 0x00000, 0x20000, CRC(68632952) SHA1(fb834db83157948e2b420b6051102a9c6ac3969b) )
 
-	ROM_REGION( 0x800000, "gp9001_0", 0 )
+	ROM_REGION( 0x800000, "gp9001", 0 )
 	ROM_LOAD( "rom4.bin",  0x000000, 0x200000, CRC(b333d81f) SHA1(5481465f1304334fd55798be2f44324c57c2dbcb) )
 	ROM_LOAD( "rom3.bin",  0x200000, 0x200000, CRC(51b9ebfb) SHA1(30e0c326f5175aa436df8dba08f6f4e08130b92f) )
 	ROM_LOAD( "rom2.bin",  0x400000, 0x200000, CRC(b330e5e2) SHA1(5d48e9d56f99d093b6390e0af1609fd796df2d35) )
@@ -2440,7 +2429,7 @@ ROM_START( bgareggablj ) // fixed on Japanese region
 	ROM_REGION( 0x20000, "audiocpu", 0 )            // Sound Z80 code + bank
 	ROM_LOAD( "snd.bin", 0x00000, 0x20000, CRC(68632952) SHA1(fb834db83157948e2b420b6051102a9c6ac3969b) )
 
-	ROM_REGION( 0x800000, "gp9001_0", 0 )
+	ROM_REGION( 0x800000, "gp9001", 0 )
 	ROM_LOAD( "322_2.bin",  0x000000, 0x400000, CRC(37fe48ed) SHA1(ded5d13c33b4582310cdfb3dd52c052f741c00c5) ) // == rom4.bin+rom3.bin
 	ROM_LOAD( "322_1.bin",  0x400000, 0x400000, CRC(5a06c031) SHA1(ee241ff90117cec1f33ab163601a9d5c75609739) ) // == rom2.bin+rom1.bin
 
@@ -2532,7 +2521,7 @@ ROM_START( batrider )
 	ROM_REGION( 0x40000, "audiocpu", 0 )            /* Sound Z80 code + bank */
 	ROM_LOAD( "snd.u77", 0x00000, 0x40000, CRC(56682696) SHA1(a372450d9a6d535123dfc31d8116074b168ab646) )
 
-	ROM_REGION( 0x1000000, "gp9001_0", 0 )
+	ROM_REGION( 0x1000000, "gp9001", 0 )
 	ROM_LOAD( "rom-1.bin", 0x000000, 0x400000, CRC(0df69ca2) SHA1(49670347ebd7e1067ff988cf842b275b7ee7b5f7) )
 	ROM_LOAD( "rom-3.bin", 0x400000, 0x400000, CRC(60167d38) SHA1(fd2429808c59ef51fd5f5db84ea89a8dc504186e) )
 	ROM_LOAD( "rom-2.bin", 0x800000, 0x400000, CRC(1bfea593) SHA1(ce06dc3097ae56b0df56d104bbf7efc9b5d968d4) )
@@ -2556,7 +2545,7 @@ ROM_START( batrideru )
 	ROM_REGION( 0x40000, "audiocpu", 0 )            /* Sound Z80 code + bank */
 	ROM_LOAD( "snd.u77", 0x00000, 0x40000, CRC(56682696) SHA1(a372450d9a6d535123dfc31d8116074b168ab646) )
 
-	ROM_REGION( 0x1000000, "gp9001_0", 0 )
+	ROM_REGION( 0x1000000, "gp9001", 0 )
 	ROM_LOAD( "rom-1.bin", 0x000000, 0x400000, CRC(0df69ca2) SHA1(49670347ebd7e1067ff988cf842b275b7ee7b5f7) )
 	ROM_LOAD( "rom-3.bin", 0x400000, 0x400000, CRC(60167d38) SHA1(fd2429808c59ef51fd5f5db84ea89a8dc504186e) )
 	ROM_LOAD( "rom-2.bin", 0x800000, 0x400000, CRC(1bfea593) SHA1(ce06dc3097ae56b0df56d104bbf7efc9b5d968d4) )
@@ -2580,7 +2569,7 @@ ROM_START( batriderc )
 	ROM_REGION( 0x40000, "audiocpu", 0 )            /* Sound Z80 code + bank */
 	ROM_LOAD( "snd.u77", 0x00000, 0x40000, CRC(56682696) SHA1(a372450d9a6d535123dfc31d8116074b168ab646) )
 
-	ROM_REGION( 0x1000000, "gp9001_0", 0 )
+	ROM_REGION( 0x1000000, "gp9001", 0 )
 	ROM_LOAD( "rom-1.bin", 0x000000, 0x400000, CRC(0df69ca2) SHA1(49670347ebd7e1067ff988cf842b275b7ee7b5f7) )
 	ROM_LOAD( "rom-3.bin", 0x400000, 0x400000, CRC(60167d38) SHA1(fd2429808c59ef51fd5f5db84ea89a8dc504186e) )
 	ROM_LOAD( "rom-2.bin", 0x800000, 0x400000, CRC(1bfea593) SHA1(ce06dc3097ae56b0df56d104bbf7efc9b5d968d4) )
@@ -2604,7 +2593,7 @@ ROM_START( batriderj )
 	ROM_REGION( 0x40000, "audiocpu", 0 )            /* Sound Z80 code + bank */
 	ROM_LOAD( "snd.u77", 0x00000, 0x40000, CRC(56682696) SHA1(a372450d9a6d535123dfc31d8116074b168ab646) )
 
-	ROM_REGION( 0x1000000, "gp9001_0", 0 )
+	ROM_REGION( 0x1000000, "gp9001", 0 )
 	ROM_LOAD( "rom-1.bin", 0x000000, 0x400000, CRC(0df69ca2) SHA1(49670347ebd7e1067ff988cf842b275b7ee7b5f7) )
 	ROM_LOAD( "rom-3.bin", 0x400000, 0x400000, CRC(60167d38) SHA1(fd2429808c59ef51fd5f5db84ea89a8dc504186e) )
 	ROM_LOAD( "rom-2.bin", 0x800000, 0x400000, CRC(1bfea593) SHA1(ce06dc3097ae56b0df56d104bbf7efc9b5d968d4) )
@@ -2628,7 +2617,7 @@ ROM_START( batriderk )
 	ROM_REGION( 0x40000, "audiocpu", 0 )            /* Sound Z80 code + bank */
 	ROM_LOAD( "snd.u77", 0x00000, 0x40000, CRC(56682696) SHA1(a372450d9a6d535123dfc31d8116074b168ab646) )
 
-	ROM_REGION( 0x1000000, "gp9001_0", 0 )
+	ROM_REGION( 0x1000000, "gp9001", 0 )
 	ROM_LOAD( "rom-1.bin", 0x000000, 0x400000, CRC(0df69ca2) SHA1(49670347ebd7e1067ff988cf842b275b7ee7b5f7) )
 	ROM_LOAD( "rom-3.bin", 0x400000, 0x400000, CRC(60167d38) SHA1(fd2429808c59ef51fd5f5db84ea89a8dc504186e) )
 	ROM_LOAD( "rom-2.bin", 0x800000, 0x400000, CRC(1bfea593) SHA1(ce06dc3097ae56b0df56d104bbf7efc9b5d968d4) )
@@ -2652,7 +2641,7 @@ ROM_START( batriderja )
 	ROM_REGION( 0x40000, "audiocpu", 0 )            /* Sound Z80 code + bank */
 	ROM_LOAD( "snd.u77", 0x00000, 0x40000, CRC(56682696) SHA1(a372450d9a6d535123dfc31d8116074b168ab646) )
 
-	ROM_REGION( 0x1000000, "gp9001_0", 0 )
+	ROM_REGION( 0x1000000, "gp9001", 0 )
 	ROM_LOAD( "rom-1.bin", 0x000000, 0x400000, CRC(0df69ca2) SHA1(49670347ebd7e1067ff988cf842b275b7ee7b5f7) )
 	ROM_LOAD( "rom-3.bin", 0x400000, 0x400000, CRC(60167d38) SHA1(fd2429808c59ef51fd5f5db84ea89a8dc504186e) )
 	ROM_LOAD( "rom-2.bin", 0x800000, 0x400000, CRC(1bfea593) SHA1(ce06dc3097ae56b0df56d104bbf7efc9b5d968d4) )
@@ -2676,7 +2665,7 @@ ROM_START( batriderhk )
 	ROM_REGION( 0x40000, "audiocpu", 0 )            /* Sound Z80 code + bank */
 	ROM_LOAD( "snd.u77", 0x00000, 0x40000, CRC(56682696) SHA1(a372450d9a6d535123dfc31d8116074b168ab646) )
 
-	ROM_REGION( 0x1000000, "gp9001_0", 0 )
+	ROM_REGION( 0x1000000, "gp9001", 0 )
 	ROM_LOAD( "rom-1.bin", 0x000000, 0x400000, CRC(0df69ca2) SHA1(49670347ebd7e1067ff988cf842b275b7ee7b5f7) )
 	ROM_LOAD( "rom-3.bin", 0x400000, 0x400000, CRC(60167d38) SHA1(fd2429808c59ef51fd5f5db84ea89a8dc504186e) )
 	ROM_LOAD( "rom-2.bin", 0x800000, 0x400000, CRC(1bfea593) SHA1(ce06dc3097ae56b0df56d104bbf7efc9b5d968d4) )
@@ -2700,7 +2689,7 @@ ROM_START( batridert )
 	ROM_REGION( 0x40000, "audiocpu", 0 )            /* Sound Z80 code + bank */
 	ROM_LOAD( "snd.u77", 0x00000, 0x40000, CRC(56682696) SHA1(a372450d9a6d535123dfc31d8116074b168ab646) )
 
-	ROM_REGION( 0x1000000, "gp9001_0", 0 )
+	ROM_REGION( 0x1000000, "gp9001", 0 )
 	ROM_LOAD( "rom-1.bin", 0x000000, 0x400000, CRC(0df69ca2) SHA1(49670347ebd7e1067ff988cf842b275b7ee7b5f7) )
 	ROM_LOAD( "rom-3.bin", 0x400000, 0x400000, CRC(60167d38) SHA1(fd2429808c59ef51fd5f5db84ea89a8dc504186e) )
 	ROM_LOAD( "rom-2.bin", 0x800000, 0x400000, CRC(1bfea593) SHA1(ce06dc3097ae56b0df56d104bbf7efc9b5d968d4) )
@@ -2775,7 +2764,7 @@ ROM_START( bbakraid )
 	ROM_REGION( 0x20000, "audiocpu", 0 )            /* Sound Z80 code */
 	ROM_LOAD( "sndu0720.bin", 0x00000, 0x20000, CRC(e62ab246) SHA1(00d23689dd423ecd4024c58b5903d16e890f1dff) )
 
-	ROM_REGION( 0x1000000, "gp9001_0", 0 )
+	ROM_REGION( 0x1000000, "gp9001", 0 )
 	ROM_LOAD( "gfxu0510.bin", 0x000000, 0x400000, CRC(9cca3446) SHA1(1123f8b8bfbe59a2c572cdf61f1ad27ff37f0f0d) )
 	ROM_LOAD( "gfxu0512.bin", 0x400000, 0x400000, CRC(a2a281d5) SHA1(d9a6623f9433ad682223f9780c26cd1523ebc5c5) )
 	ROM_LOAD( "gfxu0511.bin", 0x800000, 0x400000, CRC(e16472c0) SHA1(6068d679a8b3b65e05acd58a7ce9ead90177049f) )
@@ -2801,7 +2790,7 @@ ROM_START( bbakraidc )
 	ROM_REGION( 0x20000, "audiocpu", 0 )            /* Sound Z80 code */
 	ROM_LOAD( "sndu0720.bin", 0x00000, 0x20000, CRC(e62ab246) SHA1(00d23689dd423ecd4024c58b5903d16e890f1dff) )
 
-	ROM_REGION( 0x1000000, "gp9001_0", 0 )
+	ROM_REGION( 0x1000000, "gp9001", 0 )
 	ROM_LOAD( "gfxu0510.bin", 0x000000, 0x400000, CRC(9cca3446) SHA1(1123f8b8bfbe59a2c572cdf61f1ad27ff37f0f0d) )
 	ROM_LOAD( "gfxu0512.bin", 0x400000, 0x400000, CRC(a2a281d5) SHA1(d9a6623f9433ad682223f9780c26cd1523ebc5c5) )
 	ROM_LOAD( "gfxu0511.bin", 0x800000, 0x400000, CRC(e16472c0) SHA1(6068d679a8b3b65e05acd58a7ce9ead90177049f) )
@@ -2827,7 +2816,7 @@ ROM_START( bbakraidj )
 	ROM_REGION( 0x20000, "audiocpu", 0 )            /* Sound Z80 code */
 	ROM_LOAD( "sndu0720.bin", 0x00000, 0x20000, CRC(e62ab246) SHA1(00d23689dd423ecd4024c58b5903d16e890f1dff) )
 
-	ROM_REGION( 0x1000000, "gp9001_0", 0 )
+	ROM_REGION( 0x1000000, "gp9001", 0 )
 	ROM_LOAD( "gfxu0510.bin", 0x000000, 0x400000, CRC(9cca3446) SHA1(1123f8b8bfbe59a2c572cdf61f1ad27ff37f0f0d) )
 	ROM_LOAD( "gfxu0512.bin", 0x400000, 0x400000, CRC(a2a281d5) SHA1(d9a6623f9433ad682223f9780c26cd1523ebc5c5) )
 	ROM_LOAD( "gfxu0511.bin", 0x800000, 0x400000, CRC(e16472c0) SHA1(6068d679a8b3b65e05acd58a7ce9ead90177049f) )
@@ -2853,7 +2842,7 @@ ROM_START( bbakraidja )
 	ROM_REGION( 0x20000, "audiocpu", 0 )            /* Sound Z80 code */
 	ROM_LOAD( "sndu0720.bin", 0x00000, 0x20000, CRC(e62ab246) SHA1(00d23689dd423ecd4024c58b5903d16e890f1dff) )
 
-	ROM_REGION( 0x1000000, "gp9001_0", 0 )
+	ROM_REGION( 0x1000000, "gp9001", 0 )
 	ROM_LOAD( "gfxu0510.bin", 0x000000, 0x400000, CRC(9cca3446) SHA1(1123f8b8bfbe59a2c572cdf61f1ad27ff37f0f0d) )
 	ROM_LOAD( "gfxu0512.bin", 0x400000, 0x400000, CRC(a2a281d5) SHA1(d9a6623f9433ad682223f9780c26cd1523ebc5c5) )
 	ROM_LOAD( "gfxu0511.bin", 0x800000, 0x400000, CRC(e16472c0) SHA1(6068d679a8b3b65e05acd58a7ce9ead90177049f) )
@@ -2875,7 +2864,7 @@ ROM_START( nprobowl )
 	ROM_LOAD16_BYTE( "newprobowl-prg0-u021", 0x000000, 0x080000, CRC(3a57f122) SHA1(cc361c295f23bc0479ba49eb15de2ec6ca535a56) ) // 11xxxxxxxxxxxxxxxxx = 0xFF
 	ROM_LOAD16_BYTE( "newprobowl-prg1-u024", 0x000001, 0x080000, CRC(9e9bb58a) SHA1(3d2159bde418dee5d89e3df9a248b4b1989e6ee9) ) // 11xxxxxxxxxxxxxxxxx = 0xFF
 
-	ROM_REGION( 0x200000, "gp9001_0", 0 )
+	ROM_REGION( 0x200000, "gp9001", 0 )
 	ROM_LOAD16_BYTE( "newprobowl-chr1-u0519", 0x000000, 0x80000, CRC(6700a9bf) SHA1(12a72aa0b91119fbbed994aec702a6869af6f287) )
 	ROM_LOAD16_BYTE( "newprobowl-chr0-u0518", 0x000001, 0x80000, CRC(0736cccd) SHA1(5a4b691be1df697fef3847456c0f4bb3466c403f) )
 	ROM_LOAD16_BYTE( "newprobowl-chr2-u0520", 0x100000, 0x80000, CRC(e5f6d0b6) SHA1(6e1a4792698be4b478118e8c82edb0cf3e2286f2) )
@@ -2891,7 +2880,7 @@ ROM_START( probowl2 ) // identical to New Pro Bowl but for slight mods to the GF
 	ROM_LOAD16_BYTE( "probowl2.prg0.u021", 0x000000, 0x080000, CRC(3a57f122) SHA1(cc361c295f23bc0479ba49eb15de2ec6ca535a56) ) // 11xxxxxxxxxxxxxxxxx = 0xFF
 	ROM_LOAD16_BYTE( "probowl2.prg1.u024", 0x000001, 0x080000, CRC(9e9bb58a) SHA1(3d2159bde418dee5d89e3df9a248b4b1989e6ee9) ) // 11xxxxxxxxxxxxxxxxx = 0xFF
 
-	ROM_REGION( 0x200000, "gp9001_0", 0 )
+	ROM_REGION( 0x200000, "gp9001", 0 )
 	ROM_LOAD16_BYTE( "probowl2.chr1.u0519", 0x000000, 0x80000, CRC(66a5c9cd) SHA1(b8edc6a66e3929af2a1399e5fb6fc341b9789136) )
 	ROM_LOAD16_BYTE( "probowl2.chr0.u0518", 0x000001, 0x80000, CRC(b4439673) SHA1(5ca19d9c3c3cce9485fb9bd5224f0b14abe07f49) )
 	ROM_LOAD16_BYTE( "probowl2.chr2.u0520", 0x100000, 0x80000, CRC(e05be3a0) SHA1(922c6f094358cf3df790063e68d5dd4a32d46b06) )

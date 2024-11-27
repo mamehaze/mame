@@ -44,7 +44,7 @@ public:
 		, m_mainram(*this, "mainram")
 		, m_maincpu(*this, "maincpu")
 		, m_audiocpu(*this, "audiocpu")
-		, m_vdp(*this, "gp9001_%u", 0U)
+		, m_vdp(*this, "gp9001")
 		, m_oki(*this, "oki%u", 1U)
 		, m_eeprom(*this, "eeprom")
 		, m_gfxdecode(*this, "gfxdecode")
@@ -108,7 +108,7 @@ private:
 
 	required_device<m68000_base_device> m_maincpu;
 	optional_device<cpu_device> m_audiocpu;
-	optional_device_array<gp9001vdp_device, 2> m_vdp;
+	required_device<gp9001vdp_device> m_vdp;
 	optional_device_array<okim6295_device, 2> m_oki;
 	optional_device<eeprom_serial_93cxx_device> m_eeprom;
 	optional_device<gfxdecode_device> m_gfxdecode;
@@ -187,17 +187,8 @@ VIDEO_START_MEMBER(fixeight_state,toaplan2)
 	/* our current VDP implementation needs this bitmap to work with */
 	m_screen->register_screen_bitmap(m_custom_priority_bitmap);
 
-	if (m_vdp[0] != nullptr)
-	{
-		m_secondary_render_bitmap.reset();
-		m_vdp[0]->custom_priority_bitmap = &m_custom_priority_bitmap;
-	}
-
-	if (m_vdp[1] != nullptr)
-	{
-		m_screen->register_screen_bitmap(m_secondary_render_bitmap);
-		m_vdp[1]->custom_priority_bitmap = &m_custom_priority_bitmap;
-	}
+	m_secondary_render_bitmap.reset();
+	m_vdp->custom_priority_bitmap = &m_custom_priority_bitmap;
 }
 
 
@@ -205,7 +196,7 @@ u32 fixeight_state::screen_update_toaplan2(screen_device &screen, bitmap_ind16 &
 {
 	bitmap.fill(0, cliprect);
 	m_custom_priority_bitmap.fill(0, cliprect);
-	m_vdp[0]->render_vdp(bitmap, cliprect);
+	m_vdp->render_vdp(bitmap, cliprect);
 
 	return 0;
 }
@@ -215,8 +206,7 @@ void fixeight_state::screen_vblank(int state)
 	// rising edge
 	if (state)
 	{
-		if (m_vdp[0]) m_vdp[0]->screen_eof();
-		if (m_vdp[1]) m_vdp[1]->screen_eof();
+		m_vdp->screen_eof();
 	}
 }
 
@@ -247,12 +237,12 @@ VIDEO_START_MEMBER(fixeight_state,fixeightbl)
 	create_tx_tilemap();
 
 	/* This bootleg has additional layer offsets on the VDP */
-	m_vdp[0]->set_tm_extra_offsets(0, -0x1d6 - 26, -0x1ef - 15, 0, 0);
-	m_vdp[0]->set_tm_extra_offsets(1, -0x1d8 - 22, -0x1ef - 15, 0, 0);
-	m_vdp[0]->set_tm_extra_offsets(2, -0x1da - 18, -0x1ef - 15, 0, 0);
-	m_vdp[0]->set_sp_extra_offsets(8/*-0x1cc - 64*/, 8/*-0x1ef - 128*/, 0, 0);
+	m_vdp->set_tm_extra_offsets(0, -0x1d6 - 26, -0x1ef - 15, 0, 0);
+	m_vdp->set_tm_extra_offsets(1, -0x1d8 - 22, -0x1ef - 15, 0, 0);
+	m_vdp->set_tm_extra_offsets(2, -0x1da - 18, -0x1ef - 15, 0, 0);
+	m_vdp->set_sp_extra_offsets(8/*-0x1cc - 64*/, 8/*-0x1ef - 128*/, 0, 0);
 
-	m_vdp[0]->init_scroll_regs();
+	m_vdp->init_scroll_regs();
 }
 
 
@@ -457,14 +447,14 @@ void fixeight_state::fixeight_68k_mem(address_map &map)
 	map(0x200010, 0x200011).portr("SYS");
 	map(0x20001d, 0x20001d).w(FUNC(fixeight_state::coin_w));
 	map(0x280000, 0x28ffff).rw(FUNC(fixeight_state::shared_ram_r), FUNC(fixeight_state::shared_ram_w)).umask16(0x00ff);
-	map(0x300000, 0x30000d).rw(m_vdp[0], FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
+	map(0x300000, 0x30000d).rw(m_vdp, FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
 	map(0x400000, 0x400fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
 	map(0x500000, 0x501fff).ram().w(FUNC(fixeight_state::tx_videoram_w)).share(m_tx_videoram);
 	map(0x502000, 0x5021ff).ram().share(m_tx_lineselect);
 	map(0x503000, 0x5031ff).ram().w(FUNC(fixeight_state::tx_linescroll_w)).share(m_tx_linescroll);
 	map(0x600000, 0x60ffff).ram().w(FUNC(fixeight_state::tx_gfxram_w)).share(m_tx_gfxram);
 	map(0x700000, 0x700001).w(FUNC(fixeight_state::sound_reset_w)).umask16(0x00ff).cswidth(16);
-	map(0x800000, 0x800001).r(m_vdp[0], FUNC(gp9001vdp_device::vdpcount_r));
+	map(0x800000, 0x800001).r(m_vdp, FUNC(gp9001vdp_device::vdpcount_r));
 }
 
 
@@ -487,10 +477,10 @@ void fixeight_state::fixeightbl_68k_mem(address_map &map)
 	map(0x200015, 0x200015).w(FUNC(fixeight_state::fixeightbl_oki_bankswitch_w));  // Sound banking. Code at $4084c, $5070
 	map(0x200019, 0x200019).rw(m_oki[0], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
 	map(0x20001c, 0x20001d).portr("DSWA");
-	map(0x300000, 0x30000d).rw(m_vdp[0], FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
+	map(0x300000, 0x30000d).rw(m_vdp, FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
 	map(0x400000, 0x400fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
 	map(0x500000, 0x501fff).ram().w(FUNC(fixeight_state::tx_videoram_w)).share(m_tx_videoram);
-	map(0x700000, 0x700001).r(m_vdp[0], FUNC(gp9001vdp_device::vdpcount_r));
+	map(0x700000, 0x700001).r(m_vdp, FUNC(gp9001vdp_device::vdpcount_r));
 	map(0x800000, 0x87ffff).rom().region("maincpu", 0x80000);
 }
 
@@ -562,9 +552,9 @@ void fixeight_state::fixeight(machine_config &config)
 	GFXDECODE(config, m_gfxdecode, m_palette, gfx_truxton2);
 	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, gp9001vdp_device::VDP_PALETTE_LENGTH);
 
-	GP9001_VDP(config, m_vdp[0], 27_MHz_XTAL);
-	m_vdp[0]->set_palette(m_palette);
-	m_vdp[0]->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
+	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
+	m_vdp->set_palette(m_palette);
+	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
 
 	MCFG_VIDEO_START_OVERRIDE(fixeight_state,truxton2)
 
@@ -605,9 +595,9 @@ void fixeight_state::fixeightbl(machine_config &config)
 	GFXDECODE(config, m_gfxdecode, m_palette, gfx_textrom);
 	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, gp9001vdp_device::VDP_PALETTE_LENGTH);
 
-	GP9001_VDP(config, m_vdp[0], 27_MHz_XTAL);
-	m_vdp[0]->set_palette(m_palette);
-	m_vdp[0]->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_2, ASSERT_LINE);
+	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
+	m_vdp->set_palette(m_palette);
+	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_2, ASSERT_LINE);
 
 	MCFG_VIDEO_START_OVERRIDE(fixeight_state,fixeightbl)
 
@@ -623,7 +613,7 @@ void fixeight_state::fixeightbl(machine_config &config)
 #define ROMS_FIXEIGHT \
 	ROM_REGION( 0x080000, "maincpu", 0 ) \
 	ROM_LOAD16_WORD_SWAP( "tp-026-1", 0x000000, 0x080000, CRC(f7b1746a) SHA1(0bbea6f111b818bc9b9b2060af4fe900f37cf7f9) ) \
-	ROM_REGION( 0x400000, "gp9001_0", 0 ) \
+	ROM_REGION( 0x400000, "gp9001", 0 ) \
 	ROM_LOAD( "tp-026-3", 0x000000, 0x200000, CRC(e5578d98) SHA1(280d2b716d955e767d311fc9596823852435b6d7) ) \
 	ROM_LOAD( "tp-026-4", 0x200000, 0x200000, CRC(b760cb53) SHA1(bc9c5e49e45cdda0f774be0038aa4deb21d4d285) ) \
 	ROM_REGION( 0x40000, "oki1", 0 ) \
@@ -757,7 +747,7 @@ ROM_START( fixeightbl )
 	ROM_LOAD16_BYTE( "3.bin", 0x000000, 0x80000, CRC(cc77d4b4) SHA1(4d3376cbae13d90c6314d8bb9236c2183fc6253c) )
 	ROM_LOAD16_BYTE( "2.bin", 0x000001, 0x80000, CRC(ed715488) SHA1(37be9bc8ff6b54a1f660d89469c6c2da6301e9cd) )
 
-	ROM_REGION( 0x400000, "gp9001_0", 0 )
+	ROM_REGION( 0x400000, "gp9001", 0 )
 	ROM_LOAD( "tp-026-3", 0x000000, 0x200000, CRC(e5578d98) SHA1(280d2b716d955e767d311fc9596823852435b6d7) )
 	ROM_LOAD( "tp-026-4", 0x200000, 0x200000, CRC(b760cb53) SHA1(bc9c5e49e45cdda0f774be0038aa4deb21d4d285) )
 

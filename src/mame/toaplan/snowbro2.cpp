@@ -37,7 +37,7 @@ public:
 		, m_mainram(*this, "mainram")
 		, m_maincpu(*this, "maincpu")
 		, m_audiocpu(*this, "audiocpu")
-		, m_vdp(*this, "gp9001_%u", 0U)
+		, m_vdp(*this, "gp9001")
 		, m_oki(*this, "oki%u", 1U)
 		, m_eeprom(*this, "eeprom")
 		, m_gfxdecode(*this, "gfxdecode")
@@ -70,7 +70,7 @@ private:
 
 	required_device<m68000_base_device> m_maincpu;
 	optional_device<cpu_device> m_audiocpu;
-	optional_device_array<gp9001vdp_device, 2> m_vdp;
+	required_device<gp9001vdp_device> m_vdp;
 	optional_device_array<okim6295_device, 2> m_oki;
 	optional_device<eeprom_serial_93cxx_device> m_eeprom;
 	optional_device<gfxdecode_device> m_gfxdecode;
@@ -120,17 +120,8 @@ VIDEO_START_MEMBER(snowbro2_state,toaplan2)
 	/* our current VDP implementation needs this bitmap to work with */
 	m_screen->register_screen_bitmap(m_custom_priority_bitmap);
 
-	if (m_vdp[0] != nullptr)
-	{
-		m_secondary_render_bitmap.reset();
-		m_vdp[0]->custom_priority_bitmap = &m_custom_priority_bitmap;
-	}
-
-	if (m_vdp[1] != nullptr)
-	{
-		m_screen->register_screen_bitmap(m_secondary_render_bitmap);
-		m_vdp[1]->custom_priority_bitmap = &m_custom_priority_bitmap;
-	}
+	m_secondary_render_bitmap.reset();
+	m_vdp->custom_priority_bitmap = &m_custom_priority_bitmap;
 }
 
 
@@ -138,7 +129,7 @@ u32 snowbro2_state::screen_update_toaplan2(screen_device &screen, bitmap_ind16 &
 {
 	bitmap.fill(0, cliprect);
 	m_custom_priority_bitmap.fill(0, cliprect);
-	m_vdp[0]->render_vdp(bitmap, cliprect);
+	m_vdp->render_vdp(bitmap, cliprect);
 
 	return 0;
 }
@@ -148,11 +139,9 @@ void snowbro2_state::screen_vblank(int state)
 	// rising edge
 	if (state)
 	{
-		if (m_vdp[0]) m_vdp[0]->screen_eof();
-		if (m_vdp[1]) m_vdp[1]->screen_eof();
+		m_vdp->screen_eof();
 	}
 }
-
 
 template<int Chip>
 void snowbro2_state::sb2_oki_bankswitch_w(u8 data)
@@ -357,7 +346,7 @@ void snowbro2_state::snowbro2_68k_mem(address_map &map)
 {
 	map(0x000000, 0x07ffff).rom();
 	map(0x100000, 0x10ffff).ram();
-	map(0x300000, 0x30000d).rw(m_vdp[0], FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
+	map(0x300000, 0x30000d).rw(m_vdp, FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
 	map(0x400000, 0x400fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
 	map(0x500000, 0x500003).rw("ymsnd", FUNC(ym2151_device::read), FUNC(ym2151_device::write)).umask16(0x00ff);
 	map(0x600001, 0x600001).rw(m_oki[0], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
@@ -388,9 +377,9 @@ void snowbro2_state::snowbro2b3_68k_mem(address_map &map)
 	map(0x700018, 0x700019).portr("IN4");
 	map(0x700035, 0x700035).w(FUNC(snowbro2_state::coin_w));
 	map(0x700041, 0x700041).w(FUNC(snowbro2_state::sb2_oki_bankswitch_w<0>));
-	map(0xff0000, 0xff2fff).rw(m_vdp[0], FUNC(gp9001vdp_device::bootleg_videoram16_r), FUNC(gp9001vdp_device::bootleg_videoram16_w));
-	map(0xff3000, 0xff37ff).rw(m_vdp[0], FUNC(gp9001vdp_device::bootleg_spriteram16_r), FUNC(gp9001vdp_device::bootleg_spriteram16_w));
-	map(0xff8000, 0xff800f).w(m_vdp[0], FUNC(gp9001vdp_device::bootleg_scroll_w));
+	map(0xff0000, 0xff2fff).rw(m_vdp, FUNC(gp9001vdp_device::bootleg_videoram16_r), FUNC(gp9001vdp_device::bootleg_videoram16_w));
+	map(0xff3000, 0xff37ff).rw(m_vdp, FUNC(gp9001vdp_device::bootleg_spriteram16_r), FUNC(gp9001vdp_device::bootleg_spriteram16_w));
+	map(0xff8000, 0xff800f).w(m_vdp, FUNC(gp9001vdp_device::bootleg_scroll_w));
 }
 
 
@@ -414,9 +403,9 @@ void snowbro2_state::snowbro2(machine_config &config)
 
 	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, gp9001vdp_device::VDP_PALETTE_LENGTH);
 
-	GP9001_VDP(config, m_vdp[0], 27_MHz_XTAL);
-	m_vdp[0]->set_palette(m_palette);
-	m_vdp[0]->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
+	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
+	m_vdp->set_palette(m_palette);
+	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
 
 	MCFG_VIDEO_START_OVERRIDE(snowbro2_state,toaplan2)
 
@@ -436,8 +425,8 @@ void snowbro2_state::snowbro2b3(machine_config &config)
 	m_maincpu->set_addrmap(AS_PROGRAM, &snowbro2_state::snowbro2b3_68k_mem);
 	m_maincpu->set_vblank_int("screen", FUNC(snowbro2_state::irq2_line_hold));
 
-	m_vdp[0]->vint_out_cb().set_nop();
-	m_vdp[0]->set_bootleg_extra_offsets(0x02e, 0x1f0, 0x02e, 0x1ee, 0x02e, 0x1ef, 0x1e9, 0x1ef);
+	m_vdp->vint_out_cb().set_nop();
+	m_vdp->set_bootleg_extra_offsets(0x02e, 0x1f0, 0x02e, 0x1ee, 0x02e, 0x1ef, 0x1e9, 0x1ef);
 }
 
 
@@ -445,7 +434,7 @@ ROM_START( snowbro2 )
 	ROM_REGION( 0x080000, "maincpu", 0 )            /* Main 68K code */
 	ROM_LOAD16_WORD_SWAP( "pro-4", 0x000000, 0x080000, CRC(4c7ee341) SHA1(ad46c605a38565d0148daac301be4e4b72302fe7) )
 
-	ROM_REGION( 0x300000, "gp9001_0", 0 )
+	ROM_REGION( 0x300000, "gp9001", 0 )
 	ROM_LOAD( "rom2-l", 0x000000, 0x100000, CRC(e9d366a9) SHA1(e87e3966fce3395324b90db6c134b3345104c04b) )
 	ROM_LOAD( "rom2-h", 0x100000, 0x080000, CRC(9aab7a62) SHA1(611f6a15fdbac5d3063426a365538c1482e996bf) )
 	ROM_LOAD( "rom3-l", 0x180000, 0x100000, CRC(eb06e332) SHA1(7cd597bfffc153d178530c0f0903bebd751c9dd1) )
@@ -460,7 +449,7 @@ ROM_START( snowbro2b ) // seems to be the same data as the main set, but with th
 	ROM_LOAD16_BYTE( "sb2-prg1.u39", 0x000000, 0x040000, CRC(e1fec8a2) SHA1(30c1a351070d784da9ba0dca68be8a262dba2045) )
 	ROM_LOAD16_BYTE( "sb2-prg0.u23", 0x000001, 0x040000, CRC(b473cd57) SHA1(331130faa9de01b3ca93845174e8c3684bd269c7) )
 
-	ROM_REGION( 0x400000, "gp9001_0", 0 )
+	ROM_REGION( 0x400000, "gp9001", 0 )
 	ROM_LOAD( "sb2-gfx.u177", 0x000000, 0x200000, CRC(ebeec910) SHA1(e179f393b98135caa8419b68cd979038ab47a413) )
 	ROM_LOAD( "sb2-gfx.u175", 0x200000, 0x200000, CRC(e349c75b) SHA1(7d40d00fc0e15a68c427fe94db410bb7cbe00117) )
 
@@ -475,7 +464,7 @@ ROM_START( snowbro2b2 ) // seems to mostly be the same data, but with copyright 
 	ROM_REGION( 0x080000, "maincpu", 0 )            /* Main 68K code */
 	ROM_LOAD16_WORD_SWAP( "rom10.bin", 0x000000, 0x080000, CRC(3e96da41) SHA1(692211d40f506efb9cb49848521de2da7890e248) ) // 27c04002
 
-	ROM_REGION( 0x300000, "gp9001_0", 0 )
+	ROM_REGION( 0x300000, "gp9001", 0 )
 	ROM_LOAD16_BYTE( "rom07.bin", 0x000000, 0x080000, CRC(c54ae0b3) SHA1(94099b2da52eb12638799eab0819fe8a13aa3879) ) // 27c040
 	ROM_LOAD16_BYTE( "rom05.bin", 0x000001, 0x080000, CRC(af3c74d1) SHA1(e97a688db50dfe41723452a9f652564e89e367ed) ) // 27c040
 	ROM_LOAD16_BYTE( "rom08.bin", 0x100000, 0x040000, CRC(72812088) SHA1(1c0d410a7dd8de0bc48b7ff677979ad269966f7d) ) // 27c02001
@@ -493,7 +482,7 @@ ROM_START( snowbro2b3 ) // SK000616 PCB, no original parts, seems hardcoded on E
 	ROM_REGION( 0x080000, "maincpu", 0 )
 	ROM_LOAD16_WORD_SWAP( "prg", 0x000000, 0x080000, CRC(8ce2ede2) SHA1(ddd8a2aa442cd5bb3a7d393b9b5c06fd981e7c61) )
 
-	ROM_REGION( 0x400000, "gp9001_0", 0 ) // not actually a GP9001
+	ROM_REGION( 0x400000, "gp9001", 0 ) // not actually a GP9001
 	ROM_LOAD( "gfx2", 0x100000, 0x100000, CRC(a3be41af) SHA1(4cb1ce9c47bf8bbf7d1e36f6a1d276ce52957cfb) )
 	ROM_CONTINUE(     0x000000, 0x100000 )
 	ROM_LOAD( "gfx1", 0x300000, 0x100000, CRC(8df1ab06) SHA1(2a28caf7d545dc05acfcd2a8d2ffbd9f710af45d) )
@@ -507,7 +496,7 @@ ROM_START( snowbro2ny ) // Nyanko
 	ROM_REGION( 0x080000, "maincpu", 0 )            /* Main 68K code */
 	ROM_LOAD16_WORD_SWAP( "rom1_c8.u61", 0x000000, 0x080000, CRC(9e6eb76b) SHA1(9e8b356dabedeb4ae9e08d60fbf6ed4a09edc0bd) )
 
-	ROM_REGION( 0x300000, "gp9001_0", 0 )
+	ROM_REGION( 0x300000, "gp9001", 0 )
 	ROM_LOAD( "rom2-l_tp-033.u13", 0x000000, 0x100000, CRC(e9d366a9) SHA1(e87e3966fce3395324b90db6c134b3345104c04b) )
 	ROM_LOAD( "rom2-h_c10.u26",    0x100000, 0x080000, CRC(9aab7a62) SHA1(611f6a15fdbac5d3063426a365538c1482e996bf) )
 	ROM_LOAD( "rom3-l_tp-033.u12", 0x180000, 0x100000, CRC(eb06e332) SHA1(7cd597bfffc153d178530c0f0903bebd751c9dd1) )
