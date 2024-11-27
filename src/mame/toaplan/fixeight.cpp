@@ -34,7 +34,7 @@ public:
 		, m_maincpu(*this, "maincpu")
 		, m_audiocpu(*this, "audiocpu")
 		, m_vdp(*this, "gp9001")
-		, m_oki(*this, "oki%u", 1U)
+		, m_oki(*this, "oki")
 		, m_eeprom(*this, "eeprom")
 		, m_gfxdecode(*this, "gfxdecode")
 		, m_screen(*this, "screen")
@@ -49,7 +49,6 @@ protected:
 
 	u32 screen_update_truxton2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
 	virtual void device_post_load() override;
-	u8 m_sound_reset_bit = 0; /* 0x20 for dogyuun/batsugun, 0x10 for vfive, 0x08 for fixeight */
 
 	void fixeight_68k_mem(address_map &map) ATTR_COLD;
 	void fixeight_v25_mem(address_map &map) ATTR_COLD;
@@ -83,9 +82,9 @@ protected:
 	required_device<m68000_base_device> m_maincpu;
 	optional_device<cpu_device> m_audiocpu;
 	required_device<gp9001vdp_device> m_vdp;
-	optional_device_array<okim6295_device, 2> m_oki;
+	required_device<okim6295_device> m_oki;
 	optional_device<eeprom_serial_93cxx_device> m_eeprom;
-	optional_device<gfxdecode_device> m_gfxdecode;
+	required_device<gfxdecode_device> m_gfxdecode;
 	required_device<screen_device> m_screen;
 	required_device<palette_device> m_palette;
 	bitmap_ind8 m_custom_priority_bitmap;
@@ -120,8 +119,7 @@ public:
 
 void fixeight_state::reset(int state)
 {
-	if (m_audiocpu != nullptr)
-		m_audiocpu->pulse_input_line(INPUT_LINE_RESET, attotime::zero);
+	m_audiocpu->pulse_input_line(INPUT_LINE_RESET, attotime::zero);
 }
 
 void fixeight_state::coin_w(u8 data) // MOVE TO DEVICE!
@@ -416,7 +414,7 @@ INPUT_PORTS_END
 
 void fixeight_state::sound_reset_w(u8 data)
 {
-	m_audiocpu->set_input_line(INPUT_LINE_RESET, (data & m_sound_reset_bit) ? CLEAR_LINE : ASSERT_LINE);
+	m_audiocpu->set_input_line(INPUT_LINE_RESET, (data & 0x08) ? CLEAR_LINE : ASSERT_LINE);
 }
 
 void fixeight_state::fixeight_68k_mem(address_map &map)
@@ -457,7 +455,7 @@ void fixeight_bootleg_state::fixeightbl_68k_mem(address_map &map)
 	map(0x20000c, 0x20000d).portr("DSWB");
 	map(0x200010, 0x200011).portr("SYS");
 	map(0x200015, 0x200015).w(FUNC(fixeight_bootleg_state::fixeightbl_oki_bankswitch_w));  // Sound banking. Code at $4084c, $5070
-	map(0x200019, 0x200019).rw(m_oki[0], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
+	map(0x200019, 0x200019).rw(m_oki, FUNC(okim6295_device::read), FUNC(okim6295_device::write));
 	map(0x20001c, 0x20001d).portr("DSWA");
 	map(0x300000, 0x30000d).rw(m_vdp, FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
 	map(0x400000, 0x400fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
@@ -473,7 +471,7 @@ void fixeight_state::fixeight_v25_mem(address_map &map)
 	map(0x00002, 0x00002).portr("IN2");
 	map(0x00004, 0x00004).portr("IN3");
 	map(0x0000a, 0x0000b).rw("ymsnd", FUNC(ym2151_device::read), FUNC(ym2151_device::write));
-	map(0x0000c, 0x0000c).rw(m_oki[0], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
+	map(0x0000c, 0x0000c).rw(m_oki, FUNC(okim6295_device::read), FUNC(okim6295_device::write));
 	map(0x80000, 0x87fff).mirror(0x78000).ram().share(m_shared_ram);
 }
 
@@ -543,8 +541,8 @@ void fixeight_state::fixeight(machine_config &config)
 
 	YM2151(config, "ymsnd", 27_MHz_XTAL/8).add_route(ALL_OUTPUTS, "mono", 0.5); /* verified on pcb */
 
-	OKIM6295(config, m_oki[0], 16_MHz_XTAL/16, okim6295_device::PIN7_HIGH); /* verified on pcb */
-	m_oki[0]->add_route(ALL_OUTPUTS, "mono", 0.5);
+	OKIM6295(config, m_oki, 16_MHz_XTAL/16, okim6295_device::PIN7_HIGH); /* verified on pcb */
+	m_oki->add_route(ALL_OUTPUTS, "mono", 0.5);
 }
 
 void fixeight_bootleg_state::fixeightbl_oki(address_map &map)
@@ -559,7 +557,6 @@ void fixeight_bootleg_state::fixeightbl(machine_config &config)
 	M68000(config, m_maincpu, XTAL(10'000'000));         /* 10MHz Oscillator */
 	m_maincpu->set_addrmap(AS_PROGRAM, &fixeight_bootleg_state::fixeightbl_68k_mem);
 	m_maincpu->set_addrmap(m68000_base_device::AS_CPU_SPACE, &fixeight_bootleg_state::cpu_space_fixeightbl_map);
-	//m_maincpu->reset_cb().set(FUNC(fixeight_bootleg_state::reset));
 
 	/* video hardware */
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
@@ -582,9 +579,9 @@ void fixeight_bootleg_state::fixeightbl(machine_config &config)
 	/* sound hardware */
 	SPEAKER(config, "mono").front_center();
 
-	OKIM6295(config, m_oki[0], 14_MHz_XTAL/16, okim6295_device::PIN7_LOW);
-	m_oki[0]->add_route(ALL_OUTPUTS, "mono", 1.0);
-	m_oki[0]->set_addrmap(0, &fixeight_bootleg_state::fixeightbl_oki);
+	OKIM6295(config, m_oki, 14_MHz_XTAL/16, okim6295_device::PIN7_LOW);
+	m_oki->add_route(ALL_OUTPUTS, "mono", 1.0);
+	m_oki->set_addrmap(0, &fixeight_bootleg_state::fixeightbl_oki);
 }
 
 
@@ -594,7 +591,7 @@ void fixeight_bootleg_state::fixeightbl(machine_config &config)
 	ROM_REGION( 0x400000, "gp9001", 0 ) \
 	ROM_LOAD( "tp-026-3", 0x000000, 0x200000, CRC(e5578d98) SHA1(280d2b716d955e767d311fc9596823852435b6d7) ) \
 	ROM_LOAD( "tp-026-4", 0x200000, 0x200000, CRC(b760cb53) SHA1(bc9c5e49e45cdda0f774be0038aa4deb21d4d285) ) \
-	ROM_REGION( 0x40000, "oki1", 0 ) \
+	ROM_REGION( 0x40000, "oki", 0 ) \
 	ROM_LOAD( "tp-026-2", 0x00000, 0x40000, CRC(85063f1f) SHA1(1bf4d77494de421c98f6273b9876e60d827a6826) )
 
 // note you may need to byteswap these EEPROM files to reprogram the original chip, this is the same for many supported in MAME.
@@ -732,7 +729,7 @@ ROM_START( fixeightbl )
 	ROM_REGION( 0x08000, "text", 0)
 	ROM_LOAD( "4.bin", 0x00000, 0x08000, CRC(a6aca465) SHA1(2b331faeee1832e0adc5218254a99d66331862c6) )
 
-	ROM_REGION( 0x80000, "oki1", 0 )         /* ADPCM Samples */
+	ROM_REGION( 0x80000, "oki", 0 )         /* ADPCM Samples */
 	ROM_LOAD( "1.bin", 0x00000, 0x80000, CRC(888f19ac) SHA1(d2f4f8b7be7a0fdb95baa0af8930e50e2f875c05) )
 
 	ROM_REGION( 0x8000, "user1", 0 )            /* ??? Some sort of table  - same as in pipibibsbl */
@@ -742,30 +739,26 @@ ROM_END
 
 void fixeight_bootleg_state::init_fixeightbl()
 {
-	u8 *ROM = memregion("oki1")->base();
+	u8 *ROM = memregion("oki")->base();
 
 	m_okibank->configure_entries(0, 5, &ROM[0x30000], 0x10000);
 }
 
-void fixeight_state::init_fixeight()
-{
-	m_sound_reset_bit = 0x08;
-}
 
 // region is in eeprom (and also requires correct return value from a v25 mapped address??)
-GAME( 1992, fixeight,    0,        fixeight,   fixeight,   fixeight_state, init_fixeight,   ROT270, "Toaplan",                 "FixEight (Europe)",                                          MACHINE_SUPPORTS_SAVE )
-GAME( 1992, fixeightk,   fixeight, fixeight,   fixeight,   fixeight_state, init_fixeight,   ROT270, "Toaplan",                 "FixEight (Korea)",                                           MACHINE_SUPPORTS_SAVE )
-GAME( 1992, fixeighth,   fixeight, fixeight,   fixeight,   fixeight_state, init_fixeight,   ROT270, "Toaplan",                 "FixEight (Hong Kong)",                                       MACHINE_SUPPORTS_SAVE )
-GAME( 1992, fixeighttw,  fixeight, fixeight,   fixeight,   fixeight_state, init_fixeight,   ROT270, "Toaplan",                 "FixEight (Taiwan)",                                          MACHINE_SUPPORTS_SAVE )
-GAME( 1992, fixeighta,   fixeight, fixeight,   fixeight,   fixeight_state, init_fixeight,   ROT270, "Toaplan",                 "FixEight (Southeast Asia)",                                  MACHINE_SUPPORTS_SAVE )
-GAME( 1992, fixeightu,   fixeight, fixeight,   fixeight,   fixeight_state, init_fixeight,   ROT270, "Toaplan",                 "FixEight (USA)",                                             MACHINE_SUPPORTS_SAVE )
-GAME( 1992, fixeightj,   fixeight, fixeight,   fixeight,   fixeight_state, init_fixeight,   ROT270, "Toaplan",                 "FixEight - Jigoku no Eiyuu Densetsu (Japan)",                MACHINE_SUPPORTS_SAVE )
-GAME( 1992, fixeightt,   fixeight, fixeight,   fixeight,   fixeight_state, init_fixeight,   ROT270, "Toaplan (Taito license)", "FixEight (Europe, Taito license)",                           MACHINE_SUPPORTS_SAVE )
-GAME( 1992, fixeightkt,  fixeight, fixeight,   fixeight,   fixeight_state, init_fixeight,   ROT270, "Toaplan (Taito license)", "FixEight (Korea, Taito license)",                            MACHINE_SUPPORTS_SAVE )
-GAME( 1992, fixeightht,  fixeight, fixeight,   fixeight,   fixeight_state, init_fixeight,   ROT270, "Toaplan (Taito license)", "FixEight (Hong Kong, Taito license)",                        MACHINE_SUPPORTS_SAVE )
-GAME( 1992, fixeighttwt, fixeight, fixeight,   fixeight,   fixeight_state, init_fixeight,   ROT270, "Toaplan (Taito license)", "FixEight (Taiwan, Taito license)",                           MACHINE_SUPPORTS_SAVE )
-GAME( 1992, fixeightat,  fixeight, fixeight,   fixeight,   fixeight_state, init_fixeight,   ROT270, "Toaplan (Taito license)", "FixEight (Southeast Asia, Taito license)",                   MACHINE_SUPPORTS_SAVE )
-GAME( 1992, fixeightut,  fixeight, fixeight,   fixeight,   fixeight_state, init_fixeight,   ROT270, "Toaplan (Taito license)", "FixEight (USA, Taito license)",                              MACHINE_SUPPORTS_SAVE )
-GAME( 1992, fixeightjt,  fixeight, fixeight,   fixeight,   fixeight_state, init_fixeight,   ROT270, "Toaplan (Taito license)", "FixEight - Jigoku no Eiyuu Densetsu (Japan, Taito license)", MACHINE_SUPPORTS_SAVE )
+GAME( 1992, fixeight,    0,        fixeight,   fixeight,   fixeight_state, empty_init,   ROT270, "Toaplan",                 "FixEight (Europe)",                                          MACHINE_SUPPORTS_SAVE )
+GAME( 1992, fixeightk,   fixeight, fixeight,   fixeight,   fixeight_state, empty_init,   ROT270, "Toaplan",                 "FixEight (Korea)",                                           MACHINE_SUPPORTS_SAVE )
+GAME( 1992, fixeighth,   fixeight, fixeight,   fixeight,   fixeight_state, empty_init,   ROT270, "Toaplan",                 "FixEight (Hong Kong)",                                       MACHINE_SUPPORTS_SAVE )
+GAME( 1992, fixeighttw,  fixeight, fixeight,   fixeight,   fixeight_state, empty_init,   ROT270, "Toaplan",                 "FixEight (Taiwan)",                                          MACHINE_SUPPORTS_SAVE )
+GAME( 1992, fixeighta,   fixeight, fixeight,   fixeight,   fixeight_state, empty_init,   ROT270, "Toaplan",                 "FixEight (Southeast Asia)",                                  MACHINE_SUPPORTS_SAVE )
+GAME( 1992, fixeightu,   fixeight, fixeight,   fixeight,   fixeight_state, empty_init,   ROT270, "Toaplan",                 "FixEight (USA)",                                             MACHINE_SUPPORTS_SAVE )
+GAME( 1992, fixeightj,   fixeight, fixeight,   fixeight,   fixeight_state, empty_init,   ROT270, "Toaplan",                 "FixEight - Jigoku no Eiyuu Densetsu (Japan)",                MACHINE_SUPPORTS_SAVE )
+GAME( 1992, fixeightt,   fixeight, fixeight,   fixeight,   fixeight_state, empty_init,   ROT270, "Toaplan (Taito license)", "FixEight (Europe, Taito license)",                           MACHINE_SUPPORTS_SAVE )
+GAME( 1992, fixeightkt,  fixeight, fixeight,   fixeight,   fixeight_state, empty_init,   ROT270, "Toaplan (Taito license)", "FixEight (Korea, Taito license)",                            MACHINE_SUPPORTS_SAVE )
+GAME( 1992, fixeightht,  fixeight, fixeight,   fixeight,   fixeight_state, empty_init,   ROT270, "Toaplan (Taito license)", "FixEight (Hong Kong, Taito license)",                        MACHINE_SUPPORTS_SAVE )
+GAME( 1992, fixeighttwt, fixeight, fixeight,   fixeight,   fixeight_state, empty_init,   ROT270, "Toaplan (Taito license)", "FixEight (Taiwan, Taito license)",                           MACHINE_SUPPORTS_SAVE )
+GAME( 1992, fixeightat,  fixeight, fixeight,   fixeight,   fixeight_state, empty_init,   ROT270, "Toaplan (Taito license)", "FixEight (Southeast Asia, Taito license)",                   MACHINE_SUPPORTS_SAVE )
+GAME( 1992, fixeightut,  fixeight, fixeight,   fixeight,   fixeight_state, empty_init,   ROT270, "Toaplan (Taito license)", "FixEight (USA, Taito license)",                              MACHINE_SUPPORTS_SAVE )
+GAME( 1992, fixeightjt,  fixeight, fixeight,   fixeight,   fixeight_state, empty_init,   ROT270, "Toaplan (Taito license)", "FixEight - Jigoku no Eiyuu Densetsu (Japan, Taito license)", MACHINE_SUPPORTS_SAVE )
 
 GAME( 1992, fixeightbl,  fixeight, fixeightbl, fixeightbl, fixeight_bootleg_state, init_fixeightbl, ROT270, "bootleg", "FixEight (Korea, bootleg)", MACHINE_SUPPORTS_SAVE )
