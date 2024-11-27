@@ -2,36 +2,20 @@
 // copyright-holders:David Haywood
 
 #include "emu.h"
-#include "toaplan_v25_tables.h"
-
-#include "cpu/m68000/m68000.h"
-#include "machine/bankdev.h"
-#include "machine/eepromser.h"
-#include "machine/gen_latch.h"
-#include "machine/ticket.h"
-#include "machine/upd4992.h"
-#include "gp9001.h"
-#include "sound/okim6295.h"
-#include "emupal.h"
-#include "screen.h"
-#include "tilemap.h"
-
-
-#include "toaplipt.h"
-#include "gp9001.h"
-
-#include "cpu/m68000/m68000.h"
-#include "cpu/nec/v25.h"
-#include "cpu/z180/hd647180x.h"
-#include "cpu/z80/z80.h"
-#include "sound/okim6295.h"
-#include "sound/ymopm.h"
-#include "sound/ymopl.h"
 
 #include "emupal.h"
 #include "screen.h"
 #include "speaker.h"
 #include "tilemap.h"
+
+#include "toaplipt.h"
+#include "gp9001.h"
+
+#include "cpu/m68000/m68000.h"
+#include "cpu/z180/hd647180x.h"
+#include "machine/gen_latch.h"
+#include "sound/ymopl.h"
+
 
 class tekipaki_state : public driver_device
 {
@@ -39,64 +23,43 @@ public:
 	tekipaki_state(const machine_config &mconfig, device_type type, const char *tag)
 		: driver_device(mconfig, type, tag)
 		, m_shared_ram(*this, "shared_ram")
-		, m_mainram(*this, "mainram")
 		, m_maincpu(*this, "maincpu")
 		, m_audiocpu(*this, "audiocpu")
 		, m_vdp(*this, "gp9001")
-		, m_oki(*this, "oki%u", 1U)
-		, m_eeprom(*this, "eeprom")
-		, m_gfxdecode(*this, "gfxdecode")
 		, m_screen(*this, "screen")
 		, m_palette(*this, "palette")
-		, m_soundlatch(*this, "soundlatch%u", 1U)
-		, m_z80_rom(*this, "audiocpu")
-		, m_oki_rom(*this, "oki%u", 1U)
-		, m_okibank(*this, "okibank")
+		, m_soundlatch(*this, "soundlatch")
 	{ }
 
-	void pipibibs(machine_config &config);
-	void pipibibsbl(machine_config &config);
 	void tekipaki(machine_config &config);
 
 	int c2map_r();
 
 protected:
-	DECLARE_VIDEO_START(toaplan2);
-	u32 screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
-	void screen_vblank(int state);
-	u8 tekipaki_cmdavailable_r();
+	virtual void video_start() override ATTR_COLD;
 
 private:
 	u8 shared_ram_r(offs_t offset) { return m_shared_ram[offset]; }
 	void shared_ram_w(offs_t offset, u8 data) { m_shared_ram[offset] = data; }
 
-	void cpu_space_pipibibsbl_map(address_map &map) ATTR_COLD;
-	void pipibibi_bootleg_68k_mem(address_map &map) ATTR_COLD;
-	void pipibibs_68k_mem(address_map &map) ATTR_COLD;
-	void pipibibs_sound_z80_mem(address_map &map) ATTR_COLD;
+	u32 screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
+	void screen_vblank(int state);
+	u8 tekipaki_cmdavailable_r();
+
 	void tekipaki_68k_mem(address_map &map) ATTR_COLD;
 	void hd647180_io_map(address_map &map) ATTR_COLD;
 	void coin_w(u8 data);
 	void reset(int state);
 
 	optional_shared_ptr<u8> m_shared_ram; // 8 bit RAM shared between 68K and sound CPU
-	optional_shared_ptr<u16> m_mainram;
 
 	required_device<m68000_base_device> m_maincpu;
 	optional_device<cpu_device> m_audiocpu;
 	required_device<gp9001vdp_device> m_vdp;
-	optional_device_array<okim6295_device, 2> m_oki;
-	optional_device<eeprom_serial_93cxx_device> m_eeprom;
-	optional_device<gfxdecode_device> m_gfxdecode;
 	required_device<screen_device> m_screen;
 	required_device<palette_device> m_palette;
-	optional_device_array<generic_latch_8_device, 4> m_soundlatch; // tekipaki, batrider, bgaregga, batsugun
-	optional_region_ptr<u8> m_z80_rom;
-	optional_region_ptr_array<u8, 2> m_oki_rom;
-	optional_memory_bank m_okibank;
+	optional_device<generic_latch_8_device> m_soundlatch;
 	bitmap_ind8 m_custom_priority_bitmap;
-	bitmap_ind16 m_secondary_render_bitmap;
-
 };
 
 
@@ -131,12 +94,9 @@ void tekipaki_state::coin_w(u8 data) // MOVE TO DEVICE!
 
 
 
-VIDEO_START_MEMBER(tekipaki_state,toaplan2)
+void tekipaki_state::video_start()
 {
-	/* our current VDP implementation needs this bitmap to work with */
 	m_screen->register_screen_bitmap(m_custom_priority_bitmap);
-
-	m_secondary_render_bitmap.reset();
 	m_vdp->custom_priority_bitmap = &m_custom_priority_bitmap;
 }
 
@@ -146,14 +106,12 @@ u32 tekipaki_state::screen_update_toaplan2(screen_device &screen, bitmap_ind16 &
 	bitmap.fill(0, cliprect);
 	m_custom_priority_bitmap.fill(0, cliprect);
 	m_vdp->render_vdp(bitmap, cliprect);
-
 	return 0;
 }
 
 void tekipaki_state::screen_vblank(int state)
 {
-	// rising edge
-	if (state)
+	if (state) // rising edge
 	{
 		m_vdp->screen_eof();
 	}
@@ -288,12 +246,12 @@ int tekipaki_state::c2map_r()
 	// bit 4 high signifies secondary CPU is ready
 	// bit 5 is tested low before V-Blank bit ???
 
-	return m_soundlatch[0]->pending_r() ? 0x00 : 0x01;
+	return m_soundlatch->pending_r() ? 0x00 : 0x01;
 }
 
 u8 tekipaki_state::tekipaki_cmdavailable_r()
 {
-	if (m_soundlatch[0]->pending_r()) return 0xff;
+	if (m_soundlatch->pending_r()) return 0xff;
 	else return 0x00;
 };
 
@@ -312,66 +270,7 @@ void tekipaki_state::tekipaki_68k_mem(address_map &map)
 	map(0x180041, 0x180041).w(FUNC(tekipaki_state::coin_w));
 	map(0x180050, 0x180051).portr("IN1");
 	map(0x180060, 0x180061).portr("IN2");
-	map(0x180071, 0x180071).w(m_soundlatch[0], FUNC(generic_latch_8_device::write));
-}
-
-
-
-
-
-void tekipaki_state::pipibibs_68k_mem(address_map &map)
-{
-	map(0x000000, 0x03ffff).rom();
-	map(0x080000, 0x082fff).ram();
-	map(0x0c0000, 0x0c0fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
-	map(0x140000, 0x14000d).rw(m_vdp, FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
-	map(0x190000, 0x190fff).rw(FUNC(tekipaki_state::shared_ram_r), FUNC(tekipaki_state::shared_ram_w)).umask16(0x00ff);
-	map(0x19c01d, 0x19c01d).w(FUNC(tekipaki_state::coin_w));
-	map(0x19c020, 0x19c021).portr("DSWA");
-	map(0x19c024, 0x19c025).portr("DSWB");
-	map(0x19c028, 0x19c029).portr("JMPR");
-	map(0x19c02c, 0x19c02d).portr("SYS");
-	map(0x19c030, 0x19c031).portr("IN1");
-	map(0x19c034, 0x19c035).portr("IN2");
-}
-
-// odd scroll registers
-void tekipaki_state::pipibibi_bootleg_68k_mem(address_map &map)
-{
-	map(0x000000, 0x03ffff).rom();
-	map(0x080000, 0x082fff).ram();
-	map(0x083000, 0x0837ff).rw(m_vdp, FUNC(gp9001vdp_device::bootleg_spriteram16_r), FUNC(gp9001vdp_device::bootleg_spriteram16_w));   // SpriteRAM
-	map(0x083800, 0x087fff).ram();             // SpriteRAM (unused)
-	map(0x0c0000, 0x0c0fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
-	map(0x120000, 0x120fff).ram();             // Copy of SpriteRAM ?
-//  map(0x13f000, 0x13f001).nopw();        // ???
-	map(0x180000, 0x182fff).rw(m_vdp, FUNC(gp9001vdp_device::bootleg_videoram16_r), FUNC(gp9001vdp_device::bootleg_videoram16_w)); // TileRAM
-	map(0x188000, 0x18800f).w(m_vdp, FUNC(gp9001vdp_device::bootleg_scroll_w));
-	map(0x190003, 0x190003).r(FUNC(tekipaki_state::shared_ram_r));  // Z80 ready ?
-	map(0x190011, 0x190011).w(FUNC(tekipaki_state::shared_ram_w)); // Z80 task to perform
-	map(0x19c01d, 0x19c01d).w(FUNC(tekipaki_state::coin_w));
-	map(0x19c020, 0x19c021).portr("DSWA");
-	map(0x19c024, 0x19c025).portr("DSWB");
-	map(0x19c028, 0x19c029).portr("JMPR");
-	map(0x19c02c, 0x19c02d).portr("SYS");
-	map(0x19c030, 0x19c031).portr("IN1");
-	map(0x19c034, 0x19c035).portr("IN2");
-}
-
-
-void tekipaki_state::cpu_space_pipibibsbl_map(address_map &map)
-{
-	map(0xfffff0, 0xffffff).m(m_maincpu, FUNC(m68000_base_device::autovectors_map));
-	map(0xfffff9, 0xfffff9).lr8(NAME([this] () { m_maincpu->set_input_line(M68K_IRQ_4, CLEAR_LINE); return m68000_device::autovector(4); }));
-}
-
-
-
-void tekipaki_state::pipibibs_sound_z80_mem(address_map &map)
-{
-	map(0x0000, 0x7fff).rom();
-	map(0x8000, 0x87ff).ram().share(m_shared_ram);
-	map(0xe000, 0xe001).rw("ymsnd", FUNC(ym3812_device::read), FUNC(ym3812_device::write));
+	map(0x180071, 0x180071).w(m_soundlatch, FUNC(generic_latch_8_device::write));
 }
 
 void tekipaki_state::hd647180_io_map(address_map &map)
@@ -380,12 +279,11 @@ void tekipaki_state::hd647180_io_map(address_map &map)
 
 	map(0x60, 0x60).nopr();
 	map(0x70, 0x75).nopw(); // DDRs are written with the wrong upper addresses!
-	map(0x84, 0x84).r(m_soundlatch[0], FUNC(generic_latch_8_device::read));
+	map(0x84, 0x84).r(m_soundlatch, FUNC(generic_latch_8_device::read));
 
 	map(0x82, 0x82).rw("ymsnd", FUNC(ym3812_device::status_r), FUNC(ym3812_device::address_w));
 	map(0x83, 0x83).w("ymsnd", FUNC(ym3812_device::data_w));
 }
-
 
 void tekipaki_state::tekipaki(machine_config &config)
 {
@@ -405,9 +303,6 @@ void tekipaki_state::tekipaki(machine_config &config)
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
 	m_screen->set_video_attributes(VIDEO_UPDATE_BEFORE_VBLANK);
 	m_screen->set_raw(27_MHz_XTAL/4, 432, 0, 320, 262, 0, 240);
-	//m_screen->set_refresh_hz(60);
-	//m_screen->set_size(432, 262);
-	//m_screen->set_visarea(0, 319, 0, 239);
 	m_screen->set_screen_update(FUNC(tekipaki_state::screen_update_toaplan2));
 	m_screen->screen_vblank().set(FUNC(tekipaki_state::screen_vblank));
 	m_screen->set_palette(m_palette);
@@ -418,99 +313,15 @@ void tekipaki_state::tekipaki(machine_config &config)
 	m_vdp->set_palette(m_palette);
 	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
 
-	MCFG_VIDEO_START_OVERRIDE(tekipaki_state,toaplan2)
-
 	/* sound hardware */
 	SPEAKER(config, "mono").front_center();
 
-	GENERIC_LATCH_8(config, m_soundlatch[0]);
+	GENERIC_LATCH_8(config, m_soundlatch);
 
 	ym3812_device &ymsnd(YM3812(config, "ymsnd", 27_MHz_XTAL/8));
 	ymsnd.irq_handler().set_inputline(m_audiocpu, 0);
 	ymsnd.add_route(ALL_OUTPUTS, "mono", 1.0);
 }
-
-
-
-
-void tekipaki_state::pipibibs(machine_config &config)
-{
-	/* basic machine hardware */
-	M68000(config, m_maincpu, 10_MHz_XTAL);         // verified on PCB
-	m_maincpu->set_addrmap(AS_PROGRAM, &tekipaki_state::pipibibs_68k_mem);
-	m_maincpu->reset_cb().set(FUNC(tekipaki_state::reset));
-
-	Z80(config, m_audiocpu, 27_MHz_XTAL/8);         // verified on PCB
-	m_audiocpu->set_addrmap(AS_PROGRAM, &tekipaki_state::pipibibs_sound_z80_mem);
-
-	config.set_maximum_quantum(attotime::from_hz(600));
-
-	/* video hardware */
-	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
-	m_screen->set_video_attributes(VIDEO_UPDATE_BEFORE_VBLANK);
-	m_screen->set_raw(27_MHz_XTAL/4, 432, 0, 320, 262, 0, 240);
-	//m_screen->set_refresh_hz(60);
-	//m_screen->set_size(432, 262);
-	//m_screen->set_visarea(0, 319, 0, 239);
-	m_screen->set_screen_update(FUNC(tekipaki_state::screen_update_toaplan2));
-	m_screen->screen_vblank().set(FUNC(tekipaki_state::screen_vblank));
-	m_screen->set_palette(m_palette);
-
-	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, gp9001vdp_device::VDP_PALETTE_LENGTH);
-
-	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
-	m_vdp->set_palette(m_palette);
-	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
-
-	MCFG_VIDEO_START_OVERRIDE(tekipaki_state,toaplan2)
-
-	/* sound hardware */
-	SPEAKER(config, "mono").front_center();
-
-	ym3812_device &ymsnd(YM3812(config, "ymsnd", 27_MHz_XTAL/8)); // verified on PCB
-	ymsnd.irq_handler().set_inputline(m_audiocpu, 0);
-	ymsnd.add_route(ALL_OUTPUTS, "mono", 1.0);
-}
-
-
-void tekipaki_state::pipibibsbl(machine_config &config)
-{
-	/* basic machine hardware */
-	M68000(config, m_maincpu, 12_MHz_XTAL); // ??? (position labeled "68000-12" but 10 MHz-rated parts used)
-	m_maincpu->set_addrmap(AS_PROGRAM, &tekipaki_state::pipibibi_bootleg_68k_mem);
-	m_maincpu->set_addrmap(m68000_base_device::AS_CPU_SPACE, &tekipaki_state::cpu_space_pipibibsbl_map);
-	m_maincpu->reset_cb().set(FUNC(tekipaki_state::reset));
-
-	Z80(config, m_audiocpu, 12_MHz_XTAL / 2); // GoldStar Z8400B; clock source and divider unknown
-	m_audiocpu->set_addrmap(AS_PROGRAM, &tekipaki_state::pipibibs_sound_z80_mem);
-
-	config.set_maximum_quantum(attotime::from_hz(600));
-
-	/* video hardware */
-	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
-	m_screen->set_video_attributes(VIDEO_UPDATE_BEFORE_VBLANK);
-	m_screen->set_raw(28.322_MHz_XTAL / 4, 450, 0, 320, 262, 0, 240); // guess, but this is within NTSC parameters
-	m_screen->set_screen_update(FUNC(tekipaki_state::screen_update_toaplan2));
-	m_screen->screen_vblank().set(FUNC(tekipaki_state::screen_vblank));
-	m_screen->set_palette(m_palette);
-
-	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, gp9001vdp_device::VDP_PALETTE_LENGTH);
-
-	GP9001_VDP(config, m_vdp, 27_MHz_XTAL); // FIXME: bootleg has no VDP
-	m_vdp->set_palette(m_palette);
-	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4, ASSERT_LINE);
-	m_vdp->set_bootleg_extra_offsets(0x01f, 0x1ef, 0x01d, 0x1ef, 0x01b, 0x1ef, 0x1d4, 0x1f7);
-
-	MCFG_VIDEO_START_OVERRIDE(tekipaki_state,toaplan2)
-
-	/* sound hardware */
-	SPEAKER(config, "mono").front_center();
-
-	ym3812_device &ymsnd(YM3812(config, "ymsnd", 28.322_MHz_XTAL / 8)); // ???
-	ymsnd.irq_handler().set_inputline(m_audiocpu, 0);
-	ymsnd.add_route(ALL_OUTPUTS, "mono", 1.0);
-}
-
 
 ROM_START( tekipaki )
 	ROM_REGION( 0x040000, "maincpu", 0 )            /* Main 68K code */
@@ -551,8 +362,6 @@ ROM_START( whoopee )
 	ROM_LOAD( "tp025-4.bin", 0x000000, 0x100000, CRC(ab97f744) SHA1(c1620e614345dbd5c6567e4cb6f55c61b900d0ee) )
 	ROM_LOAD( "tp025-3.bin", 0x100000, 0x100000, CRC(7b16101e) SHA1(ae0119bbfa0937d18c4fbb0a3ef7cdc3b9fa6b56) )
 ROM_END
-
-
 
 GAME( 1991, tekipaki,    0,        tekipaki,     tekipaki,   tekipaki_state, empty_init,    ROT0,   "Toaplan",         "Teki Paki",                 MACHINE_SUPPORTS_SAVE )
 GAME( 1991, tekipakit,   tekipaki, tekipaki,     tekipaki,   tekipaki_state, empty_init,    ROT0,   "Toaplan",         "Teki Paki (location test)", MACHINE_SUPPORTS_SAVE )
