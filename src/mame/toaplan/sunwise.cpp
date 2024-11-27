@@ -62,10 +62,10 @@ public:
 };
 
 
-class toaplan2_sunwise_state : public pwrkick_state
+class sunwise_state : public pwrkick_state
 {
 public:
-	toaplan2_sunwise_state(const machine_config &mconfig, device_type type, const char *tag)
+	sunwise_state(const machine_config &mconfig, device_type type, const char *tag)
 		: pwrkick_state(mconfig, type, tag)
 		, m_shared_ram(*this, "shared_ram")
 		, m_mainram(*this, "mainram")
@@ -98,7 +98,7 @@ protected:
 	template<int Chip> void sw_oki_bankswitch_w(u8 data);
 private:
 	void coin_w(u8 data);
-	void toaplan2_reset(int state);
+	void reset(int state);
 
 	optional_shared_ptr<u8> m_shared_ram; // 8 bit RAM shared between 68K and sound CPU
 	optional_shared_ptr<u16> m_mainram;
@@ -120,13 +120,13 @@ private:
 };
 
 
-void toaplan2_sunwise_state::toaplan2_reset(int state)
+void sunwise_state::reset(int state)
 {
 	if (m_audiocpu != nullptr)
 		m_audiocpu->pulse_input_line(INPUT_LINE_RESET, attotime::zero);
 }
 
-void toaplan2_sunwise_state::coin_w(u8 data) // MOVE TO DEVICE!
+void sunwise_state::coin_w(u8 data) // MOVE TO DEVICE!
 {
 	/* +----------------+------ Bits 7-5 not used ------+--------------+ */
 	/* | Coin Lockout 2 | Coin Lockout 1 | Coin Count 2 | Coin Count 1 | */
@@ -151,7 +151,7 @@ void toaplan2_sunwise_state::coin_w(u8 data) // MOVE TO DEVICE!
 
 
 
-VIDEO_START_MEMBER(toaplan2_sunwise_state,toaplan2)
+VIDEO_START_MEMBER(sunwise_state,toaplan2)
 {
 	/* our current VDP implementation needs this bitmap to work with */
 	m_screen->register_screen_bitmap(m_custom_priority_bitmap);
@@ -170,7 +170,7 @@ VIDEO_START_MEMBER(toaplan2_sunwise_state,toaplan2)
 }
 
 
-u32 toaplan2_sunwise_state::screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
+u32 sunwise_state::screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
 {
 	bitmap.fill(0, cliprect);
 	m_custom_priority_bitmap.fill(0, cliprect);
@@ -179,7 +179,7 @@ u32 toaplan2_sunwise_state::screen_update_toaplan2(screen_device &screen, bitmap
 	return 0;
 }
 
-void toaplan2_sunwise_state::screen_vblank(int state)
+void sunwise_state::screen_vblank(int state)
 {
 	// rising edge
 	if (state)
@@ -190,7 +190,7 @@ void toaplan2_sunwise_state::screen_vblank(int state)
 }
 
 template<int Chip>
-void toaplan2_sunwise_state::sw_oki_bankswitch_w(u8 data)
+void sunwise_state::sw_oki_bankswitch_w(u8 data)
 {
 	m_oki[Chip]->set_rom_bank(data & 1);
 }
@@ -366,7 +366,7 @@ static INPUT_PORTS_START( burgkids )
 INPUT_PORTS_END
 
 
-static INPUT_PORTS_START( toaplan2_2b )
+static INPUT_PORTS_START( 2b )
 	PORT_START("IN1")
 	TOAPLAN_JOY_UDLR_2_BUTTONS( 1 )
 
@@ -395,8 +395,8 @@ static INPUT_PORTS_START( toaplan2_2b )
 INPUT_PORTS_END
 
 
-static INPUT_PORTS_START( toaplan2_3b )
-	PORT_INCLUDE( toaplan2_2b )
+static INPUT_PORTS_START( 3b )
+	PORT_INCLUDE( 2b )
 
 	PORT_MODIFY("IN1")
 	TOAPLAN_JOY_UDLR_3_BUTTONS( 1 )
@@ -407,7 +407,7 @@ INPUT_PORTS_END
 
 
 static INPUT_PORTS_START( othldrby )
-	PORT_INCLUDE( toaplan2_3b )
+	PORT_INCLUDE( 3b )
 
 	PORT_MODIFY("SYS")
 	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_COIN1 ) PORT_IMPULSE(1)
@@ -478,7 +478,7 @@ void pwrkick_state::pwrkick_coin_lockout_w(u8 data)
 }
 
 
-void toaplan2_sunwise_state::pwrkick_68k_mem(address_map &map)
+void sunwise_state::pwrkick_68k_mem(address_map &map)
 {
 	map(0x000000, 0x07ffff).rom();
 	map(0x100000, 0x103fff).ram().share("nvram"); // Only 10022C-10037B is actually saved as NVRAM
@@ -496,12 +496,12 @@ void toaplan2_sunwise_state::pwrkick_68k_mem(address_map &map)
 	map(0x700014, 0x700015).portr("IN2");
 	map(0x700018, 0x700019).portr("DSWC");
 	map(0x70001c, 0x70001d).portr("SYS");
-	map(0x700031, 0x700031).w(FUNC(toaplan2_sunwise_state::sw_oki_bankswitch_w<0>));
-	map(0x700035, 0x700035).w(FUNC(toaplan2_sunwise_state::pwrkick_coin_w));
-	map(0x700039, 0x700039).w(FUNC(toaplan2_sunwise_state::pwrkick_coin_lockout_w));
+	map(0x700031, 0x700031).w(FUNC(sunwise_state::sw_oki_bankswitch_w<0>));
+	map(0x700035, 0x700035).w(FUNC(sunwise_state::pwrkick_coin_w));
+	map(0x700039, 0x700039).w(FUNC(sunwise_state::pwrkick_coin_lockout_w));
 }
 
-void toaplan2_sunwise_state::othldrby_68k_mem(address_map &map)
+void sunwise_state::othldrby_68k_mem(address_map &map)
 {
 	map(0x000000, 0x07ffff).rom();
 	map(0x100000, 0x103fff).ram().share("nvram"); // Only 10331E-103401 is actually saved as NVRAM
@@ -518,17 +518,17 @@ void toaplan2_sunwise_state::othldrby_68k_mem(address_map &map)
 	map(0x70000c, 0x70000d).portr("IN1");
 	map(0x700010, 0x700011).portr("IN2");
 	map(0x70001c, 0x70001d).portr("SYS");
-	map(0x700031, 0x700031).w(FUNC(toaplan2_sunwise_state::sw_oki_bankswitch_w<0>));
-	map(0x700035, 0x700035).w(FUNC(toaplan2_sunwise_state::coin_w));
+	map(0x700031, 0x700031).w(FUNC(sunwise_state::sw_oki_bankswitch_w<0>));
+	map(0x700035, 0x700035).w(FUNC(sunwise_state::coin_w));
 }
 
 
-void toaplan2_sunwise_state::pwrkick(machine_config &config) // Sunwise SW931201-1 PCB (27.000MHz, 20.000MHz & 16.000MHz OSCs)
+void sunwise_state::pwrkick(machine_config &config) // Sunwise SW931201-1 PCB (27.000MHz, 20.000MHz & 16.000MHz OSCs)
 {
 	/* basic machine hardware */
 	M68000(config, m_maincpu, 20_MHz_XTAL/2); // verified on PCB
-	m_maincpu->set_addrmap(AS_PROGRAM, &toaplan2_sunwise_state::pwrkick_68k_mem);
-	m_maincpu->reset_cb().set(FUNC(toaplan2_sunwise_state::toaplan2_reset));
+	m_maincpu->set_addrmap(AS_PROGRAM, &sunwise_state::pwrkick_68k_mem);
+	m_maincpu->reset_cb().set(FUNC(sunwise_state::reset));
 
 	UPD4992(config, m_rtc, 32.768_kHz_XTAL);
 
@@ -540,8 +540,8 @@ void toaplan2_sunwise_state::pwrkick(machine_config &config) // Sunwise SW931201
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
 	m_screen->set_video_attributes(VIDEO_UPDATE_BEFORE_VBLANK);
 	m_screen->set_raw(27_MHz_XTAL/4, 432, 0, 320, 262, 0, 240);
-	m_screen->set_screen_update(FUNC(toaplan2_sunwise_state::screen_update_toaplan2));
-	m_screen->screen_vblank().set(FUNC(toaplan2_sunwise_state::screen_vblank));
+	m_screen->set_screen_update(FUNC(sunwise_state::screen_update_toaplan2));
+	m_screen->screen_vblank().set(FUNC(sunwise_state::screen_vblank));
 	m_screen->set_palette(m_palette);
 
 	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, gp9001vdp_device::VDP_PALETTE_LENGTH);
@@ -550,7 +550,7 @@ void toaplan2_sunwise_state::pwrkick(machine_config &config) // Sunwise SW931201
 	m_vdp[0]->set_palette(m_palette);
 	m_vdp[0]->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
 
-	MCFG_VIDEO_START_OVERRIDE(toaplan2_sunwise_state,toaplan2)
+	MCFG_VIDEO_START_OVERRIDE(sunwise_state,toaplan2)
 
 	/* sound hardware */
 	SPEAKER(config, "mono").front_center();
@@ -559,12 +559,12 @@ void toaplan2_sunwise_state::pwrkick(machine_config &config) // Sunwise SW931201
 	m_oki[0]->add_route(ALL_OUTPUTS, "mono", 0.5);
 }
 
-void toaplan2_sunwise_state::othldrby(machine_config &config) // Sunwise S951060-VGP PCB (27.000MHz, 20.000MHz & 16.000MHz OSCs)
+void sunwise_state::othldrby(machine_config &config) // Sunwise S951060-VGP PCB (27.000MHz, 20.000MHz & 16.000MHz OSCs)
 {
 	/* basic machine hardware */
 	M68000(config, m_maincpu, 20_MHz_XTAL/2); // assumed same as pwrkick
-	m_maincpu->set_addrmap(AS_PROGRAM, &toaplan2_sunwise_state::othldrby_68k_mem);
-	m_maincpu->reset_cb().set(FUNC(toaplan2_sunwise_state::toaplan2_reset));
+	m_maincpu->set_addrmap(AS_PROGRAM, &sunwise_state::othldrby_68k_mem);
+	m_maincpu->reset_cb().set(FUNC(sunwise_state::reset));
 
 	UPD4992(config, m_rtc, 32.768_kHz_XTAL);
 
@@ -574,8 +574,8 @@ void toaplan2_sunwise_state::othldrby(machine_config &config) // Sunwise S951060
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
 	m_screen->set_video_attributes(VIDEO_UPDATE_BEFORE_VBLANK);
 	m_screen->set_raw(27_MHz_XTAL/4, 432, 0, 320, 262, 0, 240);
-	m_screen->set_screen_update(FUNC(toaplan2_sunwise_state::screen_update_toaplan2));
-	m_screen->screen_vblank().set(FUNC(toaplan2_sunwise_state::screen_vblank));
+	m_screen->set_screen_update(FUNC(sunwise_state::screen_update_toaplan2));
+	m_screen->screen_vblank().set(FUNC(sunwise_state::screen_vblank));
 	m_screen->set_palette(m_palette);
 
 	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, gp9001vdp_device::VDP_PALETTE_LENGTH);
@@ -584,7 +584,7 @@ void toaplan2_sunwise_state::othldrby(machine_config &config) // Sunwise S951060
 	m_vdp[0]->set_palette(m_palette);
 	m_vdp[0]->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
 
-	MCFG_VIDEO_START_OVERRIDE(toaplan2_sunwise_state,toaplan2)
+	MCFG_VIDEO_START_OVERRIDE(sunwise_state,toaplan2)
 
 	/* sound hardware */
 	SPEAKER(config, "mono").front_center();
@@ -679,6 +679,6 @@ ROM_END
 
 
 
-GAME( 1994, pwrkick,     0,        pwrkick,    pwrkick,    toaplan2_sunwise_state,  empty_init,      ROT0,   "Sunwise",  "Power Kick (Japan)",    0 )
-GAME( 1995, burgkids,    0,        pwrkick,    burgkids,   toaplan2_sunwise_state,  empty_init,      ROT0,   "Sunwise",  "Burger Kids (Japan)",   0 )
-GAME( 1995, othldrby,    0,        othldrby,   othldrby,   toaplan2_sunwise_state,  empty_init,      ROT0,   "Sunwise",  "Othello Derby (Japan)", 0 )
+GAME( 1994, pwrkick,     0,        pwrkick,    pwrkick,    sunwise_state,  empty_init,      ROT0,   "Sunwise",  "Power Kick (Japan)",    0 )
+GAME( 1995, burgkids,    0,        pwrkick,    burgkids,   sunwise_state,  empty_init,      ROT0,   "Sunwise",  "Burger Kids (Japan)",   0 )
+GAME( 1995, othldrby,    0,        othldrby,   othldrby,   sunwise_state,  empty_init,      ROT0,   "Sunwise",  "Othello Derby (Japan)", 0 )

@@ -31,10 +31,10 @@
 #include "speaker.h"
 #include "tilemap.h"
 
-class toaplan2_vfive_state : public driver_device
+class vfive_state : public driver_device
 {
 public:
-	toaplan2_vfive_state(const machine_config &mconfig, device_type type, const char *tag)
+	vfive_state(const machine_config &mconfig, device_type type, const char *tag)
 		: driver_device(mconfig, type, tag)
 		, m_shared_ram(*this, "shared_ram")
 		, m_mainram(*this, "mainram")
@@ -70,7 +70,7 @@ private:
 	u8 m_sound_reset_bit = 0; /* 0x20 for dogyuun/batsugun, 0x10 for vfive, 0x08 for fixeight */
 	void sound_reset_w(u8 data);
 	void coin_w(u8 data);
-	void toaplan2_reset(int state);
+	void reset(int state);
 
 	optional_shared_ptr<u8> m_shared_ram; // 8 bit RAM shared between 68K and sound CPU
 	optional_shared_ptr<u16> m_mainram;
@@ -92,13 +92,13 @@ private:
 };
 
 
-void toaplan2_vfive_state::toaplan2_reset(int state)
+void vfive_state::reset(int state)
 {
 	if (m_audiocpu != nullptr)
 		m_audiocpu->pulse_input_line(INPUT_LINE_RESET, attotime::zero);
 }
 
-void toaplan2_vfive_state::coin_w(u8 data) // MOVE TO DEVICE!
+void vfive_state::coin_w(u8 data) // MOVE TO DEVICE!
 {
 	/* +----------------+------ Bits 7-5 not used ------+--------------+ */
 	/* | Coin Lockout 2 | Coin Lockout 1 | Coin Count 2 | Coin Count 1 | */
@@ -122,12 +122,12 @@ void toaplan2_vfive_state::coin_w(u8 data) // MOVE TO DEVICE!
 }
 
 
-void toaplan2_vfive_state::sound_reset_w(u8 data)
+void vfive_state::sound_reset_w(u8 data)
 {
 	m_audiocpu->set_input_line(INPUT_LINE_RESET, (data & m_sound_reset_bit) ? CLEAR_LINE : ASSERT_LINE);
 }
 
-VIDEO_START_MEMBER(toaplan2_vfive_state,toaplan2)
+VIDEO_START_MEMBER(vfive_state,toaplan2)
 {
 	/* our current VDP implementation needs this bitmap to work with */
 	m_screen->register_screen_bitmap(m_custom_priority_bitmap);
@@ -146,7 +146,7 @@ VIDEO_START_MEMBER(toaplan2_vfive_state,toaplan2)
 }
 
 
-u32 toaplan2_vfive_state::screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
+u32 vfive_state::screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
 {
 	bitmap.fill(0, cliprect);
 	m_custom_priority_bitmap.fill(0, cliprect);
@@ -155,7 +155,7 @@ u32 toaplan2_vfive_state::screen_update_toaplan2(screen_device &screen, bitmap_i
 	return 0;
 }
 
-void toaplan2_vfive_state::screen_vblank(int state)
+void vfive_state::screen_vblank(int state)
 {
 	// rising edge
 	if (state)
@@ -165,7 +165,7 @@ void toaplan2_vfive_state::screen_vblank(int state)
 	}
 }
 
-static INPUT_PORTS_START( toaplan2_2b )
+static INPUT_PORTS_START( 2b )
 	PORT_START("IN1")
 	TOAPLAN_JOY_UDLR_2_BUTTONS( 1 )
 
@@ -195,7 +195,7 @@ INPUT_PORTS_END
 
 
 static INPUT_PORTS_START( grindstm )
-	PORT_INCLUDE( toaplan2_2b )
+	PORT_INCLUDE( 2b )
 
 	PORT_MODIFY("DSWA")
 	PORT_DIPNAME( 0x0001,   0x0000, DEF_STR( Cabinet ) )        PORT_DIPLOCATION("SW1:!1")
@@ -296,7 +296,7 @@ static INPUT_PORTS_START( vfive )
 	PORT_CONFSETTING(       0x0080, DEF_STR( On ) )
 INPUT_PORTS_END
 
-void toaplan2_vfive_state::coin_sound_reset_w(u8 data)
+void vfive_state::coin_sound_reset_w(u8 data)
 {
 	logerror("coin_sound_reset_w %02x\n",data);
 
@@ -305,7 +305,7 @@ void toaplan2_vfive_state::coin_sound_reset_w(u8 data)
 }
 
 
-void toaplan2_vfive_state::vfive_68k_mem(address_map &map)
+void vfive_state::vfive_68k_mem(address_map &map)
 {
 	map(0x000000, 0x07ffff).rom();
 	map(0x100000, 0x103fff).ram();
@@ -313,30 +313,30 @@ void toaplan2_vfive_state::vfive_68k_mem(address_map &map)
 	map(0x200010, 0x200011).portr("IN1");
 	map(0x200014, 0x200015).portr("IN2");
 	map(0x200018, 0x200019).portr("SYS");
-	map(0x20001d, 0x20001d).w(FUNC(toaplan2_vfive_state::coin_sound_reset_w)); // Coin count/lock + v25 reset line
-	map(0x210000, 0x21ffff).rw(FUNC(toaplan2_vfive_state::shared_ram_r), FUNC(toaplan2_vfive_state::shared_ram_w)).umask16(0x00ff);
+	map(0x20001d, 0x20001d).w(FUNC(vfive_state::coin_sound_reset_w)); // Coin count/lock + v25 reset line
+	map(0x210000, 0x21ffff).rw(FUNC(vfive_state::shared_ram_r), FUNC(vfive_state::shared_ram_w)).umask16(0x00ff);
 	map(0x300000, 0x30000d).rw(m_vdp[0], FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
 	map(0x400000, 0x400fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
 	map(0x700000, 0x700001).r(m_vdp[0], FUNC(gp9001vdp_device::vdpcount_r));
 }
 
 
-void toaplan2_vfive_state::vfive_v25_mem(address_map &map)
+void vfive_state::vfive_v25_mem(address_map &map)
 {
 	map(0x00000, 0x00001).rw("ymsnd", FUNC(ym2151_device::read), FUNC(ym2151_device::write));
 	map(0x80000, 0x87fff).mirror(0x78000).ram().share(m_shared_ram);
 }
 
 
-void toaplan2_vfive_state::vfive(machine_config &config)
+void vfive_state::vfive(machine_config &config)
 {
 	/* basic machine hardware */
 	M68000(config, m_maincpu, 20_MHz_XTAL/2);   // verified on PCB
-	m_maincpu->set_addrmap(AS_PROGRAM, &toaplan2_vfive_state::vfive_68k_mem);
-	m_maincpu->reset_cb().set(FUNC(toaplan2_vfive_state::toaplan2_reset));
+	m_maincpu->set_addrmap(AS_PROGRAM, &vfive_state::vfive_68k_mem);
+	m_maincpu->reset_cb().set(FUNC(vfive_state::reset));
 
 	v25_device &audiocpu(V25(config, m_audiocpu, 20_MHz_XTAL/2)); // Verified on PCB, NEC V25 type Toaplan mark scratched out
-	audiocpu.set_addrmap(AS_PROGRAM, &toaplan2_vfive_state::vfive_v25_mem);
+	audiocpu.set_addrmap(AS_PROGRAM, &vfive_state::vfive_v25_mem);
 	audiocpu.set_decryption_table(toaplan_v25_tables::nitro_decryption_table);
 	audiocpu.pt_in_cb().set_ioport("DSWA").exor(0xff);
 	audiocpu.p0_in_cb().set_ioport("DSWB").exor(0xff);
@@ -347,8 +347,8 @@ void toaplan2_vfive_state::vfive(machine_config &config)
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
 	m_screen->set_video_attributes(VIDEO_UPDATE_BEFORE_VBLANK);
 	m_screen->set_raw(27_MHz_XTAL/4, 432, 0, 320, 262, 0, 240); // verified on PCB
-	m_screen->set_screen_update(FUNC(toaplan2_vfive_state::screen_update_toaplan2));
-	m_screen->screen_vblank().set(FUNC(toaplan2_vfive_state::screen_vblank));
+	m_screen->set_screen_update(FUNC(vfive_state::screen_update_toaplan2));
+	m_screen->screen_vblank().set(FUNC(vfive_state::screen_vblank));
 	m_screen->set_palette(m_palette);
 
 	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, gp9001vdp_device::VDP_PALETTE_LENGTH);
@@ -357,7 +357,7 @@ void toaplan2_vfive_state::vfive(machine_config &config)
 	m_vdp[0]->set_palette(m_palette);
 	m_vdp[0]->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
 
-	MCFG_VIDEO_START_OVERRIDE(toaplan2_vfive_state,toaplan2)
+	MCFG_VIDEO_START_OVERRIDE(vfive_state,toaplan2)
 
 	/* sound hardware */
 	SPEAKER(config, "mono").front_center();
@@ -405,13 +405,13 @@ ROM_START( vfive )
 	ROM_LOAD( "tp027_03.bin", 0x100000, 0x100000, CRC(b1fc6362) SHA1(5e97e3cce31be57689d394a50178cda4d80cce5f) )
 ROM_END
 
-void toaplan2_vfive_state::init_vfive()
+void vfive_state::init_vfive()
 {
 	m_sound_reset_bit = 0x10;
 }
 
 
-GAME( 1992, grindstm,    0,        vfive,      grindstm,   toaplan2_vfive_state, init_vfive,      ROT270, "Toaplan", "Grind Stormer",             MACHINE_SUPPORTS_SAVE )
-GAME( 1992, grindstma,   grindstm, vfive,      grindstma,  toaplan2_vfive_state, init_vfive,      ROT270, "Toaplan", "Grind Stormer (older set)", MACHINE_SUPPORTS_SAVE )
-GAME( 1993, vfive,       grindstm, vfive,      vfive,      toaplan2_vfive_state, init_vfive,      ROT270, "Toaplan", "V-Five (Japan)",            MACHINE_SUPPORTS_SAVE )
+GAME( 1992, grindstm,    0,        vfive,      grindstm,   vfive_state, init_vfive,      ROT270, "Toaplan", "Grind Stormer",             MACHINE_SUPPORTS_SAVE )
+GAME( 1992, grindstma,   grindstm, vfive,      grindstma,  vfive_state, init_vfive,      ROT270, "Toaplan", "Grind Stormer (older set)", MACHINE_SUPPORTS_SAVE )
+GAME( 1993, vfive,       grindstm, vfive,      vfive,      vfive_state, init_vfive,      ROT270, "Toaplan", "V-Five (Japan)",            MACHINE_SUPPORTS_SAVE )
 

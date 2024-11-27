@@ -28,10 +28,10 @@
 #include "speaker.h"
 #include "tilemap.h"
 
-class toaplan2_snowbro2_state : public driver_device
+class snowbro2_state : public driver_device
 {
 public:
-	toaplan2_snowbro2_state(const machine_config &mconfig, device_type type, const char *tag)
+	snowbro2_state(const machine_config &mconfig, device_type type, const char *tag)
 		: driver_device(mconfig, type, tag)
 		, m_shared_ram(*this, "shared_ram")
 		, m_mainram(*this, "mainram")
@@ -63,7 +63,7 @@ protected:
 	template<int Chip> void sb2_oki_bankswitch_w(u8 data);
 private:
 	void coin_w(u8 data);
-	void toaplan2_reset(int state);
+	void reset(int state);
 
 	optional_shared_ptr<u8> m_shared_ram; // 8 bit RAM shared between 68K and sound CPU
 	optional_shared_ptr<u16> m_mainram;
@@ -84,13 +84,13 @@ private:
 	bitmap_ind16 m_secondary_render_bitmap;
 };
 
-void toaplan2_snowbro2_state::toaplan2_reset(int state)
+void snowbro2_state::reset(int state)
 {
 	if (m_audiocpu != nullptr)
 		m_audiocpu->pulse_input_line(INPUT_LINE_RESET, attotime::zero);
 }
 
-void toaplan2_snowbro2_state::coin_w(u8 data) // MOVE TO DEVICE!
+void snowbro2_state::coin_w(u8 data) // MOVE TO DEVICE!
 {
 	/* +----------------+------ Bits 7-5 not used ------+--------------+ */
 	/* | Coin Lockout 2 | Coin Lockout 1 | Coin Count 2 | Coin Count 1 | */
@@ -115,7 +115,7 @@ void toaplan2_snowbro2_state::coin_w(u8 data) // MOVE TO DEVICE!
 
 
 
-VIDEO_START_MEMBER(toaplan2_snowbro2_state,toaplan2)
+VIDEO_START_MEMBER(snowbro2_state,toaplan2)
 {
 	/* our current VDP implementation needs this bitmap to work with */
 	m_screen->register_screen_bitmap(m_custom_priority_bitmap);
@@ -134,7 +134,7 @@ VIDEO_START_MEMBER(toaplan2_snowbro2_state,toaplan2)
 }
 
 
-u32 toaplan2_snowbro2_state::screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
+u32 snowbro2_state::screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
 {
 	bitmap.fill(0, cliprect);
 	m_custom_priority_bitmap.fill(0, cliprect);
@@ -143,7 +143,7 @@ u32 toaplan2_snowbro2_state::screen_update_toaplan2(screen_device &screen, bitma
 	return 0;
 }
 
-void toaplan2_snowbro2_state::screen_vblank(int state)
+void snowbro2_state::screen_vblank(int state)
 {
 	// rising edge
 	if (state)
@@ -155,13 +155,13 @@ void toaplan2_snowbro2_state::screen_vblank(int state)
 
 
 template<int Chip>
-void toaplan2_snowbro2_state::sb2_oki_bankswitch_w(u8 data)
+void snowbro2_state::sb2_oki_bankswitch_w(u8 data)
 {
 	m_oki[Chip]->set_rom_bank(data & 1);
 }
 
 
-static INPUT_PORTS_START( toaplan2_2b )
+static INPUT_PORTS_START( 2b )
 	PORT_START("IN1")
 	TOAPLAN_JOY_UDLR_2_BUTTONS( 1 )
 
@@ -190,7 +190,7 @@ static INPUT_PORTS_START( toaplan2_2b )
 INPUT_PORTS_END
 
 static INPUT_PORTS_START( snowbro2 )
-	PORT_INCLUDE( toaplan2_2b )
+	PORT_INCLUDE( 2b )
 
 	PORT_START("IN3")
 	PORT_BIT( 0x0001, IP_ACTIVE_HIGH, IPT_JOYSTICK_UP ) PORT_PLAYER(3) PORT_8WAY
@@ -353,7 +353,7 @@ static INPUT_PORTS_START( snowbro2b3 )
 	PORT_DIPSETTING(        0x0000, "4" )
 INPUT_PORTS_END
 
-void toaplan2_snowbro2_state::snowbro2_68k_mem(address_map &map)
+void snowbro2_state::snowbro2_68k_mem(address_map &map)
 {
 	map(0x000000, 0x07ffff).rom();
 	map(0x100000, 0x10ffff).ram();
@@ -369,11 +369,11 @@ void toaplan2_snowbro2_state::snowbro2_68k_mem(address_map &map)
 	map(0x700014, 0x700015).portr("IN3");
 	map(0x700018, 0x700019).portr("IN4");
 	map(0x70001c, 0x70001d).portr("SYS");
-	map(0x700031, 0x700031).w(FUNC(toaplan2_snowbro2_state::sb2_oki_bankswitch_w<0>));
-	map(0x700035, 0x700035).w(FUNC(toaplan2_snowbro2_state::coin_w));
+	map(0x700031, 0x700031).w(FUNC(snowbro2_state::sb2_oki_bankswitch_w<0>));
+	map(0x700035, 0x700035).w(FUNC(snowbro2_state::coin_w));
 }
 
-void toaplan2_snowbro2_state::snowbro2b3_68k_mem(address_map &map)
+void snowbro2_state::snowbro2b3_68k_mem(address_map &map)
 {
 	map(0x000000, 0x07ffff).rom();
 	map(0x100000, 0x10ffff).ram();
@@ -386,20 +386,20 @@ void toaplan2_snowbro2_state::snowbro2b3_68k_mem(address_map &map)
 	map(0x700010, 0x700011).portr("IN2");
 	map(0x700014, 0x700015).portr("IN3");
 	map(0x700018, 0x700019).portr("IN4");
-	map(0x700035, 0x700035).w(FUNC(toaplan2_snowbro2_state::coin_w));
-	map(0x700041, 0x700041).w(FUNC(toaplan2_snowbro2_state::sb2_oki_bankswitch_w<0>));
+	map(0x700035, 0x700035).w(FUNC(snowbro2_state::coin_w));
+	map(0x700041, 0x700041).w(FUNC(snowbro2_state::sb2_oki_bankswitch_w<0>));
 	map(0xff0000, 0xff2fff).rw(m_vdp[0], FUNC(gp9001vdp_device::bootleg_videoram16_r), FUNC(gp9001vdp_device::bootleg_videoram16_w));
 	map(0xff3000, 0xff37ff).rw(m_vdp[0], FUNC(gp9001vdp_device::bootleg_spriteram16_r), FUNC(gp9001vdp_device::bootleg_spriteram16_w));
 	map(0xff8000, 0xff800f).w(m_vdp[0], FUNC(gp9001vdp_device::bootleg_scroll_w));
 }
 
 
-void toaplan2_snowbro2_state::snowbro2(machine_config &config)
+void snowbro2_state::snowbro2(machine_config &config)
 {
 	/* basic machine hardware */
 	M68000(config, m_maincpu, 32_MHz_XTAL/2);
-	m_maincpu->set_addrmap(AS_PROGRAM, &toaplan2_snowbro2_state::snowbro2_68k_mem);
-	m_maincpu->reset_cb().set(FUNC(toaplan2_snowbro2_state::toaplan2_reset));
+	m_maincpu->set_addrmap(AS_PROGRAM, &snowbro2_state::snowbro2_68k_mem);
+	m_maincpu->reset_cb().set(FUNC(snowbro2_state::reset));
 
 	/* video hardware */
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
@@ -408,8 +408,8 @@ void toaplan2_snowbro2_state::snowbro2(machine_config &config)
 	//m_screen->set_refresh_hz(60);
 	//m_screen->set_size(432, 262);
 	//m_screen->set_visarea(0, 319, 0, 239);
-	m_screen->set_screen_update(FUNC(toaplan2_snowbro2_state::screen_update_toaplan2));
-	m_screen->screen_vblank().set(FUNC(toaplan2_snowbro2_state::screen_vblank));
+	m_screen->set_screen_update(FUNC(snowbro2_state::screen_update_toaplan2));
+	m_screen->screen_vblank().set(FUNC(snowbro2_state::screen_vblank));
 	m_screen->set_palette(m_palette);
 
 	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, gp9001vdp_device::VDP_PALETTE_LENGTH);
@@ -418,7 +418,7 @@ void toaplan2_snowbro2_state::snowbro2(machine_config &config)
 	m_vdp[0]->set_palette(m_palette);
 	m_vdp[0]->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
 
-	MCFG_VIDEO_START_OVERRIDE(toaplan2_snowbro2_state,toaplan2)
+	MCFG_VIDEO_START_OVERRIDE(snowbro2_state,toaplan2)
 
 	/* sound hardware */
 	SPEAKER(config, "mono").front_center();
@@ -429,12 +429,12 @@ void toaplan2_snowbro2_state::snowbro2(machine_config &config)
 	m_oki[0]->add_route(ALL_OUTPUTS, "mono", 0.5);
 }
 
-void toaplan2_snowbro2_state::snowbro2b3(machine_config &config)
+void snowbro2_state::snowbro2b3(machine_config &config)
 {
 	snowbro2(config);
 
-	m_maincpu->set_addrmap(AS_PROGRAM, &toaplan2_snowbro2_state::snowbro2b3_68k_mem);
-	m_maincpu->set_vblank_int("screen", FUNC(toaplan2_snowbro2_state::irq2_line_hold));
+	m_maincpu->set_addrmap(AS_PROGRAM, &snowbro2_state::snowbro2b3_68k_mem);
+	m_maincpu->set_vblank_int("screen", FUNC(snowbro2_state::irq2_line_hold));
 
 	m_vdp[0]->vint_out_cb().set_nop();
 	m_vdp[0]->set_bootleg_extra_offsets(0x02e, 0x1f0, 0x02e, 0x1ee, 0x02e, 0x1ef, 0x1e9, 0x1ef);
@@ -522,8 +522,8 @@ ROM_START( snowbro2ny ) // Nyanko
 	ROM_LOAD( "15_gal16v8-25lnc.u93", 0x22e, 0x117, NO_DUMP ) // Protected
 ROM_END
 
-GAME( 1994, snowbro2,    0,        snowbro2,   snowbro2,   toaplan2_snowbro2_state, empty_init,      ROT0,   "Hanafram",         "Snow Bros. 2 - With New Elves / Otenki Paradise (Hanafram)",       MACHINE_SUPPORTS_SAVE )
-GAME( 1994, snowbro2ny,  snowbro2, snowbro2,   snowbro2,   toaplan2_snowbro2_state, empty_init,      ROT0,   "Nyanko",           "Snow Bros. 2 - With New Elves / Otenki Paradise (Nyanko)",         MACHINE_SUPPORTS_SAVE ) // not a bootleg, has original parts (the "GP9001 L7A0498 TOA PLAN" IC and the three mask ROMs)
-GAME( 1998, snowbro2b,   snowbro2, snowbro2,   snowbro2,   toaplan2_snowbro2_state, empty_init,      ROT0,   "bootleg",          "Snow Bros. 2 - With New Elves / Otenki Paradise (bootleg, set 1)", MACHINE_SUPPORTS_SAVE )
-GAME( 1994, snowbro2b2,  snowbro2, snowbro2,   snowbro2,   toaplan2_snowbro2_state, empty_init,      ROT0,   "bootleg (Q Elec)", "Snow Bros. 2 - With New Elves / Otenki Paradise (bootleg, set 2)", MACHINE_SUPPORTS_SAVE ) // possibly not a bootleg, has some original parts
-GAME( 1994, snowbro2b3,  snowbro2, snowbro2b3, snowbro2b3, toaplan2_snowbro2_state, empty_init,      ROT0,   "bootleg",          "Snow Bros. 2 - With New Elves / Otenki Paradise (bootleg, set 3)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_SUPPORTS_SAVE ) // GFX offsets not 100% correct
+GAME( 1994, snowbro2,    0,        snowbro2,   snowbro2,   snowbro2_state, empty_init,      ROT0,   "Hanafram",         "Snow Bros. 2 - With New Elves / Otenki Paradise (Hanafram)",       MACHINE_SUPPORTS_SAVE )
+GAME( 1994, snowbro2ny,  snowbro2, snowbro2,   snowbro2,   snowbro2_state, empty_init,      ROT0,   "Nyanko",           "Snow Bros. 2 - With New Elves / Otenki Paradise (Nyanko)",         MACHINE_SUPPORTS_SAVE ) // not a bootleg, has original parts (the "GP9001 L7A0498 TOA PLAN" IC and the three mask ROMs)
+GAME( 1998, snowbro2b,   snowbro2, snowbro2,   snowbro2,   snowbro2_state, empty_init,      ROT0,   "bootleg",          "Snow Bros. 2 - With New Elves / Otenki Paradise (bootleg, set 1)", MACHINE_SUPPORTS_SAVE )
+GAME( 1994, snowbro2b2,  snowbro2, snowbro2,   snowbro2,   snowbro2_state, empty_init,      ROT0,   "bootleg (Q Elec)", "Snow Bros. 2 - With New Elves / Otenki Paradise (bootleg, set 2)", MACHINE_SUPPORTS_SAVE ) // possibly not a bootleg, has some original parts
+GAME( 1994, snowbro2b3,  snowbro2, snowbro2b3, snowbro2b3, snowbro2_state, empty_init,      ROT0,   "bootleg",          "Snow Bros. 2 - With New Elves / Otenki Paradise (bootleg, set 3)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_SUPPORTS_SAVE ) // GFX offsets not 100% correct

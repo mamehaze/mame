@@ -32,10 +32,10 @@
 #include "speaker.h"
 #include "tilemap.h"
 
-class toaplan2_ghox_state : public driver_device
+class ghox_state : public driver_device
 {
 public:
-	toaplan2_ghox_state(const machine_config &mconfig, device_type type, const char *tag)
+	ghox_state(const machine_config &mconfig, device_type type, const char *tag)
 		: driver_device(mconfig, type, tag)
 		, m_io_pad(*this, "PAD%u", 1U)
 		, m_shared_ram(*this, "shared_ram")
@@ -76,7 +76,7 @@ private:
 	u8 shared_ram_r(offs_t offset) { return m_shared_ram[offset]; }
 	void shared_ram_w(offs_t offset, u8 data) { m_shared_ram[offset] = data; }
 	void coin_w(u8 data);
-	void toaplan2_reset(int state);
+	void reset(int state);
 
 	required_ioport_array<2> m_io_pad;
 
@@ -101,13 +101,13 @@ private:
 };
 
 
-void toaplan2_ghox_state::toaplan2_reset(int state)
+void ghox_state::reset(int state)
 {
 	if (m_audiocpu != nullptr)
 		m_audiocpu->pulse_input_line(INPUT_LINE_RESET, attotime::zero);
 }
 
-void toaplan2_ghox_state::coin_w(u8 data) // MOVE TO DEVICE!
+void ghox_state::coin_w(u8 data) // MOVE TO DEVICE!
 {
 	/* +----------------+------ Bits 7-5 not used ------+--------------+ */
 	/* | Coin Lockout 2 | Coin Lockout 1 | Coin Count 2 | Coin Count 1 | */
@@ -130,7 +130,7 @@ void toaplan2_ghox_state::coin_w(u8 data) // MOVE TO DEVICE!
 	}
 }
 
-VIDEO_START_MEMBER(toaplan2_ghox_state,toaplan2)
+VIDEO_START_MEMBER(ghox_state,toaplan2)
 {
 	/* our current VDP implementation needs this bitmap to work with */
 	m_screen->register_screen_bitmap(m_custom_priority_bitmap);
@@ -149,7 +149,7 @@ VIDEO_START_MEMBER(toaplan2_ghox_state,toaplan2)
 }
 
 
-u32 toaplan2_ghox_state::screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
+u32 ghox_state::screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
 {
 	bitmap.fill(0, cliprect);
 	m_custom_priority_bitmap.fill(0, cliprect);
@@ -158,7 +158,7 @@ u32 toaplan2_ghox_state::screen_update_toaplan2(screen_device &screen, bitmap_in
 	return 0;
 }
 
-void toaplan2_ghox_state::screen_vblank(int state)
+void ghox_state::screen_vblank(int state)
 {
 	// rising edge
 	if (state)
@@ -170,13 +170,13 @@ void toaplan2_ghox_state::screen_vblank(int state)
 
 
 
-void toaplan2_ghox_state::machine_start()
+void ghox_state::machine_start()
 {
 	driver_device::machine_start();
 	save_item(NAME(m_old_paddle_h));
 }
 
-void toaplan2_ghox_state::machine_reset()
+void ghox_state::machine_reset()
 {
 	driver_device::machine_reset();
 	m_old_paddle_h[0] = 0;
@@ -184,7 +184,7 @@ void toaplan2_ghox_state::machine_reset()
 }
 
 template<unsigned Which>
-u16 toaplan2_ghox_state::ghox_h_analog_r()
+u16 ghox_state::ghox_h_analog_r()
 {
 	const s8 new_value = m_io_pad[Which]->read();
 	const s8 result = new_value - m_old_paddle_h[Which];
@@ -193,7 +193,7 @@ u16 toaplan2_ghox_state::ghox_h_analog_r()
 	return result;
 }
 
-static INPUT_PORTS_START( toaplan2_2b )
+static INPUT_PORTS_START( 2b )
 	PORT_START("IN1")
 	TOAPLAN_JOY_UDLR_2_BUTTONS( 1 )
 
@@ -222,7 +222,7 @@ static INPUT_PORTS_START( toaplan2_2b )
 INPUT_PORTS_END
 
 static INPUT_PORTS_START( ghox )
-	PORT_INCLUDE( toaplan2_2b )
+	PORT_INCLUDE( 2b )
 
 	PORT_MODIFY("DSWA")
 	// Various features on bit mask 0x000f - see above
@@ -305,21 +305,21 @@ INPUT_PORTS_END
 
 
 
-void toaplan2_ghox_state::ghox_68k_mem(address_map &map)
+void ghox_state::ghox_68k_mem(address_map &map)
 {
 	map(0x000000, 0x03ffff).rom();
-	map(0x040000, 0x040001).r(FUNC(toaplan2_ghox_state::ghox_h_analog_r<1>));
+	map(0x040000, 0x040001).r(FUNC(ghox_state::ghox_h_analog_r<1>));
 	map(0x080000, 0x083fff).ram();
 	map(0x0c0000, 0x0c0fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
-	map(0x100000, 0x100001).r(FUNC(toaplan2_ghox_state::ghox_h_analog_r<0>));
+	map(0x100000, 0x100001).r(FUNC(ghox_state::ghox_h_analog_r<0>));
 	map(0x140000, 0x14000d).rw(m_vdp[0], FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
-	map(0x180000, 0x180fff).rw(FUNC(toaplan2_ghox_state::shared_ram_r), FUNC(toaplan2_ghox_state::shared_ram_w)).umask16(0x00ff);
-	map(0x181001, 0x181001).w(FUNC(toaplan2_ghox_state::coin_w));
+	map(0x180000, 0x180fff).rw(FUNC(ghox_state::shared_ram_r), FUNC(ghox_state::shared_ram_w)).umask16(0x00ff);
+	map(0x181001, 0x181001).w(FUNC(ghox_state::coin_w));
 	map(0x18100c, 0x18100d).portr("JMPR");
 }
 
 
-void toaplan2_ghox_state::ghox_hd647180_mem_map(address_map &map)
+void ghox_state::ghox_hd647180_mem_map(address_map &map)
 {
 	map(0x40000, 0x407ff).ram().share(m_shared_ram);
 
@@ -335,15 +335,15 @@ void toaplan2_ghox_state::ghox_hd647180_mem_map(address_map &map)
 }
 
 
-void toaplan2_ghox_state::ghox(machine_config &config)
+void ghox_state::ghox(machine_config &config)
 {
 	/* basic machine hardware */
 	M68000(config, m_maincpu, 10_MHz_XTAL);         /* verified on pcb */
-	m_maincpu->set_addrmap(AS_PROGRAM, &toaplan2_ghox_state::ghox_68k_mem);
-	m_maincpu->reset_cb().set(FUNC(toaplan2_ghox_state::toaplan2_reset));
+	m_maincpu->set_addrmap(AS_PROGRAM, &ghox_state::ghox_68k_mem);
+	m_maincpu->reset_cb().set(FUNC(ghox_state::reset));
 
 	HD647180X(config, m_audiocpu, 10_MHz_XTAL);
-	m_audiocpu->set_addrmap(AS_PROGRAM, &toaplan2_ghox_state::ghox_hd647180_mem_map);
+	m_audiocpu->set_addrmap(AS_PROGRAM, &ghox_state::ghox_hd647180_mem_map);
 
 	config.set_maximum_quantum(attotime::from_hz(600));
 
@@ -354,8 +354,8 @@ void toaplan2_ghox_state::ghox(machine_config &config)
 	//m_screen->set_refresh_hz(60);
 	//m_screen->set_size(432, 262);
 	//m_screen->set_visarea(0, 319, 0, 239);
-	m_screen->set_screen_update(FUNC(toaplan2_ghox_state::screen_update_toaplan2));
-	m_screen->screen_vblank().set(FUNC(toaplan2_ghox_state::screen_vblank));
+	m_screen->set_screen_update(FUNC(ghox_state::screen_update_toaplan2));
+	m_screen->screen_vblank().set(FUNC(ghox_state::screen_vblank));
 	m_screen->set_palette(m_palette);
 
 	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, gp9001vdp_device::VDP_PALETTE_LENGTH);
@@ -364,7 +364,7 @@ void toaplan2_ghox_state::ghox(machine_config &config)
 	m_vdp[0]->set_palette(m_palette);
 	m_vdp[0]->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
 
-	MCFG_VIDEO_START_OVERRIDE(toaplan2_ghox_state,toaplan2)
+	MCFG_VIDEO_START_OVERRIDE(ghox_state,toaplan2)
 
 	/* sound hardware */
 	SPEAKER(config, "mono").front_center();
@@ -413,6 +413,6 @@ ROM_START( ghoxjo ) /* older version (with fewer regions) of the 8-way joystick 
 	ROM_LOAD( "tp021-04.u37", 0x080000, 0x080000, CRC(26ed1c9a) SHA1(37da8af86ea24327444c2d4ad3dfbd936208d43d) )
 ROM_END
 
-GAME( 1991, ghox,        0,        ghox,         ghox,       toaplan2_ghox_state,     empty_init,    ROT270, "Toaplan",         "Ghox (spinner)",            MACHINE_SUPPORTS_SAVE )
-GAME( 1991, ghoxj,       ghox,     ghox,         ghox,       toaplan2_ghox_state,     empty_init,    ROT270, "Toaplan",         "Ghox (joystick)",           MACHINE_SUPPORTS_SAVE )
-GAME( 1991, ghoxjo,      ghox,     ghox,         ghoxjo,     toaplan2_ghox_state,     empty_init,    ROT270, "Toaplan",         "Ghox (joystick, older)",    MACHINE_SUPPORTS_SAVE )
+GAME( 1991, ghox,        0,        ghox,         ghox,       ghox_state,     empty_init,    ROT270, "Toaplan",         "Ghox (spinner)",            MACHINE_SUPPORTS_SAVE )
+GAME( 1991, ghoxj,       ghox,     ghox,         ghox,       ghox_state,     empty_init,    ROT270, "Toaplan",         "Ghox (joystick)",           MACHINE_SUPPORTS_SAVE )
+GAME( 1991, ghoxjo,      ghox,     ghox,         ghoxjo,     ghox_state,     empty_init,    ROT270, "Toaplan",         "Ghox (joystick, older)",    MACHINE_SUPPORTS_SAVE )

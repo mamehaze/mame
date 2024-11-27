@@ -28,10 +28,10 @@
 #include "speaker.h"
 #include "tilemap.h"
 
-class toaplan2_enmadaio_state : public driver_device
+class enmadaio_state : public driver_device
 {
 public:
-	toaplan2_enmadaio_state(const machine_config &mconfig, device_type type, const char *tag)
+	enmadaio_state(const machine_config &mconfig, device_type type, const char *tag)
 		: driver_device(mconfig, type, tag)
 		, m_shared_ram(*this, "shared_ram")
 		, m_mainram(*this, "mainram")
@@ -64,7 +64,7 @@ private:
 	u32 screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
 	void screen_vblank(int state);
 	void coin_w(u8 data);
-	void toaplan2_reset(int state);
+	void reset(int state);
 
 	optional_shared_ptr<u8> m_shared_ram; // 8 bit RAM shared between 68K and sound CPU
 	optional_shared_ptr<u16> m_mainram;
@@ -86,13 +86,13 @@ private:
 };
 
 
-void toaplan2_enmadaio_state::toaplan2_reset(int state)
+void enmadaio_state::reset(int state)
 {
 	if (m_audiocpu != nullptr)
 		m_audiocpu->pulse_input_line(INPUT_LINE_RESET, attotime::zero);
 }
 
-void toaplan2_enmadaio_state::coin_w(u8 data) // MOVE TO DEVICE!
+void enmadaio_state::coin_w(u8 data) // MOVE TO DEVICE!
 {
 	/* +----------------+------ Bits 7-5 not used ------+--------------+ */
 	/* | Coin Lockout 2 | Coin Lockout 1 | Coin Count 2 | Coin Count 1 | */
@@ -116,7 +116,7 @@ void toaplan2_enmadaio_state::coin_w(u8 data) // MOVE TO DEVICE!
 }
 
 
-VIDEO_START_MEMBER(toaplan2_enmadaio_state,toaplan2)
+VIDEO_START_MEMBER(enmadaio_state,toaplan2)
 {
 	/* our current VDP implementation needs this bitmap to work with */
 	m_screen->register_screen_bitmap(m_custom_priority_bitmap);
@@ -135,7 +135,7 @@ VIDEO_START_MEMBER(toaplan2_enmadaio_state,toaplan2)
 }
 
 
-u32 toaplan2_enmadaio_state::screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
+u32 enmadaio_state::screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
 {
 	bitmap.fill(0, cliprect);
 	m_custom_priority_bitmap.fill(0, cliprect);
@@ -144,7 +144,7 @@ u32 toaplan2_enmadaio_state::screen_update_toaplan2(screen_device &screen, bitma
 	return 0;
 }
 
-void toaplan2_enmadaio_state::screen_vblank(int state)
+void enmadaio_state::screen_vblank(int state)
 {
 	// rising edge
 	if (state)
@@ -366,7 +366,7 @@ static INPUT_PORTS_START( enmadaio )
 INPUT_PORTS_END
 
 
-void toaplan2_enmadaio_state::enmadaio_oki_bank_w(offs_t offset, u16 data, u16 mem_mask)
+void enmadaio_state::enmadaio_oki_bank_w(offs_t offset, u16 data, u16 mem_mask)
 {
 	data &= mem_mask;
 
@@ -380,7 +380,7 @@ void toaplan2_enmadaio_state::enmadaio_oki_bank_w(offs_t offset, u16 data, u16 m
 	}
 }
 
-void toaplan2_enmadaio_state::enmadaio_68k_mem(address_map &map)
+void enmadaio_state::enmadaio_68k_mem(address_map &map)
 {
 	map(0x000000, 0x07ffff).rom();
 	map(0x100000, 0x103fff).ram(); //.share("nvram");
@@ -400,32 +400,32 @@ void toaplan2_enmadaio_state::enmadaio_68k_mem(address_map &map)
 	map(0x700018, 0x700019).portr("SYS");
 	map(0x70001c, 0x70001d).portr("UNK"); //.portr("SYS");
 
-	map(0x700020, 0x700021).w(FUNC(toaplan2_enmadaio_state::enmadaio_oki_bank_w)); // oki bank
+	map(0x700020, 0x700021).w(FUNC(enmadaio_state::enmadaio_oki_bank_w)); // oki bank
 
 	map(0x700028, 0x700029).nopw();
 	map(0x70003c, 0x70003d).nopw();
 	map(0x70002c, 0x70002d).nopw();
 }
 
-void toaplan2_enmadaio_state::enmadaio_oki(address_map &map)
+void enmadaio_state::enmadaio_oki(address_map &map)
 {
 	map(0x00000, 0x3ffff).bankr(m_okibank);
 }
 
 
-void toaplan2_enmadaio_state::enmadaio(machine_config &config)
+void enmadaio_state::enmadaio(machine_config &config)
 {
 	/* basic machine hardware */
 	M68000(config, m_maincpu, 20_MHz_XTAL/2);
-	m_maincpu->set_addrmap(AS_PROGRAM, &toaplan2_enmadaio_state::enmadaio_68k_mem);
-	m_maincpu->reset_cb().set(FUNC(toaplan2_enmadaio_state::toaplan2_reset));
+	m_maincpu->set_addrmap(AS_PROGRAM, &enmadaio_state::enmadaio_68k_mem);
+	m_maincpu->reset_cb().set(FUNC(enmadaio_state::reset));
 
 	/* video hardware */
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
 	m_screen->set_video_attributes(VIDEO_UPDATE_BEFORE_VBLANK);
 	m_screen->set_raw(27_MHz_XTAL/4, 432, 0, 320, 262, 0, 240);
-	m_screen->set_screen_update(FUNC(toaplan2_enmadaio_state::screen_update_toaplan2));
-	m_screen->screen_vblank().set(FUNC(toaplan2_enmadaio_state::screen_vblank));
+	m_screen->set_screen_update(FUNC(enmadaio_state::screen_update_toaplan2));
+	m_screen->screen_vblank().set(FUNC(enmadaio_state::screen_vblank));
 	m_screen->set_palette(m_palette);
 
 	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, gp9001vdp_device::VDP_PALETTE_LENGTH);
@@ -434,7 +434,7 @@ void toaplan2_enmadaio_state::enmadaio(machine_config &config)
 	m_vdp[0]->set_palette(m_palette);
 	m_vdp[0]->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
 
-	MCFG_VIDEO_START_OVERRIDE(toaplan2_enmadaio_state,toaplan2)
+	MCFG_VIDEO_START_OVERRIDE(enmadaio_state,toaplan2)
 
 	/* sound hardware */
 	SPEAKER(config, "mono").front_center();
@@ -442,11 +442,11 @@ void toaplan2_enmadaio_state::enmadaio(machine_config &config)
 	YM2151(config, "ymsnd", 27_MHz_XTAL/8).add_route(ALL_OUTPUTS, "mono", 0.5);
 
 	OKIM6295(config, m_oki[0], 16_MHz_XTAL/4, okim6295_device::PIN7_LOW); // pin7 not confirmed
-	m_oki[0]->set_addrmap(0, &toaplan2_enmadaio_state::enmadaio_oki);
+	m_oki[0]->set_addrmap(0, &enmadaio_state::enmadaio_oki);
 	m_oki[0]->add_route(ALL_OUTPUTS, "mono", 0.5);
 }
 
-void toaplan2_enmadaio_state::init_enmadaio()
+void enmadaio_state::init_enmadaio()
 {
 	u8 *ROM = memregion("oki1")->base();
 
@@ -478,4 +478,4 @@ ROM_START( enmadaio )
 	ROM_LOAD( "rom17_u72.a19", 0x1600000, 0x0200000, CRC(6b8717c3) SHA1(b5b7e35deaa2f34bccd1e83844d4bc0be845d0b8) )
 ROM_END
 
-GAME( 1993, enmadaio,    0,        enmadaio,     enmadaio,   toaplan2_enmadaio_state, init_enmadaio, ROT0,   "Toaplan / Taito",  "Enma Daio (Japan)", 0 ) // TP-031
+GAME( 1993, enmadaio,    0,        enmadaio,     enmadaio,   enmadaio_state, init_enmadaio, ROT0,   "Toaplan / Taito",  "Enma Daio (Japan)", 0 ) // TP-031

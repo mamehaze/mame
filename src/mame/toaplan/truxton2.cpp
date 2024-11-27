@@ -33,10 +33,10 @@
 
 //#define TRUXTON2_STEREO       /* Uncomment to hear truxton2 music in stereo */
 
-class t2t2_state : public driver_device
+class truxton2_state : public driver_device
 {
 public:
-	t2t2_state(const machine_config &mconfig, device_type type, const char *tag)
+	truxton2_state(const machine_config &mconfig, device_type type, const char *tag)
 		: driver_device(mconfig, type, tag)
 		, m_tx_videoram(*this, "tx_videoram")
 		, m_tx_lineselect(*this, "tx_lineselect")
@@ -83,7 +83,7 @@ private:
 	optional_shared_ptr<u16> m_tx_linescroll;
 	optional_shared_ptr<u16> m_tx_gfxram;
 	void coin_w(u8 data);
-	void toaplan2_reset(int state);
+	void reset(int state);
 
 	optional_shared_ptr<u8> m_shared_ram; // 8 bit RAM shared between 68K and sound CPU
 	optional_shared_ptr<u16> m_mainram;
@@ -105,13 +105,13 @@ private:
 };
 
 
-void t2t2_state::toaplan2_reset(int state)
+void truxton2_state::reset(int state)
 {
 	if (m_audiocpu != nullptr)
 		m_audiocpu->pulse_input_line(INPUT_LINE_RESET, attotime::zero);
 }
 
-void t2t2_state::coin_w(u8 data) // MOVE TO DEVICE!
+void truxton2_state::coin_w(u8 data) // MOVE TO DEVICE!
 {
 	/* +----------------+------ Bits 7-5 not used ------+--------------+ */
 	/* | Coin Lockout 2 | Coin Lockout 1 | Coin Count 2 | Coin Count 1 | */
@@ -152,14 +152,14 @@ void t2t2_state::coin_w(u8 data) // MOVE TO DEVICE!
   ---- ---x xxxx xxxx = X scroll for each line
 */
 
-void t2t2_state::device_post_load()
+void truxton2_state::device_post_load()
 {
 	if (m_tx_gfxram != nullptr)
 		m_gfxdecode->gfx(0)->mark_all_dirty();
 }
 
 
-TILE_GET_INFO_MEMBER(t2t2_state::get_text_tile_info)
+TILE_GET_INFO_MEMBER(truxton2_state::get_text_tile_info)
 {
 	const u16 attrib = m_tx_videoram[tile_index];
 	const u32 tile_number = attrib & 0x3ff;
@@ -170,14 +170,14 @@ TILE_GET_INFO_MEMBER(t2t2_state::get_text_tile_info)
 			0);
 }
 
-void t2t2_state::tx_videoram_w(offs_t offset, u16 data, u16 mem_mask)
+void truxton2_state::tx_videoram_w(offs_t offset, u16 data, u16 mem_mask)
 {
 	COMBINE_DATA(&m_tx_videoram[offset]);
 	if (offset < 64*32)
 		m_tx_tilemap->mark_tile_dirty(offset);
 }
 
-void t2t2_state::tx_linescroll_w(offs_t offset, u16 data, u16 mem_mask)
+void truxton2_state::tx_linescroll_w(offs_t offset, u16 data, u16 mem_mask)
 {
 	/*** Line-Scroll RAM for Text Layer ***/
 	COMBINE_DATA(&m_tx_linescroll[offset]);
@@ -187,7 +187,7 @@ void t2t2_state::tx_linescroll_w(offs_t offset, u16 data, u16 mem_mask)
 
 
 
-VIDEO_START_MEMBER(t2t2_state,toaplan2)
+VIDEO_START_MEMBER(truxton2_state,toaplan2)
 {
 	/* our current VDP implementation needs this bitmap to work with */
 	m_screen->register_screen_bitmap(m_custom_priority_bitmap);
@@ -206,7 +206,7 @@ VIDEO_START_MEMBER(t2t2_state,toaplan2)
 }
 
 
-u32 t2t2_state::screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
+u32 truxton2_state::screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
 {
 	bitmap.fill(0, cliprect);
 	m_custom_priority_bitmap.fill(0, cliprect);
@@ -215,7 +215,7 @@ u32 t2t2_state::screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitm
 	return 0;
 }
 
-void t2t2_state::screen_vblank(int state)
+void truxton2_state::screen_vblank(int state)
 {
 	// rising edge
 	if (state)
@@ -227,7 +227,7 @@ void t2t2_state::screen_vblank(int state)
 
 
 
-u32 t2t2_state::screen_update_truxton2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
+u32 truxton2_state::screen_update_truxton2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
 {
 	screen_update_toaplan2(screen, bitmap, cliprect);
 
@@ -248,9 +248,9 @@ u32 t2t2_state::screen_update_truxton2(screen_device &screen, bitmap_ind16 &bitm
 	return 0;
 }
 
-void t2t2_state::create_tx_tilemap(int dx, int dx_flipped)
+void truxton2_state::create_tx_tilemap(int dx, int dx_flipped)
 {
-	m_tx_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(t2t2_state::get_text_tile_info)), TILEMAP_SCAN_ROWS, 8, 8, 64, 32);
+	m_tx_tilemap = &machine().tilemap().create(*m_gfxdecode, tilemap_get_info_delegate(*this, FUNC(truxton2_state::get_text_tile_info)), TILEMAP_SCAN_ROWS, 8, 8, 64, 32);
 
 	m_tx_tilemap->set_scroll_rows(8*32); /* line scrolling */
 	m_tx_tilemap->set_scroll_cols(1);
@@ -258,7 +258,7 @@ void t2t2_state::create_tx_tilemap(int dx, int dx_flipped)
 	m_tx_tilemap->set_transparent_pen(0);
 }
 
-void t2t2_state::tx_gfxram_w(offs_t offset, u16 data, u16 mem_mask)
+void truxton2_state::tx_gfxram_w(offs_t offset, u16 data, u16 mem_mask)
 {
 	/*** Dynamic GFX decoding for Truxton 2 / FixEight ***/
 
@@ -271,7 +271,7 @@ void t2t2_state::tx_gfxram_w(offs_t offset, u16 data, u16 mem_mask)
 	}
 }
 
-VIDEO_START_MEMBER(t2t2_state,truxton2)
+VIDEO_START_MEMBER(truxton2_state,truxton2)
 {
 	VIDEO_START_CALL_MEMBER(toaplan2);
 
@@ -282,7 +282,7 @@ VIDEO_START_MEMBER(t2t2_state,truxton2)
 }
 
 
-static INPUT_PORTS_START( toaplan2_2b )
+static INPUT_PORTS_START( 2b )
 	PORT_START("IN1")
 	TOAPLAN_JOY_UDLR_2_BUTTONS( 1 )
 
@@ -311,8 +311,8 @@ static INPUT_PORTS_START( toaplan2_2b )
 INPUT_PORTS_END
 
 
-static INPUT_PORTS_START( toaplan2_3b )
-	PORT_INCLUDE( toaplan2_2b )
+static INPUT_PORTS_START( 3b )
+	PORT_INCLUDE( 2b )
 
 	PORT_MODIFY("IN1")
 	TOAPLAN_JOY_UDLR_3_BUTTONS( 1 )
@@ -322,7 +322,7 @@ static INPUT_PORTS_START( toaplan2_3b )
 INPUT_PORTS_END
 
 static INPUT_PORTS_START( truxton2 )
-	PORT_INCLUDE( toaplan2_3b )
+	PORT_INCLUDE( 3b )
 
 	PORT_MODIFY("IN1")
 	PORT_BIT( 0x0080, IP_ACTIVE_HIGH, IPT_OTHER ) PORT_NAME("Fast Scrolling (Cheat)")
@@ -374,17 +374,17 @@ static INPUT_PORTS_START( truxton2 )
 INPUT_PORTS_END
 
 
-void t2t2_state::truxton2_68k_mem(address_map &map)
+void truxton2_state::truxton2_68k_mem(address_map &map)
 {
 	map(0x000000, 0x07ffff).rom();
 	map(0x100000, 0x10ffff).ram();
 	map(0x200000, 0x20000d).rw(m_vdp[0], FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
 	map(0x300000, 0x300fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
-	map(0x400000, 0x401fff).ram().w(FUNC(t2t2_state::tx_videoram_w)).share(m_tx_videoram);
+	map(0x400000, 0x401fff).ram().w(FUNC(truxton2_state::tx_videoram_w)).share(m_tx_videoram);
 	map(0x402000, 0x402fff).ram().share(m_tx_lineselect);
-	map(0x403000, 0x4031ff).ram().w(FUNC(t2t2_state::tx_linescroll_w)).share(m_tx_linescroll);
+	map(0x403000, 0x4031ff).ram().w(FUNC(truxton2_state::tx_linescroll_w)).share(m_tx_linescroll);
 	map(0x403200, 0x403fff).ram();
-	map(0x500000, 0x50ffff).ram().w(FUNC(t2t2_state::tx_gfxram_w)).share(m_tx_gfxram);
+	map(0x500000, 0x50ffff).ram().w(FUNC(truxton2_state::tx_gfxram_w)).share(m_tx_gfxram);
 	map(0x600000, 0x600001).r(m_vdp[0], FUNC(gp9001vdp_device::vdpcount_r));
 	map(0x700000, 0x700001).portr("DSWA");
 	map(0x700002, 0x700003).portr("DSWB");
@@ -394,7 +394,7 @@ void t2t2_state::truxton2_68k_mem(address_map &map)
 	map(0x70000a, 0x70000b).portr("SYS");
 	map(0x700011, 0x700011).rw(m_oki[0], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
 	map(0x700014, 0x700017).rw("ymsnd", FUNC(ym2151_device::read), FUNC(ym2151_device::write)).umask16(0x00ff);
-	map(0x70001f, 0x70001f).w(FUNC(t2t2_state::coin_w));
+	map(0x70001f, 0x70001f).w(FUNC(truxton2_state::coin_w));
 }
 
 #define XOR(a) WORD_XOR_LE(a)
@@ -417,19 +417,19 @@ static GFXDECODE_START( gfx_truxton2 )
 GFXDECODE_END
 
 
-void t2t2_state::truxton2(machine_config &config)
+void truxton2_state::truxton2(machine_config &config)
 {
 	/* basic machine hardware */
 	M68000(config, m_maincpu, 16_MHz_XTAL);         /* verified on pcb */
-	m_maincpu->set_addrmap(AS_PROGRAM, &t2t2_state::truxton2_68k_mem);
-	m_maincpu->reset_cb().set(FUNC(t2t2_state::toaplan2_reset));
+	m_maincpu->set_addrmap(AS_PROGRAM, &truxton2_state::truxton2_68k_mem);
+	m_maincpu->reset_cb().set(FUNC(truxton2_state::reset));
 
 	/* video hardware */
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
 	m_screen->set_video_attributes(VIDEO_UPDATE_BEFORE_VBLANK);
 	m_screen->set_raw(27_MHz_XTAL/4, 432, 0, 320, 262, 0, 240);
-	m_screen->set_screen_update(FUNC(t2t2_state::screen_update_truxton2));
-	m_screen->screen_vblank().set(FUNC(t2t2_state::screen_vblank));
+	m_screen->set_screen_update(FUNC(truxton2_state::screen_update_truxton2));
+	m_screen->screen_vblank().set(FUNC(truxton2_state::screen_vblank));
 	m_screen->set_palette(m_palette);
 
 	GFXDECODE(config, m_gfxdecode, m_palette, gfx_truxton2);
@@ -439,7 +439,7 @@ void t2t2_state::truxton2(machine_config &config)
 	m_vdp[0]->set_palette(m_palette);
 	m_vdp[0]->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_2);
 
-	MCFG_VIDEO_START_OVERRIDE(t2t2_state,truxton2)
+	MCFG_VIDEO_START_OVERRIDE(truxton2_state,truxton2)
 
 	/* sound hardware */
 #ifdef TRUXTON2_STEREO  // music data is stereo...
@@ -475,4 +475,4 @@ ROM_START( truxton2 )
 	ROM_LOAD( "tp024_2.bin", 0x00000, 0x80000, CRC(f2f6cae4) SHA1(bb4e8c36531bed97ced4696ca12fd40ede2531aa) )
 ROM_END
 
-GAME( 1992, truxton2,    0,        truxton2,     truxton2,   t2t2_state, empty_init,    ROT270, "Toaplan",         "Truxton II / Tatsujin Oh",  MACHINE_SUPPORTS_SAVE )
+GAME( 1992, truxton2,    0,        truxton2,     truxton2,   truxton2_state, empty_init,    ROT270, "Toaplan",         "Truxton II / Tatsujin Oh",  MACHINE_SUPPORTS_SAVE )

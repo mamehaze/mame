@@ -31,10 +31,10 @@
 #include "speaker.h"
 #include "tilemap.h"
 
-class toaplan2_kbash_state : public driver_device
+class kbash_state : public driver_device
 {
 public:
-	toaplan2_kbash_state(const machine_config &mconfig, device_type type, const char *tag)
+	kbash_state(const machine_config &mconfig, device_type type, const char *tag)
 		: driver_device(mconfig, type, tag)
 		, m_shared_ram(*this, "shared_ram")
 		, m_mainram(*this, "mainram")
@@ -72,7 +72,7 @@ private:
 	u8 shared_ram_r(offs_t offset) { return m_shared_ram[offset]; }
 	void shared_ram_w(offs_t offset, u8 data) { m_shared_ram[offset] = data; }
 	void coin_w(u8 data);
-	void toaplan2_reset(int state);
+	void reset(int state);
 
 	optional_shared_ptr<u8> m_shared_ram; // 8 bit RAM shared between 68K and sound CPU
 	optional_shared_ptr<u16> m_mainram;
@@ -95,13 +95,13 @@ private:
 };
 
 
-void toaplan2_kbash_state::toaplan2_reset(int state)
+void kbash_state::reset(int state)
 {
 	if (m_audiocpu != nullptr)
 		m_audiocpu->pulse_input_line(INPUT_LINE_RESET, attotime::zero);
 }
 
-void toaplan2_kbash_state::coin_w(u8 data) // MOVE TO DEVICE!
+void kbash_state::coin_w(u8 data) // MOVE TO DEVICE!
 {
 	/* +----------------+------ Bits 7-5 not used ------+--------------+ */
 	/* | Coin Lockout 2 | Coin Lockout 1 | Coin Count 2 | Coin Count 1 | */
@@ -126,7 +126,7 @@ void toaplan2_kbash_state::coin_w(u8 data) // MOVE TO DEVICE!
 
 
 
-VIDEO_START_MEMBER(toaplan2_kbash_state,toaplan2)
+VIDEO_START_MEMBER(kbash_state,toaplan2)
 {
 	/* our current VDP implementation needs this bitmap to work with */
 	m_screen->register_screen_bitmap(m_custom_priority_bitmap);
@@ -145,7 +145,7 @@ VIDEO_START_MEMBER(toaplan2_kbash_state,toaplan2)
 }
 
 
-u32 toaplan2_kbash_state::screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
+u32 kbash_state::screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
 {
 	bitmap.fill(0, cliprect);
 	m_custom_priority_bitmap.fill(0, cliprect);
@@ -154,7 +154,7 @@ u32 toaplan2_kbash_state::screen_update_toaplan2(screen_device &screen, bitmap_i
 	return 0;
 }
 
-void toaplan2_kbash_state::screen_vblank(int state)
+void kbash_state::screen_vblank(int state)
 {
 	// rising edge
 	if (state)
@@ -166,13 +166,13 @@ void toaplan2_kbash_state::screen_vblank(int state)
 
 
 template<int Chip>
-void toaplan2_kbash_state::kbash_oki_bankswitch_w(u8 data)
+void kbash_state::kbash_oki_bankswitch_w(u8 data)
 {
 	m_oki[Chip]->set_rom_bank(data & 1);
 }
 
 
-static INPUT_PORTS_START( toaplan2_2b )
+static INPUT_PORTS_START( 2b )
 	PORT_START("IN1")
 	TOAPLAN_JOY_UDLR_2_BUTTONS( 1 )
 
@@ -201,8 +201,8 @@ static INPUT_PORTS_START( toaplan2_2b )
 INPUT_PORTS_END
 
 
-static INPUT_PORTS_START( toaplan2_3b )
-	PORT_INCLUDE( toaplan2_2b )
+static INPUT_PORTS_START( 3b )
+	PORT_INCLUDE( 2b )
 
 	PORT_MODIFY("IN1")
 	TOAPLAN_JOY_UDLR_3_BUTTONS( 1 )
@@ -212,7 +212,7 @@ static INPUT_PORTS_START( toaplan2_3b )
 INPUT_PORTS_END
 
 static INPUT_PORTS_START( kbash )
-	PORT_INCLUDE( toaplan2_3b )
+	PORT_INCLUDE( 3b )
 
 	PORT_MODIFY("DSWA")
 	PORT_DIPNAME( 0x0001,   0x0000, DEF_STR( Continue_Price ) ) PORT_DIPLOCATION("SW1:!1")
@@ -312,22 +312,22 @@ INPUT_PORTS_END
 
 
 
-void toaplan2_kbash_state::kbash_68k_mem(address_map &map)
+void kbash_state::kbash_68k_mem(address_map &map)
 {
 	map(0x000000, 0x07ffff).rom();
 	map(0x100000, 0x103fff).ram();
-	map(0x200000, 0x200fff).rw(FUNC(toaplan2_kbash_state::shared_ram_r), FUNC(toaplan2_kbash_state::shared_ram_w)).umask16(0x00ff);
+	map(0x200000, 0x200fff).rw(FUNC(kbash_state::shared_ram_r), FUNC(kbash_state::shared_ram_w)).umask16(0x00ff);
 	map(0x208010, 0x208011).portr("IN1");
 	map(0x208014, 0x208015).portr("IN2");
 	map(0x208018, 0x208019).portr("SYS");
-	map(0x20801d, 0x20801d).w(FUNC(toaplan2_kbash_state::coin_w));
+	map(0x20801d, 0x20801d).w(FUNC(kbash_state::coin_w));
 	map(0x300000, 0x30000d).rw(m_vdp[0], FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
 	map(0x400000, 0x400fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
 	map(0x700000, 0x700001).r(m_vdp[0], FUNC(gp9001vdp_device::vdpcount_r));         // test bit 8
 }
 
 
-void toaplan2_kbash_state::kbash2_68k_mem(address_map &map)
+void kbash_state::kbash2_68k_mem(address_map &map)
 {
 	map(0x000000, 0x07ffff).rom();
 	map(0x100000, 0x103fff).ram();
@@ -342,13 +342,13 @@ void toaplan2_kbash_state::kbash2_68k_mem(address_map &map)
 	map(0x200018, 0x200019).portr("SYS");
 	map(0x200021, 0x200021).rw(m_oki[1], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
 	map(0x200025, 0x200025).rw(m_oki[0], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
-	map(0x200029, 0x200029).w(FUNC(toaplan2_kbash_state::kbash_oki_bankswitch_w<0>));
+	map(0x200029, 0x200029).w(FUNC(kbash_state::kbash_oki_bankswitch_w<0>));
 	map(0x20002c, 0x20002d).r(m_vdp[0], FUNC(gp9001vdp_device::vdpcount_r));
 	map(0x300000, 0x30000d).rw(m_vdp[0], FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
 	map(0x400000, 0x400fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
 }
 
-void toaplan2_kbash_state::kbash_v25_mem(address_map &map)
+void kbash_state::kbash_v25_mem(address_map &map)
 {
 	map(0x00000, 0x007ff).ram().share(m_shared_ram);
 	map(0x04000, 0x04001).rw("ymsnd", FUNC(ym2151_device::read), FUNC(ym2151_device::write));
@@ -357,16 +357,16 @@ void toaplan2_kbash_state::kbash_v25_mem(address_map &map)
 }
 
 
-void toaplan2_kbash_state::kbash(machine_config &config)
+void kbash_state::kbash(machine_config &config)
 {
 	/* basic machine hardware */
 	M68000(config, m_maincpu, 16_MHz_XTAL);         /* 16MHz Oscillator */
-	m_maincpu->set_addrmap(AS_PROGRAM, &toaplan2_kbash_state::kbash_68k_mem);
-	m_maincpu->reset_cb().set(FUNC(toaplan2_kbash_state::toaplan2_reset));
+	m_maincpu->set_addrmap(AS_PROGRAM, &kbash_state::kbash_68k_mem);
+	m_maincpu->reset_cb().set(FUNC(kbash_state::reset));
 
 	/* ROM based v25 */
 	v25_device &audiocpu(V25(config, m_audiocpu, 16_MHz_XTAL));         /* NEC V25 type Toaplan marked CPU ??? */
-	audiocpu.set_addrmap(AS_PROGRAM, &toaplan2_kbash_state::kbash_v25_mem);
+	audiocpu.set_addrmap(AS_PROGRAM, &kbash_state::kbash_v25_mem);
 	audiocpu.set_decryption_table(toaplan_v25_tables::nitro_decryption_table);
 	audiocpu.pt_in_cb().set_ioport("DSWA").exor(0xff);
 	audiocpu.p0_in_cb().set_ioport("DSWB").exor(0xff);
@@ -380,8 +380,8 @@ void toaplan2_kbash_state::kbash(machine_config &config)
 	//m_screen->set_refresh_hz(60);
 	//m_screen->set_size(432, 262);
 	//m_screen->set_visarea(0, 319, 0, 239);
-	m_screen->set_screen_update(FUNC(toaplan2_kbash_state::screen_update_toaplan2));
-	m_screen->screen_vblank().set(FUNC(toaplan2_kbash_state::screen_vblank));
+	m_screen->set_screen_update(FUNC(kbash_state::screen_update_toaplan2));
+	m_screen->screen_vblank().set(FUNC(kbash_state::screen_vblank));
 	m_screen->set_palette(m_palette);
 
 	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, gp9001vdp_device::VDP_PALETTE_LENGTH);
@@ -390,7 +390,7 @@ void toaplan2_kbash_state::kbash(machine_config &config)
 	m_vdp[0]->set_palette(m_palette);
 	m_vdp[0]->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
 
-	MCFG_VIDEO_START_OVERRIDE(toaplan2_kbash_state,toaplan2)
+	MCFG_VIDEO_START_OVERRIDE(kbash_state,toaplan2)
 
 	/* sound hardware */
 	SPEAKER(config, "mono").front_center();
@@ -402,12 +402,12 @@ void toaplan2_kbash_state::kbash(machine_config &config)
 }
 
 
-void toaplan2_kbash_state::kbash2(machine_config &config)
+void kbash_state::kbash2(machine_config &config)
 {
 	/* basic machine hardware */
 	M68000(config, m_maincpu, 16_MHz_XTAL);         /* 16MHz Oscillator */
-	m_maincpu->set_addrmap(AS_PROGRAM, &toaplan2_kbash_state::kbash2_68k_mem);
-	m_maincpu->reset_cb().set(FUNC(toaplan2_kbash_state::toaplan2_reset));
+	m_maincpu->set_addrmap(AS_PROGRAM, &kbash_state::kbash2_68k_mem);
+	m_maincpu->reset_cb().set(FUNC(kbash_state::reset));
 
 	/* video hardware */
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
@@ -416,8 +416,8 @@ void toaplan2_kbash_state::kbash2(machine_config &config)
 	//m_screen->set_refresh_hz(60);
 	//m_screen->set_size(432, 262);
 	//m_screen->set_visarea(0, 319, 0, 239);
-	m_screen->set_screen_update(FUNC(toaplan2_kbash_state::screen_update_toaplan2));
-	m_screen->screen_vblank().set(FUNC(toaplan2_kbash_state::screen_vblank));
+	m_screen->set_screen_update(FUNC(kbash_state::screen_update_toaplan2));
+	m_screen->screen_vblank().set(FUNC(kbash_state::screen_vblank));
 	m_screen->set_palette(m_palette);
 
 	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, gp9001vdp_device::VDP_PALETTE_LENGTH);
@@ -426,7 +426,7 @@ void toaplan2_kbash_state::kbash2(machine_config &config)
 	m_vdp[0]->set_palette(m_palette);
 	m_vdp[0]->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
 
-	MCFG_VIDEO_START_OVERRIDE(toaplan2_kbash_state,toaplan2)
+	MCFG_VIDEO_START_OVERRIDE(kbash_state,toaplan2)
 
 	/* sound hardware */
 	SPEAKER(config, "mono").front_center();
@@ -573,8 +573,8 @@ ROM_START( kbash2 )
 ROM_END
 
 
-GAME( 1993, kbash,       0,        kbash,        kbash,      toaplan2_kbash_state, empty_init,    ROT0,   "Toaplan / Atari", "Knuckle Bash",                 MACHINE_SUPPORTS_SAVE ) // Atari license shown for some regions.
-GAME( 1993, kbashk,      kbash,    kbash,        kbashk,     toaplan2_kbash_state, empty_init,    ROT0,   "Toaplan / Taito", "Knuckle Bash (Korean PCB)",    MACHINE_SUPPORTS_SAVE ) // Japan region has optional Taito license, maybe the original Japan release?
-GAME( 1993, kbashp,      kbash,    kbash,        kbash,      toaplan2_kbash_state, empty_init,    ROT0,   "Toaplan / Taito", "Knuckle Bash (location test)", MACHINE_SUPPORTS_SAVE )
+GAME( 1993, kbash,       0,        kbash,        kbash,      kbash_state, empty_init,    ROT0,   "Toaplan / Atari", "Knuckle Bash",                 MACHINE_SUPPORTS_SAVE ) // Atari license shown for some regions.
+GAME( 1993, kbashk,      kbash,    kbash,        kbashk,     kbash_state, empty_init,    ROT0,   "Toaplan / Taito", "Knuckle Bash (Korean PCB)",    MACHINE_SUPPORTS_SAVE ) // Japan region has optional Taito license, maybe the original Japan release?
+GAME( 1993, kbashp,      kbash,    kbash,        kbash,      kbash_state, empty_init,    ROT0,   "Toaplan / Taito", "Knuckle Bash (location test)", MACHINE_SUPPORTS_SAVE )
 
-GAME( 1999, kbash2,      0,        kbash2,       kbash2,     toaplan2_kbash_state, empty_init,    ROT0,   "bootleg",         "Knuckle Bash 2 (bootleg)",  MACHINE_SUPPORTS_SAVE )
+GAME( 1999, kbash2,      0,        kbash2,       kbash2,     kbash_state, empty_init,    ROT0,   "bootleg",         "Knuckle Bash 2 (bootleg)",  MACHINE_SUPPORTS_SAVE )

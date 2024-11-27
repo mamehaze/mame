@@ -45384,16 +45384,18 @@ kbash2                          // bootleg
 kbashk                          // TP-023 (c) 1993 Toaplan
 kbashp                          // TP-023 (c) 1993 Toaplan
 
-@source:toaplan/tekipaki.cpp
+@source:toaplan/pipibibi.cpp
 pipibibs                        // TP-025
 pipibibsa                       // TP-025
 pipibibsbl                      // (c) 1991 Ryouta Kikaku (bootleg)
 pipibibsbl2                     // bootleg
 pipibibsbl3                     // (c) 1991 Ryouta Kikaku (bootleg)
 pipibibsp                       // TP-025
+
+@source:toaplan/tekipaki.cpp
 tekipaki                        // TP-020 (c) 1991 Toaplan
 tekipakit                       // TP-020 (c) 1991 Toaplan (location test)
-whoopee                         // TP-025
+whoopee                         // TP-025 (on TP-020)
 
 @source:toaplan/snowbro2.cpp
 snowbro2                        // TP-033 (c) 1994 Hanafram
