@@ -3,18 +3,10 @@
 
 #include "emu.h"
 
-#include "cpu/m68000/m68000.h"
-#include "machine/bankdev.h"
-#include "machine/eepromser.h"
-#include "machine/gen_latch.h"
-#include "machine/ticket.h"
-#include "machine/upd4992.h"
-#include "gp9001.h"
-#include "sound/okim6295.h"
 #include "emupal.h"
 #include "screen.h"
+#include "speaker.h"
 #include "tilemap.h"
-
 
 #include "toaplipt.h"
 #include "gp9001.h"
@@ -23,29 +15,16 @@
 #include "sound/okim6295.h"
 #include "sound/ymopm.h"
 
-#include "emupal.h"
-#include "screen.h"
-#include "speaker.h"
-#include "tilemap.h"
-
 class enmadaio_state : public driver_device
 {
 public:
 	enmadaio_state(const machine_config &mconfig, device_type type, const char *tag)
 		: driver_device(mconfig, type, tag)
-		, m_shared_ram(*this, "shared_ram")
-		, m_mainram(*this, "mainram")
 		, m_maincpu(*this, "maincpu")
-		, m_audiocpu(*this, "audiocpu")
 		, m_vdp(*this, "gp9001")
-		, m_oki(*this, "oki%u", 1U)
-		, m_eeprom(*this, "eeprom")
-		, m_gfxdecode(*this, "gfxdecode")
+		, m_oki(*this, "oki")
 		, m_screen(*this, "screen")
 		, m_palette(*this, "palette")
-		, m_soundlatch(*this, "soundlatch%u", 1U)
-		, m_z80_rom(*this, "audiocpu")
-		, m_oki_rom(*this, "oki%u", 1U)
 		, m_okibank(*this, "okibank")
 	{ }
 
@@ -54,43 +33,27 @@ public:
 	void init_enmadaio();
 
 protected:
+	virtual void video_start() override ATTR_COLD;
+
+private:
+
 	void enmadaio_oki_bank_w(offs_t offset, u16 data, u16 mem_mask = ~0);
 	void enmadaio_68k_mem(address_map &map) ATTR_COLD;
 	void enmadaio_oki(address_map &map) ATTR_COLD;
 
-private:
-
-	DECLARE_VIDEO_START(toaplan2);
 	u32 screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
 	void screen_vblank(int state);
 	void coin_w(u8 data);
-	void reset(int state);
-
-	optional_shared_ptr<u8> m_shared_ram; // 8 bit RAM shared between 68K and sound CPU
-	optional_shared_ptr<u16> m_mainram;
 
 	required_device<m68000_base_device> m_maincpu;
-	optional_device<cpu_device> m_audiocpu;
 	required_device<gp9001vdp_device> m_vdp;
-	optional_device_array<okim6295_device, 2> m_oki;
-	optional_device<eeprom_serial_93cxx_device> m_eeprom;
-	optional_device<gfxdecode_device> m_gfxdecode;
+	required_device<okim6295_device> m_oki;
 	required_device<screen_device> m_screen;
 	required_device<palette_device> m_palette;
-	optional_device_array<generic_latch_8_device, 4> m_soundlatch; // tekipaki, batrider, bgaregga, batsugun
-	optional_region_ptr<u8> m_z80_rom;
-	optional_region_ptr_array<u8, 2> m_oki_rom;
-	optional_memory_bank m_okibank;
+	required_memory_bank m_okibank;
 	bitmap_ind8 m_custom_priority_bitmap;
-	bitmap_ind16 m_secondary_render_bitmap;
 };
 
-
-void enmadaio_state::reset(int state)
-{
-	if (m_audiocpu != nullptr)
-		m_audiocpu->pulse_input_line(INPUT_LINE_RESET, attotime::zero);
-}
 
 void enmadaio_state::coin_w(u8 data) // MOVE TO DEVICE!
 {
@@ -116,29 +79,23 @@ void enmadaio_state::coin_w(u8 data) // MOVE TO DEVICE!
 }
 
 
-VIDEO_START_MEMBER(enmadaio_state,toaplan2)
+void enmadaio_state::video_start()
 {
-	/* our current VDP implementation needs this bitmap to work with */
 	m_screen->register_screen_bitmap(m_custom_priority_bitmap);
-
-	m_secondary_render_bitmap.reset();
 	m_vdp->custom_priority_bitmap = &m_custom_priority_bitmap;
 }
-
 
 u32 enmadaio_state::screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
 {
 	bitmap.fill(0, cliprect);
 	m_custom_priority_bitmap.fill(0, cliprect);
 	m_vdp->render_vdp(bitmap, cliprect);
-
 	return 0;
 }
 
 void enmadaio_state::screen_vblank(int state)
 {
-	// rising edge
-	if (state)
+	if (state) 	// rising edge
 	{
 		m_vdp->screen_eof();
 	}
@@ -379,7 +336,7 @@ void enmadaio_state::enmadaio_68k_mem(address_map &map)
 	map(0x200000, 0x20000d).rw(m_vdp, FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
 	map(0x300000, 0x300fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
 	map(0x400000, 0x400003).rw("ymsnd", FUNC(ym2151_device::read), FUNC(ym2151_device::write)).umask16(0x00ff);
-	map(0x500001, 0x500001).rw(m_oki[0], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
+	map(0x500001, 0x500001).rw(m_oki, FUNC(okim6295_device::read), FUNC(okim6295_device::write));
 
 	map(0x700000, 0x700001).r(m_vdp, FUNC(gp9001vdp_device::vdpcount_r));
 
@@ -408,7 +365,6 @@ void enmadaio_state::enmadaio(machine_config &config)
 	/* basic machine hardware */
 	M68000(config, m_maincpu, 20_MHz_XTAL/2);
 	m_maincpu->set_addrmap(AS_PROGRAM, &enmadaio_state::enmadaio_68k_mem);
-	m_maincpu->reset_cb().set(FUNC(enmadaio_state::reset));
 
 	/* video hardware */
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
@@ -424,21 +380,19 @@ void enmadaio_state::enmadaio(machine_config &config)
 	m_vdp->set_palette(m_palette);
 	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
 
-	MCFG_VIDEO_START_OVERRIDE(enmadaio_state,toaplan2)
-
 	/* sound hardware */
 	SPEAKER(config, "mono").front_center();
 
 	YM2151(config, "ymsnd", 27_MHz_XTAL/8).add_route(ALL_OUTPUTS, "mono", 0.5);
 
-	OKIM6295(config, m_oki[0], 16_MHz_XTAL/4, okim6295_device::PIN7_LOW); // pin7 not confirmed
-	m_oki[0]->set_addrmap(0, &enmadaio_state::enmadaio_oki);
-	m_oki[0]->add_route(ALL_OUTPUTS, "mono", 0.5);
+	OKIM6295(config, m_oki, 16_MHz_XTAL/4, okim6295_device::PIN7_LOW); // pin7 not confirmed
+	m_oki->set_addrmap(0, &enmadaio_state::enmadaio_oki);
+	m_oki->add_route(ALL_OUTPUTS, "mono", 0.5);
 }
 
 void enmadaio_state::init_enmadaio()
 {
-	u8 *ROM = memregion("oki1")->base();
+	u8 *ROM = memregion("oki")->base();
 
 	m_okibank->configure_entries(0, 0x60, ROM, 0x40000);
 	m_okibank->set_entry(0);
@@ -453,7 +407,7 @@ ROM_START( enmadaio )
 	ROM_LOAD( "rom4_u30.c19",       0x000000, 0x100000, CRC(7a012d8b) SHA1(a33d9490573a9fd1e799d3fe567f991926851c51) )
 	ROM_LOAD( "rom5_u31.c18",       0x100000, 0x100000, CRC(60b127ab) SHA1(98785dfd6a86b4bd2c9786f6f72796c023b5b73a) )
 
-	ROM_REGION( 0x1800000, "oki1", 0 )    /* OKIM6295 samples */ // each rom contains 8 0x40000 banks, there are 12 roms, so 96 (0x60) banks here!
+	ROM_REGION( 0x1800000, "oki", 0 )    /* OKIM6295 samples */ // each rom contains 8 0x40000 banks, there are 12 roms, so 96 (0x60) banks here!
 	ROM_LOAD( "rom6_u65.a1",   0x0000000, 0x0200000, CRC(f33c6c0b) SHA1(06d73cd5b6d27de4d68f2dde1ed4dfa72b9a9178) )
 	ROM_LOAD( "rom7_u66.a3",   0x0200000, 0x0200000, CRC(1306f8b3) SHA1(21b0d3180f1f4af77074c35c66844e38a464fea0) )
 	ROM_LOAD( "rom8_u61.a4",   0x0400000, 0x0200000, CRC(4f211c00) SHA1(b067de95ad595a4915effefb83789e4e3d9db6f9) )
