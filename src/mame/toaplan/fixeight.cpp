@@ -39,31 +39,23 @@ public:
 		, m_gfxdecode(*this, "gfxdecode")
 		, m_screen(*this, "screen")
 		, m_palette(*this, "palette")
-		, m_okibank(*this, "okibank")
 	{ }
 
 	void fixeight(machine_config &config);
-	void fixeightbl(machine_config &config);
-
-	void init_fixeightbl();
 	void init_fixeight();
 
 protected:
+	virtual void video_start() override ATTR_COLD;
+
 	u32 screen_update_truxton2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
 	virtual void device_post_load() override;
 	u8 m_sound_reset_bit = 0; /* 0x20 for dogyuun/batsugun, 0x10 for vfive, 0x08 for fixeight */
 
-private:
 	void fixeight_68k_mem(address_map &map) ATTR_COLD;
 	void fixeight_v25_mem(address_map &map) ATTR_COLD;
-	void fixeightbl_68k_mem(address_map &map) ATTR_COLD;
-	void cpu_space_fixeightbl_map(address_map &map) ATTR_COLD;
 
 	void create_tx_tilemap(int dx = 0, int dx_flipped = 0);
-	DECLARE_VIDEO_START(truxton2);
-	DECLARE_VIDEO_START(fixeightbl);
 
-	DECLARE_VIDEO_START(toaplan2);
 	u32 screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
 	void screen_vblank(int state);
 	void tx_gfxram_w(offs_t offset, u16 data, u16 mem_mask = ~0);
@@ -71,10 +63,7 @@ private:
 
 	u8 shared_ram_r(offs_t offset) { return m_shared_ram[offset]; }
 	void shared_ram_w(offs_t offset, u8 data) { m_shared_ram[offset] = data; }
-	void fixeightbl_oki_bankswitch_w(u8 data);
-	u32 screen_update_bootleg(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
 
-	void fixeightbl_oki(address_map &map) ATTR_COLD;
 
 	void tx_videoram_w(offs_t offset, u16 data, u16 mem_mask = ~0);
 	void tx_linescroll_w(offs_t offset, u16 data, u16 mem_mask = ~0);
@@ -99,9 +88,33 @@ private:
 	optional_device<gfxdecode_device> m_gfxdecode;
 	required_device<screen_device> m_screen;
 	required_device<palette_device> m_palette;
-	optional_memory_bank m_okibank;
 	bitmap_ind8 m_custom_priority_bitmap;
-	bitmap_ind16 m_secondary_render_bitmap;
+};
+
+class fixeight_bootleg_state : public fixeight_state
+{
+public:
+	fixeight_bootleg_state(const machine_config &mconfig, device_type type, const char *tag)
+		: fixeight_state(mconfig, type, tag)
+		, m_okibank(*this, "okibank")
+	{ }
+
+	void fixeightbl(machine_config &config);
+
+	void init_fixeightbl();
+
+	virtual void video_start() override ATTR_COLD;
+
+	void fixeightbl_68k_mem(address_map &map) ATTR_COLD;
+	void cpu_space_fixeightbl_map(address_map &map) ATTR_COLD;
+
+	void fixeightbl_oki(address_map &map) ATTR_COLD;
+
+	void fixeightbl_oki_bankswitch_w(u8 data);
+
+	u32 screen_update_bootleg(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
+
+	optional_memory_bank m_okibank;
 };
 
 
@@ -163,17 +176,6 @@ void fixeight_state::tx_linescroll_w(offs_t offset, u16 data, u16 mem_mask)
 
 
 
-
-VIDEO_START_MEMBER(fixeight_state,toaplan2)
-{
-	/* our current VDP implementation needs this bitmap to work with */
-	m_screen->register_screen_bitmap(m_custom_priority_bitmap);
-
-	m_secondary_render_bitmap.reset();
-	m_vdp->custom_priority_bitmap = &m_custom_priority_bitmap;
-}
-
-
 u32 fixeight_state::screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
 {
 	bitmap.fill(0, cliprect);
@@ -203,19 +205,18 @@ void fixeight_state::create_tx_tilemap(int dx, int dx_flipped)
 	m_tx_tilemap->set_transparent_pen(0);
 }
 
-/* fixeightbl and bgareggabl do not use the lineselect or linescroll tables */
-u32 fixeight_state::screen_update_bootleg(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
+u32 fixeight_bootleg_state::screen_update_bootleg(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
 {
 	screen_update_toaplan2(screen, bitmap, cliprect);
 	m_tx_tilemap->draw(screen, bitmap, cliprect, 0);
 	return 0;
 }
 
-VIDEO_START_MEMBER(fixeight_state,fixeightbl)
+void fixeight_bootleg_state::video_start()
 {
-	VIDEO_START_CALL_MEMBER(toaplan2);
+	m_screen->register_screen_bitmap(m_custom_priority_bitmap);
+	m_vdp->custom_priority_bitmap = &m_custom_priority_bitmap;
 
-	/* Create the Text tilemap for this game */
 	create_tx_tilemap();
 
 	/* This bootleg has additional layer offsets on the VDP */
@@ -228,13 +229,12 @@ VIDEO_START_MEMBER(fixeight_state,fixeightbl)
 }
 
 
-VIDEO_START_MEMBER(fixeight_state,truxton2)
+void fixeight_state::video_start()
 {
-	VIDEO_START_CALL_MEMBER(toaplan2);
+	m_screen->register_screen_bitmap(m_custom_priority_bitmap);
+	m_vdp->custom_priority_bitmap = &m_custom_priority_bitmap;
 
-	/* Create the Text tilemap for this game */
 	m_gfxdecode->gfx(0)->set_source(reinterpret_cast<u8 *>(m_tx_gfxram.target()));
-
 	create_tx_tilemap(0x1d5, 0x16a);
 }
 
@@ -440,14 +440,14 @@ void fixeight_state::fixeight_68k_mem(address_map &map)
 }
 
 
-void fixeight_state::fixeightbl_oki_bankswitch_w(u8 data)
+void fixeight_bootleg_state::fixeightbl_oki_bankswitch_w(u8 data)
 {
 	data &= 7;
 	if (data <= 4) m_okibank->set_entry(data);
 }
 
 
-void fixeight_state::fixeightbl_68k_mem(address_map &map)
+void fixeight_bootleg_state::fixeightbl_68k_mem(address_map &map)
 {
 	map(0x000000, 0x0fffff).rom();     // 0-7ffff ?
 	map(0x100000, 0x10ffff).ram();     // 100000-107fff  105000-105xxx  106000-106xxx  108000 - related to sound ?
@@ -456,12 +456,12 @@ void fixeight_state::fixeightbl_68k_mem(address_map &map)
 	map(0x200008, 0x200009).portr("IN3");
 	map(0x20000c, 0x20000d).portr("DSWB");
 	map(0x200010, 0x200011).portr("SYS");
-	map(0x200015, 0x200015).w(FUNC(fixeight_state::fixeightbl_oki_bankswitch_w));  // Sound banking. Code at $4084c, $5070
+	map(0x200015, 0x200015).w(FUNC(fixeight_bootleg_state::fixeightbl_oki_bankswitch_w));  // Sound banking. Code at $4084c, $5070
 	map(0x200019, 0x200019).rw(m_oki[0], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
 	map(0x20001c, 0x20001d).portr("DSWA");
 	map(0x300000, 0x30000d).rw(m_vdp, FUNC(gp9001vdp_device::read), FUNC(gp9001vdp_device::write));
 	map(0x400000, 0x400fff).ram().w(m_palette, FUNC(palette_device::write16)).share("palette");
-	map(0x500000, 0x501fff).ram().w(FUNC(fixeight_state::tx_videoram_w)).share(m_tx_videoram);
+	map(0x500000, 0x501fff).ram().w(FUNC(fixeight_bootleg_state::tx_videoram_w)).share(m_tx_videoram);
 	map(0x700000, 0x700001).r(m_vdp, FUNC(gp9001vdp_device::vdpcount_r));
 	map(0x800000, 0x87ffff).rom().region("maincpu", 0x80000);
 }
@@ -477,7 +477,7 @@ void fixeight_state::fixeight_v25_mem(address_map &map)
 	map(0x80000, 0x87fff).mirror(0x78000).ram().share(m_shared_ram);
 }
 
-void fixeight_state::cpu_space_fixeightbl_map(address_map &map)
+void fixeight_bootleg_state::cpu_space_fixeightbl_map(address_map &map)
 {
 	map(0xfffff0, 0xffffff).m(m_maincpu, FUNC(m68000_base_device::autovectors_map));
 	map(0xfffff5, 0xfffff5).lr8(NAME([this] () { m_maincpu->set_input_line(M68K_IRQ_2, CLEAR_LINE); return m68000_device::autovector(2); }));
@@ -538,8 +538,6 @@ void fixeight_state::fixeight(machine_config &config)
 	m_vdp->set_palette(m_palette);
 	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
 
-	MCFG_VIDEO_START_OVERRIDE(fixeight_state,truxton2)
-
 	/* sound hardware */
 	SPEAKER(config, "mono").front_center();
 
@@ -549,19 +547,19 @@ void fixeight_state::fixeight(machine_config &config)
 	m_oki[0]->add_route(ALL_OUTPUTS, "mono", 0.5);
 }
 
-void fixeight_state::fixeightbl_oki(address_map &map)
+void fixeight_bootleg_state::fixeightbl_oki(address_map &map)
 {
 	map(0x00000, 0x2ffff).rom();
 	map(0x30000, 0x3ffff).bankr(m_okibank);
 }
 
-void fixeight_state::fixeightbl(machine_config &config)
+void fixeight_bootleg_state::fixeightbl(machine_config &config)
 {
 	/* basic machine hardware */
 	M68000(config, m_maincpu, XTAL(10'000'000));         /* 10MHz Oscillator */
-	m_maincpu->set_addrmap(AS_PROGRAM, &fixeight_state::fixeightbl_68k_mem);
-	m_maincpu->set_addrmap(m68000_base_device::AS_CPU_SPACE, &fixeight_state::cpu_space_fixeightbl_map);
-	m_maincpu->reset_cb().set(FUNC(fixeight_state::reset));
+	m_maincpu->set_addrmap(AS_PROGRAM, &fixeight_bootleg_state::fixeightbl_68k_mem);
+	m_maincpu->set_addrmap(m68000_base_device::AS_CPU_SPACE, &fixeight_bootleg_state::cpu_space_fixeightbl_map);
+	//m_maincpu->reset_cb().set(FUNC(fixeight_bootleg_state::reset));
 
 	/* video hardware */
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
@@ -570,8 +568,8 @@ void fixeight_state::fixeightbl(machine_config &config)
 	//m_screen->set_refresh_hz(60);
 	//m_screen->set_size(432, 262);
 	//m_screen->set_visarea(0, 319, 0, 239);
-	m_screen->set_screen_update(FUNC(fixeight_state::screen_update_bootleg));
-	m_screen->screen_vblank().set(FUNC(fixeight_state::screen_vblank));
+	m_screen->set_screen_update(FUNC(fixeight_bootleg_state::screen_update_bootleg));
+	m_screen->screen_vblank().set(FUNC(fixeight_bootleg_state::screen_vblank));
 	m_screen->set_palette(m_palette);
 
 	GFXDECODE(config, m_gfxdecode, m_palette, gfx_textrom);
@@ -581,14 +579,12 @@ void fixeight_state::fixeightbl(machine_config &config)
 	m_vdp->set_palette(m_palette);
 	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_2, ASSERT_LINE);
 
-	MCFG_VIDEO_START_OVERRIDE(fixeight_state,fixeightbl)
-
 	/* sound hardware */
 	SPEAKER(config, "mono").front_center();
 
 	OKIM6295(config, m_oki[0], 14_MHz_XTAL/16, okim6295_device::PIN7_LOW);
 	m_oki[0]->add_route(ALL_OUTPUTS, "mono", 1.0);
-	m_oki[0]->set_addrmap(0, &fixeight_state::fixeightbl_oki);
+	m_oki[0]->set_addrmap(0, &fixeight_bootleg_state::fixeightbl_oki);
 }
 
 
@@ -744,7 +740,7 @@ ROM_START( fixeightbl )
 ROM_END
 
 
-void fixeight_state::init_fixeightbl()
+void fixeight_bootleg_state::init_fixeightbl()
 {
 	u8 *ROM = memregion("oki1")->base();
 
@@ -772,4 +768,4 @@ GAME( 1992, fixeightat,  fixeight, fixeight,   fixeight,   fixeight_state, init_
 GAME( 1992, fixeightut,  fixeight, fixeight,   fixeight,   fixeight_state, init_fixeight,   ROT270, "Toaplan (Taito license)", "FixEight (USA, Taito license)",                              MACHINE_SUPPORTS_SAVE )
 GAME( 1992, fixeightjt,  fixeight, fixeight,   fixeight,   fixeight_state, init_fixeight,   ROT270, "Toaplan (Taito license)", "FixEight - Jigoku no Eiyuu Densetsu (Japan, Taito license)", MACHINE_SUPPORTS_SAVE )
 
-GAME( 1992, fixeightbl,  fixeight, fixeightbl, fixeightbl, fixeight_state, init_fixeightbl, ROT270, "bootleg", "FixEight (Korea, bootleg)", MACHINE_SUPPORTS_SAVE )
+GAME( 1992, fixeightbl,  fixeight, fixeightbl, fixeightbl, fixeight_bootleg_state, init_fixeightbl, ROT270, "bootleg", "FixEight (Korea, bootleg)", MACHINE_SUPPORTS_SAVE )
