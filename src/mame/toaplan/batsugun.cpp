@@ -110,87 +110,46 @@ void batsugun_bootleg_state::video_start()
 // renders to 2 bitmaps, and mixes output
 u32 batsugun_state::screen_update_batsugun(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
 {
-//  bitmap.fill(0, cliprect);
-//  gp9001_custom_priority_bitmap->fill(0, cliprect);
+	bitmap.fill(0, cliprect);
+	m_custom_priority_bitmap.fill(0, cliprect);
+	m_vdp[0]->render_vdp(bitmap, cliprect);
 
-	if (m_vdp[0])
-	{
-		bitmap.fill(0, cliprect);
-		m_custom_priority_bitmap.fill(0, cliprect);
-		m_vdp[0]->render_vdp(bitmap, cliprect);
-	}
-	if (m_vdp[1])
-	{
-		m_secondary_render_bitmap.fill(0, cliprect);
-		m_custom_priority_bitmap.fill(0, cliprect);
-		m_vdp[1]->render_vdp(m_secondary_render_bitmap, cliprect);
-	}
+	m_secondary_render_bitmap.fill(0, cliprect);
+	m_custom_priority_bitmap.fill(0, cliprect);
+	m_vdp[1]->render_vdp(m_secondary_render_bitmap, cliprect);
 
-	// key test places in batsugun
-	// level 2 - the two layers of clouds (will appear under background, or over ships if wrong)
-	// level 3 - the special effect 'layer' which should be under everything (will appear over background if wrong)
-	// level 4(?) - the large clouds (will obscure player if wrong)
-	// high score entry - letters will be missing if wrong
-	// end credits - various issues if wrong, clouds like level 2
-	//
-	// when implemented based directly on the PAL equation it doesn't work, however, my own equations roughly based
-	// on that do.
-	//
-
-	if (m_vdp[0] && m_vdp[1])
+	for (int y = cliprect.min_y; y <= cliprect.max_y; y++)
 	{
-		for (int y = cliprect.min_y; y <= cliprect.max_y; y++)
+		u16 *const src_vdp0 = &bitmap.pix(y);
+		u16 const *const src_vdp1 = &m_secondary_render_bitmap.pix(y);
+
+		for (int x = cliprect.min_x; x <= cliprect.max_x; x++)
 		{
-			u16 *const src_vdp0 = &bitmap.pix(y);
-			u16 const *const src_vdp1 = &m_secondary_render_bitmap.pix(y);
+			const u16 GPU0_LUTaddr = src_vdp0[x];
+			const u16 GPU1_LUTaddr = src_vdp1[x];
+			const bool COMPARISON = ((GPU0_LUTaddr & 0x0780) > (GPU1_LUTaddr & 0x0780));
 
-			for (int x = cliprect.min_x; x <= cliprect.max_x; x++)
+			if (!(GPU1_LUTaddr & 0x000f))
 			{
-				const u16 GPU0_LUTaddr = src_vdp0[x];
-				const u16 GPU1_LUTaddr = src_vdp1[x];
-
-				// these equations is derived from the PAL, but doesn't seem to work?
-
-				const bool COMPARISON = ((GPU0_LUTaddr & 0x0780) > (GPU1_LUTaddr & 0x0780));
-
-				// note: GPU1_LUTaddr & 0x000f - transparency check for vdp1? (gfx are 4bpp, the low 4 bits of the lookup would be the pixel data value)
-#if 0
-				int result =
-							((GPU0_LUTaddr & 0x0008) & !COMPARISON)
-						| ((GPU0_LUTaddr & 0x0008) & !(GPU1_LUTaddr & 0x000f))
-						| ((GPU0_LUTaddr & 0x0004) & !COMPARISON)
-						| ((GPU0_LUTaddr & 0x0004) & !(GPU1_LUTaddr & 0x000f))
-						| ((GPU0_LUTaddr & 0x0002) & !COMPARISON)
-						| ((GPU0_LUTaddr & 0x0002) & !(GPU1_LUTaddr & 0x000f))
-						| ((GPU0_LUTaddr & 0x0001) & !COMPARISON)
-						| ((GPU0_LUTaddr & 0x0001) & !(GPU1_LUTaddr & 0x000f));
-
-				if (result) src_vdp0[x] = GPU0_LUTaddr;
-				else src_vdp0[x] = GPU1_LUTaddr;
-#endif
-				// this seems to work tho?
-				if (!(GPU1_LUTaddr & 0x000f))
+				src_vdp0[x] = GPU0_LUTaddr;
+			}
+			else
+			{
+				if (!(GPU0_LUTaddr & 0x000f))
 				{
-					src_vdp0[x] = GPU0_LUTaddr;
+					src_vdp0[x] = GPU1_LUTaddr; // bg pen
 				}
 				else
 				{
-					if (!(GPU0_LUTaddr & 0x000f))
+					if (COMPARISON)
 					{
-						src_vdp0[x] = GPU1_LUTaddr; // bg pen
+						src_vdp0[x] = GPU1_LUTaddr;
 					}
 					else
 					{
-						if (COMPARISON)
-						{
-							src_vdp0[x] = GPU1_LUTaddr;
-						}
-						else
-						{
-							src_vdp0[x] = GPU0_LUTaddr;
-						}
-
+						src_vdp0[x] = GPU0_LUTaddr;
 					}
+
 				}
 			}
 		}
@@ -267,12 +226,12 @@ void batsugun_state::coin_sound_reset_w(u8 data)
 	sound_reset_w(data & 0x20);
 }
 
-static INPUT_PORTS_START( 2b )
+static INPUT_PORTS_START( base )
 	PORT_START("IN1")
-	TOAPLAN_JOY_UDLR_2_BUTTONS( 1 )
+	TOAPLAN_JOY_UDLR_3_BUTTONS( 1 )
 
 	PORT_START("IN2")
-	TOAPLAN_JOY_UDLR_2_BUTTONS( 2 )
+	TOAPLAN_JOY_UDLR_3_BUTTONS( 2 )
 
 	PORT_START("SYS")
 	PORT_BIT( 0x0001, IP_ACTIVE_HIGH, IPT_SERVICE1 )
@@ -296,18 +255,8 @@ static INPUT_PORTS_START( 2b )
 INPUT_PORTS_END
 
 
-static INPUT_PORTS_START( 3b )
-	PORT_INCLUDE( 2b )
-
-	PORT_MODIFY("IN1")
-	TOAPLAN_JOY_UDLR_3_BUTTONS( 1 )
-
-	PORT_MODIFY("IN2")
-	TOAPLAN_JOY_UDLR_3_BUTTONS( 2 )
-INPUT_PORTS_END
-
 static INPUT_PORTS_START( batsugun )
-	PORT_INCLUDE( 3b )
+	PORT_INCLUDE( base )
 
 	PORT_MODIFY("DSWA")
 	PORT_DIPNAME( 0x0001,   0x0000, DEF_STR( Continue_Price ) ) PORT_DIPLOCATION("SW1:!1")
