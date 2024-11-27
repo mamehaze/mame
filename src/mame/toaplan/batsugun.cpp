@@ -3,18 +3,10 @@
 
 #include "emu.h"
 
-#include "cpu/m68000/m68000.h"
-#include "machine/bankdev.h"
-#include "machine/eepromser.h"
-#include "machine/gen_latch.h"
-#include "machine/ticket.h"
-#include "machine/upd4992.h"
-#include "gp9001.h"
-#include "sound/okim6295.h"
 #include "emupal.h"
 #include "screen.h"
+#include "speaker.h"
 #include "tilemap.h"
-
 
 #include "toaplipt.h"
 #include "gp9001.h"
@@ -24,56 +16,40 @@
 #include "sound/okim6295.h"
 #include "sound/ymopm.h"
 
-#include "emupal.h"
-#include "screen.h"
-#include "speaker.h"
-#include "tilemap.h"
-
 class batsugun_state : public driver_device
 {
 public:
 	batsugun_state(const machine_config &mconfig, device_type type, const char *tag)
 		: driver_device(mconfig, type, tag)
-		, m_shared_ram(*this, "shared_ram")
-		, m_mainram(*this, "mainram")
 		, m_maincpu(*this, "maincpu")
-		, m_audiocpu(*this, "audiocpu")
 		, m_vdp(*this, "gp9001_%u", 0U)
-		, m_oki(*this, "oki%u", 1U)
-		, m_eeprom(*this, "eeprom")
-		, m_gfxdecode(*this, "gfxdecode")
-		, m_screen(*this, "screen")
+		, m_oki(*this, "oki")
 		, m_palette(*this, "palette")
-		, m_soundlatch(*this, "soundlatch%u", 1U)
-		, m_z80_rom(*this, "audiocpu")
-		, m_oki_rom(*this, "oki%u", 1U)
-		, m_okibank(*this, "okibank")
+		, m_shared_ram(*this, "shared_ram")
+		, m_audiocpu(*this, "audiocpu")
+		, m_screen(*this, "screen")
 	{ }
 
 	void batsugun(machine_config &config);
-	void batsugunbl(machine_config &config);
-
-	void init_dogyuun();
-	void init_fixeightbl();
 
 protected:
+	virtual void video_start() override ATTR_COLD;
+
+	required_device<m68000_base_device> m_maincpu;
+	required_device_array<gp9001vdp_device, 2> m_vdp;
+	required_device<okim6295_device> m_oki;
+	required_device<palette_device> m_palette;
+
+private:
 	u32 screen_update_batsugun(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
 
 	void batsugun_68k_mem(address_map &map) ATTR_COLD;
-	void batsugunbl_oki_bankswitch_w(u8 data);
-	void batsugunbl_68k_mem(address_map &map) ATTR_COLD;
-	void cpu_space_batsugunbl_map(address_map &map);
 	void v25_mem(address_map &map) ATTR_COLD;
 	void coin_sound_reset_w(u8 data);
-	u8 m_sound_reset_bit = 0; /* 0x20 for dogyuun/batsugun, 0x10 for vfive, 0x08 for fixeight */
 
-private:
 	u8 shared_ram_r(offs_t offset) { return m_shared_ram[offset]; }
 	void shared_ram_w(offs_t offset, u8 data) { m_shared_ram[offset] = data; }
-	void fixeightbl_oki(address_map &map) ATTR_COLD;
-	DECLARE_VIDEO_START(batsugunbl);
-	DECLARE_VIDEO_START(toaplan2);
-	u32 screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
+
 	void screen_vblank(int state);
 
 	void sound_reset_w(u8 data);
@@ -81,108 +57,40 @@ private:
 	void reset(int state);
 
 	optional_shared_ptr<u8> m_shared_ram; // 8 bit RAM shared between 68K and sound CPU
-	optional_shared_ptr<u16> m_mainram;
-
-	required_device<m68000_base_device> m_maincpu;
 	optional_device<cpu_device> m_audiocpu;
-	optional_device_array<gp9001vdp_device, 2> m_vdp;
-	optional_device_array<okim6295_device, 2> m_oki;
-	optional_device<eeprom_serial_93cxx_device> m_eeprom;
-	optional_device<gfxdecode_device> m_gfxdecode;
 	required_device<screen_device> m_screen;
-	required_device<palette_device> m_palette;
-	optional_device_array<generic_latch_8_device, 4> m_soundlatch; // tekipaki, batrider, bgaregga, batsugun
-	optional_region_ptr<u8> m_z80_rom;
-	optional_region_ptr_array<u8, 2> m_oki_rom;
-	optional_memory_bank m_okibank;
 	bitmap_ind8 m_custom_priority_bitmap;
 	bitmap_ind16 m_secondary_render_bitmap;
 };
 
-
-void batsugun_state::reset(int state)
+class batsugun_bootleg_state : public batsugun_state
 {
-	if (m_audiocpu != nullptr)
-		m_audiocpu->pulse_input_line(INPUT_LINE_RESET, attotime::zero);
-}
+public:
+	batsugun_bootleg_state(const machine_config &mconfig, device_type type, const char *tag)
+		: batsugun_state(mconfig, type, tag)
+		, m_okibank(*this, "okibank")
+	{ }
 
-void batsugun_state::coin_w(u8 data) // MOVE TO DEVICE!
+	void batsugunbl(machine_config &config);
+
+	void init_batsugunbl();
+
+protected:
+	virtual void video_start() override ATTR_COLD;
+
+private:
+	void batsugunbl_oki_bankswitch_w(u8 data);
+	void batsugunbl_68k_mem(address_map &map) ATTR_COLD;
+	void cpu_space_batsugunbl_map(address_map &map);
+	void fixeightbl_oki(address_map &map) ATTR_COLD;
+
+	required_memory_bank m_okibank;
+};
+
+
+void batsugun_bootleg_state::video_start()
 {
-	/* +----------------+------ Bits 7-5 not used ------+--------------+ */
-	/* | Coin Lockout 2 | Coin Lockout 1 | Coin Count 2 | Coin Count 1 | */
-	/* |     Bit 3      |     Bit 2      |     Bit 1    |     Bit 0    | */
-
-	if (data & 0x0f)
-	{
-		machine().bookkeeping().coin_lockout_w(0, BIT(~data, 2));
-		machine().bookkeeping().coin_lockout_w(1, BIT(~data, 3));
-		machine().bookkeeping().coin_counter_w(0, BIT( data, 0));
-		machine().bookkeeping().coin_counter_w(1, BIT( data, 1));
-	}
-	else
-	{
-		machine().bookkeeping().coin_lockout_global_w(1);    // Lock all coin slots
-	}
-	if (data & 0xf0)
-	{
-		logerror("Writing unknown upper bits (%02x) to coin control\n",data);
-	}
-}
-
-
-void batsugun_state::sound_reset_w(u8 data)
-{
-	m_audiocpu->set_input_line(INPUT_LINE_RESET, (data & m_sound_reset_bit) ? CLEAR_LINE : ASSERT_LINE);
-}
-
-VIDEO_START_MEMBER(batsugun_state,toaplan2)
-{
-	/* our current VDP implementation needs this bitmap to work with */
-	m_screen->register_screen_bitmap(m_custom_priority_bitmap);
-
-	if (m_vdp[0] != nullptr)
-	{
-		m_secondary_render_bitmap.reset();
-		m_vdp[0]->custom_priority_bitmap = &m_custom_priority_bitmap;
-	}
-
-	if (m_vdp[1] != nullptr)
-	{
-		m_screen->register_screen_bitmap(m_secondary_render_bitmap);
-		m_vdp[1]->custom_priority_bitmap = &m_custom_priority_bitmap;
-	}
-}
-
-
-u32 batsugun_state::screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
-{
-	bitmap.fill(0, cliprect);
-	m_custom_priority_bitmap.fill(0, cliprect);
-	m_vdp[0]->render_vdp(bitmap, cliprect);
-
-	return 0;
-}
-
-void batsugun_state::screen_vblank(int state)
-{
-	// rising edge
-	if (state)
-	{
-		if (m_vdp[0]) m_vdp[0]->screen_eof();
-		if (m_vdp[1]) m_vdp[1]->screen_eof();
-	}
-}
-
-
-void batsugun_state::fixeightbl_oki(address_map &map)
-{
-	map(0x00000, 0x2ffff).rom();
-	map(0x30000, 0x3ffff).bankr(m_okibank);
-}
-
-VIDEO_START_MEMBER(batsugun_state, batsugunbl)
-{
-	VIDEO_START_CALL_MEMBER(toaplan2);
+	batsugun_state::video_start();
 
 	// This bootleg has additional layer offsets. TODO: further refinement needed
 	m_vdp[0]->set_tm_extra_offsets(0, 0, 0, 0, 0);
@@ -291,12 +199,72 @@ u32 batsugun_state::screen_update_batsugun(screen_device &screen, bitmap_ind16 &
 	return 0;
 }
 
+void batsugun_state::screen_vblank(int state)
+{
+	// rising edge
+	if (state)
+	{
+		m_vdp[0]->screen_eof();
+		m_vdp[1]->screen_eof();
+	}
+}
+
+void batsugun_state::coin_w(u8 data) // MOVE TO DEVICE!
+{
+	/* +----------------+------ Bits 7-5 not used ------+--------------+ */
+	/* | Coin Lockout 2 | Coin Lockout 1 | Coin Count 2 | Coin Count 1 | */
+	/* |     Bit 3      |     Bit 2      |     Bit 1    |     Bit 0    | */
+
+	if (data & 0x0f)
+	{
+		machine().bookkeeping().coin_lockout_w(0, BIT(~data, 2));
+		machine().bookkeeping().coin_lockout_w(1, BIT(~data, 3));
+		machine().bookkeeping().coin_counter_w(0, BIT( data, 0));
+		machine().bookkeeping().coin_counter_w(1, BIT( data, 1));
+	}
+	else
+	{
+		machine().bookkeeping().coin_lockout_global_w(1);    // Lock all coin slots
+	}
+	if (data & 0xf0)
+	{
+		logerror("Writing unknown upper bits (%02x) to coin control\n",data);
+	}
+}
+
+void batsugun_state::reset(int state)
+{
+	if (m_audiocpu)
+		m_audiocpu->pulse_input_line(INPUT_LINE_RESET, attotime::zero);
+}
+
+void batsugun_state::sound_reset_w(u8 data)
+{
+	m_audiocpu->set_input_line(INPUT_LINE_RESET, (data & 0x20) ? CLEAR_LINE : ASSERT_LINE);
+}
+
+void batsugun_state::video_start()
+{
+	m_screen->register_screen_bitmap(m_custom_priority_bitmap);
+	m_secondary_render_bitmap.reset();
+	m_vdp[0]->custom_priority_bitmap = &m_custom_priority_bitmap;
+	m_screen->register_screen_bitmap(m_secondary_render_bitmap);
+	m_vdp[1]->custom_priority_bitmap = &m_custom_priority_bitmap;
+}
+
+void batsugun_bootleg_state::fixeightbl_oki(address_map &map)
+{
+	map(0x00000, 0x2ffff).rom();
+	map(0x30000, 0x3ffff).bankr(m_okibank);
+}
+
+
 void batsugun_state::coin_sound_reset_w(u8 data)
 {
 	logerror("coin_sound_reset_w %02x\n",data);
 
-	coin_w(data & ~m_sound_reset_bit);
-	sound_reset_w(data & m_sound_reset_bit);
+	coin_w(data & ~0x20);
+	sound_reset_w(data & 0x20);
 }
 
 static INPUT_PORTS_START( 2b )
@@ -429,20 +397,20 @@ void batsugun_state::batsugun_68k_mem(address_map &map)
 	map(0x700000, 0x700001).r(m_vdp[0], FUNC(gp9001vdp_device::vdpcount_r));
 }
 
-void batsugun_state::batsugunbl_oki_bankswitch_w(u8 data)
+void batsugun_bootleg_state::batsugunbl_oki_bankswitch_w(u8 data)
 {
 	data &= 7;
 	if (data <= 4) m_okibank->set_entry(data);
 }
 
 
-void batsugun_state::batsugunbl_68k_mem(address_map &map)
+void batsugun_bootleg_state::batsugunbl_68k_mem(address_map &map)
 {
 	map(0x000000, 0x07ffff).rom();
 	map(0x100000, 0x10ffff).ram();
 	// map(0x200004, 0x200005).r() // only cleared at boot?
-	map(0x200005, 0x200005).w(FUNC(batsugun_state::batsugunbl_oki_bankswitch_w)); // TODO: doesn't sound correct
-	map(0x200009, 0x200009).rw(m_oki[0], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
+	map(0x200005, 0x200005).w(FUNC(batsugun_bootleg_state::batsugunbl_oki_bankswitch_w)); // TODO: doesn't sound correct
+	map(0x200009, 0x200009).rw(m_oki, FUNC(okim6295_device::read), FUNC(okim6295_device::write));
 	map(0x200010, 0x200011).portr("IN1");
 	map(0x200014, 0x200015).portr("IN2");
 	map(0x200018, 0x200019).portr("SYS");
@@ -456,7 +424,7 @@ void batsugun_state::batsugunbl_68k_mem(address_map &map)
 	map(0x700000, 0x700001).r(m_vdp[0], FUNC(gp9001vdp_device::vdpcount_r));
 }
 
-void batsugun_state::cpu_space_batsugunbl_map(address_map &map)
+void batsugun_bootleg_state::cpu_space_batsugunbl_map(address_map &map)
 {
 	map(0xfffff0, 0xffffff).m(m_maincpu, FUNC(m68000_base_device::autovectors_map));
 	map(0xfffff5, 0xfffff5).lr8(NAME([this] () { m_maincpu->set_input_line(M68K_IRQ_2, CLEAR_LINE); return m68000_device::autovector(2); }));
@@ -465,7 +433,7 @@ void batsugun_state::cpu_space_batsugunbl_map(address_map &map)
 void batsugun_state::v25_mem(address_map &map)
 {
 	map(0x00000, 0x00001).rw("ymsnd", FUNC(ym2151_device::read), FUNC(ym2151_device::write));
-	map(0x00004, 0x00004).rw(m_oki[0], FUNC(okim6295_device::read), FUNC(okim6295_device::write));
+	map(0x00004, 0x00004).rw(m_oki, FUNC(okim6295_device::read), FUNC(okim6295_device::write));
 	map(0x80000, 0x87fff).mirror(0x78000).ram().share(m_shared_ram);
 }
 
@@ -503,32 +471,28 @@ void batsugun_state::batsugun(machine_config &config)
 	GP9001_VDP(config, m_vdp[1], 27_MHz_XTAL);
 	m_vdp[1]->set_palette(m_palette);
 
-	MCFG_VIDEO_START_OVERRIDE(batsugun_state,toaplan2)
-
 	/* sound hardware */
 	SPEAKER(config, "mono").front_center();
 
 	YM2151(config, "ymsnd", 27_MHz_XTAL/8).add_route(ALL_OUTPUTS, "mono", 0.5);
 
-	OKIM6295(config, m_oki[0], 32_MHz_XTAL/8, okim6295_device::PIN7_LOW);
-	m_oki[0]->add_route(ALL_OUTPUTS, "mono", 0.5);
+	OKIM6295(config, m_oki, 32_MHz_XTAL/8, okim6295_device::PIN7_LOW);
+	m_oki->add_route(ALL_OUTPUTS, "mono", 0.5);
 }
 
-void batsugun_state::batsugunbl(machine_config &config)
+void batsugun_bootleg_state::batsugunbl(machine_config &config)
 {
 	batsugun(config);
 
-	m_maincpu->set_addrmap(AS_PROGRAM, &batsugun_state::batsugunbl_68k_mem);
-	m_maincpu->set_addrmap(m68000_base_device::AS_CPU_SPACE, &batsugun_state::cpu_space_batsugunbl_map);
+	m_maincpu->set_addrmap(AS_PROGRAM, &batsugun_bootleg_state::batsugunbl_68k_mem);
+	m_maincpu->set_addrmap(m68000_base_device::AS_CPU_SPACE, &batsugun_bootleg_state::cpu_space_batsugunbl_map);
 
 	m_vdp[0]->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_2, ASSERT_LINE);
-
-	MCFG_VIDEO_START_OVERRIDE(batsugun_state, batsugunbl)
 
 	config.device_remove("audiocpu");
 	config.device_remove("ymsnd");
 
-	m_oki[0]->set_addrmap(0, &batsugun_state::fixeightbl_oki);
+	m_oki->set_addrmap(0, &batsugun_bootleg_state::fixeightbl_oki);
 }
 
 
@@ -552,7 +516,7 @@ ROM_START( batsugun )
 	ROM_LOAD( "tp030_5.bin",  0x000000, 0x100000, CRC(bcf5ba05) SHA1(40f98888a29cdd30cda5dfb60fdc667c69b0fdb0) )
 	ROM_LOAD( "tp030_6.bin",  0x100000, 0x100000, CRC(0666fecd) SHA1(aa8f921fc51590b5b05bbe0b0ad0cce5ff359c64) )
 
-	ROM_REGION( 0x40000, "oki1", 0 )         /* ADPCM Samples */
+	ROM_REGION( 0x40000, "oki", 0 )         /* ADPCM Samples */
 	ROM_LOAD( "tp030_2.bin", 0x00000, 0x40000, CRC(276146f5) SHA1(bf11d1f6782cefcad77d52af4f7e6054a8f93440) )
 
 	ROM_REGION( 0x1000, "plds", 0 )         /* Logic for mixing output of both GP9001 GFX controllers */
@@ -577,7 +541,7 @@ ROM_START( batsuguna )
 	ROM_LOAD( "tp030_5.bin",  0x000000, 0x100000, CRC(bcf5ba05) SHA1(40f98888a29cdd30cda5dfb60fdc667c69b0fdb0) )
 	ROM_LOAD( "tp030_6.bin",  0x100000, 0x100000, CRC(0666fecd) SHA1(aa8f921fc51590b5b05bbe0b0ad0cce5ff359c64) )
 
-	ROM_REGION( 0x40000, "oki1", 0 )         /* ADPCM Samples */
+	ROM_REGION( 0x40000, "oki", 0 )         /* ADPCM Samples */
 	ROM_LOAD( "tp030_2.bin", 0x00000, 0x40000, CRC(276146f5) SHA1(bf11d1f6782cefcad77d52af4f7e6054a8f93440) )
 
 	ROM_REGION( 0x1000, "plds", 0 )         /* Logic for mixing output of both GP9001 GFX controllers */
@@ -607,7 +571,7 @@ ROM_START( batsugunb )
 	ROM_LOAD16_BYTE( "rom7.bin",  0x100000, 0x080000, CRC(8644518f) SHA1(570141deeb796cfae57600d5a518d34bb6dc14d0) )
 	ROM_LOAD16_BYTE( "rom1.bin",  0x100001, 0x080000, CRC(8e339897) SHA1(80e84c291f287c0783bddfcb1b7ebf78c154cadc) )
 
-	ROM_REGION( 0x40000, "oki1", 0 )         /* ADPCM Samples */
+	ROM_REGION( 0x40000, "oki", 0 )         /* ADPCM Samples */
 	ROM_LOAD( "rom13.bin", 0x00000, 0x40000, CRC(276146f5) SHA1(bf11d1f6782cefcad77d52af4f7e6054a8f93440) )
 
 	ROM_REGION( 0x1000, "plds", 0 )         /* Logic for mixing output of both GP9001 GFX controllers */
@@ -633,7 +597,7 @@ ROM_START( batsugunc )
 	ROM_LOAD( "tp030_rom5.u32",  0x000000, 0x100000, CRC(bcf5ba05) SHA1(40f98888a29cdd30cda5dfb60fdc667c69b0fdb0) )
 	ROM_LOAD( "tp030_rom6.u31",  0x100000, 0x100000, CRC(0666fecd) SHA1(aa8f921fc51590b5b05bbe0b0ad0cce5ff359c64) )
 
-	ROM_REGION( 0x40000, "oki1", 0 )
+	ROM_REGION( 0x40000, "oki", 0 )
 	ROM_LOAD( "tp030_rom2.u65", 0x00000, 0x40000, CRC(276146f5) SHA1(bf11d1f6782cefcad77d52af4f7e6054a8f93440) )
 
 	ROM_REGION( 0x1000, "plds", 0 )         // Logic for mixing output of both GP9001 GFX controllers
@@ -658,7 +622,7 @@ ROM_START( batsugunsp )
 	ROM_LOAD( "tp030_5.bin",  0x000000, 0x100000, CRC(bcf5ba05) SHA1(40f98888a29cdd30cda5dfb60fdc667c69b0fdb0) )
 	ROM_LOAD( "tp030_6.bin",  0x100000, 0x100000, CRC(0666fecd) SHA1(aa8f921fc51590b5b05bbe0b0ad0cce5ff359c64) )
 
-	ROM_REGION( 0x40000, "oki1", 0 )         /* ADPCM Samples */
+	ROM_REGION( 0x40000, "oki", 0 )         /* ADPCM Samples */
 	ROM_LOAD( "tp030_2.bin", 0x00000, 0x40000, CRC(276146f5) SHA1(bf11d1f6782cefcad77d52af4f7e6054a8f93440) )
 
 	ROM_REGION( 0x1000, "plds", 0 )         /* Logic for mixing output of both GP9001 GFX controllers */
@@ -681,27 +645,23 @@ ROM_START( batsugunbl )
 	ROM_LOAD( "27c8100-n.bin",  0x000000, 0x100000, CRC(bcf5ba05) SHA1(40f98888a29cdd30cda5dfb60fdc667c69b0fdb0) )
 	ROM_LOAD( "27c8100-o.bin",  0x100000, 0x100000, CRC(0666fecd) SHA1(aa8f921fc51590b5b05bbe0b0ad0cce5ff359c64) )
 
-	ROM_REGION( 0x80000, "oki1", 0 ) // more samples to compensate for missing YM2151
+	ROM_REGION( 0x80000, "oki", 0 ) // more samples to compensate for missing YM2151
 	ROM_LOAD( "27c040.bin", 0x00000, 0x80000, CRC(1f8ec1b6) SHA1(28107a90d29613ceddc001df2556543b33c1294c) )
 ROM_END
 
-void batsugun_state::init_fixeightbl()
+void batsugun_bootleg_state::init_batsugunbl()
 {
-	u8 *ROM = memregion("oki1")->base();
+	u8 *ROM = memregion("oki")->base();
 
 	m_okibank->configure_entries(0, 5, &ROM[0x30000], 0x10000);
 }
 
 
-void batsugun_state::init_dogyuun()
-{
-	m_sound_reset_bit = 0x20;
-}
 
 
-GAME( 1993, batsugun,    0,        batsugun,   batsugun,   batsugun_state, init_dogyuun,    ROT270, "Toaplan", "Batsugun", MACHINE_SUPPORTS_SAVE )
-GAME( 1993, batsuguna,   batsugun, batsugun,   batsugun,   batsugun_state, init_dogyuun,    ROT270, "Toaplan", "Batsugun (older, set 1)", MACHINE_SUPPORTS_SAVE )
-GAME( 1993, batsugunc,   batsugun, batsugun,   batsugun,   batsugun_state, init_dogyuun,    ROT270, "Toaplan", "Batsugun (older, set 2)", MACHINE_SUPPORTS_SAVE )
-GAME( 1993, batsugunb,   batsugun, batsugun,   batsugun,   batsugun_state, init_dogyuun,    ROT270, "Toaplan", "Batsugun (Korean PCB)", MACHINE_SUPPORTS_SAVE ) // cheap looking PCB (same 'TP-030' numbering as original) but without Mask ROMs.  Still has original customs etc.  Jumpers were set to the Korea Unite Trading license, so likely made in Korea, not a bootleg tho.
-GAME( 1993, batsugunsp,  batsugun, batsugun,   batsugun,   batsugun_state, init_dogyuun,    ROT270, "Toaplan", "Batsugun - Special Version", MACHINE_SUPPORTS_SAVE )
-GAME( 1993, batsugunbl,  batsugun, batsugunbl, batsugunbl, batsugun_state, init_fixeightbl, ROT270, "Toaplan", "Batsugun (bootleg)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND | MACHINE_SUPPORTS_SAVE ) // needs correct GFX offsets and oki banking fix
+GAME( 1993, batsugun,    0,        batsugun,   batsugun,   batsugun_state, empty_init,    ROT270, "Toaplan", "Batsugun", MACHINE_SUPPORTS_SAVE )
+GAME( 1993, batsuguna,   batsugun, batsugun,   batsugun,   batsugun_state, empty_init,    ROT270, "Toaplan", "Batsugun (older, set 1)", MACHINE_SUPPORTS_SAVE )
+GAME( 1993, batsugunc,   batsugun, batsugun,   batsugun,   batsugun_state, empty_init,    ROT270, "Toaplan", "Batsugun (older, set 2)", MACHINE_SUPPORTS_SAVE )
+GAME( 1993, batsugunb,   batsugun, batsugun,   batsugun,   batsugun_state, empty_init,    ROT270, "Toaplan", "Batsugun (Korean PCB)", MACHINE_SUPPORTS_SAVE ) // cheap looking PCB (same 'TP-030' numbering as original) but without Mask ROMs.  Still has original customs etc.  Jumpers were set to the Korea Unite Trading license, so likely made in Korea, not a bootleg tho.
+GAME( 1993, batsugunsp,  batsugun, batsugun,   batsugun,   batsugun_state, empty_init,    ROT270, "Toaplan", "Batsugun - Special Version", MACHINE_SUPPORTS_SAVE )
+GAME( 1993, batsugunbl,  batsugun, batsugunbl, batsugunbl, batsugun_bootleg_state, init_batsugunbl, ROT270, "Toaplan", "Batsugun (bootleg)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND | MACHINE_SUPPORTS_SAVE ) // needs correct GFX offsets and oki banking fix

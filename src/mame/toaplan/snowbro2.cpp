@@ -36,7 +36,6 @@ protected:
 	void snowbro2_68k_mem(address_map &map) ATTR_COLD;
 	void snowbro2b3_68k_mem(address_map &map) ATTR_COLD;
 
-	DECLARE_VIDEO_START(toaplan2);
 	u32 screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
 	void screen_vblank(int state);
 	void sb2_oki_bankswitch_w(u8 data);
