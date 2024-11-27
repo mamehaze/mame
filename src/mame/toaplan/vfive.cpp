@@ -2,34 +2,19 @@
 // copyright-holders:David Haywood
 
 #include "emu.h"
-#include "toaplan_v25_tables.h"
-
-#include "cpu/m68000/m68000.h"
-#include "machine/bankdev.h"
-#include "machine/eepromser.h"
-#include "machine/gen_latch.h"
-#include "machine/ticket.h"
-#include "machine/upd4992.h"
-#include "gp9001.h"
-#include "sound/okim6295.h"
-#include "emupal.h"
-#include "screen.h"
-#include "tilemap.h"
-
-
-#include "toaplipt.h"
-#include "gp9001.h"
-
-#include "cpu/m68000/m68000.h"
-#include "cpu/nec/v25.h"
-#include "cpu/z80/z80.h"
-#include "sound/okim6295.h"
-#include "sound/ymopm.h"
 
 #include "emupal.h"
 #include "screen.h"
 #include "speaker.h"
 #include "tilemap.h"
+
+#include "toaplan_v25_tables.h"
+#include "toaplipt.h"
+#include "gp9001.h"
+
+#include "cpu/m68000/m68000.h"
+#include "cpu/nec/v25.h"
+#include "sound/ymopm.h"
 
 class vfive_state : public driver_device
 {
@@ -37,29 +22,16 @@ public:
 	vfive_state(const machine_config &mconfig, device_type type, const char *tag)
 		: driver_device(mconfig, type, tag)
 		, m_shared_ram(*this, "shared_ram")
-		, m_mainram(*this, "mainram")
 		, m_maincpu(*this, "maincpu")
 		, m_audiocpu(*this, "audiocpu")
 		, m_vdp(*this, "gp9001")
-		, m_oki(*this, "oki%u", 1U)
-		, m_eeprom(*this, "eeprom")
-		, m_gfxdecode(*this, "gfxdecode")
 		, m_screen(*this, "screen")
 		, m_palette(*this, "palette")
-		, m_soundlatch(*this, "soundlatch%u", 1U)
-		, m_z80_rom(*this, "audiocpu")
-		, m_oki_rom(*this, "oki%u", 1U)
-		, m_okibank(*this, "okibank")
 	{ }
 	void vfive(machine_config &config);
 
-	void init_vfive();
-
 protected:
-	DECLARE_VIDEO_START(toaplan2);
-	u32 screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
-	void screen_vblank(int state);
-	void coin_sound_reset_w(u8 data);
+	virtual void video_start() override ATTR_COLD;
 
 private:
 	void vfive_68k_mem(address_map &map) ATTR_COLD;
@@ -67,35 +39,48 @@ private:
 
 	u8 shared_ram_r(offs_t offset) { return m_shared_ram[offset]; }
 	void shared_ram_w(offs_t offset, u8 data) { m_shared_ram[offset] = data; }
-	u8 m_sound_reset_bit = 0; /* 0x20 for dogyuun/batsugun, 0x10 for vfive, 0x08 for fixeight */
-	void sound_reset_w(u8 data);
+	void coin_sound_reset_w(u8 data);
 	void coin_w(u8 data);
 	void reset(int state);
 
-	optional_shared_ptr<u8> m_shared_ram; // 8 bit RAM shared between 68K and sound CPU
-	optional_shared_ptr<u16> m_mainram;
+	u32 screen_update(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
+	void screen_vblank(int state);
 
+	required_shared_ptr<u8> m_shared_ram; // 8 bit RAM shared between 68K and sound CPU
 	required_device<m68000_base_device> m_maincpu;
-	optional_device<cpu_device> m_audiocpu;
+	required_device<cpu_device> m_audiocpu;
 	required_device<gp9001vdp_device> m_vdp;
-	optional_device_array<okim6295_device, 2> m_oki;
-	optional_device<eeprom_serial_93cxx_device> m_eeprom;
-	optional_device<gfxdecode_device> m_gfxdecode;
 	required_device<screen_device> m_screen;
 	required_device<palette_device> m_palette;
-	optional_device_array<generic_latch_8_device, 4> m_soundlatch; // tekipaki, batrider, bgaregga, batsugun
-	optional_region_ptr<u8> m_z80_rom;
-	optional_region_ptr_array<u8, 2> m_oki_rom;
-	optional_memory_bank m_okibank;
 	bitmap_ind8 m_custom_priority_bitmap;
-	bitmap_ind16 m_secondary_render_bitmap;
 };
 
 
+void vfive_state::video_start()
+{
+	m_screen->register_screen_bitmap(m_custom_priority_bitmap);
+	m_vdp->custom_priority_bitmap = &m_custom_priority_bitmap;
+}
+
+u32 vfive_state::screen_update(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
+{
+	bitmap.fill(0, cliprect);
+	m_custom_priority_bitmap.fill(0, cliprect);
+	m_vdp->render_vdp(bitmap, cliprect);
+	return 0;
+}
+
+void vfive_state::screen_vblank(int state)
+{
+	if (state) // rising edge
+	{
+		m_vdp->screen_eof();
+	}
+}
+
 void vfive_state::reset(int state)
 {
-	if (m_audiocpu != nullptr)
-		m_audiocpu->pulse_input_line(INPUT_LINE_RESET, attotime::zero);
+	m_audiocpu->pulse_input_line(INPUT_LINE_RESET, attotime::zero);
 }
 
 void vfive_state::coin_w(u8 data) // MOVE TO DEVICE!
@@ -121,42 +106,13 @@ void vfive_state::coin_w(u8 data) // MOVE TO DEVICE!
 	}
 }
 
-
-void vfive_state::sound_reset_w(u8 data)
+void vfive_state::coin_sound_reset_w(u8 data)
 {
-	m_audiocpu->set_input_line(INPUT_LINE_RESET, (data & m_sound_reset_bit) ? CLEAR_LINE : ASSERT_LINE);
+	coin_w(data & ~0x10);
+	m_audiocpu->set_input_line(INPUT_LINE_RESET, (data & 0x10) ? CLEAR_LINE : ASSERT_LINE);
 }
 
-VIDEO_START_MEMBER(vfive_state,toaplan2)
-{
-	/* our current VDP implementation needs this bitmap to work with */
-	m_screen->register_screen_bitmap(m_custom_priority_bitmap);
-
-	m_secondary_render_bitmap.reset();
-	m_vdp->custom_priority_bitmap = &m_custom_priority_bitmap;
-}
-
-
-u32 vfive_state::screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
-{
-	bitmap.fill(0, cliprect);
-	m_custom_priority_bitmap.fill(0, cliprect);
-	m_vdp->render_vdp(bitmap, cliprect);
-
-	return 0;
-}
-
-void vfive_state::screen_vblank(int state)
-{
-	// rising edge
-	if (state)
-	{
-		m_vdp->screen_eof();
-	}
-}
-
-
-static INPUT_PORTS_START( 2b )
+static INPUT_PORTS_START( base )
 	PORT_START("IN1")
 	TOAPLAN_JOY_UDLR_2_BUTTONS( 1 )
 
@@ -184,19 +140,16 @@ static INPUT_PORTS_START( 2b )
 	PORT_BIT( 0x00fc, IP_ACTIVE_HIGH, IPT_UNKNOWN ) // Modified below
 INPUT_PORTS_END
 
-
 static INPUT_PORTS_START( grindstm )
-	PORT_INCLUDE( 2b )
+	PORT_INCLUDE( base )
 
 	PORT_MODIFY("DSWA")
 	PORT_DIPNAME( 0x0001,   0x0000, DEF_STR( Cabinet ) )        PORT_DIPLOCATION("SW1:!1")
 	PORT_DIPSETTING(        0x0000, DEF_STR( Upright ) )
 	PORT_DIPSETTING(        0x0001, DEF_STR( Cocktail ) )
-	// Various features on bit mask 0x000e - see above
 	TOAPLAN_COINAGE_DUAL_LOC( JMPR, 0xe0, 0x80, SW1 )
 
 	PORT_MODIFY("DSWB")
-	// Difficulty on bit mask 0x0003 - see above
 	PORT_DIPNAME( 0x000c,   0x0000, DEF_STR( Bonus_Life ) )     PORT_DIPLOCATION("SW2:!3,!4")
 	PORT_DIPSETTING(        0x000c, DEF_STR( None ) )
 	PORT_DIPSETTING(        0x0008, "200k only" )
@@ -235,7 +188,6 @@ static INPUT_PORTS_START( grindstm )
 //  PORT_CONFSETTING(        0x00f0, "Korea; different?" )
 INPUT_PORTS_END
 
-
 static INPUT_PORTS_START( grindstma )
 	PORT_INCLUDE( grindstm )
 
@@ -259,7 +211,6 @@ static INPUT_PORTS_START( grindstma )
 //  PORT_CONFSETTING(        0x00e0, "Korea; different?" )
 //  PORT_CONFSETTING(        0x00f0, "Korea; different?" )
 INPUT_PORTS_END
-
 
 static INPUT_PORTS_START( vfive )
 	PORT_INCLUDE( grindstm )
@@ -286,15 +237,6 @@ static INPUT_PORTS_START( vfive )
 	PORT_CONFSETTING(       0x0000, DEF_STR( Off ) )
 	PORT_CONFSETTING(       0x0080, DEF_STR( On ) )
 INPUT_PORTS_END
-
-void vfive_state::coin_sound_reset_w(u8 data)
-{
-	logerror("coin_sound_reset_w %02x\n",data);
-
-	coin_w(data & ~m_sound_reset_bit);
-	sound_reset_w(data & m_sound_reset_bit);
-}
-
 
 void vfive_state::vfive_68k_mem(address_map &map)
 {
@@ -338,7 +280,7 @@ void vfive_state::vfive(machine_config &config)
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
 	m_screen->set_video_attributes(VIDEO_UPDATE_BEFORE_VBLANK);
 	m_screen->set_raw(27_MHz_XTAL/4, 432, 0, 320, 262, 0, 240); // verified on PCB
-	m_screen->set_screen_update(FUNC(vfive_state::screen_update_toaplan2));
+	m_screen->set_screen_update(FUNC(vfive_state::screen_update));
 	m_screen->screen_vblank().set(FUNC(vfive_state::screen_vblank));
 	m_screen->set_palette(m_palette);
 
@@ -347,8 +289,6 @@ void vfive_state::vfive(machine_config &config)
 	GP9001_VDP(config, m_vdp, 27_MHz_XTAL);
 	m_vdp->set_palette(m_palette);
 	m_vdp->vint_out_cb().set_inputline(m_maincpu, M68K_IRQ_4);
-
-	MCFG_VIDEO_START_OVERRIDE(vfive_state,toaplan2)
 
 	/* sound hardware */
 	SPEAKER(config, "mono").front_center();
@@ -396,13 +336,7 @@ ROM_START( vfive )
 	ROM_LOAD( "tp027_03.bin", 0x100000, 0x100000, CRC(b1fc6362) SHA1(5e97e3cce31be57689d394a50178cda4d80cce5f) )
 ROM_END
 
-void vfive_state::init_vfive()
-{
-	m_sound_reset_bit = 0x10;
-}
-
-
-GAME( 1992, grindstm,    0,        vfive,      grindstm,   vfive_state, init_vfive,      ROT270, "Toaplan", "Grind Stormer",             MACHINE_SUPPORTS_SAVE )
-GAME( 1992, grindstma,   grindstm, vfive,      grindstma,  vfive_state, init_vfive,      ROT270, "Toaplan", "Grind Stormer (older set)", MACHINE_SUPPORTS_SAVE )
-GAME( 1993, vfive,       grindstm, vfive,      vfive,      vfive_state, init_vfive,      ROT270, "Toaplan", "V-Five (Japan)",            MACHINE_SUPPORTS_SAVE )
+GAME( 1992, grindstm,    0,        vfive,      grindstm,   vfive_state, empty_init,      ROT270, "Toaplan", "Grind Stormer",             MACHINE_SUPPORTS_SAVE )
+GAME( 1992, grindstma,   grindstm, vfive,      grindstma,  vfive_state, empty_init,      ROT270, "Toaplan", "Grind Stormer (older set)", MACHINE_SUPPORTS_SAVE )
+GAME( 1993, vfive,       grindstm, vfive,      vfive,      vfive_state, empty_init,      ROT270, "Toaplan", "V-Five (Japan)",            MACHINE_SUPPORTS_SAVE )
 
