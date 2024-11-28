@@ -53,7 +53,9 @@ public:
 		, m_screen(*this, "screen%u", 0U)
 		, m_palette(*this, "palette%u", 0U)
 		, m_shared_ram(*this, "shared_ram")
-		, m_tx_videoram(*this, "tx_videoram")
+		, m_tx0_videoram(*this, "tx0_videoram")
+		, m_tx1_videoram(*this, "tx1_videoram")
+		, m_lineram(*this, "lineram")
 	{ }
 
 public:
@@ -68,9 +70,13 @@ private:
 	u32 screen_update_dt7_1(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
 	u32 screen_update_dt7_2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
 
-	void tx_videoram_dt7_w(offs_t offset, u16 data, u16 mem_mask = ~0);
+	void tx0_videoram_dt7_w(offs_t offset, u16 data, u16 mem_mask = ~0);
+	void tx1_videoram_dt7_w(offs_t offset, u16 data, u16 mem_mask = ~0);
 
-	TILE_GET_INFO_MEMBER(get_text_dt7_tile_info);
+	TILE_GET_INFO_MEMBER(get_text0_dt7_tile_info);
+	TILE_GET_INFO_MEMBER(get_text1_dt7_tile_info);
+
+	void draw_tx_tilemap(screen_device& screen, bitmap_ind16& bitmap, const rectangle& cliprect, int which);
 
 	void dt7_68k_0_mem(address_map &map);
 	void dt7_68k_1_mem(address_map &map);
@@ -108,7 +114,9 @@ private:
 	required_device_array<screen_device, 2> m_screen;
 	required_device_array<palette_device, 2> m_palette;
 	required_shared_ptr<u8> m_shared_ram; // 8 bit RAM shared between 68K and sound CPU
-	required_shared_ptr<u16> m_tx_videoram;
+	required_shared_ptr<u16> m_tx0_videoram;
+	required_shared_ptr<u16> m_tx1_videoram;
+	required_shared_ptr<u16> m_lineram;
 };
 
 
@@ -280,7 +288,9 @@ void dt7_state::dt7_shared_mem(address_map &map)
 {
 	map(0x500000, 0x50ffff).ram().share("shared_ram2");
 	// is this really in the middle of shared RAM, or is there a DMA to get it out?
-	map(0x509000, 0x50afff).ram().w(FUNC(dt7_state::tx_videoram_dt7_w)).share("tx_videoram");
+	map(0x509000, 0x509fff).ram().w(FUNC(dt7_state::tx0_videoram_dt7_w)).share("tx0_videoram");
+	map(0x50a000, 0x50afff).ram().w(FUNC(dt7_state::tx1_videoram_dt7_w)).share("tx1_videoram");
+	map(0x50f000, 0x50ffff).ram().share("lineram");
 
 }
 void dt7_state::dt7_68k_1_mem(address_map &map)
@@ -435,9 +445,9 @@ static INPUT_PORTS_START( dt7 )
 	PORT_BIT( 0x0080, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_READ_LINE_DEVICE_MEMBER("eeprom", FUNC(eeprom_serial_93cxx_device::do_read))
 INPUT_PORTS_END
 
-TILE_GET_INFO_MEMBER(dt7_state::get_text_dt7_tile_info)
+TILE_GET_INFO_MEMBER(dt7_state::get_text0_dt7_tile_info)
 {
-	const u16 attrib = m_tx_videoram[tile_index];
+	const u16 attrib = m_tx0_videoram[tile_index];
 	const u32 tile_number = attrib & 0x3ff;
 
 	u32 color = (attrib & 0xf800) >> 11;
@@ -450,6 +460,22 @@ TILE_GET_INFO_MEMBER(dt7_state::get_text_dt7_tile_info)
 			0);
 }
 
+TILE_GET_INFO_MEMBER(dt7_state::get_text1_dt7_tile_info)
+{
+	const u16 attrib = m_tx1_videoram[tile_index];
+	const u32 tile_number = attrib & 0x3ff;
+
+	u32 color = (attrib & 0xf800) >> 11;
+
+	color |= 0x60;
+
+	tileinfo.set(0,
+			tile_number,
+			color,
+			0);
+}
+
+
 void dt7_state::video_start()
 {
 	/* our current VDP implementation needs this bitmap to work with */
@@ -459,20 +485,45 @@ void dt7_state::video_start()
 
 	// a different part of this tilemap is displayed on each screen
 	// each screen has a different palette and uses a ROM in a different location on the PCB
-	m_tx_tilemap[0] = &machine().tilemap().create(*m_gfxdecode[0], tilemap_get_info_delegate(*this, FUNC(dt7_state::get_text_dt7_tile_info)), TILEMAP_SCAN_ROWS, 8, 8, 64, 64);
-	m_tx_tilemap[1] = &machine().tilemap().create(*m_gfxdecode[1], tilemap_get_info_delegate(*this, FUNC(dt7_state::get_text_dt7_tile_info)), TILEMAP_SCAN_ROWS, 8, 8, 64, 64);
+	m_tx_tilemap[0] = &machine().tilemap().create(*m_gfxdecode[0], tilemap_get_info_delegate(*this, FUNC(dt7_state::get_text0_dt7_tile_info)), TILEMAP_SCAN_ROWS, 8, 8, 64, 32);
+	m_tx_tilemap[1] = &machine().tilemap().create(*m_gfxdecode[1], tilemap_get_info_delegate(*this, FUNC(dt7_state::get_text1_dt7_tile_info)), TILEMAP_SCAN_ROWS, 8, 8, 64, 32);
 
 	m_tx_tilemap[0]->set_transparent_pen(0);
 	m_tx_tilemap[1]->set_transparent_pen(0);
 }
 
-void dt7_state::tx_videoram_dt7_w(offs_t offset, u16 data, u16 mem_mask)
+void dt7_state::tx0_videoram_dt7_w(offs_t offset, u16 data, u16 mem_mask)
 {
-	COMBINE_DATA(&m_tx_videoram[offset]);
-	if (offset < 64 * 64)
+	COMBINE_DATA(&m_tx0_videoram[offset]);
+	m_tx_tilemap[0]->mark_tile_dirty(offset);
+}
+
+void dt7_state::tx1_videoram_dt7_w(offs_t offset, u16 data, u16 mem_mask)
+{
+	COMBINE_DATA(&m_tx1_videoram[offset]);
+	m_tx_tilemap[1]->mark_tile_dirty(offset);
+}
+
+void dt7_state::draw_tx_tilemap(screen_device& screen, bitmap_ind16& bitmap, const rectangle& cliprect, int which)
+{
+	// there seems to be RAM for *4* tx tilemaps (2 per screen?)
+	// but there were 2 empty sockets / sockets with blank tx ROMs, so
+	// it's likely only 2 of the tilemaps get used
+	rectangle clip = cliprect;
+	for (int y = cliprect.min_y; y <= cliprect.max_y; y++)
 	{
-		m_tx_tilemap[0]->mark_tile_dirty(offset);
-		m_tx_tilemap[1]->mark_tile_dirty(offset);
+		clip.min_y = clip.max_y = y;
+
+		// this might be picking the wrong set of values for the 2nd screen
+		// as coin2 isn't hooked up yet and we can't test course select on the screen
+		u16 scroll1 = m_lineram[((y * 8) + (which * 2) + 0) & 0x7ff]; // lineselect
+		//u16 scroll2 = m_lineram[((y * 8) + (which * 2) + 1) & 0x7ff]; // xscroll
+
+		scroll1 &= 0x7fff; // 0x8000 might be enable?
+		scroll1 -= 0x0900; // are all these scroll bits?
+
+		m_tx_tilemap[which]->set_scrolly(0, scroll1 - y);
+		m_tx_tilemap[which]->draw(screen, bitmap, clip, 0);
 	}
 }
 
@@ -482,9 +533,7 @@ u32 dt7_state::screen_update_dt7_1(screen_device &screen, bitmap_ind16 &bitmap, 
 	m_custom_priority_bitmap.fill(0, cliprect);
 	m_vdp[0]->render_vdp(bitmap, cliprect);
 
-	m_tx_tilemap[0]->set_scrolldy(0, 0);
-	m_tx_tilemap[0]->draw(screen, bitmap, cliprect, 0);
-
+	draw_tx_tilemap(screen, bitmap, cliprect, 0);
 	return 0;
 }
 
@@ -494,8 +543,8 @@ u32 dt7_state::screen_update_dt7_2(screen_device &screen, bitmap_ind16 &bitmap, 
 	m_custom_priority_bitmap.fill(0, cliprect);
 	m_vdp[1]->render_vdp(bitmap, cliprect);
 
-	m_tx_tilemap[1]->set_scrolldy(256 + 16, 256 + 16);
-	m_tx_tilemap[1]->draw(screen, bitmap, cliprect, 0);
+	m_tx_tilemap[1]->set_scrolldy(-16, -16);
+	draw_tx_tilemap(screen, bitmap, cliprect, 1);
 
 	return 0;
 }
