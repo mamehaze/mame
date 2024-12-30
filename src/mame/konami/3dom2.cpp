@@ -1920,8 +1920,8 @@ TIMER_CALLBACK_MEMBER(m2_cde_device::next_dma)
 	const uint32_t ch = (uint32_t)param;
 	dma_channel &dma_ch = m_dma[ch];
 
-	// TODO: HACK!
-#if 1
+	// TODO: HACK! - this hack causes extreme slowdown when games load due to the extreme recompiler overhead it causes, is it still needed?
+#if 0
 	m_cpu1->set_cache_dirty();
 #endif
 
