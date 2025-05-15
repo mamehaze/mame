@@ -168,7 +168,7 @@ void vt3xx_soc_base_device::vt369_map(address_map &map)
 
 	map(0x4024, 0x4024).w(FUNC(vt3xx_soc_base_device::vt3xx_4024_new_dma_middle_w));
 
-	map(0x4034, 0x4034).w(FUNC(vt3xx_soc_base_device::vt3xx_4034_new_dma_upper_w));
+	map(0x4034, 0x4034).w(FUNC(vt3xx_soc_base_device::vt03_4034_w));
 
 	map(0x4100, 0x410b).r(FUNC(vt3xx_soc_base_device::vt03_410x_r)).w(FUNC(vt3xx_soc_base_device::vt03_410x_w));
 	// 0x410c unused
@@ -239,16 +239,16 @@ void vt3xx_soc_base_device::vt_dma_w(uint8_t data)
 	{
 		uint16_t src_addr = (m_4024_newdma) | data << 8;
 
-		int length = (m_4034_newdma >> 1) & 7;
+		int length = (m_vdma_ctrl >> 1) & 7;
 		if (length == 0) length = 8;
 		length = 1 << length;
 
-		logerror("%s: attempting to do NEW style dma src %04x length %04x dest type %d\n", machine().describe_context(), src_addr, length, m_4034_newdma & 1);
+		logerror("%s: attempting to do NEW style dma src %04x length %04x dest type %d\n", machine().describe_context(), src_addr, length, m_vdma_ctrl & 1);
 
 		for (int i = 0; i < length; i++)
 		{
 			uint8_t read_data = m_maincpu->space(AS_PROGRAM).read_byte(src_addr + i);
-			if (m_4034_newdma & 1)
+			if (m_vdma_ctrl & 1)
 			{
 				m_maincpu->space(AS_PROGRAM).write_byte(0x2007, read_data);
 			}
