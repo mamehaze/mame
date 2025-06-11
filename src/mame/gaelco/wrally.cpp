@@ -865,7 +865,7 @@ GAME( 1993, wrallyb,   wrally, wrally, wrally, wrally_state, empty_init, ROT0, "
 // wrallyc shows "Power Failure" while wrallyd was marked Spain and shows "Tension baja"
 GAME( 1993, wrallyc,   wrally, wrally, wrally, wrally_state, empty_init, ROT0, "Gaelco", "World Rally (version 1.0, checksum 3873, 06 Apr 1993)", MACHINE_SUPPORTS_SAVE ) // date from labels
 GAME( 1993, wrallyd,   wrally, wrally, wrally, wrally_state, empty_init, ROT0, "Gaelco", "World Rally (version 1.0, checksum 0E56, 06 Apr 1993)", MACHINE_SUPPORTS_SAVE ) // date assumed due to being same codebase as above set.
-GAME( 1993, wrallye,   wrally, wrally, wrally, wrally_state, empty_init, ROT0, "Gaelco", "World Rally (version 1.0, checksum D384, 02 Apr 1993)", MACHINE_SUPPORTS_SAVE ) // date from labels
+GAME( 1993, wrallye,   wrally, wrally, wrally, wrally_state, empty_init, ROT0, "Gaelco", "World Rally (version 1.0, checksum 3D84, 02 Apr 1993)", MACHINE_SUPPORTS_SAVE ) // date from labels
 
 GAME( 1993, wrallyac,  wrally, wrally, wrally, wrally_state, empty_init, ROT0, u8"Gaelco (Automáticos Canarios license)", "World Rally (version 1.0, checksum C448)", MACHINE_SUPPORTS_SAVE )
 
