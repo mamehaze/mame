@@ -2156,4 +2156,33 @@ project "asmjit"
 		MAME_DIR .. "3rdparty/asmjit/src/asmjit/x86/x86rapass_p.h",
 		MAME_DIR .. "3rdparty/asmjit/src/asmjit/x86/x86rapass.cpp",
 	}
+
+--------------------------------------------------
+-- tinyaes library objects
+--------------------------------------------------
+
+project "tinyaes"
+	uuid "d97971d2-91e9-4035-975c-a42e33e6f00d"
+	kind "StaticLib"
+	
+	options {
+		"ForceCPP",
+	}	
+	
+	configuration { "gmake or ninja" }
+		buildoptions_cpp {
+			"-x c++",
+		}
+	
+	configuration { }
+		defines {
+			"CBC=1",
+			"ECB=1",
+			"CTR=1"
+		}
+
+	files {
+		MAME_DIR .. "3rdparty/tinyaes/aes.c",
+		MAME_DIR .. "3rdparty/tinyaes/aes.h",
+	}
 end

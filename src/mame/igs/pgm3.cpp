@@ -44,22 +44,32 @@
 #include "emupal.h"
 #include "screen.h"
 
+// Enable CBC mode. Note this can be done before including aes.h or at compile-time.
+// E.g. with GCC by using the -D flag: gcc -c aes.c -DCBC=0 -DCTR=1 -DECB=1
+#define CBC 1
+#define ECB 0
+#define CTR 0
 
-namespace {
+#include "tinyaes/aes.h"
+
+//namespace {
+
+
 
 class pgm3_state : public driver_device
 {
 public:
 	pgm3_state(const machine_config &mconfig, device_type type, const char *tag)
 		: driver_device(mconfig, type, tag),
-		m_maincpu(*this, "maincpu") { }
+		m_maincpu(*this, "maincpu"),
+		m_mainram(*this, "mainram")
+	{ }
 
 	void pgm3(machine_config &config);
 
 	void init_kov3hd();
 
 private:
-
 	virtual void machine_start() override ATTR_COLD;
 	virtual void machine_reset() override ATTR_COLD;
 	virtual void video_start() override ATTR_COLD;
@@ -67,11 +77,45 @@ private:
 	void screen_vblank_pgm3(int state);
 	required_device<cpu_device> m_maincpu;
 	void pgm3_map(address_map &map) ATTR_COLD;
+	void decryptaes(int cipher, int mode, const uint8_t *key, int keylen, const uint8_t *iv, uint8_t *input);
+
+	required_shared_ptr<u32> m_mainram;
 };
+
+void pgm3_state::decryptaes(int cipher, int mode, const uint8_t *key, int keylen, const uint8_t *iv, uint8_t *input)
+{
+#define LENGTH 0x20000
+    struct AES_ctx ctx;
+	uint8_t out[LENGTH];
+
+    if(cipher != 4)
+    {
+        printf("only support cipher 4 (aes)\n");
+        exit(0);
+    }
+
+    if(mode != 1)
+    {
+        printf("only support mode 1 (cbc/decrypt)\n");
+        exit(0);
+    }
+
+    if(input != out)
+        memcpy(out, input, LENGTH);
+
+    AES_init_ctx_iv(&ctx, key, iv);
+    AES_CBC_decrypt_buffer(&ctx, out, LENGTH);
+
+	for (int i = 0; i < LENGTH / 4; i++)
+	{
+		uint32_t val = (out[(i * 4) + 0] << 0) | (out[(i * 4) + 1] << 8) | (out[(i * 4) + 2] << 16) | (out[(i * 4) + 3] << 24);
+		m_mainram[i] = val;
+	}
+}
 
 void pgm3_state::pgm3_map(address_map &map)
 {
-	map(0x00000000, 0x00007fff).rom().region("internal_mask", 0x00000);
+	map(0x00000000, 0x0007ffff).ram().share("mainram");
 	map(0x28000000, 0x2801ffff).ram();
 }
 
@@ -97,6 +141,25 @@ void pgm3_state::machine_start()
 
 void pgm3_state::machine_reset()
 {
+	uint8_t* bootrom = memregion("internal_mask")->base();
+
+	uint8_t rom_aes_key[32];
+	uint8_t rom_aes_iv[16];
+
+	for (int i = 0; i < 32; i++)
+	{
+		uint8_t keybyte = bootrom[0x42b8 + i];
+		printf("%02x, ", keybyte);
+		rom_aes_key[i] = keybyte;
+	}
+
+	for (int i = 0; i < 16; i++)
+	{
+		rom_aes_iv[i] = bootrom[0x44a8 + i];
+	}
+
+    decryptaes(4, 1, rom_aes_key, 32, rom_aes_iv, memregion("internal_flash")->base());
+
 	// if we want to boot from somewhere else, change this
 	//m_maincpu->set_state_int(arm7_cpu_device::ARM7_R15, 0x04000000);
 }
@@ -104,7 +167,7 @@ void pgm3_state::machine_reset()
 void pgm3_state::pgm3(machine_config &config)
 {
 	/* basic machine hardware */
-	ARM9(config, m_maincpu, 800000000); // wrong, see notes at top of driver
+	ARM9(config, m_maincpu, 800000000); // wrong, ARM1176JZ based SoC
 	m_maincpu->set_addrmap(AS_PROGRAM, &pgm3_state::pgm3_map);
 
 	/* video hardware */
@@ -173,7 +236,7 @@ void pgm3_state::init_kov3hd()
 {
 }
 
-} // anonymous namespace
+//} // anonymous namespace
 
 
 // all dumped sets might be China region, unless region info comes from elsewhere

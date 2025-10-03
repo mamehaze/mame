@@ -163,6 +163,7 @@ end
 		"ymfm",
 		ext_lib("jpeg"),
 		"7z",
+		"tinyaes",
 	}
 if CPU_INCLUDE_DRC_NATIVE then
 	links {
