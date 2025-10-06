@@ -218,18 +218,18 @@ void xavix_state::xavix_lowbus_map(address_map &map)
 
 	// Sound Control
 	map(0x75f0, 0x75f1).rw(FUNC(xavix_state::sound_voice_startstop_r), FUNC(xavix_state::sound_voice_startstop_w));
-	map(0x75f2, 0x75f3).rw(FUNC(xavix_state::sound_voice_updateenv_r), FUNC(xavix_state::sound_voice_updateenv_w)); 
-	map(0x75f4, 0x75f5).r(FUNC(xavix_state::sound_voice_status_r));                                             
-	map(0x75f6, 0x75f6).rw(FUNC(xavix_state::sound_volume_r), FUNC(xavix_state::sound_volume_w));                 
-	map(0x75f7, 0x75f7).rw(FUNC(xavix_state::sound_regbase_r), FUNC(xavix_state::sound_regbase_w));               
-	map(0x75f8, 0x75f8).rw(FUNC(xavix_state::sound_cyclerate_r), FUNC(xavix_state::sound_cyclerate_w));          
-	map(0x75f9, 0x75f9).rw(FUNC(xavix_state::sound_mixer_r), FUNC(xavix_state::sound_mixer_w));                 
-	map(0x75fa, 0x75fa).rw(FUNC(xavix_state::sound_tp0_r), FUNC(xavix_state::sound_tp0_w));                    
-	map(0x75fb, 0x75fb).rw(FUNC(xavix_state::sound_tp1_r), FUNC(xavix_state::sound_tp1_w));                     
-	map(0x75fc, 0x75fc).rw(FUNC(xavix_state::sound_tp2_r), FUNC(xavix_state::sound_tp2_w));                        
-	map(0x75fd, 0x75fd).rw(FUNC(xavix_state::sound_tp3_r), FUNC(xavix_state::sound_tp3_w));                      
-	map(0x75fe, 0x75fe).rw(FUNC(xavix_state::sound_irq_status_r), FUNC(xavix_state::sound_irq_status_w));        
-	map(0x75ff, 0x75ff).rw(FUNC(xavix_state::sound_dac_control_r), FUNC(xavix_state::sound_dac_control_w));       
+	map(0x75f2, 0x75f3).rw(FUNC(xavix_state::sound_voice_updateenv_r), FUNC(xavix_state::sound_voice_updateenv_w));
+	map(0x75f4, 0x75f5).r(FUNC(xavix_state::sound_voice_status_r));
+	map(0x75f6, 0x75f6).rw(FUNC(xavix_state::sound_volume_r), FUNC(xavix_state::sound_volume_w));
+	map(0x75f7, 0x75f7).rw(FUNC(xavix_state::sound_regbase_r), FUNC(xavix_state::sound_regbase_w));
+	map(0x75f8, 0x75f8).rw(FUNC(xavix_state::sound_cyclerate_r), FUNC(xavix_state::sound_cyclerate_w));
+	map(0x75f9, 0x75f9).rw(FUNC(xavix_state::sound_mixer_r), FUNC(xavix_state::sound_mixer_w));
+	map(0x75fa, 0x75fa).rw(FUNC(xavix_state::sound_tp0_r), FUNC(xavix_state::sound_tp0_w));
+	map(0x75fb, 0x75fb).rw(FUNC(xavix_state::sound_tp1_r), FUNC(xavix_state::sound_tp1_w));
+	map(0x75fc, 0x75fc).rw(FUNC(xavix_state::sound_tp2_r), FUNC(xavix_state::sound_tp2_w));
+	map(0x75fd, 0x75fd).rw(FUNC(xavix_state::sound_tp3_r), FUNC(xavix_state::sound_tp3_w));
+	map(0x75fe, 0x75fe).rw(FUNC(xavix_state::sound_irq_status_r), FUNC(xavix_state::sound_irq_status_w));
+	map(0x75ff, 0x75ff).rw(FUNC(xavix_state::sound_dac_control_r), FUNC(xavix_state::sound_dac_control_w));
 
 	// Slot Registers
 	map(0x7810, 0x7810).w(FUNC(xavix_state::slotreg_7810_w)); // startup

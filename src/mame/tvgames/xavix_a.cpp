@@ -387,7 +387,7 @@ void xavix_sound_device::set_tempo(int index, uint8_t value)
 		return;
 
 	if (m_stream)
-		m_stream->update(); 
+		m_stream->update();
 
 	m_tp_dev[index] = value; // 0 = pause
 
@@ -778,7 +778,7 @@ void xavix_state::sound_regbase_w(uint8_t data)
 	// upper 6 bits of RAM address where the per-voice register sets live
 	m_sound_regbase = data & 0x3f;
 	//LOG("%s: sound_regbase_w %02x (sound regs at %02x00-%02xff)\n",
-	//	machine().describe_context(), data, m_sound_regbase & 0x3f, m_sound_regbase & 0x3f);
+	//  machine().describe_context(), data, m_sound_regbase & 0x3f, m_sound_regbase & 0x3f);
 }
 
 //-------------------------------------------------
