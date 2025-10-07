@@ -892,11 +892,10 @@ void xavix_state::machine_start()
 	save_item(NAME(m_arena_control));
 	save_item(NAME(m_6ff0));
 	save_item(NAME(m_video_ctrl));
-	save_item(NAME(m_mastervol));
-	save_item(NAME(m_unk_snd75f8));
-	save_item(NAME(m_unk_snd75f9));
+	save_item(NAME(m_cyclerate));
+	save_item(NAME(m_mixer));
 	save_item(NAME(m_unk_snd75ff));
-	save_item(NAME(m_sndtimer));
+	save_item(NAME(m_tp));
 	save_item(NAME(m_timer_baseval));
 	save_item(NAME(m_spritereg));
 }
@@ -942,14 +941,13 @@ void xavix_state::machine_reset()
 
 	m_spritereg = 0;
 
-	m_mastervol = 0x00;
-	m_unk_snd75f8 = 0x00;
-	m_unk_snd75f9 = 0x00;
+	m_cyclerate = 0x00;
+	m_mixer = 0x00;
 	m_unk_snd75ff = 0x00;
 
 	for (int i = 0; i < 4; i++)
 	{
-		m_sndtimer[i] = 0x00;
+		m_tp[i] = 0x00;
 	}
 
 	std::fill(std::begin(m_spritefragment_dmaparam1), std::end(m_spritefragment_dmaparam1), 0x00);
