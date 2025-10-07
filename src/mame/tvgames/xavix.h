@@ -50,17 +50,16 @@ public:
 
 	// register handlers (from the CPU map)
 	uint8_t sound_volume_r();
-	void sound_volume_w(uint8_t data);      // 0x75F6 ('h6)
+	void sound_volume_w(uint8_t data);
 	uint8_t sound_mixer_r();
-	void sound_mixer_w(uint8_t data);       // 0x75F9 ('h9)
+	void sound_mixer_w(uint8_t data);
 	uint8_t dac_control_r();
-	void dac_control_w(uint8_t data); // 0x75FF ('hF)
+	void dac_control_w(uint8_t data);
 
 	// helpers
 	void set_dac_gain(uint8_t amp_data);
 	void set_output_mode(bool mono);
 	void set_mastervol(uint8_t data);
-
 
 protected:
 	// device-level overrides
@@ -75,8 +74,8 @@ private:
 	sound_stream* m_stream = nullptr;
 
 	// global timing
-	uint8_t  m_tp_dev[4] = { 0, 0, 0, 0 };
-	uint8_t  m_cyclerate_dev = 1;
+	uint8_t m_tp_dev[4] = { 0, 0, 0, 0 };
+	uint8_t m_cyclerate_dev = 1;
 
 	// multiplexed DAC channel visit order
 	static constexpr uint8_t kMuxVisitOrder[16] = {
@@ -130,32 +129,31 @@ private:
 	// mixer state
 	struct xavix_mixer
 	{
-		// 0x75F9
 		uint8_t monoural = 0;
 		uint8_t capacity = 0;
 		uint8_t amp = 2;
 
-		// 0x75FF
 		uint8_t dac = 0;
 		uint8_t gap = 0;
 		uint8_t lead = 0;
 		uint8_t lag = 0;
 
-		// mixer scalar
 		uint8_t mastervol = 0xff;
-		int gain = 2;
+		int32_t gain = 2;
 	};
 
 	xavix_mixer m_mix;
 	xavix_voice m_voice[16];
 
+	uint32_t m_pitch_countdown[16];
+
 	// helpers
 	uint32_t tempo_to_period_samples(uint8_t tp) const;
-	void     step_envelope(int voice);
-	uint8_t  fetch_env_byte(int voice, bool right, uint32_t idx);
-	uint8_t  fetch_env_byte_direct(int voice, bool right, uint16_t addr);
+	uint8_t decay(uint8_t x);
+	void step_envelope(int voice);
+	uint8_t fetch_env_byte(int voice, bool right, uint32_t idx);
+	uint8_t fetch_env_byte_direct(int voice, bool right, uint16_t addr);
 	void step_pitch(int voice);
-	uint32_t m_pitch_countdown[16] = { 0 };
 	void step_side1(bool right, int voice, const uint8_t la, const uint8_t ra);
 	void step_side_env_vm1(bool right, xavix_voice v, int voice);
 	void step_side_env_vm2(bool right, xavix_voice v, int voice);

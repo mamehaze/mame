@@ -497,29 +497,16 @@ void xavix_state::write_io1(uint8_t data, uint8_t direction)
 
 void xavix_i2c_state::write_io1(uint8_t data, uint8_t direction)
 {
-	if (direction & 0x08)
-	{
-		m_i2cmem->write_sda((data & 0x08) >> 3);
-	}
-
-	if (direction & 0x10)
-	{
-		m_i2cmem->write_scl((data & 0x10) >> 4);
-	}
+	m_i2cmem->write_sda(BIT(direction, 3) ? BIT(data, 3) : 1);
+	m_i2cmem->write_scl(BIT(direction, 4) ? BIT(data, 4) : 0);
 }
 
 // ltv_tam
 void xavix_i2c_ltv_tam_state::write_io1(uint8_t data, uint8_t direction)
 {
-	if (direction & 0x08)
-	{
-		m_i2cmem->write_sda((data & 0x08) >> 3);
-	}
+	m_i2cmem->write_sda(BIT(direction, 3) ? BIT(data, 3) : 1);
+	m_i2cmem->write_scl(BIT(direction, 2) ? BIT(data, 2) : 0);
 
-	if (direction & 0x04)
-	{
-		m_i2cmem->write_scl((data & 0x04) >> 2);
-	}
 }
 
 void xavix_i2c_mj_state::write_io1(uint8_t data, uint8_t direction)
@@ -531,15 +518,8 @@ void xavix_i2c_mj_state::write_io1(uint8_t data, uint8_t direction)
 // for taikodp
 void xavix_i2c_cart_state::write_io1(uint8_t data, uint8_t direction)
 {
-	if (direction & 0x08)
-	{
-		m_i2cmem->write_sda((data & 0x08) >> 3);
-	}
-
-	if (direction & 0x10)
-	{
-		m_i2cmem->write_scl((data & 0x10) >> 4);
-	}
+	m_i2cmem->write_sda(BIT(direction, 3) ? BIT(data, 3) : 1);
+	m_i2cmem->write_scl(BIT(direction, 4) ? BIT(data, 4) : 0);
 }
 
 void xavix_ekara_state::write_io0(uint8_t data, uint8_t direction)

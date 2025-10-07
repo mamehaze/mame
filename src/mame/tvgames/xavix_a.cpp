@@ -30,6 +30,50 @@ xavix_sound_device::xavix_sound_device(const machine_config& mconfig, const char
 void xavix_sound_device::device_start()
 {
 	m_stream = stream_alloc(0, 2, 163840);
+
+	save_item(NAME(m_tp_dev));
+	save_item(NAME(m_pitch_countdown));
+	save_item(NAME(m_cyclerate_dev));
+
+	save_item(STRUCT_MEMBER(m_voice, enabled));
+	save_item(STRUCT_MEMBER(m_voice, position));
+	save_item(STRUCT_MEMBER(m_voice, loopposition));
+	save_item(STRUCT_MEMBER(m_voice, loopendposition));
+	save_item(STRUCT_MEMBER(m_voice, startposition));
+
+	save_item(STRUCT_MEMBER(m_voice, envpositionleft));
+	save_item(STRUCT_MEMBER(m_voice, envpositionright));
+	save_item(STRUCT_MEMBER(m_voice, envbank));
+	save_item(STRUCT_MEMBER(m_voice, envmode));
+
+	save_item(STRUCT_MEMBER(m_voice, bank));
+	save_item(STRUCT_MEMBER(m_voice, rate));
+	save_item(STRUCT_MEMBER(m_voice, type));
+	save_item(STRUCT_MEMBER(m_voice, vol));
+
+	save_item(STRUCT_MEMBER(m_voice, env_rom_base_left));
+	save_item(STRUCT_MEMBER(m_voice, env_rom_base_right));
+
+	save_item(STRUCT_MEMBER(m_voice, env_vol_left));
+	save_item(STRUCT_MEMBER(m_voice, env_vol_right));
+
+	save_item(STRUCT_MEMBER(m_voice, env_period_samples));
+	save_item(STRUCT_MEMBER(m_voice, env_countdown));
+	save_item(STRUCT_MEMBER(m_voice, env_active_left));
+	save_item(STRUCT_MEMBER(m_voice, env_active_right));
+	save_item(STRUCT_MEMBER(m_voice, env_phase));
+	save_item(STRUCT_MEMBER(m_voice, la_byte));
+	save_item(STRUCT_MEMBER(m_voice, ra_byte));
+
+	save_item(STRUCT_MEMBER(m_mix, monoural));
+	save_item(STRUCT_MEMBER(m_mix,capacity));
+	save_item(STRUCT_MEMBER(m_mix,amp));
+	save_item(STRUCT_MEMBER(m_mix,dac));
+	save_item(STRUCT_MEMBER(m_mix,gap));
+	save_item(STRUCT_MEMBER(m_mix,lead));
+	save_item(STRUCT_MEMBER(m_mix,lag));
+	save_item(STRUCT_MEMBER(m_mix,mastervol));
+	save_item(STRUCT_MEMBER(m_mix,gain));
 }
 
 void xavix_sound_device::device_reset()
@@ -38,7 +82,8 @@ void xavix_sound_device::device_reset()
 
 	// hack, does not seem to get set up properly?
 	for (int i = 0; i < 4; i++)
-		if (m_tp_dev[i] == 0) m_tp_dev[i] = 1;
+		if (m_tp_dev[i] == 0)
+			m_tp_dev[i] = 1;
 
 	for (int v = 0; v < 16; v++)
 	{
@@ -106,11 +151,13 @@ void xavix_sound_device::sound_stream_update(sound_stream &stream)
 				if (raw == 0x80)
 				{
 					sample = 0;
-					if (m_voice[v].type == 3) {
+					if (m_voice[v].type == 3)
+					{
 						m_voice[v].enabled = 0;
 						continue;
 					}
-					else if (m_voice[v].type == 2) {
+					else if (m_voice[v].type == 2)
+					{
 						if ((m_voice[v].position >> 14) != (m_voice[v].loopposition >> 14))
 							m_voice[v].position = m_voice[v].loopposition;
 					}
@@ -431,7 +478,7 @@ void xavix_sound_device::set_cyclerate(uint8_t value)
 		const uint8_t tp = m_tp_dev[v & 3];
 
 		const uint32_t oldp_raw = vv.env_period_samples;          // may be 0
-		const uint32_t newp = (tp == 0) ? 0u : tempo_to_period_samples(tp);
+		const uint32_t newp = (tp == 0) ? 0 : tempo_to_period_samples(tp);
 
 		if (oldp_raw && newp)
 			vv.env_countdown = (uint64_t)vv.env_countdown * newp / oldp_raw; // scale to next tick
@@ -513,6 +560,10 @@ inline void xavix_sound_device::step_side_env_vm2(bool right, xavix_voice v, int
 	pos = uint16_t(pos + 1);
 };
 
+inline uint8_t xavix_sound_device::decay(uint8_t x)
+{
+	return uint8_t(x - (x >> 4) - ((x & 0x0f) ? 1 : 0));
+};
 
 void xavix_sound_device::step_envelope(int voice)
 {
@@ -634,9 +685,6 @@ void xavix_sound_device::step_envelope(int voice)
 	// ---- VM3 : exponential-ish decay ----
 	if (v.envmode == 3)
 	{
-		auto decay = [](uint8_t x) -> uint8_t {
-			return uint8_t(x - (x >> 4) - ((x & 0x0f) ? 1 : 0));
-		};
 		v.env_vol_left = decay(v.env_vol_left);
 		v.env_vol_right = decay(v.env_vol_right);
 
