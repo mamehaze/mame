@@ -93,7 +93,10 @@ void spg_renderer_device::draw_tilestrip(bool read_from_csspace, uint32_t screen
 
 		if (nbits < nc_bpp)
 		{
-			get_tile_pixel(read_from_csspace, spc, bits, nbits, m, nc_bpp);
+			uint16_t b = spc.read_word(m++ & 0x3fffff);
+			b = (b << 8) | (b >> 8);
+			bits |= b << (nc_bpp - nbits);
+			nbits += 16;
 		}
 		nbits -= nc_bpp;
 
@@ -284,45 +287,11 @@ void spg_renderer_device::get_tilemap_dimensions(const uint32_t attr, uint32_t &
 	screenwidth = 320;
 }
 
-void spg_renderer_device::apply_extra_tilemap_attributes(uint32_t &tile, uint32_t &tileattr, uint32_t &tilectrl, const uint32_t exattributemap_rambase, uint32_t tile_address, const int realx0, address_space& spc)
-{
-	if ((tilectrl & 2) == 0)
-	{
-		// -(1) bld(1) flip(2) pal(4)
-		uint16_t exattribute = (tilectrl & 0x0004) ? spc.read_word(exattributemap_rambase) : spc.read_word(exattributemap_rambase + tile_address / 2);
-		if (realx0 & 1)
-			exattribute >>= 8;
-		else
-			exattribute &= 0x00ff;
-
-		tileattr &= ~0x000c;
-		tileattr |= (exattribute >> 2) & 0x000c;    // flip
-
-		tileattr &= ~0x0f00;
-		tileattr |= (exattribute << 8) & 0x0f00;    // palette
-
-		tilectrl &= ~0x0100;
-		tilectrl |= (exattribute << 2) & 0x0100;    // blend
-	}
-}
 
 int16_t spg_renderer_device::get_linescroll_value(uint16_t* scrollram, uint32_t logical_scanline, const uint32_t yscroll)
 {
 	// Tennis in My Wireless Sports confirms the need to add the scroll value here rather than rowscroll being screen-aligned
 	return (int16_t)scrollram[(logical_scanline + yscroll) & 0xff];
-}
-
-bool spg_renderer_device::is_tile_skipped(uint32_t tile)
-{
-	if (!tile)
-		return true;
-
-	return false;
-}
-
-uint32_t spg_renderer_device::get_words_per_text_tile(const uint32_t tile_h, const uint32_t bits_per_row)
-{
-	return bits_per_row * tile_h;
 }
 
 void spg_renderer_device::draw_page(bool read_from_csspace, bool has_extended_tilemaps, uint32_t palbank, const rectangle& cliprect, uint32_t scanline, int priority, uint16_t tilegfxdata_addr_msb, uint16_t tilegfxdata_addr, uint16_t* scrollregs, uint16_t* tilemapregs, address_space& spc, uint16_t* paletteram, uint16_t* scrollram, uint32_t which)
@@ -390,7 +359,7 @@ void spg_renderer_device::draw_page(bool read_from_csspace, bool has_extended_ti
 	static const uint8_t s_blend_levels[4] = { 0x08, 0x10, 0x18, 0x20 };
 	uint8_t blendlevel = s_blend_levels[m_video_regs_2a & 3];
 
-	uint32_t words_per_tile = get_words_per_text_tile(tile_h, bits_per_row);
+	uint32_t words_per_tile = bits_per_row * tile_h;
 
 	int realxscroll = xscroll;
 
@@ -414,13 +383,30 @@ void spg_renderer_device::draw_page(bool read_from_csspace, bool has_extended_ti
 
 		tile = (ctrl & 0x0004) ? spc.read_word(tilemap_rambase) : spc.read_word(tilemap_rambase + tile_address);
 
-		if (is_tile_skipped(tile))
+		if (!tile)
 			continue;
 
 		uint32_t tileattr = attr;
 		uint32_t tilectrl = ctrl;
 
-		apply_extra_tilemap_attributes(tile, tileattr, tilectrl, exattributemap_rambase, tile_address, realx0, spc);
+		if ((tilectrl & 2) == 0)
+		{
+			// -(1) bld(1) flip(2) pal(4)
+			uint16_t exattribute = (tilectrl & 0x0004) ? spc.read_word(exattributemap_rambase) : spc.read_word(exattributemap_rambase + tile_address / 2);
+			if (realx0 & 1)
+				exattribute >>= 8;
+			else
+				exattribute &= 0x00ff;
+
+			tileattr &= ~0x000c;
+			tileattr |= (exattribute >> 2) & 0x000c;    // flip
+
+			tileattr &= ~0x0f00;
+			tileattr |= (exattribute << 8) & 0x0f00;    // palette
+
+			tilectrl &= ~0x0100;
+			tilectrl |= (exattribute << 2) & 0x0100;    // blend
+		}
 
 		blend = (tilectrl & 0x0100) ? true : false;
 		flip_x = (tileattr & 0x0004) ? true : false;
@@ -428,9 +414,6 @@ void spg_renderer_device::draw_page(bool read_from_csspace, bool has_extended_ti
 
 		palette_offset = (tileattr & 0x0f00) >> 4;
 		// got tile info
-
-		check_text_extended_palette_mode(has_extended_tilemaps, tilegfxdata_addr_msb, palette_offset);
-
 
 		palette_offset >>= nc_bpp;
 		palette_offset <<= nc_bpp;
@@ -440,36 +423,6 @@ void spg_renderer_device::draw_page(bool read_from_csspace, bool has_extended_ti
 	}
 }
 
-void spg_renderer_device::get_sprite_screenparams(bool highres, uint32_t &screenwidth, uint32_t &screenheight, uint32_t &xmask, uint32_t &ymask)
-{
-	screenwidth = 320;
-	screenheight = 256;
-	xmask = 0x1ff;
-	ymask = 0x1ff;
-}
-
-void spg_renderer_device::adjust_sprite_coordinates(int16_t &x, int16_t &y, uint32_t screenwidth, uint32_t screenheight, const uint32_t tile_w, const uint32_t tile_h)
-{
-	// TODO: not all SPG2xx models support this, check which ones do
-	if (!(m_video_regs_42 & 0x0002))
-	{
-		x = ((screenwidth/2) + x) - tile_w / 2;
-		y = ((screenheight/2) - y) - (tile_h / 2);
-	}
-}
-
-void spg_renderer_device::check_direct_sprite_mode(int extended_sprites_mode, uint32_t &words_per_tile, uint32_t &tile)
-{
-}
-
-void spg_renderer_device::check_sprite_extended_palette_mode(int extended_sprites_mode, uint32_t attr, uint32_t palbank, uint32_t& palette_offset)
-{
-}
-
-void spg_renderer_device::check_text_extended_palette_mode(bool has_extended_tilemaps, uint16_t tilegfxdata_addr_msb, uint32_t &palette_offset)
-{
-}
-
 bool spg_renderer_device::check_sprites_enable()
 {
 	if (!(m_video_regs_42 & 0x0001))
@@ -477,10 +430,6 @@ bool spg_renderer_device::check_sprites_enable()
 		return true;
 	}
 	return false;
-}
-
-void spg_renderer_device::adjust_sprite_limit(int &sprlimit)
-{
 }
 
 void spg_renderer_device::draw_sprite(bool read_from_csspace, int extended_sprites_mode, uint32_t palbank, bool highres, const rectangle& cliprect, uint32_t scanline, int priority, uint32_t spritegfxdata_addr, uint32_t base_addr, address_space &spc, uint16_t* paletteram, uint16_t* spriteram)
@@ -506,12 +455,20 @@ void spg_renderer_device::draw_sprite(bool read_from_csspace, int extended_sprit
 	uint32_t xmask;
 	uint32_t ymask;
 
-	get_sprite_screenparams(highres, screenwidth, screenheight, xmask, ymask);
+	screenwidth = 320;
+	screenheight = 256;
+	xmask = 0x1ff;
+	ymask = 0x1ff;
 
 	const uint32_t tile_h = 8 << ((attr & 0x00c0) >> 6);
 	const uint32_t tile_w = 8 << ((attr & 0x0030) >> 4);
 
-	adjust_sprite_coordinates(x, y, screenwidth, screenheight, tile_w, tile_h);
+	// TODO: not all SPG2xx models support this, check which ones do
+	if (!(m_video_regs_42 & 0x0002))
+	{
+		x = ((screenwidth/2) + x) - tile_w / 2;
+		y = ((screenheight/2) - y) - (tile_h / 2);
+	}
 
 	x &= xmask;
 	y &= ymask;
@@ -534,13 +491,7 @@ void spg_renderer_device::draw_sprite(bool read_from_csspace, int extended_sprit
 
 	uint32_t words_per_tile = bits_per_row * tile_h;
 
-	get_extended_spriteram_attributes(spriteram, base_addr, tile, blendlevel, flip_x, flip_y);
-
-	check_direct_sprite_mode(extended_sprites_mode, words_per_tile, tile);
-
 	uint32_t palette_offset = (attr & 0x0f00) >> 4;
-
-	check_sprite_extended_palette_mode(extended_sprites_mode, attr, palbank, palette_offset);
 
 	// the Circuit Racing game in PDC100 needs this or some graphics have bad colours at the edges when turning as it leaves stray lower bits set
 	palette_offset >>= nc_bpp;
@@ -582,8 +533,6 @@ void spg_renderer_device::draw_sprites(bool read_from_csspace, int extended_spri
 {
 	if (check_sprites_enable())
 		return;
-
-	adjust_sprite_limit(sprlimit);
 
 	for (uint32_t n = 0; n < sprlimit; n++)
 	{
