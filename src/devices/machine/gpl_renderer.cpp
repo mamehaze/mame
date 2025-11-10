@@ -21,6 +21,18 @@ void gpl_renderer_device::device_reset()
 	spg_renderer_device::device_reset();
 }
 
+uint32_t gpl_renderer_device::get_tilegfx_base_address(uint16_t tilegfxdata_addr_msb, uint16_t tilegfxdata_addr)
+{
+	if (m_video_regs_7f & 0x0040) // FREE == 1
+	{
+		return ((tilegfxdata_addr_msb & 0x07ff) << 16) | tilegfxdata_addr;
+	}
+	else // FREE == 0 (default / legacy)
+	{
+		return tilegfxdata_addr * 0x40;
+	}
+}
+
 void gpl_renderer_device::draw_linemap(bool has_extended_tilemaps, const rectangle& cliprect, uint32_t scanline, int priority, uint32_t tilegfxdata_addr, uint16_t* scrollregs, uint16_t* tilemapregs, address_space& spc, uint16_t* paletteram)
 {
 	uint32_t ctrl = tilemapregs[1];

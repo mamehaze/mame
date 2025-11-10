@@ -302,6 +302,11 @@ void spg_renderer_device::draw_tilestrip(bool read_from_csspace, uint32_t screen
 	}
 }
 
+uint32_t spg_renderer_device::get_tilegfx_base_address(uint16_t tilegfxdata_addr_msb, uint16_t tilegfxdata_addr)
+{
+	return tilegfxdata_addr * 0x40;
+}
+
 void spg_renderer_device::draw_page(bool read_from_csspace, bool has_extended_tilemaps, uint32_t palbank, const rectangle& cliprect, uint32_t scanline, int priority, uint16_t tilegfxdata_addr_msb, uint16_t tilegfxdata_addr, uint16_t* scrollregs, uint16_t* tilemapregs, address_space& spc, uint16_t* paletteram, uint16_t* scrollram, uint32_t which)
 {
 	const uint32_t attr = tilemapregs[0];
@@ -318,17 +323,7 @@ void spg_renderer_device::draw_page(bool read_from_csspace, bool has_extended_ti
 	}
 
 	// graphic data segments/bases
-	uint32_t tilegfxdata_addr_full;
-
-	if (m_video_regs_7f & 0x0040) // FREE == 1
-	{
-		tilegfxdata_addr_full = ((tilegfxdata_addr_msb & 0x07ff) << 16) | tilegfxdata_addr;
-	}
-	else // FREE == 0 (default / legacy)
-	{
-		tilegfxdata_addr_full = tilegfxdata_addr * 0x40;
-	}
-
+	uint32_t tilegfxdata_addr_full = get_tilegfx_base_address(tilegfxdata_addr_msb, tilegfxdata_addr);
 
 	if (ctrl & 0x0001) // Bitmap / Linemap mode! (basically screen width tile mode)
 	{
