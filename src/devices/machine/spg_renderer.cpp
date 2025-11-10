@@ -471,7 +471,7 @@ void spg_renderer_device::adjust_sprite_coordinates(int16_t &x, int16_t &y, uint
 	}
 }
 
-void spg_renderer_device::check_direct_sprite_mode(bool extended_sprites_mode, uint32_t &words_per_tile, uint32_t &tile)
+void spg_renderer_device::check_direct_sprite_mode(int extended_sprites_mode, uint32_t &words_per_tile, uint32_t &tile)
 {
 	if (extended_sprites_mode)
 	{
@@ -486,6 +486,23 @@ void spg_renderer_device::check_direct_sprite_mode(bool extended_sprites_mode, u
 			// extended address bits only used in direct mode, jak_prr and other GPAC500 games rely on this
 			tile &= 0xffff;
 		}
+	}
+}
+
+void spg_renderer_device::check_sprite_extended_palette_mode(int extended_sprites_mode, uint32_t attr, uint32_t palbank, uint32_t& palette_offset)
+{
+	if (extended_sprites_mode)
+	{
+		// TODO: tkmag220 / myac220 don't set this bit and expect all sprite palettes to be from the same bank as background palettes
+		// beijuehh (extended_sprites_mode == 2) appears to disagree with that logic, it has this set, but expects palettes and sprites
+		// from the first bank but also needs the attr & 0x8000 check below for the 'pause' graphics so isn't ignoring the 'extended'
+		// capabilities entirely.
+		if ((palbank & 1) && (extended_sprites_mode != 2))
+			palette_offset |= 0x100;
+
+		// many other gpl16250 sets have this bit set when they want the upper 256 colours on a per-sprite basis, seems like an extended feature
+		if (attr & 0x8000)
+			palette_offset |= 0x200;
 	}
 }
 
@@ -546,19 +563,7 @@ void spg_renderer_device::draw_sprite(bool read_from_csspace, int extended_sprit
 
 	uint32_t palette_offset = (attr & 0x0f00) >> 4;
 
-	if (extended_sprites_mode)
-	{
-		// TODO: tkmag220 / myac220 don't set this bit and expect all sprite palettes to be from the same bank as background palettes
-		// beijuehh (extended_sprites_mode == 2) appears to disagree with that logic, it has this set, but expects palettes and sprites
-		// from the first bank but also needs the attr & 0x8000 check below for the 'pause' graphics so isn't ignoring the 'extended'
-		// capabilities entirely.
-		if ((palbank & 1) && (extended_sprites_mode != 2))
-			palette_offset |= 0x100;
-
-		// many other gpl16250 sets have this bit set when they want the upper 256 colours on a per-sprite basis, seems like an extended feature
-		if (attr & 0x8000)
-			palette_offset |= 0x200;
-	}
+	check_sprite_extended_palette_mode(extended_sprites_mode, attr, palbank, palette_offset);
 
 	// the Circuit Racing game in PDC100 needs this or some graphics have bad colours at the edges when turning as it leaves stray lower bits set
 	palette_offset >>= nc_bpp;

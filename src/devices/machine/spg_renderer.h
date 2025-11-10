@@ -85,7 +85,8 @@ protected:
 	virtual void get_extended_spriteram_attributes(uint16_t* spriteram, uint32_t base_addr, uint32_t &tile, uint8_t &blendlevel, bool &flip_x, bool &flip_y) { /* doesn't have extended attributes */ }
 	void get_sprite_screenparams(bool highres, uint32_t &screenwidth, uint32_t &screenheight, uint32_t &xmask, uint32_t &ymask);	
 	void adjust_sprite_coordinates(int16_t &x, int16_t &y, uint32_t screenwidth, uint32_t screenheight, const uint32_t tile_w, const uint32_t tile_h);
-	void check_direct_sprite_mode(bool extended_sprites_mode, uint32_t &words_per_tile, uint32_t &tile);
+	void check_direct_sprite_mode(int extended_sprites_mode, uint32_t &words_per_tile, uint32_t &tile);
+	void check_sprite_extended_palette_mode(int extended_sprites_mode, uint32_t attr, uint32_t palbank, uint32_t &palette_offset);
 
 	inline uint8_t mix_channel(uint8_t a, uint8_t b, uint8_t alpha);
 
