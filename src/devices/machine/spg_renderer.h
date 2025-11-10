@@ -82,6 +82,8 @@ protected:
 		nbits += 16;
 	}
 
+	virtual void get_extended_spriteram_attributes(uint16_t* spriteram, uint32_t base_addr, uint32_t &tile, uint8_t &blendlevel, bool &flip_x, bool &flip_y) { /* doesn't have extended attributes */ }
+
 	inline uint8_t mix_channel(uint8_t a, uint8_t b, uint8_t alpha);
 
 	uint8_t m_rgb5_to_rgb8[32];

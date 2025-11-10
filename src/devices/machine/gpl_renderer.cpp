@@ -127,6 +127,48 @@ void gpl_renderer_device::get_tile_pixel(bool read_from_csspace, address_space &
 	}
 }
 
+void gpl_renderer_device::get_extended_spriteram_attributes(uint16_t* spriteram, uint32_t base_addr, uint32_t &tile, uint8_t &blendlevel, bool &flip_x, bool &flip_y)
+{
+	// 7400 format on GPL162xx is
+	//
+	// 7400 - NNNN NNNN NNNN NNNN (N = sprite tile number/address)
+	// 7401 - AAAA AAXX XXXX XXXX (A = Angle or Y1[5:0], X = Xpos/X0[9:0])
+	// 7402 - ZZZZ ZZYY YYYY YYYY (Z = Zoom, or Y2[5:0], Y = Ypos/Y0[9:0])
+	// 7403 - pbDD PPPP VVHH FFCC (p = Palette Bank, b = blend, D = depth, P = palette, V = vertical size, H = horizontal size, F = flip, C = colour)
+
+	if (m_video_regs_7f & 0x0200) // 'virtual 3D' sprite mode (GPAC800 / GPL16250 only) has 4 extra entries per sprite
+	{
+		// 2nd sprite bank is...
+		// 
+		// 7400 - MMBB BBBB NNNN NNNN - M = Mosaic, B = blend level, N = sprite/tile number/adddress)    Attribute 1 of sprite 0 
+		// 7401 - YYYY YYXX XXXX XXXX - Y = Y3[5:0]             X = X1[9:0]                              X1 of sprite 0
+		// 7402 - YYyy yyXX XXXX XXXX - Y = Y3[7:6] y = Y1[9:6] X = X2[9:0]                              X2 of sprite 0
+		// 7403 - YYyy yyXX XXXX XXXX - Y = Y3[9:8] y = Y2[9:6] X = X3[9:0]                              X3 of sprite 0
+		// 7404 - Attribute 1 of sprite 1
+		// ....
+		//
+		// Normally Zoom/Rotate functions are disabled in this mode, as the attributes are use for co-ordinate data
+		// but setting Flip to 0x3 causes them to be used (ignoring flip) instead of the extra co-ordinates
+		flip_x = false;
+		flip_y = false;
+
+		tile |= (spriteram[(base_addr)+0x400] & 0x00ff) << 16;
+		blendlevel = ((spriteram[(base_addr)+0x400] & 0x3f00) >> 8);
+	}
+	else // regular extended mode, just 1 extra entry per sprite
+	{
+		// 2nd sprite bank is...
+		// 7400 - MMBB BBBB NNNN NNNN - M = Mosaic, B = blend level, N = sprite/tile number/adddress)    Attribute 1 of sprite 0 
+		// ....
+
+		// before or after the 0 tile check?
+		tile |= (spriteram[(base_addr / 4) + 0x400] & 0x00ff) << 16;
+		blendlevel = ((spriteram[(base_addr / 4) + 0x400] & 0x3f00) >> 8);
+	}
+
+	blendlevel >>= 1; // hack, drawing code expects 5 bits, not 6
+}
+
 int16_t gpl_renderer_device::get_linescroll_value(uint16_t* scrollram, uint32_t logical_scanline, const uint32_t yscroll)
 {
 	// the logic seems to be different on GPL16250 compared to SPG2xx

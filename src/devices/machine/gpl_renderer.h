@@ -28,6 +28,7 @@ private:
 	virtual bool is_tile_skipped(uint32_t tile) override;
 	virtual uint32_t get_words_per_text_tile(const uint32_t tile_h, const uint32_t bits_per_row) override;
 	virtual inline void get_tile_pixel(bool read_from_csspace, address_space &spc, uint32_t &bits, uint32_t &nbits, uint32_t &m, const uint32_t nc_bpp) override;
+	virtual void get_extended_spriteram_attributes(uint16_t* spriteram, uint32_t base_addr, uint32_t& tile, uint8_t& blendlevel, bool& flip_x, bool& flip_y) override;
 
 	address_space* m_cs_space;
 	uint32_t m_csbase;
