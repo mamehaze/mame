@@ -69,8 +69,6 @@ protected:
 	int16_t get_linescroll_value(uint16_t* scrollram, uint32_t logical_scanline, const uint32_t yscroll);
 	void draw_linemap(bool has_extended_tilemaps, const rectangle& cliprect, uint32_t scanline, int priority, uint32_t tilegfxdata_addr, uint16_t* scrollregs, uint16_t* tilemapregs, address_space& spc, uint16_t* paletteram);
 
-	bool check_sprites_enable();
-
 	inline uint8_t mix_channel(uint8_t a, uint8_t b, uint8_t alpha);
 
 	uint8_t m_rgb5_to_rgb8[32];

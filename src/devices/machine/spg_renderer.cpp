@@ -287,7 +287,6 @@ void spg_renderer_device::get_tilemap_dimensions(const uint32_t attr, uint32_t &
 	screenwidth = 320;
 }
 
-
 int16_t spg_renderer_device::get_linescroll_value(uint16_t* scrollram, uint32_t logical_scanline, const uint32_t yscroll)
 {
 	// Tennis in My Wireless Sports confirms the need to add the scroll value here rather than rowscroll being screen-aligned
@@ -423,15 +422,6 @@ void spg_renderer_device::draw_page(bool read_from_csspace, bool has_extended_ti
 	}
 }
 
-bool spg_renderer_device::check_sprites_enable()
-{
-	if (!(m_video_regs_42 & 0x0001))
-	{
-		return true;
-	}
-	return false;
-}
-
 void spg_renderer_device::draw_sprite(bool read_from_csspace, int extended_sprites_mode, uint32_t palbank, bool highres, const rectangle& cliprect, uint32_t scanline, int priority, uint32_t spritegfxdata_addr, uint32_t base_addr, address_space &spc, uint16_t* paletteram, uint16_t* spriteram)
 {
 	uint32_t tilegfxdata_addr = spritegfxdata_addr;
@@ -531,7 +521,7 @@ void spg_renderer_device::draw_sprite(bool read_from_csspace, int extended_sprit
 
 void spg_renderer_device::draw_sprites(bool read_from_csspace, int extended_sprites_mode, uint32_t palbank, bool highres, const rectangle &cliprect, uint32_t scanline, int priority, uint32_t spritegfxdata_addr, address_space &spc, uint16_t* paletteram, uint16_t* spriteram, int sprlimit)
 {
-	if (check_sprites_enable())
+	if (!(m_video_regs_42 & 0x0001))
 		return;
 
 	for (uint32_t n = 0; n < sprlimit; n++)
