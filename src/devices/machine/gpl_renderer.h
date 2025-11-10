@@ -36,8 +36,6 @@ private:
 	virtual void check_direct_sprite_mode(int extended_sprites_mode, uint32_t &words_per_tile, uint32_t &tile) override;
 	virtual void check_sprite_extended_palette_mode(int extended_sprites_mode, uint32_t attr, uint32_t palbank, uint32_t &palette_offset) override;
 	virtual void check_text_extended_palette_mode(bool has_extended_tilemaps, uint16_t tilegfxdata_addr_msb, uint32_t& palette_offset) override;
-	virtual bool check_sprites_enable() override;
-	virtual void adjust_sprite_coordinates(int16_t &x, int16_t &y, uint32_t screenwidth, uint32_t screenheight, const uint32_t tile_w, const uint32_t tile_h) override;
 	virtual void adjust_sprite_limit(int &sprlimit) override;
 	virtual void get_sprite_screenparams(bool highres, uint32_t& screenwidth, uint32_t& screenheight, uint32_t& xmask, uint32_t& ymask) override;
 

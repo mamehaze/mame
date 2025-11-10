@@ -62,7 +62,6 @@ void spg_renderer_device::device_reset()
 
 	m_video_regs_42 = 0x0001;
 
-
 	for (int i = 0; i < 480; i++)
 	{
 		m_ycmp_table[i] = 0xffffffff;
@@ -451,8 +450,12 @@ void spg_renderer_device::get_sprite_screenparams(bool highres, uint32_t &screen
 
 void spg_renderer_device::adjust_sprite_coordinates(int16_t &x, int16_t &y, uint32_t screenwidth, uint32_t screenheight, const uint32_t tile_w, const uint32_t tile_h)
 {
-	x = ((screenwidth/2) + x) - tile_w / 2;
-	y = ((screenheight/2) - y) - (tile_h / 2);
+	// TODO: not all SPG2xx models support this, check which ones do
+	if (!(m_video_regs_42 & 0x0002))
+	{
+		x = ((screenwidth/2) + x) - tile_w / 2;
+		y = ((screenheight/2) - y) - (tile_h / 2);
+	}
 }
 
 void spg_renderer_device::check_direct_sprite_mode(int extended_sprites_mode, uint32_t &words_per_tile, uint32_t &tile)
@@ -469,7 +472,11 @@ void spg_renderer_device::check_text_extended_palette_mode(bool has_extended_til
 
 bool spg_renderer_device::check_sprites_enable()
 {
-	return true;
+	if (!(m_video_regs_42 & 0x0001))
+	{
+		return true;
+	}
+	return false;
 }
 
 void spg_renderer_device::adjust_sprite_limit(int &sprlimit)

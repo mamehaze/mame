@@ -105,14 +105,6 @@ void gpl_renderer_device::check_text_extended_palette_mode(bool has_extended_til
 		palette_offset |= 0x200;
 }
 
-void gpl_renderer_device::adjust_sprite_coordinates(int16_t &x, int16_t &y, uint32_t screenwidth, uint32_t screenheight, const uint32_t tile_w, const uint32_t tile_h)
-{
-	if (!(m_video_regs_42 & 0x0002))
-	{
-		x = ((screenwidth/2) + x) - tile_w / 2;
-		y = ((screenheight/2) - y) - (tile_h / 2);
-	}
-}
 
 void gpl_renderer_device::get_sprite_screenparams(bool highres, uint32_t &screenwidth, uint32_t &screenheight, uint32_t &xmask, uint32_t &ymask)
 {
@@ -142,14 +134,7 @@ void gpl_renderer_device::adjust_sprite_limit(int &sprlimit)
 }
 
 
-bool gpl_renderer_device::check_sprites_enable()
-{
-	if (!(m_video_regs_42 & 0x0001))
-	{
-		return true;
-	}
-	return false;
-}
+
 
 void gpl_renderer_device::check_sprite_extended_palette_mode(int extended_sprites_mode, uint32_t attr, uint32_t palbank, uint32_t& palette_offset)
 {
