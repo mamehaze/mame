@@ -79,15 +79,13 @@ protected:
 
 	inline void draw_sprite(bool read_from_csspace, int extended_sprites_mode, uint32_t palbank, bool highres, const rectangle& cliprect, uint32_t scanline, int priority, uint32_t spritegfxdata_addr, uint32_t base_addr, address_space& spc, uint16_t* paletteram, uint16_t* spriteram);
 
-	inline void draw_linemap(bool has_extended_tilemaps, const rectangle& cliprect, uint32_t scanline, int priority, uint32_t tilegfxdata_addr, uint16_t* scrollregs, uint16_t* tilemapregs, address_space& spc, uint16_t* paletteram);
+	virtual void draw_linemap(bool has_extended_tilemaps, const rectangle& cliprect, uint32_t scanline, int priority, uint32_t tilegfxdata_addr, uint16_t* scrollregs, uint16_t* tilemapregs, address_space& spc, uint16_t* paletteram);
 
 	inline uint8_t mix_channel(uint8_t a, uint8_t b, uint8_t alpha);
 
 	uint8_t m_rgb5_to_rgb8[32];
 	uint32_t m_rgb555_to_rgb888[0x8000];
 	uint32_t m_rgb555_to_rgb888_current[0x8000];
-
-private:
 
 	void update_vcmp_table();
 

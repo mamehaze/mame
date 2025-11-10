@@ -153,179 +153,82 @@ void spg_renderer_device::draw_tilestrip(bool read_from_csspace, uint32_t screen
 
 void spg_renderer_device::draw_linemap(bool has_extended_tilemaps, const rectangle& cliprect, uint32_t scanline, int priority, uint32_t tilegfxdata_addr, uint16_t* scrollregs, uint16_t* tilemapregs, address_space &spc, uint16_t* paletteram)
 {
-	if (has_extended_tilemaps)
+	if ((scanline < 0) || (scanline >= 240))
+		return;
+
+	uint32_t tilemap = tilemapregs[2];
+	uint32_t palette_map = tilemapregs[3];
+
+	//if (scanline == 128)
+	//  popmessage("draw draw_linemap reg0 %04x reg1 %04x bases %04x %04x\n", tilemapregs[0], tilemapregs[1], tilemap, palette_map);
+
+	//uint32_t xscroll = scrollregs[0];
+	uint32_t yscroll = scrollregs[1];
+
+	int realline = (scanline + yscroll) & 0xff;
+
+
+	uint32_t tile = spc.read_word(tilemap + realline);
+	uint16_t palette = 0;
+
+	//if (!tile)
+	//  continue;
+
+	palette = spc.read_word(palette_map + realline / 2);
+	if (scanline & 1)
+		palette >>= 8;
+	else
+		palette &= 0x00ff;
+
+	//const int linewidth = 320 / 2;
+	int sourcebase = tile | (palette << 16);
+
+	uint32_t ctrl = tilemapregs[1];
+
+	if (ctrl & 0x80) // HiColor mode (rad_digi)
 	{
-		uint32_t ctrl = tilemapregs[1];
-
-		if (0)
+		for (int i = 0; i < 320; i++)
 		{
-			if (ctrl & 0x0010)
-				popmessage("bitmap mode %08x with rowscroll\n", tilegfxdata_addr);
-			else
-				popmessage("bitmap mode %08x\n", tilegfxdata_addr);
-		}
+			const uint16_t data = spc.read_word(sourcebase + i);
 
-		// note, in interlace modes it appears every other line is unused? (480 entry table, but with blank values)
-		// and furthermore the rowscroll and rowzoom tables only have 240 entries, not enough for every line
-		// the end of the rowscroll table (entries 240-255) contain something else, maybe garbage data as it's offscreen, maybe not
-		uint32_t tilemap = tilemapregs[2];
-		uint32_t palette_map = tilemapregs[3];
-
-		uint32_t linebase = spc.read_word(tilemap + scanline); // every other word is unused, but there are only enough entries for 240 lines then, sometimes to do with interlace mode?
-		uint16_t palette = spc.read_word(palette_map + (scanline / 2));
-
-		if (scanline & 1)
-			palette >>= 8;
-		else
-			palette &= 0xff;
-
-		if (!linebase)
-			return;
-
-		linebase = linebase | (palette << 16);
-
-		int upperpalselect = 0;
-		if (has_extended_tilemaps && (tilegfxdata_addr & 0x80000000))
-			upperpalselect = 1;
-
-		tilegfxdata_addr &= 0x7ffffff;
-
-		// this logic works for jak_s500 and the test modes to get the correct base, doesn't seem to work for jak_car2 ingame, maybe data is copied to wrong place?
-		int gfxbase = (tilegfxdata_addr&0x7ffffff) + (linebase&0x7ffffff);
-
-		for (int i = 0; i < 160; i++) // will have to be 320 for jak_car2 ingame, jak_s500 lines are wider than screen, and zoomed
-		{
-			uint16_t pix;
-			const int addr = gfxbase & 0x7ffffff;
-			if (addr < m_csbase)
+			if (!(data & 0x8000))
 			{
-				pix = m_cpuspace->read_word(addr);
-			}
-			else
-			{
-				pix = m_cs_space->read_word(addr-m_csbase);
-			}
-			gfxbase++;
-
-			int xx;
-			uint16_t pal;
-
-			if ((scanline >= 0) && (scanline < 480))
-			{
-				xx = i * 2;
-
-				pal = (pix & 0xff) | 0x100;
-
-				if (upperpalselect)
-					pal |= 0x200;
-
-				if (xx >= 0 && xx <= cliprect.max_x)
-				{
-					uint16_t rgb = paletteram[pal];
-
-					if (!(rgb & 0x8000))
-					{
-						m_linebuf[xx] = rgb;
-					}
-				}
-
-				xx = (i * 2)+1;
-				pal = (pix >> 8) | 0x100;
-
-				if (upperpalselect)
-					pal |= 0x200;
-
-				if (xx >= 0 && xx <= cliprect.max_x)
-				{
-					uint16_t rgb = paletteram[pal];
-
-					if (!(rgb & 0x8000))
-					{
-						m_linebuf[xx] = rgb;
-					}
-				}
+				m_linebuf[i] = data & 0x7fff;
 			}
 		}
 	}
-	else // code used for spg2xx cases
+	else
 	{
-		if ((scanline < 0) || (scanline >= 240))
-			return;
+		const uint32_t attr = tilemapregs[0];
+		const uint8_t bpp = attr & 0x0003;
+		const uint32_t nc_bpp = ((bpp)+1) << 1;
+		uint32_t palette_offset = (attr & 0x0f00) >> 4;
+		palette_offset >>= nc_bpp;
+		palette_offset <<= nc_bpp;
 
-		uint32_t tilemap = tilemapregs[2];
-		uint32_t palette_map = tilemapregs[3];
+		uint32_t bits = 0;
+		uint32_t nbits = 0;
 
-		//if (scanline == 128)
-		//  popmessage("draw draw_linemap reg0 %04x reg1 %04x bases %04x %04x\n", tilemapregs[0], tilemapregs[1], tilemap, palette_map);
-
-		//uint32_t xscroll = scrollregs[0];
-		uint32_t yscroll = scrollregs[1];
-
-		int realline = (scanline + yscroll) & 0xff;
-
-
-		uint32_t tile = spc.read_word(tilemap + realline);
-		uint16_t palette = 0;
-
-		//if (!tile)
-		//  continue;
-
-		palette = spc.read_word(palette_map + realline / 2);
-		if (scanline & 1)
-			palette >>= 8;
-		else
-			palette &= 0x00ff;
-
-		//const int linewidth = 320 / 2;
-		int sourcebase = tile | (palette << 16);
-
-		uint32_t ctrl = tilemapregs[1];
-
-		if (ctrl & 0x80) // HiColor mode (rad_digi)
+		for (int i = 0; i < 320; i++)
 		{
-			for (int i = 0; i < 320; i++)
+			bits <<= nc_bpp;
+			if (nbits < nc_bpp)
 			{
-				const uint16_t data = spc.read_word(sourcebase + i);
-
-				if (!(data & 0x8000))
-				{
-					m_linebuf[i] = data & 0x7fff;
-				}
+				uint16_t b = spc.read_word(sourcebase++ & 0x3fffff);
+				b = (b << 8) | (b >> 8);
+				bits |= b << (nc_bpp - nbits);
+				nbits += 16;
 			}
-		}
-		else
-		{
-			const uint32_t attr = tilemapregs[0];
-			const uint8_t bpp = attr & 0x0003;
-			const uint32_t nc_bpp = ((bpp)+1) << 1;
-			uint32_t palette_offset = (attr & 0x0f00) >> 4;
-			palette_offset >>= nc_bpp;
-			palette_offset <<= nc_bpp;
+			nbits -= nc_bpp;
 
-			uint32_t bits = 0;
-			uint32_t nbits = 0;
+			uint32_t pal = palette_offset + (bits >> 16);
+			bits &= 0xffff;
 
-			for (int i = 0; i < 320; i++)
+			uint16_t rgb = paletteram[pal];
+
+			if (!(rgb & 0x8000))
 			{
-				bits <<= nc_bpp;
-				if (nbits < nc_bpp)
-				{
-					uint16_t b = spc.read_word(sourcebase++ & 0x3fffff);
-					b = (b << 8) | (b >> 8);
-					bits |= b << (nc_bpp - nbits);
-					nbits += 16;
-				}
-				nbits -= nc_bpp;
-
-				uint32_t pal = palette_offset + (bits >> 16);
-				bits &= 0xffff;
-
-				uint16_t rgb = paletteram[pal];
-
-				if (!(rgb & 0x8000))
-				{
-					m_linebuf[i] = rgb;
-				}
+				m_linebuf[i] = rgb;
 			}
 		}
 	}
@@ -685,7 +588,7 @@ void spg_renderer_device::draw_sprite(bool read_from_csspace, int extended_sprit
 	uint8_t blendlevel = s_blend_levels[m_video_regs_2a & 3];
 
 	uint32_t words_per_tile = bits_per_row * tile_h;
-;
+
 
 	if (extended_sprites_mode)
 	{
