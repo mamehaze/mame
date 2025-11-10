@@ -38,7 +38,6 @@ public:
 
 		m_video_regs_3c = val;
 	}
-	void set_video_reg_42(uint16_t val) { m_video_regs_42 = val; }
 
 	uint16_t get_video_reg_1c(void) { return m_video_regs_1c; }
 	uint16_t get_video_reg_1d(void) { return m_video_regs_1d; }
@@ -46,11 +45,9 @@ public:
 	uint16_t get_video_reg_2a(void) { return m_video_regs_2a; }
 	uint16_t get_video_reg_30(void) { return m_video_regs_30; }
 	uint16_t get_video_reg_3c(void) { return m_video_regs_3c; }
-	uint16_t get_video_reg_42(void) { return m_video_regs_42; }
 
-	// used by some hack logic for the gpl16250 rendering for now
-	void set_video_reg_7f(uint16_t val) { m_video_regs_7f = val; }
-	uint16_t get_video_reg_7f(void) { return m_video_regs_7f; }
+	void set_video_reg_42(uint16_t val) { m_video_regs_42 = val; }
+	uint16_t get_video_reg_42(void) { return m_video_regs_42; }
 
 	auto space_read_callback() { return m_space_read_cb.bind(); }
 	void set_video_spaces(address_space* cpuspace) { m_cpuspace = cpuspace; }
@@ -83,10 +80,13 @@ protected:
 	}
 
 	virtual void get_extended_spriteram_attributes(uint16_t* spriteram, uint32_t base_addr, uint32_t &tile, uint8_t &blendlevel, bool &flip_x, bool &flip_y) { /* doesn't have extended attributes */ }
-	void get_sprite_screenparams(bool highres, uint32_t &screenwidth, uint32_t &screenheight, uint32_t &xmask, uint32_t &ymask);	
-	void adjust_sprite_coordinates(int16_t &x, int16_t &y, uint32_t screenwidth, uint32_t screenheight, const uint32_t tile_w, const uint32_t tile_h);
-	void check_direct_sprite_mode(int extended_sprites_mode, uint32_t &words_per_tile, uint32_t &tile);
-	void check_sprite_extended_palette_mode(int extended_sprites_mode, uint32_t attr, uint32_t palbank, uint32_t &palette_offset);
+	virtual void get_sprite_screenparams(bool highres, uint32_t &screenwidth, uint32_t &screenheight, uint32_t &xmask, uint32_t &ymask);	
+	virtual void adjust_sprite_coordinates(int16_t &x, int16_t &y, uint32_t screenwidth, uint32_t screenheight, const uint32_t tile_w, const uint32_t tile_h);
+	virtual void check_direct_sprite_mode(int extended_sprites_mode, uint32_t &words_per_tile, uint32_t &tile);
+	virtual void check_sprite_extended_palette_mode(int extended_sprites_mode, uint32_t attr, uint32_t palbank, uint32_t &palette_offset);
+	virtual bool check_sprites_enable();
+	virtual void adjust_sprite_limit(int &sprlimit);
+	virtual void check_text_extended_palette_mode(bool has_extended_tilemaps, uint16_t tilegfxdata_addr_msb, uint32_t &palette_offset);
 
 	inline uint8_t mix_channel(uint8_t a, uint8_t b, uint8_t alpha);
 
@@ -96,17 +96,17 @@ protected:
 
 	void update_vcmp_table();
 
+	// for vcmp
 	uint16_t m_video_regs_1c;
 	uint16_t m_video_regs_1d;
 	uint16_t m_video_regs_1e;
 
 	uint16_t m_video_regs_2a;
-	uint16_t m_video_regs_42;
 
 	uint16_t m_video_regs_30;
 	uint16_t m_video_regs_3c;
 
-	uint16_t m_video_regs_7f;
+	uint16_t m_video_regs_42;
 
 	uint32_t m_ycmp_table[480];
 

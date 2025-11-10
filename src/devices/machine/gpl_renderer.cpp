@@ -14,11 +14,17 @@ gpl_renderer_device::gpl_renderer_device(const machine_config &mconfig, const ch
 void gpl_renderer_device::device_start()
 {
 	spg_renderer_device::device_start();
+
+	// new GPL features
+	save_item(NAME(m_video_regs_7f));
 }
 
 void gpl_renderer_device::device_reset()
 {
 	spg_renderer_device::device_reset();
+
+	// new GPL features
+	m_video_regs_7f = 0x0000;
 }
 
 uint32_t gpl_renderer_device::get_tilegfx_base_address(uint16_t tilegfxdata_addr_msb, uint16_t tilegfxdata_addr)
@@ -91,6 +97,72 @@ bool gpl_renderer_device::is_tile_skipped(uint32_t tile)
 	}
 
 	return false;
+}
+
+void gpl_renderer_device::check_text_extended_palette_mode(bool has_extended_tilemaps, uint16_t tilegfxdata_addr_msb, uint32_t &palette_offset)
+{
+	if (tilegfxdata_addr_msb & 0x8000)
+		palette_offset |= 0x200;
+}
+
+void gpl_renderer_device::adjust_sprite_coordinates(int16_t &x, int16_t &y, uint32_t screenwidth, uint32_t screenheight, const uint32_t tile_w, const uint32_t tile_h)
+{
+	if (!(m_video_regs_42 & 0x0002))
+	{
+		x = ((screenwidth/2) + x) - tile_w / 2;
+		y = ((screenheight/2) - y) - (tile_h / 2);
+	}
+}
+
+void gpl_renderer_device::get_sprite_screenparams(bool highres, uint32_t &screenwidth, uint32_t &screenheight, uint32_t &xmask, uint32_t &ymask)
+{
+	screenwidth = 320;
+	screenheight = 256;
+	xmask = 0x1ff;
+	ymask = 0x1ff;
+
+	if (highres)
+	{
+		screenwidth = 640;
+		screenheight = 512;
+		xmask = 0x3ff;
+		ymask = 0x3ff;
+	}
+}
+
+void gpl_renderer_device::adjust_sprite_limit(int &sprlimit)
+{
+	// paccon suggests this, does older hardware have similar (if so, starting at what point?) or only GPL16250?
+	if (sprlimit == -1)
+	{
+		sprlimit = (m_video_regs_42 & 0xff00) >> 8;
+		if (sprlimit == 0)
+			sprlimit = 0x100;
+	}
+}
+
+
+bool gpl_renderer_device::check_sprites_enable()
+{
+	if (!(m_video_regs_42 & 0x0001))
+	{
+		return true;
+	}
+	return false;
+}
+
+void gpl_renderer_device::check_sprite_extended_palette_mode(int extended_sprites_mode, uint32_t attr, uint32_t palbank, uint32_t& palette_offset)
+{
+	// TODO: tkmag220 / myac220 don't set this bit and expect all sprite palettes to be from the same bank as background palettes
+	// beijuehh (extended_sprites_mode == 2) appears to disagree with that logic, it has this set, but expects palettes and sprites
+	// from the first bank but also needs the attr & 0x8000 check below for the 'pause' graphics so isn't ignoring the 'extended'
+	// capabilities entirely.
+	if ((palbank & 1) && (extended_sprites_mode != 2))
+		palette_offset |= 0x100;
+
+	// many other gpl16250 sets have this bit set when they want the upper 256 colours on a per-sprite basis, seems like an extended feature
+	if (attr & 0x8000)
+		palette_offset |= 0x200;
 }
 
 uint32_t gpl_renderer_device::get_words_per_text_tile(const uint32_t tile_h, const uint32_t bits_per_row)
@@ -174,6 +246,21 @@ int16_t gpl_renderer_device::get_linescroll_value(uint16_t* scrollram, uint32_t 
 	// the logic seems to be different on GPL16250 compared to SPG2xx
 	// see Galaxian in paccon and Crazy Moto in myac220, is this mode be selected or did behavior just change?
 	return (int16_t)scrollram[logical_scanline & 0xff];
+}
+
+void gpl_renderer_device::check_direct_sprite_mode(int extended_sprites_mode, uint32_t &words_per_tile, uint32_t &tile)
+{
+	// good for gormiti, smartfp, wrlshunt, paccon, jak_totm, jak_s500, jak_gtg
+	if (m_video_regs_42 & 0x0010) // direct addressing mode
+	{
+		// paccon and smartfp use this mode
+		words_per_tile = 8;
+	}
+	else
+	{
+		// extended address bits only used in direct mode, jak_prr and other GPAC500 games rely on this
+		tile &= 0xffff;
+	}
 }
 
 void gpl_renderer_device::draw_linemap(bool has_extended_tilemaps, const rectangle& cliprect, uint32_t scanline, int priority, uint32_t tilegfxdata_addr, uint16_t* scrollregs, uint16_t* tilemapregs, address_space& spc, uint16_t* paletteram)
