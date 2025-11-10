@@ -399,10 +399,10 @@ uint32_t gcm394_base_video_device::screen_update(screen_device &screen, bitmap_r
 
 		for (int i = 0; i < 4; i++)
 		{
-			m_renderer->draw_page(true, true, m_703a_palettebank, cliprect, scanline, i, m_page0_addr_msb, m_page0_addr_lsb, m_tmap0_scroll, m_tmap0_regs, mem, m_paletteram, m_rowscroll, 0);
-			m_renderer->draw_page(true, true, m_703a_palettebank, cliprect, scanline, i, m_page1_addr_msb, m_page1_addr_lsb, m_tmap1_scroll, m_tmap1_regs, mem, m_paletteram, m_rowscroll, 1);
-			m_renderer->draw_page(true, true, m_703a_palettebank, cliprect, scanline, i, m_page2_addr_msb, m_page2_addr_lsb, m_tmap2_scroll, m_tmap2_regs, mem, m_paletteram, m_rowscroll, 2);
-			m_renderer->draw_page(true, true, m_703a_palettebank, cliprect, scanline, i, m_page3_addr_msb, m_page3_addr_lsb, m_tmap3_scroll, m_tmap3_regs, mem, m_paletteram, m_rowscroll, 3);
+			m_renderer->draw_page(true, m_703a_palettebank, cliprect, scanline, i, m_page0_addr_msb, m_page0_addr_lsb, m_tmap0_scroll, m_tmap0_regs, mem, m_paletteram, m_rowscroll, 0);
+			m_renderer->draw_page(true, m_703a_palettebank, cliprect, scanline, i, m_page1_addr_msb, m_page1_addr_lsb, m_tmap1_scroll, m_tmap1_regs, mem, m_paletteram, m_rowscroll, 1);
+			m_renderer->draw_page(true, m_703a_palettebank, cliprect, scanline, i, m_page2_addr_msb, m_page2_addr_lsb, m_tmap2_scroll, m_tmap2_regs, mem, m_paletteram, m_rowscroll, 2);
+			m_renderer->draw_page(true, m_703a_palettebank, cliprect, scanline, i, m_page3_addr_msb, m_page3_addr_lsb, m_tmap3_scroll, m_tmap3_regs, mem, m_paletteram, m_rowscroll, 3);
 
 			m_renderer->draw_sprites(true, m_use_legacy_mode ? 2 : 1, m_703a_palettebank, highres, cliprect, scanline, i, sprites_addr, mem, m_paletteram, m_spriteram, -1);
 		}
