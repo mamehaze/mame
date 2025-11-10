@@ -93,6 +93,16 @@ bool gpl_renderer_device::is_tile_skipped(uint32_t tile)
 	return false;
 }
 
+uint32_t gpl_renderer_device::get_words_per_text_tile(const uint32_t tile_h, const uint32_t bits_per_row)
+{
+	// good for gormiti, smartfp, wrlshunt, paccon, jak_totm, jak_s500, jak_gtg
+	if (m_video_regs_7f & 0x0004) // TX_DIRECT
+		return 8;
+	else
+		return bits_per_row * tile_h;
+}
+
+
 int16_t gpl_renderer_device::get_linescroll_value(uint16_t* scrollram, uint32_t logical_scanline, const uint32_t yscroll)
 {
 	// the logic seems to be different on GPL16250 compared to SPG2xx

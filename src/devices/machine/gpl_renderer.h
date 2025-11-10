@@ -24,6 +24,7 @@ private:
 	virtual int16_t get_linescroll_value(uint16_t* scrollram, uint32_t logical_scanline, const uint32_t yscroll) override;
 	virtual void apply_extra_tilemap_attributes(uint32_t& tile, uint32_t& tileattr, uint32_t& tilectrl, const uint32_t exattributemap_rambase, uint32_t tile_address, const int realx0, address_space& spc) override;
 	virtual bool is_tile_skipped(uint32_t tile) override;
+	virtual uint32_t get_words_per_text_tile(const uint32_t tile_h, const uint32_t bits_per_row) override;
 };
 
 DECLARE_DEVICE_TYPE(GPL_RENDERER, gpl_renderer_device)

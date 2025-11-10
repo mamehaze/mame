@@ -73,6 +73,8 @@ protected:
 	virtual void draw_linemap(bool has_extended_tilemaps, const rectangle& cliprect, uint32_t scanline, int priority, uint32_t tilegfxdata_addr, uint16_t* scrollregs, uint16_t* tilemapregs, address_space& spc, uint16_t* paletteram);
 	virtual void apply_extra_tilemap_attributes(uint32_t& tile, uint32_t& tileattr, uint32_t& tilectrl, const uint32_t exattributemap_rambase, uint32_t tile_address, const int realx0, address_space& spc);
 	virtual bool is_tile_skipped(uint32_t tile);
+	virtual uint32_t get_words_per_text_tile(const uint32_t tile_h, const uint32_t bits_per_row);
+
 
 	inline uint8_t mix_channel(uint8_t a, uint8_t b, uint8_t alpha);
 

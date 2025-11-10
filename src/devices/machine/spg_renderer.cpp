@@ -234,9 +234,6 @@ void spg_renderer_device::draw_linemap(bool has_extended_tilemaps, const rectang
 	}
 }
 
-
-
-
 // this builds up a line table for the vcmp effect, this is not correct when step is used
 void spg_renderer_device::update_vcmp_table()
 {
@@ -352,6 +349,11 @@ bool spg_renderer_device::is_tile_skipped(uint32_t tile)
 	return false;
 }
 
+uint32_t spg_renderer_device::get_words_per_text_tile(const uint32_t tile_h, const uint32_t bits_per_row)
+{
+	return bits_per_row * tile_h;
+}
+
 void spg_renderer_device::draw_page(bool read_from_csspace, bool has_extended_tilemaps, uint32_t palbank, const rectangle& cliprect, uint32_t scanline, int priority, uint16_t tilegfxdata_addr_msb, uint16_t tilegfxdata_addr, uint16_t* scrollregs, uint16_t* tilemapregs, address_space& spc, uint16_t* paletteram, uint16_t* scrollram, uint32_t which)
 {
 	const uint32_t attr = tilemapregs[0];
@@ -417,16 +419,7 @@ void spg_renderer_device::draw_page(bool read_from_csspace, bool has_extended_ti
 	static const uint8_t s_blend_levels[4] = { 0x08, 0x10, 0x18, 0x20 };
 	uint8_t blendlevel = s_blend_levels[m_video_regs_2a & 3];
 
-	uint32_t words_per_tile;
-
-	words_per_tile = bits_per_row * tile_h;
-
-	// good for gormiti, smartfp, wrlshunt, paccon, jak_totm, jak_s500, jak_gtg
-	if (has_extended_tilemaps)
-	{
-		if (m_video_regs_7f & 0x0004) // TX_DIRECT
-			words_per_tile = 8;
-	}
+	uint32_t words_per_tile = get_words_per_text_tile(tile_h, bits_per_row);
 
 	int realxscroll = xscroll;
 
@@ -435,12 +428,6 @@ void spg_renderer_device::draw_page(bool read_from_csspace, bool has_extended_ti
 
 	const int upperscrollbits = (realxscroll >> (tile_width + 3));
 	const int endpos = (screenwidth + tile_w) / tile_w;
-
-	int upperpalselect = 0;
-
-	// smartfp
-	if (has_extended_tilemaps && (tilegfxdata_addr_msb & 0x8000))
-		upperpalselect = 1;
 
 	for (uint32_t x0 = 0; x0 < endpos; x0++)
 	{
@@ -471,7 +458,7 @@ void spg_renderer_device::draw_page(bool read_from_csspace, bool has_extended_ti
 		palette_offset = (tileattr & 0x0f00) >> 4;
 		// got tile info
 
-		if (upperpalselect)
+		if (has_extended_tilemaps && (tilegfxdata_addr_msb & 0x8000))
 			palette_offset |= 0x200;
 
 		palette_offset >>= nc_bpp;
