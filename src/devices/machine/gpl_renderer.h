@@ -13,6 +13,8 @@ class gpl_renderer_device : public spg_renderer_device
 public:
 	gpl_renderer_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
 
+	void set_cs_video_spaces(address_space* cs_space, uint32_t csbase) { m_cs_space = cs_space; m_csbase = csbase; }
+
 protected:
 	virtual void device_start() override ATTR_COLD;
 	virtual void device_reset() override ATTR_COLD;
@@ -26,6 +28,9 @@ private:
 	virtual bool is_tile_skipped(uint32_t tile) override;
 	virtual uint32_t get_words_per_text_tile(const uint32_t tile_h, const uint32_t bits_per_row) override;
 	virtual inline void get_tile_pixel(bool read_from_csspace, address_space &spc, uint32_t &bits, uint32_t &nbits, uint32_t &m, const uint32_t nc_bpp) override;
+
+	address_space* m_cs_space;
+	uint32_t m_csbase;
 };
 
 DECLARE_DEVICE_TYPE(GPL_RENDERER, gpl_renderer_device)
