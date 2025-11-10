@@ -307,6 +307,21 @@ uint32_t spg_renderer_device::get_tilegfx_base_address(uint16_t tilegfxdata_addr
 	return tilegfxdata_addr * 0x40;
 }
 
+void spg_renderer_device::get_tilemap_dimensions(const uint32_t attr, uint32_t &total_width, uint32_t &y_mask, uint32_t &screenwidth)
+{
+	total_width = 512;
+	y_mask = 0x100;
+	screenwidth = 320;
+}
+
+
+
+int16_t spg_renderer_device::get_linescroll_value(uint16_t* scrollram, uint32_t logical_scanline, const uint32_t yscroll)
+{
+	// Tennis in My Wireless Sports confirms the need to add the scroll value here rather than rowscroll being screen-aligned
+	return (int16_t)scrollram[(logical_scanline + yscroll) & 0xff];
+}
+
 void spg_renderer_device::draw_page(bool read_from_csspace, bool has_extended_tilemaps, uint32_t palbank, const rectangle& cliprect, uint32_t scanline, int priority, uint16_t tilegfxdata_addr_msb, uint16_t tilegfxdata_addr, uint16_t* scrollregs, uint16_t* tilemapregs, address_space& spc, uint16_t* paletteram, uint16_t* scrollram, uint32_t which)
 {
 	const uint32_t attr = tilemapregs[0];
@@ -344,29 +359,8 @@ void spg_renderer_device::draw_page(bool read_from_csspace, bool has_extended_ti
 			return;
 	}
 
-	uint32_t total_width;
-	uint32_t y_mask;
-	uint32_t screenwidth;
-
-
-	if (read_from_csspace && (attr & 0x8000)) // is this only available in high res mode, or always?
-	{
-		// just a guess based on this being set on the higher resolution tilemaps we've seen, could be 100% incorrect register
-		total_width = 1024;
-		y_mask = 0x200;
-		screenwidth = 640;
-	}
-	else
-	{
-		total_width = 512;
-		y_mask = 0x100;
-		screenwidth = 320;
-	}
-
-	if (has_extended_tilemaps && (attr & 0x4000)) // is this only available in high res mode, or always?
-	{
-		y_mask <<= 1; // double height tilemap?
-	}
+	uint32_t total_width, y_mask, screenwidth;
+	get_tilemap_dimensions(attr, total_width, y_mask, screenwidth);
 
 	const uint32_t drawwidthmask = total_width - 1;
 	y_mask--; // turn into actual mask
@@ -405,19 +399,9 @@ void spg_renderer_device::draw_page(bool read_from_csspace, bool has_extended_ti
 	}
 
 	int realxscroll = xscroll;
+
 	if (row_scroll)
-	{
-		if (!has_extended_tilemaps)
-		{
-			// Tennis in My Wireless Sports confirms the need to add the scroll value here rather than rowscroll being screen-aligned
-			realxscroll += (int16_t)scrollram[(logical_scanline + yscroll) & 0xff];
-		}
-		else
-		{
-			// the logic seems to be different on GPL16250, see Galaxian in paccon and Crazy Moto in myac220, is this mode be selected or did behavior just change?
-			realxscroll += (int16_t)scrollram[logical_scanline & 0xff];
-		}
-	}
+		realxscroll += get_linescroll_value(scrollram, logical_scanline, yscroll);
 
 	const int upperscrollbits = (realxscroll >> (tile_width + 3));
 	const int endpos = (screenwidth + tile_w) / tile_w;

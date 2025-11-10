@@ -33,6 +33,34 @@ uint32_t gpl_renderer_device::get_tilegfx_base_address(uint16_t tilegfxdata_addr
 	}
 }
 
+void gpl_renderer_device::get_tilemap_dimensions(const uint32_t attr, uint32_t &total_width, uint32_t &y_mask, uint32_t &screenwidth)
+{
+	if (attr & 0x8000)
+	{
+		total_width = 1024;
+		y_mask = 0x200;
+		screenwidth = 640;
+	}
+	else
+	{
+		total_width = 512;
+		y_mask = 0x100;
+		screenwidth = 320;
+	}
+
+	if (attr & 0x4000)
+	{
+		y_mask <<= 1; // double height tilemap?
+	}
+}
+
+int16_t gpl_renderer_device::get_linescroll_value(uint16_t* scrollram, uint32_t logical_scanline, const uint32_t yscroll)
+{
+	// the logic seems to be different on GPL16250 compared to SPG2xx
+	// see Galaxian in paccon and Crazy Moto in myac220, is this mode be selected or did behavior just change?
+	return (int16_t)scrollram[logical_scanline & 0xff];
+}
+
 void gpl_renderer_device::draw_linemap(bool has_extended_tilemaps, const rectangle& cliprect, uint32_t scanline, int priority, uint32_t tilegfxdata_addr, uint16_t* scrollregs, uint16_t* tilemapregs, address_space& spc, uint16_t* paletteram)
 {
 	uint32_t ctrl = tilemapregs[1];
