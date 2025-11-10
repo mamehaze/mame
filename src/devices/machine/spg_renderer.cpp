@@ -314,12 +314,42 @@ void spg_renderer_device::get_tilemap_dimensions(const uint32_t attr, uint32_t &
 	screenwidth = 320;
 }
 
+void spg_renderer_device::apply_extra_tilemap_attributes(uint32_t &tile, uint32_t &tileattr, uint32_t &tilectrl, const uint32_t exattributemap_rambase, uint32_t tile_address, const int realx0, address_space& spc)
+{
+	if ((tilectrl & 2) == 0)
+	{
+		// -(1) bld(1) flip(2) pal(4)
+		uint16_t exattribute = (tilectrl & 0x0004) ? spc.read_word(exattributemap_rambase) : spc.read_word(exattributemap_rambase + tile_address / 2);
+		if (realx0 & 1)
+			exattribute >>= 8;
+		else
+			exattribute &= 0x00ff;
+
+		tileattr &= ~0x000c;
+		tileattr |= (exattribute >> 2) & 0x000c;    // flip
+
+		tileattr &= ~0x0f00;
+		tileattr |= (exattribute << 8) & 0x0f00;    // palette
+
+		tilectrl &= ~0x0100;
+		tilectrl |= (exattribute << 2) & 0x0100;    // blend
+	}
+}
+
 
 
 int16_t spg_renderer_device::get_linescroll_value(uint16_t* scrollram, uint32_t logical_scanline, const uint32_t yscroll)
 {
 	// Tennis in My Wireless Sports confirms the need to add the scroll value here rather than rowscroll being screen-aligned
 	return (int16_t)scrollram[(logical_scanline + yscroll) & 0xff];
+}
+
+bool spg_renderer_device::is_tile_skipped(uint32_t tile)
+{
+	if (!tile)
+		return true;
+
+	return false;
 }
 
 void spg_renderer_device::draw_page(bool read_from_csspace, bool has_extended_tilemaps, uint32_t palbank, const rectangle& cliprect, uint32_t scanline, int priority, uint16_t tilegfxdata_addr_msb, uint16_t tilegfxdata_addr, uint16_t* scrollregs, uint16_t* tilemapregs, address_space& spc, uint16_t* paletteram, uint16_t* scrollram, uint32_t which)
@@ -426,66 +456,15 @@ void spg_renderer_device::draw_page(bool read_from_csspace, bool has_extended_ti
 
 		tile = (ctrl & 0x0004) ? spc.read_word(tilemap_rambase) : spc.read_word(tilemap_rambase + tile_address);
 
-		if (!tile)
-		{
-			if (!has_extended_tilemaps)
-			{
-				// always skip on older SPG types?
-				continue;
-			}
-			else if (m_video_regs_7f & 0x0002)
-			{
-				// Galaga in paccon won't render '0' characters in the scoring table if you skip empty tiles, so maybe GPL16250 doesn't skip? - extra tile bits from extended read make no difference
-
-				// probably not based on register m_video_regs_7f, but paccon galaga needs no skip, jak_gtg and jak_hmhsm needs to skip
-				//49 0100 1001  no skip (paccon galaga)
-				//4b 0100 1011  skip    (paccon pacman)
-				//53 0101 0011  skip    (jak_gtg, jak_hmhsm)
-				continue;
-			}
-		}
-
+		if (is_tile_skipped(tile))
+			continue;
 
 		uint32_t tileattr = attr;
 		uint32_t tilectrl = ctrl;
 
-		if (has_extended_tilemaps && (m_video_regs_7f & 0x0004)) // TX_DIRECT
-		{
-			uint16_t exattribute = (ctrl & 0x0004) ? spc.read_word(exattributemap_rambase) : spc.read_word(exattributemap_rambase + tile_address / 2);
-			if (realx0 & 1)
-				exattribute >>= 8;
-			else
-				exattribute &= 0x00ff;
+		apply_extra_tilemap_attributes(tile, tileattr, tilectrl, exattributemap_rambase, tile_address, realx0, spc);
 
-			// when TX_DIRECT is used the attributes become extra addressing bits (smartfp)
-			tile |= (exattribute & 0xff) << 16;
-			//blendlevel = 0x1f; // hack
-		}
-		else if ((ctrl & 2) == 0)
-		{   // -(1) bld(1) flip(2) pal(4)
-
-			uint16_t exattribute = (ctrl & 0x0004) ? spc.read_word(exattributemap_rambase) : spc.read_word(exattributemap_rambase + tile_address / 2);
-			if (realx0 & 1)
-				exattribute >>= 8;
-			else
-				exattribute &= 0x00ff;
-
-
-			tileattr &= ~0x000c;
-			tileattr |= (exattribute >> 2) & 0x000c;    // flip
-
-			tileattr &= ~0x0f00;
-			tileattr |= (exattribute << 8) & 0x0f00;    // palette
-
-			tilectrl &= ~0x0100;
-			tilectrl |= (exattribute << 2) & 0x0100;    // blend
-		}
-
-		if (!has_extended_tilemaps)
-			blend = (tilectrl & 0x0100) ? BlendOn : BlendOff;
-		else
-			blend = ((/*tileattr & 0x4000 ||*/ tilectrl & 0x0100)) ? BlendOn : BlendOff; // is this logic even correct or should it just be like above? where is the extra enable needed?
-
+		blend = (tilectrl & 0x0100) ? BlendOn : BlendOff;
 		flip_x = (tileattr & 0x0004) ? FlipXOn : FlipXOff;
 		flip_y = (tileattr & 0x0008);
 
@@ -520,7 +499,6 @@ void spg_renderer_device::draw_sprite(bool read_from_csspace, int extended_sprit
 	{
 		return;
 	}
-
 
 	uint32_t screenwidth = 320;
 //  uint32_t screenheight = 240;
@@ -567,7 +545,6 @@ void spg_renderer_device::draw_sprite(bool read_from_csspace, int extended_sprit
 	uint8_t blendlevel = s_blend_levels[m_video_regs_2a & 3];
 
 	uint32_t words_per_tile = bits_per_row * tile_h;
-
 
 	if (extended_sprites_mode)
 	{

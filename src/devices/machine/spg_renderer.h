@@ -83,6 +83,8 @@ protected:
 	virtual uint32_t get_tilegfx_base_address(uint16_t tilegfxdata_addr_msb, uint16_t tilegfxdata_addr);
 	virtual int16_t get_linescroll_value(uint16_t* scrollram, uint32_t logical_scanline, const uint32_t yscroll);
 	virtual void draw_linemap(bool has_extended_tilemaps, const rectangle& cliprect, uint32_t scanline, int priority, uint32_t tilegfxdata_addr, uint16_t* scrollregs, uint16_t* tilemapregs, address_space& spc, uint16_t* paletteram);
+	virtual void apply_extra_tilemap_attributes(uint32_t& tile, uint32_t& tileattr, uint32_t& tilectrl, const uint32_t exattributemap_rambase, uint32_t tile_address, const int realx0, address_space& spc);
+	virtual bool is_tile_skipped(uint32_t tile);
 
 	inline uint8_t mix_channel(uint8_t a, uint8_t b, uint8_t alpha);
 

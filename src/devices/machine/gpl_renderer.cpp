@@ -54,6 +54,45 @@ void gpl_renderer_device::get_tilemap_dimensions(const uint32_t attr, uint32_t &
 	}
 }
 
+void gpl_renderer_device::apply_extra_tilemap_attributes(uint32_t &tile, uint32_t &tileattr, uint32_t &tilectrl, const uint32_t exattributemap_rambase, uint32_t tile_address, const int realx0, address_space& spc)
+{
+	if (m_video_regs_7f & 0x0004) // TX_DIRECT
+	{
+		uint16_t exattribute = (tilectrl & 0x0004) ? spc.read_word(exattributemap_rambase) : spc.read_word(exattributemap_rambase + tile_address / 2);
+		if (realx0 & 1)
+			exattribute >>= 8;
+		else
+			exattribute &= 0x00ff;
+
+		// when TX_DIRECT is used the attributes become extra addressing bits (smartfp)
+		tile |= (exattribute & 0xff) << 16;
+		//blendlevel = 0x1f; // hack
+	}
+	else
+	{
+		spg_renderer_device::apply_extra_tilemap_attributes(tile, tileattr, tilectrl, exattributemap_rambase, tile_address, realx0, spc);
+	}
+}
+
+bool gpl_renderer_device::is_tile_skipped(uint32_t tile)
+{
+	if (!tile)
+	{
+		if (m_video_regs_7f & 0x0002)
+		{
+			// Galaga in paccon won't render '0' characters in the scoring table if you skip empty tiles, so maybe GPL16250 doesn't skip? - extra tile bits from extended read make no difference
+
+			// probably not based on register m_video_regs_7f, but paccon galaga needs no skip, jak_gtg and jak_hmhsm needs to skip
+			//49 0100 1001  no skip (paccon galaga)
+			//4b 0100 1011  skip    (paccon pacman)
+			//53 0101 0011  skip    (jak_gtg, jak_hmhsm)
+			return true;
+		}
+	}
+
+	return false;
+}
+
 int16_t gpl_renderer_device::get_linescroll_value(uint16_t* scrollram, uint32_t logical_scanline, const uint32_t yscroll)
 {
 	// the logic seems to be different on GPL16250 compared to SPG2xx
