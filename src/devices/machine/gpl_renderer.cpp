@@ -102,6 +102,30 @@ uint32_t gpl_renderer_device::get_words_per_text_tile(const uint32_t tile_h, con
 		return bits_per_row * tile_h;
 }
 
+void gpl_renderer_device::get_tile_pixel(bool read_from_csspace, address_space &spc, uint32_t &bits, uint32_t &nbits, uint32_t &m, const uint32_t nc_bpp)
+{
+	if (!read_from_csspace)
+	{
+		spg_renderer_device::get_tile_pixel(read_from_csspace, spc, bits, nbits, m, nc_bpp);
+	}
+	else
+	{
+		uint16_t b;
+		const int addr = m & 0x7ffffff;
+		if (addr < m_csbase)
+		{
+			b = m_cpuspace->read_word(addr);
+		}
+		else
+		{
+			b = m_cs_space->read_word(addr - m_csbase);
+		}
+		m++;
+		b = (b << 8) | (b >> 8);
+		bits |= b << (nc_bpp - nbits);
+		nbits += 16;
+	}
+}
 
 int16_t gpl_renderer_device::get_linescroll_value(uint16_t* scrollram, uint32_t logical_scanline, const uint32_t yscroll)
 {

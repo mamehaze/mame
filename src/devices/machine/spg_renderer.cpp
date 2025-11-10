@@ -97,30 +97,7 @@ void spg_renderer_device::draw_tilestrip(bool read_from_csspace, uint32_t screen
 
 		if (nbits < nc_bpp)
 		{
-			if (!read_from_csspace)
-			{
-				uint16_t b = spc.read_word(m++ & 0x3fffff);
-				b = (b << 8) | (b >> 8);
-				bits |= b << (nc_bpp - nbits);
-				nbits += 16;
-			}
-			else
-			{
-				uint16_t b;
-				const int addr = m & 0x7ffffff;
-				if (addr < m_csbase)
-				{
-					b = m_cpuspace->read_word(addr);
-				}
-				else
-				{
-					b = m_cs_space->read_word(addr-m_csbase);
-				}
-				m++;
-				b = (b << 8) | (b >> 8);
-				bits |= b << (nc_bpp - nbits);
-				nbits += 16;
-			}
+			get_tile_pixel(read_from_csspace, spc, bits, nbits, m, nc_bpp);
 		}
 		nbits -= nc_bpp;
 

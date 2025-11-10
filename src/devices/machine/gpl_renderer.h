@@ -25,6 +25,7 @@ private:
 	virtual void apply_extra_tilemap_attributes(uint32_t& tile, uint32_t& tileattr, uint32_t& tilectrl, const uint32_t exattributemap_rambase, uint32_t tile_address, const int realx0, address_space& spc) override;
 	virtual bool is_tile_skipped(uint32_t tile) override;
 	virtual uint32_t get_words_per_text_tile(const uint32_t tile_h, const uint32_t bits_per_row) override;
+	virtual inline void get_tile_pixel(bool read_from_csspace, address_space &spc, uint32_t &bits, uint32_t &nbits, uint32_t &m, const uint32_t nc_bpp) override;
 };
 
 DECLARE_DEVICE_TYPE(GPL_RENDERER, gpl_renderer_device)

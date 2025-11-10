@@ -74,7 +74,13 @@ protected:
 	virtual void apply_extra_tilemap_attributes(uint32_t& tile, uint32_t& tileattr, uint32_t& tilectrl, const uint32_t exattributemap_rambase, uint32_t tile_address, const int realx0, address_space& spc);
 	virtual bool is_tile_skipped(uint32_t tile);
 	virtual uint32_t get_words_per_text_tile(const uint32_t tile_h, const uint32_t bits_per_row);
-
+	virtual inline void get_tile_pixel(bool read_from_csspace, address_space& spc, uint32_t& bits, uint32_t& nbits, uint32_t& m, const uint32_t nc_bpp)
+	{
+		uint16_t b = spc.read_word(m++ & 0x3fffff);
+		b = (b << 8) | (b >> 8);
+		bits |= b << (nc_bpp - nbits);
+		nbits += 16;
+	}
 
 	inline uint8_t mix_channel(uint8_t a, uint8_t b, uint8_t alpha);
 
