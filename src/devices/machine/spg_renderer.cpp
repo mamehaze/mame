@@ -446,6 +446,49 @@ void spg_renderer_device::draw_page(bool read_from_csspace, bool has_extended_ti
 	}
 }
 
+void spg_renderer_device::get_sprite_screenparams(bool highres, uint32_t &screenwidth, uint32_t &screenheight, uint32_t &xmask, uint32_t &ymask)
+{
+	screenwidth = 320;
+	screenheight = 256;
+	xmask = 0x1ff;
+	ymask = 0x1ff;
+
+	if (highres)
+	{
+		screenwidth = 640;
+		screenheight = 512;
+		xmask = 0x3ff;
+		ymask = 0x3ff;
+	}
+}
+
+void spg_renderer_device::adjust_sprite_coordinates(int16_t &x, int16_t &y, uint32_t screenwidth, uint32_t screenheight, const uint32_t tile_w, const uint32_t tile_h)
+{
+	if (!(m_video_regs_42 & 0x0002))
+	{
+		x = ((screenwidth/2) + x) - tile_w / 2;
+		y = ((screenheight/2) - y) - (tile_h / 2);
+	}
+}
+
+void spg_renderer_device::check_direct_sprite_mode(bool extended_sprites_mode, uint32_t &words_per_tile, uint32_t &tile)
+{
+	if (extended_sprites_mode)
+	{
+		// good for gormiti, smartfp, wrlshunt, paccon, jak_totm, jak_s500, jak_gtg
+		if (m_video_regs_42 & 0x0010) // direct addressing mode
+		{
+			// paccon and smartfp use this mode
+			words_per_tile = 8;
+		}
+		else
+		{
+			// extended address bits only used in direct mode, jak_prr and other GPAC500 games rely on this
+			tile &= 0xffff;
+		}
+	}
+}
+
 void spg_renderer_device::draw_sprite(bool read_from_csspace, int extended_sprites_mode, uint32_t palbank, bool highres, const rectangle& cliprect, uint32_t scanline, int priority, uint32_t spritegfxdata_addr, uint32_t base_addr, address_space &spc, uint16_t* paletteram, uint16_t* spriteram)
 {
 	uint32_t tilegfxdata_addr = spritegfxdata_addr;
@@ -464,30 +507,17 @@ void spg_renderer_device::draw_sprite(bool read_from_csspace, int extended_sprit
 		return;
 	}
 
-	uint32_t screenwidth = 320;
-//  uint32_t screenheight = 240;
-	uint32_t screenheight = 256;
-	uint32_t xmask = 0x1ff;
-	uint32_t ymask = 0x1ff;
+	uint32_t screenwidth;
+	uint32_t screenheight;
+	uint32_t xmask;
+	uint32_t ymask;
 
-	if (highres)
-	{
-		screenwidth = 640;
-//      screenheight = 480;
-		screenheight = 512;
-		xmask = 0x3ff;
-		ymask = 0x3ff;
-	}
+	get_sprite_screenparams(highres, screenwidth, screenheight, xmask, ymask);
 
 	const uint32_t tile_h = 8 << ((attr & 0x00c0) >> 6);
 	const uint32_t tile_w = 8 << ((attr & 0x0030) >> 4);
 
-	if (!(m_video_regs_42 & 0x0002))
-	{
-		x = ((screenwidth/2) + x) - tile_w / 2;
-//      y = ((screenheight/2) - y) - (tile_h / 2) + 8;
-		y = ((screenheight/2) - y) - (tile_h / 2);
-	}
+	adjust_sprite_coordinates(x, y, screenwidth, screenheight, tile_w, tile_h);
 
 	x &= xmask;
 	y &= ymask;
@@ -512,21 +542,7 @@ void spg_renderer_device::draw_sprite(bool read_from_csspace, int extended_sprit
 
 	get_extended_spriteram_attributes(spriteram, base_addr, tile, blendlevel, flip_x, flip_y);
 
-	if (extended_sprites_mode)
-	{
-
-		// good for gormiti, smartfp, wrlshunt, paccon, jak_totm, jak_s500, jak_gtg
-		if (m_video_regs_42 & 0x0010) // direct addressing mode
-		{
-			// paccon and smartfp use this mode
-			words_per_tile = 8;
-		}
-		else
-		{
-			// extended address bits only used in direct mode, jak_prr and other GPAC500 games rely on this
-			tile &= 0xffff;
-		}
-	}
+	check_direct_sprite_mode(extended_sprites_mode, words_per_tile, tile);
 
 	uint32_t palette_offset = (attr & 0x0f00) >> 4;
 
