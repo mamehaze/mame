@@ -228,14 +228,28 @@ class elan_eu3a05_cpu_device : public m6502_device {
 public:
 	elan_eu3a05_cpu_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
 
+	void set_current_bank(uint16_t bank) { m_current_bank = bank; }
+
+protected:
+	virtual void device_add_mconfig(machine_config &config) override ATTR_COLD;
 	virtual void device_reset() override ATTR_COLD;
 	virtual void device_start() override ATTR_COLD;
 
 	// device_memory_interface overrides
 	virtual space_config_vector memory_space_config() const override;
 
+	void int_map(address_map &map);
 	address_space_config m_extbus_config;
 	address_space *m_extbus_space;
+
+private:
+	uint8_t bank_r(offs_t offset);
+	void bank_w(offs_t offset, uint8_t data);
+	uint8_t read_full_space(offs_t offset);
+
+	uint16_t m_current_bank;
+
+	required_device<elan_eu3a05_sound_device> m_sound;
 };
 
 DECLARE_DEVICE_TYPE(ELAN_EU3A05_SOC, elan_eu3a05_cpu_device)
@@ -244,10 +258,30 @@ DEFINE_DEVICE_TYPE(ELAN_EU3A05_SOC, elan_eu3a05_cpu_device, "elan_eu3a05_cpu_dev
 
 elan_eu3a05_cpu_device::elan_eu3a05_cpu_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock) :
 	m6502_device(mconfig, ELAN_EU3A05_SOC, tag, owner, clock),
-	m_extbus_config("extbus", ENDIANNESS_LITTLE, 8, 24)
+	m_extbus_config("extbus", ENDIANNESS_LITTLE, 8, 24),
+	m_sound(*this, "eu3a05sound")
 {
 	m_extbus_config.m_addr_width = 24;
 	m_extbus_config.m_logaddr_width = 24;
+	program_config.m_internal_map = address_map_constructor(FUNC(elan_eu3a05_cpu_device::int_map), this);
+}
+
+void elan_eu3a05_cpu_device::device_add_mconfig(machine_config &config)
+{
+	/* sound hardware */
+	SPEAKER(config, "mono").front_center();
+
+	ELAN_EU3A05_SOUND(config, m_sound, 8000);
+	m_sound->space_read_callback().set(FUNC(elan_eu3a05_cpu_device::read_full_space));
+	m_sound->add_route(ALL_OUTPUTS, "mono", 1.0);
+	/* just causes select sound to loop in Tetris for now!
+	m_sound->sound_end_cb<0>().set(FUNC(elan_eu3a05_state::sound_end0));
+	m_sound->sound_end_cb<1>().set(FUNC(elan_eu3a05_state::sound_end1));
+	m_sound->sound_end_cb<2>().set(FUNC(elan_eu3a05_state::sound_end2));
+	m_sound->sound_end_cb<3>().set(FUNC(elan_eu3a05_state::sound_end3));
+	m_sound->sound_end_cb<4>().set(FUNC(elan_eu3a05_state::sound_end4));
+	m_sound->sound_end_cb<5>().set(FUNC(elan_eu3a05_state::sound_end5));
+	*/
 }
 
 void elan_eu3a05_cpu_device::device_start()
@@ -259,6 +293,47 @@ void elan_eu3a05_cpu_device::device_start()
 void elan_eu3a05_cpu_device::device_reset()
 {
 	m6502_device::device_reset();
+
+	/* the 6502 core sets the default stack value to 0x01bd
+	   and Tetris does not initialize it to anything else
+
+	   Tetris stores the playfield data at 0x100 - 0x1c7 and
+	   has a clear routine that will erase that range and
+	   trash the stack
+
+	   It seems likely this 6502 sets it to 0x1ff by default
+	   at least.
+
+	   According to
+	   http://mametesters.org/view.php?id=6486
+	   this isn't right for known 6502 types either
+	*/
+	set_state_int(M6502_S, 0x1ff);
+}
+
+uint8_t elan_eu3a05_cpu_device::bank_r(offs_t offset)
+{
+	return m_extbus_space->read_byte((m_current_bank * 0x8000) + offset);
+}
+
+void elan_eu3a05_cpu_device::bank_w(offs_t offset, uint8_t data)
+{
+	m_extbus_space->write_byte((m_current_bank * 0x8000) + offset, data);
+}
+
+uint8_t elan_eu3a05_cpu_device::read_full_space(offs_t offset)
+{
+	return m_extbus_space->read_byte(offset);
+}
+
+
+void elan_eu3a05_cpu_device::int_map(address_map &map)
+{
+	// 508x sound
+	map(0x5080, 0x50bf).m(m_sound, FUNC(elan_eu3a05_sound_device::map));
+
+	map(0x6000, 0xdfff).rw(FUNC(elan_eu3a05_cpu_device::bank_r), FUNC(elan_eu3a05_cpu_device::bank_w));
+
 }
 
 device_memory_interface::space_config_vector elan_eu3a05_cpu_device::memory_space_config() const
@@ -289,12 +364,10 @@ public:
 		m_maincpu(*this, "maincpu"),
 		m_screen(*this, "screen"),
 		m_ram(*this, "ram"),
-		m_sound(*this, "eu3a05sound"),
 		m_vid(*this, "vid"),
 		m_pixram(*this, "pixram"),
 		m_gfxdecode(*this, "gfxdecode"),
-		m_palette(*this, "palette"),
-		m_current_bank(0)
+		m_palette(*this, "palette")
 	{ }
 
 	void elan_eu3a05(machine_config &config);
@@ -308,10 +381,9 @@ protected:
 	required_device<elan_eu3a05sys_device> m_sys;
 	required_device<elan_eu3a05gpio_device> m_gpio;
 
-	required_device<cpu_device> m_maincpu;
+	required_device<elan_eu3a05_cpu_device> m_maincpu;
 	required_device<screen_device> m_screen;
 	required_shared_ptr<uint8_t> m_ram;
-	required_device<elan_eu3a05_sound_device> m_sound;
 	required_device<elan_eu3a05vid_device> m_vid;
 	required_shared_ptr<uint8_t> m_pixram;
 	required_device<gfxdecode_device> m_gfxdecode;
@@ -322,14 +394,8 @@ protected:
 
 	INTERRUPT_GEN_MEMBER(interrupt);
 
-	// for callback
-	uint8_t read_full_space(offs_t offset);
-
 	void elan_eu3a05_bank_map(address_map &map) ATTR_COLD;
 	void elan_eu3a05_map(address_map &map) ATTR_COLD;
-
-	uint8_t bank_r(offs_t offset);
-	void bank_w(offs_t offset, uint8_t data);
 
 	virtual void video_start() override ATTR_COLD;
 
@@ -341,8 +407,6 @@ protected:
 	void sound_end3(int state) { m_sys->generate_custom_interrupt(5); }
 	void sound_end4(int state) { m_sys->generate_custom_interrupt(6); }
 	void sound_end5(int state) { m_sys->generate_custom_interrupt(7); }
-
-	uint16_t m_current_bank;
 };
 
 class elan_eu3a05_buzztime_state : public elan_eu3a05_state
@@ -480,27 +544,8 @@ uint32_t elan_eu3a05_state::screen_update(screen_device& screen, bitmap_ind16& b
 	return m_vid->screen_update(screen, bitmap, cliprect);
 }
 
-// sound callback
-uint8_t elan_eu3a05_state::read_full_space(offs_t offset)
-{
-	address_space& fullbankspace = m_maincpu->space(5);
-	return fullbankspace.read_byte(offset);
-}
-
 // code at 8bc6 in Air Blaster makes unwanted reads, why, bug in code, flow issue?
 //[:maincpu] ':maincpu' (8BC6): unmapped program memory read from 5972 & FF
-
-uint8_t elan_eu3a05_state::bank_r(offs_t offset)
-{
-	address_space& fullbankspace = m_maincpu->space(5);
-	return fullbankspace.read_byte((m_current_bank * 0x8000) + offset);
-}
-
-void elan_eu3a05_state::bank_w(offs_t offset, uint8_t data)
-{
-	address_space& fullbankspace = m_maincpu->space(5);
-	return fullbankspace.write_byte((m_current_bank * 0x8000) + offset, data);
-}
 
 void elan_eu3a05_state::elan_eu3a05_map(address_map &map)
 {
@@ -518,12 +563,6 @@ void elan_eu3a05_state::elan_eu3a05_map(address_map &map)
 
 	// 506x unknown
 	map(0x5060, 0x506d).ram(); // read/written by tetris (ADC?)
-
-	// 508x sound
-	map(0x5080, 0x50bf).m(m_sound, FUNC(elan_eu3a05_sound_device::map));
-
-	//map(0x5000, 0x50ff).ram();
-	map(0x6000, 0xdfff).rw(FUNC(elan_eu3a05_state::bank_r), FUNC(elan_eu3a05_state::bank_w));
 
 	map(0xe000, 0xffff).rom().region("maincpu", 0x3f8000);
 	// not sure how these work, might be a modified 6502 core instead.
@@ -769,21 +808,6 @@ void elan_eu3a05_state::machine_start()
 
 void elan_eu3a05_state::machine_reset()
 {
-	/* the 6502 core sets the default stack value to 0x01bd
-	   and Tetris does not initialize it to anything else
-
-	   Tetris stores the playfield data at 0x100 - 0x1c7 and
-	   has a clear routine that will erase that range and
-	   trash the stack
-
-	   It seems likely this 6502 sets it to 0x1ff by default
-	   at least.
-
-	   According to
-	   http://mametesters.org/view.php?id=6486
-	   this isn't right for known 6502 types either
-	*/
-	m_maincpu->set_state_int(M6502_S, 0x1ff);
 }
 
 static const gfx_layout helper_4bpp_8_layout =
@@ -873,7 +897,7 @@ INTERRUPT_GEN_MEMBER(elan_eu3a05_state::interrupt)
 
 void elan_eu3a05_state::bank_change(uint16_t data)
 {
-	m_current_bank = data;
+	m_maincpu->set_current_bank(data);
 }
 
 void elan_eu3a05_state::elan_eu3a05(machine_config &config)
@@ -910,20 +934,7 @@ void elan_eu3a05_state::elan_eu3a05(machine_config &config)
 	m_vid->set_palette("palette");
 	m_vid->set_entries(256);
 
-	/* sound hardware */
-	SPEAKER(config, "mono").front_center();
 
-	ELAN_EU3A05_SOUND(config, m_sound, 8000);
-	m_sound->space_read_callback().set(FUNC(elan_eu3a05_state::read_full_space));
-	m_sound->add_route(ALL_OUTPUTS, "mono", 1.0);
-	/* just causes select sound to loop in Tetris for now!
-	m_sound->sound_end_cb<0>().set(FUNC(elan_eu3a05_state::sound_end0));
-	m_sound->sound_end_cb<1>().set(FUNC(elan_eu3a05_state::sound_end1));
-	m_sound->sound_end_cb<2>().set(FUNC(elan_eu3a05_state::sound_end2));
-	m_sound->sound_end_cb<3>().set(FUNC(elan_eu3a05_state::sound_end3));
-	m_sound->sound_end_cb<4>().set(FUNC(elan_eu3a05_state::sound_end4));
-	m_sound->sound_end_cb<5>().set(FUNC(elan_eu3a05_state::sound_end5));
-	*/
 }
 
 void elan_eu3a05_state::elan_eu3a05_pal(machine_config& config)

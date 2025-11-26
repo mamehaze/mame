@@ -129,6 +129,8 @@ uint8_t elan_eu3a05vid_device::read_vram(int offset)
 
 void elan_eu3a05vid_device::draw_sprites(screen_device &screen, bitmap_ind16 &bitmap, bitmap_ind8 &priority_bitmap, const rectangle &cliprect)
 {
+	address_space* fullbankspace;
+
 	if (m_bank)
 		fullbankspace = &m_bank->space(AS_PROGRAM);
 	else
