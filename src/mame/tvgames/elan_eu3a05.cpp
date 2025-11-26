@@ -230,6 +230,8 @@ public:
 
 	void set_current_bank(uint16_t bank) { m_current_bank = bank; }
 
+	void generate_custom_interrupt(int irq) { m_sys->generate_custom_interrupt(9); }
+
 protected:
 	virtual void device_add_mconfig(machine_config &config) override ATTR_COLD;
 	virtual void device_reset() override ATTR_COLD;
@@ -246,9 +248,23 @@ private:
 	uint8_t bank_r(offs_t offset);
 	void bank_w(offs_t offset, uint8_t data);
 	uint8_t read_full_space(offs_t offset);
+	uint8_t read_fixed_bank(offs_t offset);
+
+	void bank_change(uint16_t data)
+	{
+		set_current_bank(data);
+	}
+
+	void sound_end0(int state) { m_sys->generate_custom_interrupt(2); }
+	void sound_end1(int state) { m_sys->generate_custom_interrupt(3); }
+	void sound_end2(int state) { m_sys->generate_custom_interrupt(4); }
+	void sound_end3(int state) { m_sys->generate_custom_interrupt(5); }
+	void sound_end4(int state) { m_sys->generate_custom_interrupt(6); }
+	void sound_end5(int state) { m_sys->generate_custom_interrupt(7); }
 
 	uint16_t m_current_bank;
 
+	required_device<elan_eu3a05sys_device> m_sys;
 	required_device<elan_eu3a05_sound_device> m_sound;
 };
 
@@ -259,6 +275,7 @@ DEFINE_DEVICE_TYPE(ELAN_EU3A05_SOC, elan_eu3a05_cpu_device, "elan_eu3a05_cpu_dev
 elan_eu3a05_cpu_device::elan_eu3a05_cpu_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock) :
 	m6502_device(mconfig, ELAN_EU3A05_SOC, tag, owner, clock),
 	m_extbus_config("extbus", ENDIANNESS_LITTLE, 8, 24),
+	m_sys(*this, "sys"),
 	m_sound(*this, "eu3a05sound")
 {
 	m_extbus_config.m_addr_width = 24;
@@ -270,6 +287,10 @@ void elan_eu3a05_cpu_device::device_add_mconfig(machine_config &config)
 {
 	/* sound hardware */
 	SPEAKER(config, "mono").front_center();
+
+	ELAN_EU3A05_SYS(config, m_sys, 0);
+	m_sys->set_cpu(":maincpu");
+	m_sys->bank_change_callback().set(FUNC(elan_eu3a05_cpu_device::bank_change));
 
 	ELAN_EU3A05_SOUND(config, m_sound, 8000);
 	m_sound->space_read_callback().set(FUNC(elan_eu3a05_cpu_device::read_full_space));
@@ -326,14 +347,25 @@ uint8_t elan_eu3a05_cpu_device::read_full_space(offs_t offset)
 	return m_extbus_space->read_byte(offset);
 }
 
+uint8_t elan_eu3a05_cpu_device::read_fixed_bank(offs_t offset)
+{
+	return m_extbus_space->read_byte(0x3f8000 + offset);
+}
 
 void elan_eu3a05_cpu_device::int_map(address_map &map)
 {
+
+	map(0x5000, 0x501f).m(m_sys, FUNC(elan_eu3a05sys_device::map)); // including DMA controller
+
 	// 508x sound
 	map(0x5080, 0x50bf).m(m_sound, FUNC(elan_eu3a05_sound_device::map));
 
 	map(0x6000, 0xdfff).rw(FUNC(elan_eu3a05_cpu_device::bank_r), FUNC(elan_eu3a05_cpu_device::bank_w));
 
+	map(0xe000, 0xffff).r(FUNC(elan_eu3a05_cpu_device::read_fixed_bank));
+	// not sure how these work, might be a modified 6502 core instead.
+	map(0xfffa, 0xfffb).r(m_sys, FUNC(elan_eu3a05commonsys_device::nmi_vector_r)); // custom vectors handled with NMI for now
+	//map(0xfffe, 0xffff).r(m_sys, FUNC(elan_eu3a05commonsys_device::irq_vector_r));  // allow normal IRQ for brk
 }
 
 device_memory_interface::space_config_vector elan_eu3a05_cpu_device::memory_space_config() const
@@ -359,7 +391,6 @@ class elan_eu3a05_state : public driver_device
 public:
 	elan_eu3a05_state(const machine_config &mconfig, device_type type, const char *tag)
 		: driver_device(mconfig, type, tag),
-		m_sys(*this, "sys"),
 		m_gpio(*this, "gpio"),
 		m_maincpu(*this, "maincpu"),
 		m_screen(*this, "screen"),
@@ -378,7 +409,6 @@ protected:
 	virtual void machine_start() override ATTR_COLD;
 	virtual void machine_reset() override ATTR_COLD;
 
-	required_device<elan_eu3a05sys_device> m_sys;
 	required_device<elan_eu3a05gpio_device> m_gpio;
 
 	required_device<elan_eu3a05_cpu_device> m_maincpu;
@@ -399,14 +429,6 @@ protected:
 
 	virtual void video_start() override ATTR_COLD;
 
-	void bank_change(uint16_t data);
-
-	void sound_end0(int state) { m_sys->generate_custom_interrupt(2); }
-	void sound_end1(int state) { m_sys->generate_custom_interrupt(3); }
-	void sound_end2(int state) { m_sys->generate_custom_interrupt(4); }
-	void sound_end3(int state) { m_sys->generate_custom_interrupt(5); }
-	void sound_end4(int state) { m_sys->generate_custom_interrupt(6); }
-	void sound_end5(int state) { m_sys->generate_custom_interrupt(7); }
 };
 
 class elan_eu3a05_buzztime_state : public elan_eu3a05_state
@@ -508,7 +530,7 @@ void elan_eu3a05_buzztime_state::elan_buzztime(machine_config &config)
 {
 	elan_eu3a05_state::elan_eu3a05(config);
 
-	m_sys->set_alt_timer();
+	// TODO m_sys->set_alt_timer();
 
 	m_gpio->read_0_callback().set(FUNC(elan_eu3a05_buzztime_state::porta_r)); // I/O lives in here
 //  m_gpio->read_1_callback().set(FUNC(elan_eu3a05_buzztime_state::random_r)); // nothing of note
@@ -553,7 +575,6 @@ void elan_eu3a05_state::elan_eu3a05_map(address_map &map)
 	map(0x0000, 0x3fff).ram().share("ram");
 	map(0x4800, 0x49ff).rw(m_vid, FUNC(elan_eu3a05commonvid_device::palette_r), FUNC(elan_eu3a05commonvid_device::palette_w));
 
-	map(0x5000, 0x501f).m(m_sys, FUNC(elan_eu3a05sys_device::map)); // including DMA controller
 	map(0x5020, 0x503f).m(m_vid, FUNC(elan_eu3a05vid_device::map));
 
 	// 504x GPIO area?
@@ -563,11 +584,6 @@ void elan_eu3a05_state::elan_eu3a05_map(address_map &map)
 
 	// 506x unknown
 	map(0x5060, 0x506d).ram(); // read/written by tetris (ADC?)
-
-	map(0xe000, 0xffff).rom().region("maincpu", 0x3f8000);
-	// not sure how these work, might be a modified 6502 core instead.
-	map(0xfffa, 0xfffb).r(m_sys, FUNC(elan_eu3a05commonsys_device::nmi_vector_r)); // custom vectors handled with NMI for now
-	//map(0xfffe, 0xffff).r(m_sys, FUNC(elan_eu3a05commonsys_device::irq_vector_r));  // allow normal IRQ for brk
 }
 
 // default e000 mapping is the same as eu3a14, other registers seem closer to eua05
@@ -575,9 +591,6 @@ void elan_eu3a13_state::elan_eu3a13_map(address_map& map)
 {
 	elan_eu3a05_map(map);
 	map(0xe000, 0xffff).rom().region("maincpu", 0x0000);
-	// not sure how these work, might be a modified 6502 core instead.
-	map(0xfffa, 0xfffb).r(m_sys, FUNC(elan_eu3a05commonsys_device::nmi_vector_r)); // custom vectors handled with NMI for now
-	//map(0xfffe, 0xffff).r(m_sys, FUNC(elan_eu3a05commonsys_device::irq_vector_r));  // allow normal IRQ for brk
 }
 
 
@@ -875,7 +888,7 @@ GFXDECODE_END
 
 INTERRUPT_GEN_MEMBER(elan_eu3a05_state::interrupt)
 {
-	m_sys->generate_custom_interrupt(9);
+	m_maincpu->generate_custom_interrupt(9);
 }
 
 
@@ -895,10 +908,7 @@ INTERRUPT_GEN_MEMBER(elan_eu3a05_state::interrupt)
    there don't appear to be any kind of blanking bits being checked.
 */
 
-void elan_eu3a05_state::bank_change(uint16_t data)
-{
-	m_maincpu->set_current_bank(data);
-}
+
 
 void elan_eu3a05_state::elan_eu3a05(machine_config &config)
 {
@@ -925,9 +935,6 @@ void elan_eu3a05_state::elan_eu3a05(machine_config &config)
 	m_gpio->read_1_callback().set_ioport("IN1");
 	m_gpio->read_2_callback().set_ioport("IN2");
 
-	ELAN_EU3A05_SYS(config, m_sys, 0);
-	m_sys->set_cpu("maincpu");
-	m_sys->bank_change_callback().set(FUNC(elan_eu3a05_state::bank_change));
 
 	ELAN_EU3A05_VID(config, m_vid, 0);
 	m_vid->set_cpu("maincpu");
@@ -941,7 +948,7 @@ void elan_eu3a05_state::elan_eu3a05_pal(machine_config& config)
 {
 	elan_eu3a05(config);
 	m_screen->set_refresh_hz(50);
-	m_sys->set_pal(); // TODO: also set PAL clocks
+// TODO	m_sys->set_pal(); // TODO: also set PAL clocks
 }
 
 
@@ -951,13 +958,13 @@ void elan_eu3a13_state::elan_eu3a13(machine_config& config)
 	m_maincpu->set_addrmap(AS_PROGRAM, &elan_eu3a13_state::elan_eu3a13_map);
 	m_vid->set_is_sudoku();
 	m_vid->set_use_spritepages();
-	m_sys->set_alt_timer(); // for Carl Edwards'
+// TODO	m_sys->set_alt_timer(); // for Carl Edwards'
 }
 
 void elan_eu3a13_state::elan_eu3a13_pal(machine_config& config)
 {
 	elan_eu3a13(config);
-	m_sys->set_pal(); // TODO: also set PAL clocks
+// TODO	m_sys->set_pal(); // TODO: also set PAL clocks
 	m_screen->set_refresh_hz(50);
 }
 
@@ -966,8 +973,8 @@ void elan_eu3a13_state::elan_eu3a13_pvmil8(machine_config& config)
 	elan_eu3a05(config);
 	m_maincpu->set_addrmap(AS_PROGRAM, &elan_eu3a13_state::elan_eu3a13_map);
 	m_vid->set_is_pvmilfin();
-	m_sys->set_alt_timer();
-	m_sys->set_pal(); // TODO: also set PAL clocks
+// TODO	m_sys->set_alt_timer();
+// TODO	m_sys->set_pal(); // TODO: also set PAL clocks
 	m_screen->set_refresh_hz(50);
 }
 
@@ -1013,7 +1020,7 @@ void elan_eu3a05_pvwwcas_state::pvwwcas(machine_config& config)
 {
 	elan_eu3a05(config);
 	m_screen->set_refresh_hz(50);
-	m_sys->set_pal(); // TODO: also set PAL clocks
+// TODO	m_sys->set_pal(); // TODO: also set PAL clocks
 
 	m_gpio->read_2_callback().set(FUNC(elan_eu3a05_pvwwcas_state::pvwwc_portc_r));
 	m_gpio->write_2_callback().set(FUNC(elan_eu3a05_pvwwcas_state::pvwwc_portc_w));
