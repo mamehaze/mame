@@ -67,7 +67,13 @@ void elan_eu3a05sys_device::elan_eu3a05_dmatrg_w(uint8_t data)
 	logerror("%s: elan_eu3a05_dmatrg_w (trigger DMA operation) %02x\n", machine().describe_context(), data);
 	//m_dmatrg_data = data;
 
-	address_space& fullbankspace = m_bank->space(AS_PROGRAM);
+	address_space* fullbankspace;
+
+	if (m_bank)
+		fullbankspace = &m_bank->space(AS_PROGRAM);
+	else
+		fullbankspace = &m_cpu->space(5);
+
 	address_space& destspace = m_cpu->space(AS_PROGRAM);
 
 	if (data)
@@ -80,7 +86,7 @@ void elan_eu3a05sys_device::elan_eu3a05_dmatrg_w(uint8_t data)
 
 		for (int i = 0; i < size; i++)
 		{
-			uint8_t dat = fullbankspace.read_byte(src + i);
+			uint8_t dat = fullbankspace->read_byte(src + i);
 			destspace.write_byte(dest + i, dat);
 		}
 	}

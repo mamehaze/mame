@@ -175,7 +175,8 @@ elan_eu3a05commonsys_device::elan_eu3a05commonsys_device(const machine_config &m
 	m_bank(*this, finder_base::DUMMY_TAG),
 	m_is_pal(false),
 	m_allow_timer_irq(true),
-	m_whichtimer(0)
+	m_whichtimer(0),
+	m_bankchange_cb(*this)
 {
 }
 
@@ -265,7 +266,11 @@ void elan_eu3a05commonsys_device::device_reset()
 
 	m_rombank_lo = 0x7f;
 	m_rombank_hi = 0x00;
-	m_bank->set_bank(0x7f);
+
+	if (m_bank)
+		m_bank->set_bank(0x7f);
+	else
+		m_bankchange_cb(0x7f);
 
 	// generate at a fixed frequency for now, but can probably be configured.  drives 3D stages in Air Blaster Joystick
 	m_unk_timer->adjust(attotime::from_hz(4096), 0, attotime::from_hz(2048));
@@ -363,7 +368,11 @@ void elan_eu3a05commonsys_device::elan_eu3a05_rombank_w(offs_t offset, uint8_t d
 	}
 
 	// rad_ftet writes only the low and expects bank to change
-	m_bank->set_bank(m_rombank_lo | (m_rombank_hi << 8));
+	int bank = m_rombank_lo | (m_rombank_hi << 8);
+	if (m_bank)
+		m_bank->set_bank(bank);
+	else
+		m_bankchange_cb(bank);
 }
 
 uint8_t elan_eu3a05commonsys_device::elan_eu3a05_rombank_r(offs_t offset)

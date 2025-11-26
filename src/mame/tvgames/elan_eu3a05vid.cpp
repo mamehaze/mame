@@ -129,7 +129,10 @@ uint8_t elan_eu3a05vid_device::read_vram(int offset)
 
 void elan_eu3a05vid_device::draw_sprites(screen_device &screen, bitmap_ind16 &bitmap, bitmap_ind8 &priority_bitmap, const rectangle &cliprect)
 {
-	address_space& fullbankspace = m_bank->space(AS_PROGRAM);
+	if (m_bank)
+		fullbankspace = &m_bank->space(AS_PROGRAM);
+	else
+		fullbankspace = &m_cpu->space(5);
 
 	/*
 	    Sprites
@@ -264,7 +267,7 @@ void elan_eu3a05vid_device::draw_sprites(screen_device &screen, bitmap_ind16 &bi
 				else
 					realaddr += ((tex_y + (yy>>1)) & 0xff) * 256;
 
-				uint8_t pix = fullbankspace.read_byte(realaddr);
+				uint8_t pix = fullbankspace->read_byte(realaddr);
 
 				if (pix != m_transpen)
 				{
@@ -331,7 +334,13 @@ bool elan_eu3a05vid_device::get_tile_data(int base, int drawpri, int& tile, int 
 
 void elan_eu3a05vid_device::draw_tilemaps_tileline(int drawpri, int tile, int attr, int unk2, int tilexsize, int i, int xpos, uint16_t* row)
 {
-	address_space& fullbankspace = m_bank->space(AS_PROGRAM);
+	address_space* fullbankspace;
+
+	if (m_bank)
+		fullbankspace = &m_bank->space(AS_PROGRAM);
+	else
+		fullbankspace = &m_cpu->space(5);
+
 	int colour = attr & 0xf0;
 
 	/* 'tiles' are organized / extracted from 'texture' lines that form a 'page' the length of the rom
@@ -365,7 +374,7 @@ void elan_eu3a05vid_device::draw_tilemaps_tileline(int drawpri, int tile, int at
 		for (int xx = 0; xx < tilexsize; xx += 2)
 		{
 			int realaddr = ((tile + i * 16) << 3) + (xx >> 1);
-			uint8_t pix = fullbankspace.read_byte(realaddr);
+			uint8_t pix = fullbankspace->read_byte(realaddr);
 
 			int drawxpos;
 
@@ -383,7 +392,7 @@ void elan_eu3a05vid_device::draw_tilemaps_tileline(int drawpri, int tile, int at
 		for (int xx = 0; xx < tilexsize; xx++)
 		{
 			int realaddr = ((tile + i * 32) << 3) + xx;
-			uint8_t pix = fullbankspace.read_byte(realaddr);
+			uint8_t pix = fullbankspace->read_byte(realaddr);
 
 			int drawxpos = xpos + xx;
 			if ((drawxpos >= 0) && (drawxpos < 256))

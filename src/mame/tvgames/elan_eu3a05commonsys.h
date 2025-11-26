@@ -18,6 +18,8 @@ public:
 	void set_pal(void) { m_is_pal = true; }
 	void disable_timer_irq(void) { m_allow_timer_irq = false; }
 
+	auto bank_change_callback() { return m_bankchange_cb.bind(); }
+
 	void generate_custom_interrupt(int level);
 
 	virtual void map(address_map &map) ATTR_COLD;
@@ -35,7 +37,7 @@ protected:
 	TIMER_CALLBACK_MEMBER(unknown_timer_tick);
 
 	required_device<m6502_device> m_cpu;
-	required_device<address_map_bank_device> m_bank;
+	optional_device<address_map_bank_device> m_bank;
 
 	uint8_t m_intmask[2]{};
 
@@ -65,6 +67,8 @@ private:
 
 	emu_timer *m_unk_timer = nullptr;
 	int m_whichtimer;
+	devcb_write16 m_bankchange_cb;
+
 
 };
 

@@ -34,7 +34,7 @@ protected:
 
 private:
 	required_device<m6502_device> m_cpu;
-	required_device<address_map_bank_device> m_bank;
+	optional_device<address_map_bank_device> m_bank;
 	const address_space_config      m_space_config;
 
 	uint8_t m_vidctrl = 0;

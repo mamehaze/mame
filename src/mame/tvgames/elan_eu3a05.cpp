@@ -224,7 +224,60 @@ Set 5043 bit 0 low
 #include "bus/generic/carts.h"
 
 
+class elan_eu3a05_cpu_device : public m6502_device {
+public:
+	elan_eu3a05_cpu_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
+
+	virtual void device_reset() override ATTR_COLD;
+	virtual void device_start() override ATTR_COLD;
+
+	// device_memory_interface overrides
+	virtual space_config_vector memory_space_config() const override;
+
+	address_space_config m_extbus_config;
+	address_space *m_extbus_space;
+};
+
+DECLARE_DEVICE_TYPE(ELAN_EU3A05_SOC, elan_eu3a05_cpu_device)
+
+DEFINE_DEVICE_TYPE(ELAN_EU3A05_SOC, elan_eu3a05_cpu_device, "elan_eu3a05_cpu_device", "ELAN EU3A05")
+
+elan_eu3a05_cpu_device::elan_eu3a05_cpu_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock) :
+	m6502_device(mconfig, ELAN_EU3A05_SOC, tag, owner, clock),
+	m_extbus_config("extbus", ENDIANNESS_LITTLE, 8, 24)
+{
+	m_extbus_config.m_addr_width = 24;
+	m_extbus_config.m_logaddr_width = 24;
+}
+
+void elan_eu3a05_cpu_device::device_start()
+{
+	m6502_device::device_start();
+	m_extbus_space = &space(5);
+}
+
+void elan_eu3a05_cpu_device::device_reset()
+{
+	m6502_device::device_reset();
+}
+
+device_memory_interface::space_config_vector elan_eu3a05_cpu_device::memory_space_config() const
+{
+	if(has_configured_map(AS_OPCODES))
+		return space_config_vector {
+			std::make_pair(AS_PROGRAM, &program_config),
+			std::make_pair(AS_OPCODES, &sprogram_config),
+			std::make_pair(5, &m_extbus_config),
+		};
+	else
+		return space_config_vector {
+			std::make_pair(AS_PROGRAM, &program_config),
+			std::make_pair(5, &m_extbus_config),
+		};
+}
+
 namespace {
+
 
 class elan_eu3a05_state : public driver_device
 {
@@ -239,9 +292,9 @@ public:
 		m_sound(*this, "eu3a05sound"),
 		m_vid(*this, "vid"),
 		m_pixram(*this, "pixram"),
-		m_bank(*this, "bank"),
 		m_gfxdecode(*this, "gfxdecode"),
-		m_palette(*this, "palette")
+		m_palette(*this, "palette"),
+		m_current_bank(0)
 	{ }
 
 	void elan_eu3a05(machine_config &config);
@@ -257,6 +310,12 @@ protected:
 
 	required_device<cpu_device> m_maincpu;
 	required_device<screen_device> m_screen;
+	required_shared_ptr<uint8_t> m_ram;
+	required_device<elan_eu3a05_sound_device> m_sound;
+	required_device<elan_eu3a05vid_device> m_vid;
+	required_shared_ptr<uint8_t> m_pixram;
+	required_device<gfxdecode_device> m_gfxdecode;
+	required_device<palette_device> m_palette;
 
 	// screen updates
 	uint32_t screen_update(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
@@ -269,15 +328,12 @@ protected:
 	void elan_eu3a05_bank_map(address_map &map) ATTR_COLD;
 	void elan_eu3a05_map(address_map &map) ATTR_COLD;
 
+	uint8_t bank_r(offs_t offset);
+	void bank_w(offs_t offset, uint8_t data);
+
 	virtual void video_start() override ATTR_COLD;
 
-	required_shared_ptr<uint8_t> m_ram;
-	required_device<elan_eu3a05_sound_device> m_sound;
-	required_device<elan_eu3a05vid_device> m_vid;
-	required_shared_ptr<uint8_t> m_pixram;
-	required_device<address_map_bank_device> m_bank;
-	required_device<gfxdecode_device> m_gfxdecode;
-	required_device<palette_device> m_palette;
+	void bank_change(uint16_t data);
 
 	void sound_end0(int state) { m_sys->generate_custom_interrupt(2); }
 	void sound_end1(int state) { m_sys->generate_custom_interrupt(3); }
@@ -285,6 +341,8 @@ protected:
 	void sound_end3(int state) { m_sys->generate_custom_interrupt(5); }
 	void sound_end4(int state) { m_sys->generate_custom_interrupt(6); }
 	void sound_end5(int state) { m_sys->generate_custom_interrupt(7); }
+
+	uint16_t m_current_bank;
 };
 
 class elan_eu3a05_buzztime_state : public elan_eu3a05_state
@@ -425,13 +483,24 @@ uint32_t elan_eu3a05_state::screen_update(screen_device& screen, bitmap_ind16& b
 // sound callback
 uint8_t elan_eu3a05_state::read_full_space(offs_t offset)
 {
-	address_space& fullbankspace = m_bank->space(AS_PROGRAM);
+	address_space& fullbankspace = m_maincpu->space(5);
 	return fullbankspace.read_byte(offset);
 }
 
 // code at 8bc6 in Air Blaster makes unwanted reads, why, bug in code, flow issue?
 //[:maincpu] ':maincpu' (8BC6): unmapped program memory read from 5972 & FF
 
+uint8_t elan_eu3a05_state::bank_r(offs_t offset)
+{
+	address_space& fullbankspace = m_maincpu->space(5);
+	return fullbankspace.read_byte((m_current_bank * 0x8000) + offset);
+}
+
+void elan_eu3a05_state::bank_w(offs_t offset, uint8_t data)
+{
+	address_space& fullbankspace = m_maincpu->space(5);
+	return fullbankspace.write_byte((m_current_bank * 0x8000) + offset, data);
+}
 
 void elan_eu3a05_state::elan_eu3a05_map(address_map &map)
 {
@@ -454,7 +523,7 @@ void elan_eu3a05_state::elan_eu3a05_map(address_map &map)
 	map(0x5080, 0x50bf).m(m_sound, FUNC(elan_eu3a05_sound_device::map));
 
 	//map(0x5000, 0x50ff).ram();
-	map(0x6000, 0xdfff).m(m_bank, FUNC(address_map_bank_device::amap8));
+	map(0x6000, 0xdfff).rw(FUNC(elan_eu3a05_state::bank_r), FUNC(elan_eu3a05_state::bank_w));
 
 	map(0xe000, 0xffff).rom().region("maincpu", 0x3f8000);
 	// not sure how these work, might be a modified 6502 core instead.
@@ -802,14 +871,18 @@ INTERRUPT_GEN_MEMBER(elan_eu3a05_state::interrupt)
    there don't appear to be any kind of blanking bits being checked.
 */
 
+void elan_eu3a05_state::bank_change(uint16_t data)
+{
+	m_current_bank = data;
+}
+
 void elan_eu3a05_state::elan_eu3a05(machine_config &config)
 {
 	/* basic machine hardware */
-	M6502(config, m_maincpu, XTAL(21'281'370)/8); // wrong, this is the PAL clock
+	ELAN_EU3A05_SOC(config, m_maincpu, XTAL(21'281'370)/8); // wrong, this is the PAL clock
 	m_maincpu->set_addrmap(AS_PROGRAM, &elan_eu3a05_state::elan_eu3a05_map);
 	m_maincpu->set_vblank_int("screen", FUNC(elan_eu3a05_state::interrupt));
-
-	ADDRESS_MAP_BANK(config, "bank").set_map(&elan_eu3a05_state::elan_eu3a05_bank_map).set_options(ENDIANNESS_LITTLE, 8, 24, 0x8000);
+	m_maincpu->set_addrmap(5, &elan_eu3a05_state::elan_eu3a05_bank_map);
 
 	PALETTE(config, m_palette).set_entries(256);
 
@@ -830,11 +903,10 @@ void elan_eu3a05_state::elan_eu3a05(machine_config &config)
 
 	ELAN_EU3A05_SYS(config, m_sys, 0);
 	m_sys->set_cpu("maincpu");
-	m_sys->set_addrbank("bank");
+	m_sys->bank_change_callback().set(FUNC(elan_eu3a05_state::bank_change));
 
 	ELAN_EU3A05_VID(config, m_vid, 0);
 	m_vid->set_cpu("maincpu");
-	m_vid->set_addrbank("bank");
 	m_vid->set_palette("palette");
 	m_vid->set_entries(256);
 
