@@ -27,6 +27,8 @@ public:
 	void generate_custom_interrupt(int irq) { m_sys->generate_custom_interrupt(9); }
 
 protected:
+	elan_eu3a05_cpu_device(const machine_config& mconfig, device_type type, const char* tag, device_t* owner, uint32_t clock);
+
 	virtual void device_add_mconfig(machine_config &config) override ATTR_COLD;
 	virtual void device_reset() override ATTR_COLD;
 	virtual void device_start() override ATTR_COLD;

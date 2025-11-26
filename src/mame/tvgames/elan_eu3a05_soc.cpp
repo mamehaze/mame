@@ -6,8 +6,9 @@
 
 DEFINE_DEVICE_TYPE(ELAN_EU3A05_SOC, elan_eu3a05_cpu_device, "elan_eu3a05_cpu_device", "ELAN EU3A05")
 
-elan_eu3a05_cpu_device::elan_eu3a05_cpu_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock) :
-	m6502_device(mconfig, ELAN_EU3A05_SOC, tag, owner, clock),
+
+elan_eu3a05_cpu_device::elan_eu3a05_cpu_device(const machine_config& mconfig, device_type type, const char* tag, device_t* owner, uint32_t clock) :
+	m6502_device(mconfig, type, tag, owner, clock),
 	m_extbus_config("extbus", ENDIANNESS_LITTLE, 8, 24),
 	m_sys(*this, "sys"),
 	m_sound(*this, "eu3a05sound"),
@@ -20,6 +21,12 @@ elan_eu3a05_cpu_device::elan_eu3a05_cpu_device(const machine_config &mconfig, co
 	m_extbus_config.m_logaddr_width = 24;
 	program_config.m_internal_map = address_map_constructor(FUNC(elan_eu3a05_cpu_device::int_map), this);
 }
+
+elan_eu3a05_cpu_device::elan_eu3a05_cpu_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock) :
+	elan_eu3a05_cpu_device(mconfig, ELAN_EU3A05_SOC, tag, owner, clock)
+{
+}
+
 
 void elan_eu3a05_cpu_device::device_add_mconfig(machine_config &config)
 {
