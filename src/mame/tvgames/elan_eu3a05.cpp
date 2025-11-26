@@ -239,11 +239,9 @@ protected:
 
 	required_shared_ptr<uint8_t> m_pixram;
 
-
 	INTERRUPT_GEN_MEMBER(interrupt);
 
 	void elan_eu3a05_bank_map(address_map &map) ATTR_COLD;
-	void elan_eu3a05_map(address_map &map) ATTR_COLD;
 
 	virtual void video_start() override ATTR_COLD;
 
@@ -264,8 +262,8 @@ protected:
 
 private:
 	//uint8_t random_r() { return machine().rand(); }
-// TODO	uint8_t porta_r();
-// TODO	void portb_w(uint8_t data);
+	uint8_t porta_r();
+	void portb_w(uint8_t data);
 
 	DECLARE_DEVICE_IMAGE_LOAD_MEMBER(cart_load);
 
@@ -288,8 +286,8 @@ public:
 protected:
 
 private:
-// TODO	uint8_t pvwwc_portc_r();
-// TODO	void pvwwc_portc_w(uint8_t data);
+	uint8_t pvwwc_portc_r();
+	void pvwwc_portc_w(uint8_t data);
 	uint8_t m_prevport_c;
 };
 
@@ -306,9 +304,6 @@ public:
 
 	void init_sudelan();
 	void init_sudelan3();
-
-private:
-	void elan_eu3a13_map(address_map &map) ATTR_COLD;
 };
 
 
@@ -350,10 +345,10 @@ void elan_eu3a05_buzztime_state::elan_buzztime(machine_config &config)
 
 	// TODO m_sys->set_alt_timer();
 
-// TODO	m_gpio->read_0_callback().set(FUNC(elan_eu3a05_buzztime_state::porta_r)); // I/O lives in here
-//  m_gpio->read_1_callback().set(FUNC(elan_eu3a05_buzztime_state::random_r)); // nothing of note
-//  m_gpio->read_2_callback().set(FUNC(elan_eu3a05_buzztime_state::random_r)); // nothing of note
-// TODO	m_gpio->write_1_callback().set(FUNC(elan_eu3a05_buzztime_state::portb_w)); // control related
+	m_maincpu->read_0_callback().set(FUNC(elan_eu3a05_buzztime_state::porta_r)); // I/O lives in here
+//  m_maincpu->read_1_callback().set(FUNC(elan_eu3a05_buzztime_state::random_r)); // nothing of note
+//  m_maincpu->read_2_callback().set(FUNC(elan_eu3a05_buzztime_state::random_r)); // nothing of note
+	m_maincpu->write_1_callback().set(FUNC(elan_eu3a05_buzztime_state::portb_w)); // control related
 
 	GENERIC_CARTSLOT(config, m_cart, generic_plain_slot, "buzztime_cart");
 	m_cart->set_width(GENERIC_ROM16_WIDTH);
@@ -362,7 +357,6 @@ void elan_eu3a05_buzztime_state::elan_buzztime(machine_config &config)
 	SOFTWARE_LIST(config, "buzztime_cart").set_original("buzztime_cart");
 }
 
-/* TODO
 uint8_t elan_eu3a05_buzztime_state::porta_r()
 {
 	logerror("%s: porta_r\n", machine().describe_context());
@@ -373,28 +367,10 @@ void elan_eu3a05_buzztime_state::portb_w(uint8_t data)
 {
 	logerror("%s: portb_w %02x\n", machine().describe_context(), data);
 }
-*/
 
 void elan_eu3a05_state::video_start()
 {
 }
-
-
-
-// code at 8bc6 in Air Blaster makes unwanted reads, why, bug in code, flow issue?
-//[:maincpu] ':maincpu' (8BC6): unmapped program memory read from 5972 & FF
-
-void elan_eu3a05_state::elan_eu3a05_map(address_map &map)
-{
-}
-
-// default e000 mapping is the same as eu3a14, other registers seem closer to eua05
-void elan_eu3a13_state::elan_eu3a13_map(address_map& map)
-{
-	elan_eu3a05_map(map);
-	map(0xe000, 0xffff).rom().region("maincpu", 0x0000);
-}
-
 
 void elan_eu3a05_state::elan_eu3a05_bank_map(address_map &map)
 {
@@ -615,8 +591,6 @@ static INPUT_PORTS_START( carlecfg )
 	PORT_BIT( 0xff, IP_ACTIVE_LOW, IPT_UNUSED )
 INPUT_PORTS_END
 
-
-
 void elan_eu3a05_state::machine_start()
 {
 }
@@ -625,12 +599,10 @@ void elan_eu3a05_state::machine_reset()
 {
 }
 
-
 INTERRUPT_GEN_MEMBER(elan_eu3a05_state::interrupt)
 {
 	m_maincpu->generate_custom_interrupt(9);
 }
-
 
 /* Tetris (PAL version)      has XTAL of 21.281370
    Air Blaster (PAL version) has XTAL of 21.2813
@@ -648,52 +620,20 @@ INTERRUPT_GEN_MEMBER(elan_eu3a05_state::interrupt)
    there don't appear to be any kind of blanking bits being checked.
 */
 
-
-
 void elan_eu3a05_state::elan_eu3a05(machine_config &config)
 {
-	/* basic machine hardware */
-	ELAN_EU3A05_SOC(config, m_maincpu, XTAL(21'281'370)/8); // wrong, this is the PAL clock
-	m_maincpu->set_addrmap(AS_PROGRAM, &elan_eu3a05_state::elan_eu3a05_map);
+	ELAN_EU3A05_SOC(config, m_maincpu, XTAL(21'477'272)/8); // divider is likely wrong, waitstates impact performance?
 	m_maincpu->set_vblank_int("maincpu:screen", FUNC(elan_eu3a05_state::interrupt));
 	m_maincpu->set_addrmap(5, &elan_eu3a05_state::elan_eu3a05_bank_map);
 }
 
 void elan_eu3a05_state::elan_eu3a05_pal(machine_config& config)
 {
-	elan_eu3a05(config);
-// TODO	m_screen->set_refresh_hz(50);
-// TODO	m_sys->set_pal(); // TODO: also set PAL clocks
+	ELAN_EU3A05_PAL_SOC(config, m_maincpu, XTAL(21'281'370)/8); // divider is likely wrong, waitstates impact performance?
+	m_maincpu->set_vblank_int("maincpu:screen", FUNC(elan_eu3a05_state::interrupt));
+	m_maincpu->set_addrmap(5, &elan_eu3a05_state::elan_eu3a05_bank_map);
 }
 
-
-void elan_eu3a13_state::elan_eu3a13(machine_config& config)
-{
-	elan_eu3a05(config);
-	m_maincpu->set_addrmap(AS_PROGRAM, &elan_eu3a13_state::elan_eu3a13_map);
-// TODO	m_vid->set_is_sudoku();
-// TODO	m_vid->set_use_spritepages();
-// TODO	m_sys->set_alt_timer(); // for Carl Edwards'
-}
-
-void elan_eu3a13_state::elan_eu3a13_pal(machine_config& config)
-{
-	elan_eu3a13(config);
-// TODO	m_sys->set_pal(); // TODO: also set PAL clocks
-// TODO	m_screen->set_refresh_hz(50);
-}
-
-void elan_eu3a13_state::elan_eu3a13_pvmil8(machine_config& config)
-{
-	elan_eu3a05(config);
-	m_maincpu->set_addrmap(AS_PROGRAM, &elan_eu3a13_state::elan_eu3a13_map);
-// TODO	m_vid->set_is_pvmilfin();
-// TODO	m_sys->set_alt_timer();
-// TODO	m_sys->set_pal(); // TODO: also set PAL clocks
-// TODO	m_screen->set_refresh_hz(50);
-}
-
-/* TODO
 uint8_t elan_eu3a05_pvwwcas_state::pvwwc_portc_r()
 {
 	int pc = m_maincpu->pc();
@@ -731,18 +671,34 @@ void elan_eu3a05_pvwwcas_state::pvwwc_portc_w(uint8_t data)
 
 	m_prevport_c = data;
 }
-*/
 
 void elan_eu3a05_pvwwcas_state::pvwwcas(machine_config& config)
 {
-	elan_eu3a05(config);
-// TODO	m_screen->set_refresh_hz(50);
-// TODO	m_sys->set_pal(); // TODO: also set PAL clocks
-
-// TODO	m_gpio->read_2_callback().set(FUNC(elan_eu3a05_pvwwcas_state::pvwwc_portc_r));
-// TODO	m_gpio->write_2_callback().set(FUNC(elan_eu3a05_pvwwcas_state::pvwwc_portc_w));
+	elan_eu3a05_pal(config);
+	m_maincpu->read_2_callback().set(FUNC(elan_eu3a05_pvwwcas_state::pvwwc_portc_r));
+	m_maincpu->write_2_callback().set(FUNC(elan_eu3a05_pvwwcas_state::pvwwc_portc_w));
 }
 
+
+void elan_eu3a13_state::elan_eu3a13(machine_config& config)
+{
+	ELAN_EU3A13_SOC(config, m_maincpu, XTAL(21'477'272)/8); // divider is likely wrong, waitstates impact performance?
+	m_maincpu->set_vblank_int("maincpu:screen", FUNC(elan_eu3a13_state::interrupt));
+	m_maincpu->set_addrmap(5, &elan_eu3a13_state::elan_eu3a05_bank_map);
+}
+
+void elan_eu3a13_state::elan_eu3a13_pal(machine_config& config)
+{
+	ELAN_EU3A13_PAL_SOC(config, m_maincpu, XTAL(21'281'370)/8); // divider is likely wrong, waitstates impact performance?
+	m_maincpu->set_vblank_int("maincpu:screen", FUNC(elan_eu3a13_state::interrupt));
+	m_maincpu->set_addrmap(5, &elan_eu3a13_state::elan_eu3a05_bank_map);
+}
+
+void elan_eu3a13_state::elan_eu3a13_pvmil8(machine_config& config)
+{
+	elan_eu3a13_pal(config);
+	// TODO	m_vid->set_is_pvmilfin();
+}
 
 
 ROM_START( rad_tetr )

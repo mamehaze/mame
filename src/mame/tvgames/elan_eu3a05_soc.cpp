@@ -4,12 +4,21 @@
 #include "emu.h"
 #include "elan_eu3a05_soc.h"
 
-DEFINE_DEVICE_TYPE(ELAN_EU3A05_SOC, elan_eu3a05_cpu_device, "elan_eu3a05_cpu_device", "ELAN EU3A05")
+DEFINE_DEVICE_TYPE(ELAN_EU3A05_SOC,     elan_eu3a05_cpu_device,     "elan_eu3a05_cpu_device",     "ELAN EU3A05 (NTSC)")
+DEFINE_DEVICE_TYPE(ELAN_EU3A05_PAL_SOC, elan_eu3a05_pal_cpu_device, "elan_eu3a05_pal_cpu_device", "ELAN EU3A05 (PAL)")
+DEFINE_DEVICE_TYPE(ELAN_EU3A13_SOC,     elan_eu3a13_cpu_device,     "elan_eu3a13_cpu_device",     "ELAN EU3A13 (NTSC)")
+DEFINE_DEVICE_TYPE(ELAN_EU3A13_PAL_SOC, elan_eu3a13_pal_cpu_device, "elan_eu3a13_pal_cpu_device", "ELAN EU3A13 (PAL)")
 
 
 elan_eu3a05_cpu_device::elan_eu3a05_cpu_device(const machine_config& mconfig, device_type type, const char* tag, device_t* owner, uint32_t clock) :
 	m6502_device(mconfig, type, tag, owner, clock),
 	m_extbus_config("extbus", ENDIANNESS_LITTLE, 8, 24),
+	m_write_0_callback(*this),
+	m_write_1_callback(*this),
+	m_write_2_callback(*this),
+	m_read_0_callback(*this, 0xff),
+	m_read_1_callback(*this, 0xff),
+	m_read_2_callback(*this, 0xff),
 	m_sys(*this, "sys"),
 	m_sound(*this, "eu3a05sound"),
 	m_gpio(*this, "gpio"),
@@ -20,6 +29,7 @@ elan_eu3a05_cpu_device::elan_eu3a05_cpu_device(const machine_config& mconfig, de
 	m_extbus_config.m_addr_width = 24;
 	m_extbus_config.m_logaddr_width = 24;
 	program_config.m_internal_map = address_map_constructor(FUNC(elan_eu3a05_cpu_device::int_map), this);
+	m_fixed_base = 0x3f8000;
 }
 
 elan_eu3a05_cpu_device::elan_eu3a05_cpu_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock) :
@@ -27,6 +37,26 @@ elan_eu3a05_cpu_device::elan_eu3a05_cpu_device(const machine_config &mconfig, co
 {
 }
 
+elan_eu3a05_pal_cpu_device::elan_eu3a05_pal_cpu_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock) :
+	elan_eu3a05_cpu_device(mconfig, ELAN_EU3A05_PAL_SOC, tag, owner, clock)
+{
+}
+
+elan_eu3a13_cpu_device::elan_eu3a13_cpu_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, uint32_t clock) :
+	elan_eu3a05_cpu_device(mconfig, type, tag, owner, clock)
+{
+	m_fixed_base = 0x000000;
+}
+
+elan_eu3a13_cpu_device::elan_eu3a13_cpu_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock) :
+	elan_eu3a13_cpu_device(mconfig, ELAN_EU3A13_SOC, tag, owner, clock)
+{
+}
+
+elan_eu3a13_pal_cpu_device::elan_eu3a13_pal_cpu_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock) :
+	elan_eu3a13_cpu_device(mconfig, ELAN_EU3A13_PAL_SOC, tag, owner, clock)
+{
+}
 
 void elan_eu3a05_cpu_device::device_add_mconfig(machine_config &config)
 {
@@ -48,9 +78,12 @@ void elan_eu3a05_cpu_device::device_add_mconfig(machine_config &config)
 	m_screen->set_palette(m_palette);
 
 	ELAN_EU3A05_GPIO(config, m_gpio, 0);
-	m_gpio->read_0_callback().set_ioport(":IN0");
-	m_gpio->read_1_callback().set_ioport(":IN1");
-	m_gpio->read_2_callback().set_ioport(":IN2");
+	m_gpio->read_0_callback().set(FUNC(elan_eu3a05_cpu_device::in0_read));
+	m_gpio->read_1_callback().set(FUNC(elan_eu3a05_cpu_device::in1_read));
+	m_gpio->read_2_callback().set(FUNC(elan_eu3a05_cpu_device::in2_read));
+	m_gpio->write_0_callback().set(FUNC(elan_eu3a05_cpu_device::out0_write));
+	m_gpio->write_1_callback().set(FUNC(elan_eu3a05_cpu_device::out1_write));
+	m_gpio->write_2_callback().set(FUNC(elan_eu3a05_cpu_device::out2_write));
 
 	ELAN_EU3A05_VID(config, m_vid, 0);
 	m_vid->set_cpu(":maincpu");
@@ -69,6 +102,29 @@ void elan_eu3a05_cpu_device::device_add_mconfig(machine_config &config)
 	m_sound->sound_end_cb<5>().set(FUNC(elan_eu3a05_state::sound_end5));
 	*/
 }
+
+void elan_eu3a05_pal_cpu_device::device_add_mconfig(machine_config &config)
+{
+	elan_eu3a05_cpu_device::device_add_mconfig(config);
+	m_screen->set_refresh_hz(50);
+	m_sys->set_pal();
+}
+
+void elan_eu3a13_cpu_device::device_add_mconfig(machine_config &config)
+{
+	elan_eu3a05_cpu_device::device_add_mconfig(config);
+	m_vid->set_is_sudoku();
+	m_vid->set_use_spritepages();
+	m_sys->set_alt_timer(); // for Carl Edwards'
+}
+
+void elan_eu3a13_pal_cpu_device::device_add_mconfig(machine_config &config)
+{
+	elan_eu3a13_cpu_device::device_add_mconfig(config);
+	m_screen->set_refresh_hz(50);
+	m_sys->set_pal();
+}
+
 
 void elan_eu3a05_cpu_device::device_start()
 {
@@ -114,7 +170,7 @@ uint8_t elan_eu3a05_cpu_device::read_full_space(offs_t offset)
 
 uint8_t elan_eu3a05_cpu_device::read_fixed_bank(offs_t offset)
 {
-	return m_extbus_space->read_byte(0x3f8000 + offset);
+	return m_extbus_space->read_byte(m_fixed_base + offset);
 }
 
 uint32_t elan_eu3a05_cpu_device::screen_update(screen_device& screen, bitmap_ind16& bitmap, const rectangle& cliprect)
