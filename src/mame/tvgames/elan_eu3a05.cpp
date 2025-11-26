@@ -255,6 +255,9 @@ private:
 		set_current_bank(data);
 	}
 
+	// screen updates
+	uint32_t screen_update(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
+
 	void sound_end0(int state) { m_sys->generate_custom_interrupt(2); }
 	void sound_end1(int state) { m_sys->generate_custom_interrupt(3); }
 	void sound_end2(int state) { m_sys->generate_custom_interrupt(4); }
@@ -266,6 +269,10 @@ private:
 
 	required_device<elan_eu3a05sys_device> m_sys;
 	required_device<elan_eu3a05_sound_device> m_sound;
+	required_device<elan_eu3a05gpio_device> m_gpio;
+	required_device<screen_device> m_screen;
+	required_device<elan_eu3a05vid_device> m_vid;
+	required_device<palette_device> m_palette;
 };
 
 DECLARE_DEVICE_TYPE(ELAN_EU3A05_SOC, elan_eu3a05_cpu_device)
@@ -276,7 +283,11 @@ elan_eu3a05_cpu_device::elan_eu3a05_cpu_device(const machine_config &mconfig, co
 	m6502_device(mconfig, ELAN_EU3A05_SOC, tag, owner, clock),
 	m_extbus_config("extbus", ENDIANNESS_LITTLE, 8, 24),
 	m_sys(*this, "sys"),
-	m_sound(*this, "eu3a05sound")
+	m_sound(*this, "eu3a05sound"),
+	m_gpio(*this, "gpio"),
+	m_screen(*this, "screen"),
+	m_vid(*this, "vid"),
+	m_palette(*this, "palette")
 {
 	m_extbus_config.m_addr_width = 24;
 	m_extbus_config.m_logaddr_width = 24;
@@ -291,6 +302,26 @@ void elan_eu3a05_cpu_device::device_add_mconfig(machine_config &config)
 	ELAN_EU3A05_SYS(config, m_sys, 0);
 	m_sys->set_cpu(":maincpu");
 	m_sys->bank_change_callback().set(FUNC(elan_eu3a05_cpu_device::bank_change));
+
+	PALETTE(config, m_palette).set_entries(256);
+
+	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
+	m_screen->set_refresh_hz(60);
+	m_screen->set_vblank_time(ATTOSECONDS_IN_USEC(2500));
+	m_screen->set_screen_update(FUNC(elan_eu3a05_cpu_device::screen_update));
+	m_screen->set_size(32*8, 32*8);
+	m_screen->set_visarea(0*8, 32*8-1, 0*8, 28*8-1);
+	m_screen->set_palette(m_palette);
+
+	ELAN_EU3A05_GPIO(config, m_gpio, 0);
+	m_gpio->read_0_callback().set_ioport(":IN0");
+	m_gpio->read_1_callback().set_ioport(":IN1");
+	m_gpio->read_2_callback().set_ioport(":IN2");
+
+	ELAN_EU3A05_VID(config, m_vid, 0);
+	m_vid->set_cpu(":maincpu");
+	m_vid->set_palette("palette");
+	m_vid->set_entries(256);
 
 	ELAN_EU3A05_SOUND(config, m_sound, 8000);
 	m_sound->space_read_callback().set(FUNC(elan_eu3a05_cpu_device::read_full_space));
@@ -352,10 +383,28 @@ uint8_t elan_eu3a05_cpu_device::read_fixed_bank(offs_t offset)
 	return m_extbus_space->read_byte(0x3f8000 + offset);
 }
 
+uint32_t elan_eu3a05_cpu_device::screen_update(screen_device& screen, bitmap_ind16& bitmap, const rectangle& cliprect)
+{
+	return m_vid->screen_update(screen, bitmap, cliprect);
+}
+
 void elan_eu3a05_cpu_device::int_map(address_map &map)
 {
+	// can the addresses move around?
+	map(0x0000, 0x3fff).ram();
+	map(0x4800, 0x49ff).rw(m_vid, FUNC(elan_eu3a05commonvid_device::palette_r), FUNC(elan_eu3a05commonvid_device::palette_w));
 
 	map(0x5000, 0x501f).m(m_sys, FUNC(elan_eu3a05sys_device::map)); // including DMA controller
+
+	map(0x5020, 0x503f).m(m_vid, FUNC(elan_eu3a05vid_device::map));
+
+	// 504x GPIO area?
+	map(0x5040, 0x5046).rw(m_gpio, FUNC(elan_eu3a05gpio_device::gpio_r), FUNC(elan_eu3a05gpio_device::gpio_w));
+	// 5047
+	map(0x5048, 0x504a).w(m_gpio, FUNC(elan_eu3a05gpio_device::gpio_unk_w));
+
+	// 506x unknown
+	map(0x5060, 0x506d).ram(); // read/written by tetris (ADC?)
 
 	// 508x sound
 	map(0x5080, 0x50bf).m(m_sound, FUNC(elan_eu3a05_sound_device::map));
@@ -391,14 +440,8 @@ class elan_eu3a05_state : public driver_device
 public:
 	elan_eu3a05_state(const machine_config &mconfig, device_type type, const char *tag)
 		: driver_device(mconfig, type, tag),
-		m_gpio(*this, "gpio"),
 		m_maincpu(*this, "maincpu"),
-		m_screen(*this, "screen"),
-		m_ram(*this, "ram"),
-		m_vid(*this, "vid"),
-		m_pixram(*this, "pixram"),
-		m_gfxdecode(*this, "gfxdecode"),
-		m_palette(*this, "palette")
+		m_pixram(*this, "pixram")
 	{ }
 
 	void elan_eu3a05(machine_config &config);
@@ -409,18 +452,10 @@ protected:
 	virtual void machine_start() override ATTR_COLD;
 	virtual void machine_reset() override ATTR_COLD;
 
-	required_device<elan_eu3a05gpio_device> m_gpio;
-
 	required_device<elan_eu3a05_cpu_device> m_maincpu;
-	required_device<screen_device> m_screen;
-	required_shared_ptr<uint8_t> m_ram;
-	required_device<elan_eu3a05vid_device> m_vid;
-	required_shared_ptr<uint8_t> m_pixram;
-	required_device<gfxdecode_device> m_gfxdecode;
-	required_device<palette_device> m_palette;
 
-	// screen updates
-	uint32_t screen_update(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
+	required_shared_ptr<uint8_t> m_pixram;
+
 
 	INTERRUPT_GEN_MEMBER(interrupt);
 
@@ -446,8 +481,8 @@ protected:
 
 private:
 	//uint8_t random_r() { return machine().rand(); }
-	uint8_t porta_r();
-	void portb_w(uint8_t data);
+// TODO	uint8_t porta_r();
+// TODO	void portb_w(uint8_t data);
 
 	DECLARE_DEVICE_IMAGE_LOAD_MEMBER(cart_load);
 
@@ -470,8 +505,8 @@ public:
 protected:
 
 private:
-	uint8_t pvwwc_portc_r();
-	void pvwwc_portc_w(uint8_t data);
+// TODO	uint8_t pvwwc_portc_r();
+// TODO	void pvwwc_portc_w(uint8_t data);
 	uint8_t m_prevport_c;
 };
 
@@ -532,10 +567,10 @@ void elan_eu3a05_buzztime_state::elan_buzztime(machine_config &config)
 
 	// TODO m_sys->set_alt_timer();
 
-	m_gpio->read_0_callback().set(FUNC(elan_eu3a05_buzztime_state::porta_r)); // I/O lives in here
+// TODO	m_gpio->read_0_callback().set(FUNC(elan_eu3a05_buzztime_state::porta_r)); // I/O lives in here
 //  m_gpio->read_1_callback().set(FUNC(elan_eu3a05_buzztime_state::random_r)); // nothing of note
 //  m_gpio->read_2_callback().set(FUNC(elan_eu3a05_buzztime_state::random_r)); // nothing of note
-	m_gpio->write_1_callback().set(FUNC(elan_eu3a05_buzztime_state::portb_w)); // control related
+// TODO	m_gpio->write_1_callback().set(FUNC(elan_eu3a05_buzztime_state::portb_w)); // control related
 
 	GENERIC_CARTSLOT(config, m_cart, generic_plain_slot, "buzztime_cart");
 	m_cart->set_width(GENERIC_ROM16_WIDTH);
@@ -544,6 +579,7 @@ void elan_eu3a05_buzztime_state::elan_buzztime(machine_config &config)
 	SOFTWARE_LIST(config, "buzztime_cart").set_original("buzztime_cart");
 }
 
+/* TODO
 uint8_t elan_eu3a05_buzztime_state::porta_r()
 {
 	logerror("%s: porta_r\n", machine().describe_context());
@@ -554,36 +590,19 @@ void elan_eu3a05_buzztime_state::portb_w(uint8_t data)
 {
 	logerror("%s: portb_w %02x\n", machine().describe_context(), data);
 }
-
+*/
 
 void elan_eu3a05_state::video_start()
 {
 }
 
 
-uint32_t elan_eu3a05_state::screen_update(screen_device& screen, bitmap_ind16& bitmap, const rectangle& cliprect)
-{
-	return m_vid->screen_update(screen, bitmap, cliprect);
-}
 
 // code at 8bc6 in Air Blaster makes unwanted reads, why, bug in code, flow issue?
 //[:maincpu] ':maincpu' (8BC6): unmapped program memory read from 5972 & FF
 
 void elan_eu3a05_state::elan_eu3a05_map(address_map &map)
 {
-	// can the addresses move around?
-	map(0x0000, 0x3fff).ram().share("ram");
-	map(0x4800, 0x49ff).rw(m_vid, FUNC(elan_eu3a05commonvid_device::palette_r), FUNC(elan_eu3a05commonvid_device::palette_w));
-
-	map(0x5020, 0x503f).m(m_vid, FUNC(elan_eu3a05vid_device::map));
-
-	// 504x GPIO area?
-	map(0x5040, 0x5046).rw(m_gpio, FUNC(elan_eu3a05gpio_device::gpio_r), FUNC(elan_eu3a05gpio_device::gpio_w));
-	// 5047
-	map(0x5048, 0x504a).w(m_gpio, FUNC(elan_eu3a05gpio_device::gpio_unk_w));
-
-	// 506x unknown
-	map(0x5060, 0x506d).ram(); // read/written by tetris (ADC?)
 }
 
 // default e000 mapping is the same as eu3a14, other registers seem closer to eua05
@@ -823,68 +842,6 @@ void elan_eu3a05_state::machine_reset()
 {
 }
 
-static const gfx_layout helper_4bpp_8_layout =
-{
-	8,1,
-	RGN_FRAC(1,1),
-	4,
-	{ 0,1,2,3 },
-	{ STEP8(0,4) },
-	{ 0 },
-	8 * 4
-};
-
-static const gfx_layout helper_8bpp_8_layout =
-{
-	8,1,
-	RGN_FRAC(1,1),
-	8,
-	{ 0,1,2,3,4,5,6,7 },
-	{ STEP8(0,8) },
-	{ 0 },
-	8 * 8
-};
-
-
-// these are fake just to make looking at the texture pages easier
-static const uint32_t texlayout_xoffset_8bpp[256] = { STEP256(0,8) };
-static const uint32_t texlayout_yoffset_8bpp[256] = { STEP256(0,256*8) };
-static const gfx_layout texture_helper_8bpp_layout =
-{
-	256, 256,
-	RGN_FRAC(1,1),
-	8,
-	{ 0,1,2,3,4,5,6,7 },
-	EXTENDED_XOFFS,
-	EXTENDED_YOFFS,
-	256*256*8,
-	texlayout_xoffset_8bpp,
-	texlayout_yoffset_8bpp
-};
-
-static const uint32_t texlayout_xoffset_4bpp[256] = { STEP256(0,4) };
-static const uint32_t texlayout_yoffset_4bpp[256] = { STEP256(0,256*4) };
-static const gfx_layout texture_helper_4bpp_layout =
-{
-	256, 256,
-	RGN_FRAC(1,1),
-	4,
-	{ 0,1,2,3 },
-	EXTENDED_XOFFS,
-	EXTENDED_YOFFS,
-	256*256*4,
-	texlayout_xoffset_4bpp,
-	texlayout_yoffset_4bpp
-};
-
-static GFXDECODE_START( gfx_elan_eu3a05_fake )
-	GFXDECODE_ENTRY( "maincpu", 0, helper_4bpp_8_layout,  0x0, 1  )
-	GFXDECODE_ENTRY( "maincpu", 0, texture_helper_4bpp_layout,  0x0, 1  )
-	GFXDECODE_ENTRY( "maincpu", 0, helper_8bpp_8_layout,  0x0, 1  )
-	GFXDECODE_ENTRY( "maincpu", 0, texture_helper_8bpp_layout,  0x0, 1  )
-GFXDECODE_END
-
-
 
 INTERRUPT_GEN_MEMBER(elan_eu3a05_state::interrupt)
 {
@@ -915,39 +872,14 @@ void elan_eu3a05_state::elan_eu3a05(machine_config &config)
 	/* basic machine hardware */
 	ELAN_EU3A05_SOC(config, m_maincpu, XTAL(21'281'370)/8); // wrong, this is the PAL clock
 	m_maincpu->set_addrmap(AS_PROGRAM, &elan_eu3a05_state::elan_eu3a05_map);
-	m_maincpu->set_vblank_int("screen", FUNC(elan_eu3a05_state::interrupt));
+	m_maincpu->set_vblank_int("maincpu:screen", FUNC(elan_eu3a05_state::interrupt));
 	m_maincpu->set_addrmap(5, &elan_eu3a05_state::elan_eu3a05_bank_map);
-
-	PALETTE(config, m_palette).set_entries(256);
-
-	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
-	m_screen->set_refresh_hz(60);
-	m_screen->set_vblank_time(ATTOSECONDS_IN_USEC(2500));
-	m_screen->set_screen_update(FUNC(elan_eu3a05_state::screen_update));
-	m_screen->set_size(32*8, 32*8);
-	m_screen->set_visarea(0*8, 32*8-1, 0*8, 28*8-1);
-	m_screen->set_palette(m_palette);
-
-	GFXDECODE(config, m_gfxdecode, m_palette, gfx_elan_eu3a05_fake);
-
-	ELAN_EU3A05_GPIO(config, m_gpio, 0);
-	m_gpio->read_0_callback().set_ioport("IN0");
-	m_gpio->read_1_callback().set_ioport("IN1");
-	m_gpio->read_2_callback().set_ioport("IN2");
-
-
-	ELAN_EU3A05_VID(config, m_vid, 0);
-	m_vid->set_cpu("maincpu");
-	m_vid->set_palette("palette");
-	m_vid->set_entries(256);
-
-
 }
 
 void elan_eu3a05_state::elan_eu3a05_pal(machine_config& config)
 {
 	elan_eu3a05(config);
-	m_screen->set_refresh_hz(50);
+// TODO	m_screen->set_refresh_hz(50);
 // TODO	m_sys->set_pal(); // TODO: also set PAL clocks
 }
 
@@ -956,8 +888,8 @@ void elan_eu3a13_state::elan_eu3a13(machine_config& config)
 {
 	elan_eu3a05(config);
 	m_maincpu->set_addrmap(AS_PROGRAM, &elan_eu3a13_state::elan_eu3a13_map);
-	m_vid->set_is_sudoku();
-	m_vid->set_use_spritepages();
+// TODO	m_vid->set_is_sudoku();
+// TODO	m_vid->set_use_spritepages();
 // TODO	m_sys->set_alt_timer(); // for Carl Edwards'
 }
 
@@ -965,20 +897,20 @@ void elan_eu3a13_state::elan_eu3a13_pal(machine_config& config)
 {
 	elan_eu3a13(config);
 // TODO	m_sys->set_pal(); // TODO: also set PAL clocks
-	m_screen->set_refresh_hz(50);
+// TODO	m_screen->set_refresh_hz(50);
 }
 
 void elan_eu3a13_state::elan_eu3a13_pvmil8(machine_config& config)
 {
 	elan_eu3a05(config);
 	m_maincpu->set_addrmap(AS_PROGRAM, &elan_eu3a13_state::elan_eu3a13_map);
-	m_vid->set_is_pvmilfin();
+// TODO	m_vid->set_is_pvmilfin();
 // TODO	m_sys->set_alt_timer();
 // TODO	m_sys->set_pal(); // TODO: also set PAL clocks
-	m_screen->set_refresh_hz(50);
+// TODO	m_screen->set_refresh_hz(50);
 }
 
-
+/* TODO
 uint8_t elan_eu3a05_pvwwcas_state::pvwwc_portc_r()
 {
 	int pc = m_maincpu->pc();
@@ -991,6 +923,7 @@ uint8_t elan_eu3a05_pvwwcas_state::pvwwc_portc_r()
 
 	return m_prevport_c | 0x4;
 }
+
 
 void elan_eu3a05_pvwwcas_state::pvwwc_portc_w(uint8_t data)
 {
@@ -1015,15 +948,16 @@ void elan_eu3a05_pvwwcas_state::pvwwc_portc_w(uint8_t data)
 
 	m_prevport_c = data;
 }
+*/
 
 void elan_eu3a05_pvwwcas_state::pvwwcas(machine_config& config)
 {
 	elan_eu3a05(config);
-	m_screen->set_refresh_hz(50);
+// TODO	m_screen->set_refresh_hz(50);
 // TODO	m_sys->set_pal(); // TODO: also set PAL clocks
 
-	m_gpio->read_2_callback().set(FUNC(elan_eu3a05_pvwwcas_state::pvwwc_portc_r));
-	m_gpio->write_2_callback().set(FUNC(elan_eu3a05_pvwwcas_state::pvwwc_portc_w));
+// TODO	m_gpio->read_2_callback().set(FUNC(elan_eu3a05_pvwwcas_state::pvwwc_portc_r));
+// TODO	m_gpio->write_2_callback().set(FUNC(elan_eu3a05_pvwwcas_state::pvwwc_portc_w));
 }
 
 
