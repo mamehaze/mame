@@ -286,6 +286,16 @@ protected:
 	void sound_end3(int state) { m_sys->generate_custom_interrupt(5); }
 	void sound_end4(int state) { m_sys->generate_custom_interrupt(6); }
 	void sound_end5(int state) { m_sys->generate_custom_interrupt(7); }
+
+	uint8_t bank_r(offs_t offset)
+	{
+		return m_maincpu->space(5).read_byte((m_current_bank * 0x8000) + offset);
+	}
+
+	void bank_w(offs_t offset, uint8_t data)
+	{
+		m_maincpu->space(5).write_byte((m_current_bank * 0x8000) + offset, data);
+	}
 };
 
 class elan_eu3a05_buzztime_state : public elan_eu3a05_state
@@ -454,7 +464,8 @@ void elan_eu3a05_state::elan_eu3a05_map(address_map &map)
 	map(0x5080, 0x50bf).m(m_sound, FUNC(elan_eu3a05_sound_device::map));
 
 	//map(0x5000, 0x50ff).ram();
-	map(0x6000, 0xdfff).m(m_bank, FUNC(address_map_bank_device::amap8));
+	//map(0x6000, 0xdfff).m(m_bank, FUNC(address_map_bank_device::amap8));
+	map(0x6000, 0xdfff).rw(FUNC(elan_eu3a05_state::bank_r), FUNC(elan_eu3a05_state::bank_w));
 
 	map(0xe000, 0xffff).rom().region("maincpu", 0x3f8000);
 	// not sure how these work, might be a modified 6502 core instead.
@@ -831,6 +842,7 @@ void elan_eu3a05_state::elan_eu3a05(machine_config &config)
 	/* basic machine hardware */
 	ELAN_EU3A05_SOC(config, m_maincpu, XTAL(21'281'370)/8); // wrong, this is the PAL clock
 	m_maincpu->set_addrmap(AS_PROGRAM, &elan_eu3a05_state::elan_eu3a05_map);
+	m_maincpu->set_addrmap(5, &elan_eu3a05_state::elan_eu3a05_bank_map);
 	m_maincpu->set_vblank_int("screen", FUNC(elan_eu3a05_state::interrupt));
 
 	ADDRESS_MAP_BANK(config, m_bank).set_map(&elan_eu3a05_state::elan_eu3a05_bank_map).set_options(ENDIANNESS_LITTLE, 8, 24, 0x8000);

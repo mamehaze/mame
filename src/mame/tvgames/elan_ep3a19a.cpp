@@ -91,6 +91,16 @@ private:
 		return 0xffd4 >> (offset * 8);
 	}
 
+	uint8_t bank_r(offs_t offset)
+	{
+		return m_maincpu->space(5).read_byte((m_current_bank * 0x8000) + offset);
+	}
+
+	void bank_w(offs_t offset, uint8_t data)
+	{
+		m_maincpu->space(5).write_byte((m_current_bank * 0x8000) + offset, data);
+	}
+
 };
 
 void elan_ep3a19a_state::video_start()
@@ -130,7 +140,7 @@ void elan_ep3a19a_state::elan_ep3a19a_map(address_map &map)
 	map(0x5080, 0x50bf).m(m_sound, FUNC(elan_eu3a05_sound_device::map));
 
 	//map(0x5000, 0x50ff).ram();
-	map(0x6000, 0xdfff).m(m_bank, FUNC(address_map_bank_device::amap8));
+	map(0x6000, 0xdfff).rw(FUNC(elan_ep3a19a_state::bank_r), FUNC(elan_ep3a19a_state::bank_w));
 
 	map(0xe000, 0xffff).rom().region("maincpu", 0x0000);
 	// not sure how these work, might be a modified 6502 core instead.
@@ -253,6 +263,7 @@ void elan_ep3a19a_state::elan_ep3a19a(machine_config &config)
 	/* basic machine hardware */
 	ELAN_EP3A19A_SOC(config, m_maincpu, XTAL(21'477'272)/8);
 	m_maincpu->set_addrmap(AS_PROGRAM, &elan_ep3a19a_state::elan_ep3a19a_map);
+	m_maincpu->set_addrmap(5, &elan_ep3a19a_state::elan_ep3a19a_bank_map);
 	m_maincpu->set_vblank_int("screen", FUNC(elan_ep3a19a_state::interrupt));
 
 	ADDRESS_MAP_BANK(config, m_bank).set_map(&elan_ep3a19a_state::elan_ep3a19a_bank_map).set_options(ENDIANNESS_LITTLE, 8, 24, 0x8000);

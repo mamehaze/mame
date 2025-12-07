@@ -164,6 +164,17 @@ private:
 	void sound_end3(int state) { m_sys->generate_custom_interrupt(5); }
 	void sound_end4(int state) { m_sys->generate_custom_interrupt(6); }
 	void sound_end5(int state) { m_sys->generate_custom_interrupt(7); }
+
+
+	uint8_t bank_r(offs_t offset)
+	{
+		return m_maincpu->space(5).read_byte((m_current_bank * 0x8000) + offset);
+	}
+
+	void bank_w(offs_t offset, uint8_t data)
+	{
+		m_maincpu->space(5).write_byte((m_current_bank * 0x8000) + offset, data);
+	}
 };
 
 
@@ -251,7 +262,7 @@ void elan_eu3a14_state::radica_eu3a14_map(address_map& map)
 	// 0x5100 - 517f = VIDEO AREA
 	map(0x5100, 0x517f).m(m_vid, FUNC(elan_eu3a14vid_device::map));
 
-	map(0x6000, 0xdfff).m(m_bank, FUNC(address_map_bank_device::amap8));
+	map(0x6000, 0xdfff).rw(FUNC(elan_eu3a14_state::bank_r), FUNC(elan_eu3a14_state::bank_w));
 
 	map(0xe000, 0xffff).rom().region("maincpu", 0x0000);
 
@@ -785,6 +796,7 @@ void elan_eu3a14_state::radica_eu3a14(machine_config &config)
 	/* basic machine hardware */
 	ELAN_EU3A14_SOC(config, m_maincpu, XTAL(21'477'272)/2); // marked as 21'477'270
 	m_maincpu->set_addrmap(AS_PROGRAM, &elan_eu3a14_state::radica_eu3a14_map);
+	m_maincpu->set_addrmap(5, &elan_eu3a14_state::bank_map);
 	m_maincpu->set_vblank_int("screen", FUNC(elan_eu3a14_state::interrupt));
 
 	ADDRESS_MAP_BANK(config, m_bank).set_map(&elan_eu3a14_state::bank_map).set_options(ENDIANNESS_LITTLE, 8, 24, 0x8000);

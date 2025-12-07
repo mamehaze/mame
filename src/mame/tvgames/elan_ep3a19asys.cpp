@@ -26,7 +26,11 @@ device_memory_interface::space_config_vector elan_ep3a19asys_device::memory_spac
 void elan_ep3a19asys_device::rombank_w(offs_t offset, uint8_t data)
 {
 	m_rombank_lo = data;
-	m_bank->set_bank(m_rombank_lo);
+
+	if (m_bank)
+		m_bank->set_bank(m_rombank_lo);
+
+	m_bankchange_cb(m_rombank_lo | (m_rombank_hi << 8));
 }
 
 uint8_t elan_ep3a19asys_device::rombank_r(offs_t offset)
