@@ -66,7 +66,8 @@
 #include "elan_eu3a14sys.h"
 #include "elan_eu3a14vid.h"
 
-#include "cpu/m6502/m6502.h"
+#include "elan_eu3a14_soc.h"
+
 #include "machine/bankdev.h"
 #include "machine/timer.h"
 
@@ -88,7 +89,6 @@ public:
 		m_vid(*this, "commonvid"),
 		m_mainregion(*this, "maincpu"),
 		m_mainram(*this, "mainram"),
-		m_bank(*this, "bank"),
 		m_palette(*this, "palette"),
 		m_gfxdecode(*this, "gfxdecode"),
 		m_screen(*this, "screen")
@@ -110,9 +110,12 @@ public:
 
 	int tsbuzz_inputs_r();
 
+	void bank_change(uint16_t bank)	{ m_current_bank = bank; }
+	uint16_t m_current_bank;
+
 private:
 	// screen updates
-	uint32_t screen_update(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
+	uint32_t screen_update(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect);
 
 	INTERRUPT_GEN_MEMBER(interrupt);
 
@@ -147,7 +150,6 @@ private:
 	required_region_ptr<uint8_t> m_mainregion;
 
 	required_shared_ptr<uint8_t> m_mainram;
-	required_device<address_map_bank_device> m_bank;
 	required_device<palette_device> m_palette;
 	required_device<gfxdecode_device> m_gfxdecode;
 	required_device<screen_device> m_screen;
@@ -160,6 +162,23 @@ private:
 	void sound_end3(int state) { m_sys->generate_custom_interrupt(5); }
 	void sound_end4(int state) { m_sys->generate_custom_interrupt(6); }
 	void sound_end5(int state) { m_sys->generate_custom_interrupt(7); }
+
+
+	uint8_t bank_r(offs_t offset)
+	{
+		return m_maincpu->space(5).read_byte((m_current_bank * 0x8000) + offset);
+	}
+
+	void bank_w(offs_t offset, uint8_t data)
+	{
+		m_maincpu->space(5).write_byte((m_current_bank * 0x8000) + offset, data);
+	}
+
+	uint8_t fixed_r(offs_t offset)
+	{
+		// always at 0 for this SoC?
+		return m_maincpu->space(5).read_byte(offset);
+	}	
 };
 
 
@@ -169,7 +188,7 @@ void elan_eu3a14_state::video_start()
 }
 
 
-uint32_t elan_eu3a14_state::screen_update(screen_device& screen, bitmap_ind16& bitmap, const rectangle& cliprect)
+uint32_t elan_eu3a14_state::screen_update(screen_device& screen, bitmap_rgb32& bitmap, const rectangle& cliprect)
 {
 	return m_vid->screen_update(screen, bitmap, cliprect);
 }
@@ -177,7 +196,7 @@ uint32_t elan_eu3a14_state::screen_update(screen_device& screen, bitmap_ind16& b
 // sound callback
 uint8_t elan_eu3a14_state::read_full_space(offs_t offset)
 {
-	address_space& fullbankspace = m_bank->space(AS_PROGRAM);
+	address_space& fullbankspace = m_maincpu->space(5);
 	return fullbankspace.read_byte(offset);
 }
 
@@ -247,9 +266,9 @@ void elan_eu3a14_state::radica_eu3a14_map(address_map& map)
 	// 0x5100 - 517f = VIDEO AREA
 	map(0x5100, 0x517f).m(m_vid, FUNC(elan_eu3a14vid_device::map));
 
-	map(0x6000, 0xdfff).m(m_bank, FUNC(address_map_bank_device::amap8));
+	map(0x6000, 0xdfff).rw(FUNC(elan_eu3a14_state::bank_r), FUNC(elan_eu3a14_state::bank_w));
 
-	map(0xe000, 0xffff).rom().region("maincpu", 0x0000);
+	map(0xe000, 0xffff).r(FUNC(elan_eu3a14_state::fixed_r));
 
 	map(0xfffa, 0xfffb).r(m_sys, FUNC(elan_eu3a05commonsys_device::nmi_vector_r)); // custom vectors handled with NMI for now
 	//map(0xfffe, 0xffff).r(m_sys, FUNC(elan_eu3a05commonsys_device::irq_vector_r));  // allow normal IRQ for brk
@@ -698,7 +717,7 @@ void elan_eu3a14_state::machine_reset()
 	// rather be safe
 	m_maincpu->set_state_int(M6502_S, 0x1ff);
 
-	m_bank->set_bank(0x01);
+	m_current_bank = 0x01;
 
 	m_portdir[0] = 0x00;
 	m_portdir[1] = 0x00;
@@ -779,15 +798,14 @@ GFXDECODE_END
 void elan_eu3a14_state::radica_eu3a14(machine_config &config)
 {
 	/* basic machine hardware */
-	M6502(config, m_maincpu, XTAL(21'477'272)/2); // marked as 21'477'270
+	ELAN_EU3A14_SOC(config, m_maincpu, XTAL(21'477'272)/2); // marked as 21'477'270
 	m_maincpu->set_addrmap(AS_PROGRAM, &elan_eu3a14_state::radica_eu3a14_map);
+	m_maincpu->set_addrmap(5, &elan_eu3a14_state::bank_map);
 	m_maincpu->set_vblank_int("screen", FUNC(elan_eu3a14_state::interrupt));
-
-	ADDRESS_MAP_BANK(config, m_bank).set_map(&elan_eu3a14_state::bank_map).set_options(ENDIANNESS_LITTLE, 8, 24, 0x8000);
 
 	ELAN_EU3A14_SYS(config, m_sys, 0);
 	m_sys->set_cpu(m_maincpu);
-	m_sys->set_addrbank(m_bank);
+	m_sys->bank_change_callback().set(FUNC(elan_eu3a14_state::bank_change));
 
 	GFXDECODE(config, m_gfxdecode, m_palette, gfx_helper);
 
@@ -798,13 +816,11 @@ void elan_eu3a14_state::radica_eu3a14(machine_config &config)
 	m_screen->set_screen_update(FUNC(elan_eu3a14_state::screen_update));
 	m_screen->set_size(32*8, 32*8);
 	m_screen->set_visarea(0*8, 32*8-1, 0*8, 28*8-1);
-	m_screen->set_palette(m_palette);
 
 	PALETTE(config, m_palette).set_entries(512);
 
 	ELAN_EU3A14_VID(config, m_vid, 0);
 	m_vid->set_cpu(m_maincpu);
-	m_vid->set_addrbank(m_bank);
 	m_vid->set_palette(m_palette);
 	m_vid->set_screen(m_screen);
 	m_vid->set_entries(512);

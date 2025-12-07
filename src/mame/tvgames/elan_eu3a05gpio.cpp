@@ -8,12 +8,8 @@ DEFINE_DEVICE_TYPE(ELAN_EU3A05_GPIO, elan_eu3a05gpio_device, "elan_eu3a05gpio", 
 
 elan_eu3a05gpio_device::elan_eu3a05gpio_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock) :
 	device_t(mconfig, ELAN_EU3A05_GPIO, tag, owner, clock),
-	m_write_0_callback(*this),
-	m_write_1_callback(*this),
-	m_write_2_callback(*this),
-	m_read_0_callback(*this, 0xff),
-	m_read_1_callback(*this, 0xff),
-	m_read_2_callback(*this, 0xff)
+	m_read_callback(*this, 0xff),
+	m_write_callback(*this)
 {
 }
 
@@ -33,14 +29,7 @@ void elan_eu3a05gpio_device::device_reset()
 uint8_t elan_eu3a05gpio_device::read_port_data(int which)
 {
 	//todo, actually use the direction registers
-	switch (which)
-	{
-	case 0: return m_read_0_callback();
-	case 1: return m_read_1_callback();
-	case 2: return m_read_2_callback();
-	}
-
-	return 0xff;
+	return m_read_callback[which]();
 }
 
 uint8_t elan_eu3a05gpio_device::read_direction(int which)
@@ -50,7 +39,6 @@ uint8_t elan_eu3a05gpio_device::read_direction(int which)
 
 uint8_t elan_eu3a05gpio_device::gpio_r(offs_t offset)
 {
-
 	int port = offset/2;
 	if (!(offset&1)) return read_direction(port);
 	else return read_port_data(port);
@@ -60,13 +48,7 @@ void elan_eu3a05gpio_device::write_port_data(int which, uint8_t data)
 {
 	//todo, actually use the direction registers
 	logerror("%s: write_port_data (port %d) %02x (direction register %02x)\n", machine().describe_context(), which, data, m_ddr[which]);
-
-	switch (which)
-	{
-	case 0: return m_write_0_callback(data); break;
-	case 1: return m_write_1_callback(data); break;
-	case 2: return m_write_2_callback(data); break;
-	}
+	return m_write_callback[which](data);
 }
 
 void elan_eu3a05gpio_device::write_direction(int which, uint8_t data)

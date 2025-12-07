@@ -13,7 +13,7 @@
 #include "elan_ep3a19asys.h"
 #include "elan_eu3a05vid.h"
 
-#include "cpu/m6502/m6502.h"
+#include "elan_ep3a19a_soc.h"
 #include "machine/bankdev.h"
 
 #include "emupal.h"
@@ -35,7 +35,6 @@ public:
 		m_ram(*this, "ram"),
 		m_sound(*this, "eu3a05sound"),
 		m_vid(*this, "vid"),
-		m_bank(*this, "bank"),
 		m_gfxdecode(*this, "gfxdecode"),
 		m_palette(*this, "palette")
 	{ }
@@ -43,6 +42,9 @@ public:
 	void elan_ep3a19a(machine_config &config);
 
 	void init_tvbg();
+
+	void bank_change(uint16_t bank)	{ m_current_bank = bank; }
+	uint16_t m_current_bank;
 
 protected:
 	// driver_device overrides
@@ -57,7 +59,7 @@ protected:
 
 private:
 	// screen updates
-	uint32_t screen_update(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
+	uint32_t screen_update(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect);
 
 	INTERRUPT_GEN_MEMBER(interrupt);
 
@@ -72,7 +74,6 @@ private:
 	required_shared_ptr<uint8_t> m_ram;
 	required_device<elan_eu3a05_sound_device> m_sound;
 	required_device<elan_eu3a05vid_device> m_vid;
-	required_device<address_map_bank_device> m_bank;
 	required_device<gfxdecode_device> m_gfxdecode;
 	required_device<palette_device> m_palette;
 
@@ -88,13 +89,28 @@ private:
 		return 0xffd4 >> (offset * 8);
 	}
 
+	uint8_t bank_r(offs_t offset)
+	{
+		return m_maincpu->space(5).read_byte((m_current_bank * 0x8000) + offset);
+	}
+
+	void bank_w(offs_t offset, uint8_t data)
+	{
+		m_maincpu->space(5).write_byte((m_current_bank * 0x8000) + offset, data);
+	}
+
+	uint8_t fixed_r(offs_t offset)
+	{
+		// always at 0 for this SoC?
+		return m_maincpu->space(5).read_byte(offset);
+	}	
 };
 
 void elan_ep3a19a_state::video_start()
 {
 }
 
-uint32_t elan_ep3a19a_state::screen_update(screen_device& screen, bitmap_ind16& bitmap, const rectangle& cliprect)
+uint32_t elan_ep3a19a_state::screen_update(screen_device& screen, bitmap_rgb32& bitmap, const rectangle& cliprect)
 {
 	return m_vid->screen_update(screen, bitmap, cliprect);
 }
@@ -102,7 +118,7 @@ uint32_t elan_ep3a19a_state::screen_update(screen_device& screen, bitmap_ind16& 
 // sound callback
 uint8_t elan_ep3a19a_state::read_full_space(offs_t offset)
 {
-	address_space& fullbankspace = m_bank->space(AS_PROGRAM);
+	address_space& fullbankspace = m_maincpu->space(5);
 	return fullbankspace.read_byte(offset);
 }
 
@@ -127,9 +143,9 @@ void elan_ep3a19a_state::elan_ep3a19a_map(address_map &map)
 	map(0x5080, 0x50bf).m(m_sound, FUNC(elan_eu3a05_sound_device::map));
 
 	//map(0x5000, 0x50ff).ram();
-	map(0x6000, 0xdfff).m(m_bank, FUNC(address_map_bank_device::amap8));
+	map(0x6000, 0xdfff).rw(FUNC(elan_ep3a19a_state::bank_r), FUNC(elan_ep3a19a_state::bank_w));
 
-	map(0xe000, 0xffff).rom().region("maincpu", 0x0000);
+	map(0xe000, 0xffff).r(FUNC(elan_ep3a19a_state::fixed_r));
 	// not sure how these work, might be a modified 6502 core instead.
 	//map(0xfffa, 0xfffb).r(m_sys, FUNC(elan_eu3a05commonsys_device::nmi_vector_r)); // custom vectors handled with NMI for now
 	map(0xfffa, 0xfffb).r(FUNC(elan_ep3a19a_state::nmi_vector_r)); // custom vectors handled with NMI for now
@@ -248,11 +264,10 @@ INTERRUPT_GEN_MEMBER(elan_ep3a19a_state::interrupt)
 void elan_ep3a19a_state::elan_ep3a19a(machine_config &config)
 {
 	/* basic machine hardware */
-	M6502(config, m_maincpu, XTAL(21'477'272)/8);
+	ELAN_EP3A19A_SOC(config, m_maincpu, XTAL(21'477'272)/8);
 	m_maincpu->set_addrmap(AS_PROGRAM, &elan_ep3a19a_state::elan_ep3a19a_map);
+	m_maincpu->set_addrmap(5, &elan_ep3a19a_state::elan_ep3a19a_bank_map);
 	m_maincpu->set_vblank_int("screen", FUNC(elan_ep3a19a_state::interrupt));
-
-	ADDRESS_MAP_BANK(config, m_bank).set_map(&elan_ep3a19a_state::elan_ep3a19a_bank_map).set_options(ENDIANNESS_LITTLE, 8, 24, 0x8000);
 
 	PALETTE(config, m_palette).set_entries(256);
 
@@ -262,22 +277,20 @@ void elan_ep3a19a_state::elan_ep3a19a(machine_config &config)
 	m_screen->set_screen_update(FUNC(elan_ep3a19a_state::screen_update));
 	m_screen->set_size(32*8, 32*8);
 	m_screen->set_visarea(0*8, 32*8-1, 0*8, 28*8-1);
-	m_screen->set_palette(m_palette);
 
 	GFXDECODE(config, m_gfxdecode, m_palette, gfx_elan_eu3a05_fake);
 
 	ELAN_EU3A05_GPIO(config, m_gpio, 0);
-	m_gpio->read_0_callback().set_ioport("IN0");
-	m_gpio->read_1_callback().set_ioport("IN1");
-	m_gpio->read_2_callback().set_ioport("IN2");
+	m_gpio->read_callback<0>().set_ioport("IN0");
+	m_gpio->read_callback<1>().set_ioport("IN1");
+	m_gpio->read_callback<2>().set_ioport("IN2");
 
 	ELAN_EP3A19A_SYS(config, m_sys, 0);
 	m_sys->set_cpu(m_maincpu);
-	m_sys->set_addrbank(m_bank);
+	m_sys->bank_change_callback().set(FUNC(elan_ep3a19a_state::bank_change));
 
 	ELAN_EP3A19A_VID(config, m_vid, 0);
 	m_vid->set_cpu(m_maincpu);
-	m_vid->set_addrbank(m_bank);
 	m_vid->set_palette(m_palette);
 	m_vid->set_entries(256);
 

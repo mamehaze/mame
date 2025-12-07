@@ -23,8 +23,8 @@ protected:
 	virtual void device_start() override ATTR_COLD;
 	virtual void device_reset() override ATTR_COLD;
 
-private:
 	required_device<palette_device> m_palette;
+private:
 	std::vector<uint8_t> m_palram;
 	void update_pen(int pen);
 	double hue2rgb(double p, double q, double t);
