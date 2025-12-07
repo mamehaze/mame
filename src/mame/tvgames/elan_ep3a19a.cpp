@@ -269,9 +269,9 @@ void elan_ep3a19a_state::elan_ep3a19a(machine_config &config)
 	GFXDECODE(config, m_gfxdecode, m_palette, gfx_elan_eu3a05_fake);
 
 	ELAN_EU3A05_GPIO(config, m_gpio, 0);
-	m_gpio->read_0_callback().set_ioport("IN0");
-	m_gpio->read_1_callback().set_ioport("IN1");
-	m_gpio->read_2_callback().set_ioport("IN2");
+	m_gpio->read_callback<0>().set_ioport("IN0");
+	m_gpio->read_callback<1>().set_ioport("IN1");
+	m_gpio->read_callback<2>().set_ioport("IN2");
 
 	ELAN_EP3A19A_SYS(config, m_sys, 0);
 	m_sys->set_cpu(m_maincpu);

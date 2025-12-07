@@ -10,12 +10,8 @@ class elan_eu3a05gpio_device : public device_t
 public:
 	elan_eu3a05gpio_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
 
-	auto write_0_callback() { return m_write_callback[0].bind(); }
-	auto write_1_callback() { return m_write_callback[1].bind(); }
-	auto write_2_callback() { return m_write_callback[2].bind(); }
-	auto read_0_callback() { return m_read_callback[0].bind(); }
-	auto read_1_callback() { return m_read_callback[1].bind(); }
-	auto read_2_callback() { return m_read_callback[2].bind(); }
+	template <int Port> auto write_callback() { return m_write_callback[Port].bind(); }
+	template <int Port> auto read_callback() { return m_read_callback[Port].bind(); }
 
 	uint8_t gpio_r(offs_t offset);
 	void gpio_w(offs_t offset, uint8_t data);

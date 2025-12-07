@@ -389,10 +389,10 @@ void elan_eu3a05_buzztime_state::elan_buzztime(machine_config &config)
 
 	m_sys->set_alt_timer();
 
-	m_gpio->read_0_callback().set(FUNC(elan_eu3a05_buzztime_state::porta_r)); // I/O lives in here
-//  m_gpio->read_1_callback().set(FUNC(elan_eu3a05_buzztime_state::random_r)); // nothing of note
-//  m_gpio->read_2_callback().set(FUNC(elan_eu3a05_buzztime_state::random_r)); // nothing of note
-	m_gpio->write_1_callback().set(FUNC(elan_eu3a05_buzztime_state::portb_w)); // control related
+	m_gpio->read_callback<0>().set(FUNC(elan_eu3a05_buzztime_state::porta_r)); // I/O lives in here
+//  m_gpio->read_callback<1>().set(FUNC(elan_eu3a05_buzztime_state::random_r)); // nothing of note
+//  m_gpio->read_callback<2>().set(FUNC(elan_eu3a05_buzztime_state::random_r)); // nothing of note
+	m_gpio->write_callback<1>().set(FUNC(elan_eu3a05_buzztime_state::portb_w)); // control related
 
 	GENERIC_CARTSLOT(config, m_cart, generic_plain_slot, "buzztime_cart");
 	m_cart->set_width(GENERIC_ROM16_WIDTH);
@@ -847,9 +847,9 @@ void elan_eu3a05_state::elan_eu3a05(machine_config &config)
 	GFXDECODE(config, m_gfxdecode, m_palette, gfx_elan_eu3a05_fake);
 
 	ELAN_EU3A05_GPIO(config, m_gpio, 0);
-	m_gpio->read_0_callback().set_ioport("IN0");
-	m_gpio->read_1_callback().set_ioport("IN1");
-	m_gpio->read_2_callback().set_ioport("IN2");
+	m_gpio->read_callback<0>().set_ioport("IN0");
+	m_gpio->read_callback<1>().set_ioport("IN1");
+	m_gpio->read_callback<2>().set_ioport("IN2");
 
 	ELAN_EU3A05_SYS(config, m_sys, 0);
 	m_sys->set_cpu(m_maincpu);
@@ -962,8 +962,8 @@ void elan_eu3a05_pvwwcas_state::pvwwcas(machine_config& config)
 	m_screen->set_refresh_hz(50);
 	m_sys->set_pal(); // TODO: also set PAL clocks
 
-	m_gpio->read_2_callback().set(FUNC(elan_eu3a05_pvwwcas_state::pvwwc_portc_r));
-	m_gpio->write_2_callback().set(FUNC(elan_eu3a05_pvwwcas_state::pvwwc_portc_w));
+	m_gpio->read_callback<2>().set(FUNC(elan_eu3a05_pvwwcas_state::pvwwc_portc_r));
+	m_gpio->write_callback<2>().set(FUNC(elan_eu3a05_pvwwcas_state::pvwwc_portc_w));
 }
 
 
