@@ -198,7 +198,7 @@ uint32_t elan_eu3a14_state::screen_update(screen_device& screen, bitmap_rgb32& b
 // sound callback
 uint8_t elan_eu3a14_state::read_full_space(offs_t offset)
 {
-	address_space& fullbankspace = m_bank->space(AS_PROGRAM);
+	address_space& fullbankspace = m_maincpu->space(5);
 	return fullbankspace.read_byte(offset);
 }
 
