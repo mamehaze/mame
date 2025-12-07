@@ -35,7 +35,6 @@ public:
 		m_ram(*this, "ram"),
 		m_sound(*this, "eu3a05sound"),
 		m_vid(*this, "vid"),
-		m_gfxdecode(*this, "gfxdecode"),
 		m_palette(*this, "palette")
 	{ }
 
@@ -74,7 +73,6 @@ private:
 	required_shared_ptr<uint8_t> m_ram;
 	required_device<elan_eu3a05_sound_device> m_sound;
 	required_device<elan_eu3a05vid_device> m_vid;
-	required_device<gfxdecode_device> m_gfxdecode;
 	required_device<palette_device> m_palette;
 
 	//void sound_end0(int state) { m_sys->generate_custom_interrupt(2); }
@@ -195,66 +193,6 @@ void elan_ep3a19a_state::machine_reset()
 	m_maincpu->set_state_int(M6502_S, 0x1ff);
 }
 
-static const gfx_layout helper_4bpp_8_layout =
-{
-	8,1,
-	RGN_FRAC(1,1),
-	4,
-	{ 0,1,2,3 },
-	{ STEP8(0,4) },
-	{ 0 },
-	8 * 4
-};
-
-static const gfx_layout helper_8bpp_8_layout =
-{
-	8,1,
-	RGN_FRAC(1,1),
-	8,
-	{ 0,1,2,3,4,5,6,7 },
-	{ STEP8(0,8) },
-	{ 0 },
-	8 * 8
-};
-
-// these are fake just to make looking at the texture pages easier
-static const uint32_t texlayout_xoffset_8bpp[256] = { STEP256(0,8) };
-static const uint32_t texlayout_yoffset_8bpp[256] = { STEP256(0,256*8) };
-static const gfx_layout texture_helper_8bpp_layout =
-{
-	256, 256,
-	RGN_FRAC(1,1),
-	8,
-	{ 0,1,2,3,4,5,6,7 },
-	EXTENDED_XOFFS,
-	EXTENDED_YOFFS,
-	256*256*8,
-	texlayout_xoffset_8bpp,
-	texlayout_yoffset_8bpp
-};
-
-static const uint32_t texlayout_xoffset_4bpp[256] = { STEP256(0,4) };
-static const uint32_t texlayout_yoffset_4bpp[256] = { STEP256(0,256*4) };
-static const gfx_layout texture_helper_4bpp_layout =
-{
-	256, 256,
-	RGN_FRAC(1,1),
-	4,
-	{ 0,1,2,3 },
-	EXTENDED_XOFFS,
-	EXTENDED_YOFFS,
-	256*256*4,
-	texlayout_xoffset_4bpp,
-	texlayout_yoffset_4bpp
-};
-
-static GFXDECODE_START( gfx_elan_eu3a05_fake )
-	GFXDECODE_ENTRY( "maincpu", 0, helper_4bpp_8_layout,  0x0, 1  )
-	GFXDECODE_ENTRY( "maincpu", 0, texture_helper_4bpp_layout,  0x0, 1  )
-	GFXDECODE_ENTRY( "maincpu", 0, helper_8bpp_8_layout,  0x0, 1  )
-	GFXDECODE_ENTRY( "maincpu", 0, texture_helper_8bpp_layout,  0x0, 1  )
-GFXDECODE_END
-
 INTERRUPT_GEN_MEMBER(elan_ep3a19a_state::interrupt)
 {
 	//m_sys->generate_custom_interrupt(9);
@@ -277,8 +215,6 @@ void elan_ep3a19a_state::elan_ep3a19a(machine_config &config)
 	m_screen->set_screen_update(FUNC(elan_ep3a19a_state::screen_update));
 	m_screen->set_size(32*8, 32*8);
 	m_screen->set_visarea(0*8, 32*8-1, 0*8, 28*8-1);
-
-	GFXDECODE(config, m_gfxdecode, m_palette, gfx_elan_eu3a05_fake);
 
 	ELAN_EU3A05_GPIO(config, m_gpio, 0);
 	m_gpio->read_callback<0>().set_ioport("IN0");

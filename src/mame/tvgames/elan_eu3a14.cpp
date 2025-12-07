@@ -90,7 +90,6 @@ public:
 		m_mainregion(*this, "maincpu"),
 		m_mainram(*this, "mainram"),
 		m_palette(*this, "palette"),
-		m_gfxdecode(*this, "gfxdecode"),
 		m_screen(*this, "screen")
 	{ }
 
@@ -151,7 +150,6 @@ private:
 
 	required_shared_ptr<uint8_t> m_mainram;
 	required_device<palette_device> m_palette;
-	required_device<gfxdecode_device> m_gfxdecode;
 	required_device<screen_device> m_screen;
 
 	uint8_t m_portdir[3];
@@ -751,50 +749,6 @@ INTERRUPT_GEN_MEMBER(elan_eu3a14_state::interrupt)
 }
 
 
-// background
-static const gfx_layout helper16x16x8_layout =
-{
-	16,16,
-	RGN_FRAC(1,1),
-	8,
-	{ STEP8(0,1) },
-	{ STEP16(0,8) },
-	{ STEP16(0,16*8) },
-	16 * 16 * 8
-};
-
-static const gfx_layout helper16x16x4_layout =
-{
-	16,16,
-	RGN_FRAC(1,1),
-	4,
-	{ STEP4(0,1) },
-	{ STEP16(0,4) },
-	{ STEP16(0,16*4) },
-	16 * 16 * 4
-};
-
-static const gfx_layout helper8x8x8_layout =
-{
-	8,8,
-	RGN_FRAC(1,1),
-	8,
-	{ STEP8(0,1) },
-	{ STEP8(0,8) },
-	{ STEP8(0,8*8) },
-	8 * 8 * 8
-};
-
-static GFXDECODE_START( gfx_helper )
-	// dummy standard decodes to see background tiles, not used for drawing
-	GFXDECODE_ENTRY( "maincpu", 0, helper16x16x8_layout,  0x0, 2  )
-	GFXDECODE_ENTRY( "maincpu", 0, helper16x16x4_layout,  0x0, 32  )
-	GFXDECODE_ENTRY( "maincpu", 0, helper8x8x8_layout,    0x0, 2  )
-	GFXDECODE_ENTRY( "maincpu", 0, gfx_8x8x4_packed_msb,  0x0, 32  )
-GFXDECODE_END
-
-
-
 void elan_eu3a14_state::radica_eu3a14(machine_config &config)
 {
 	/* basic machine hardware */
@@ -806,8 +760,6 @@ void elan_eu3a14_state::radica_eu3a14(machine_config &config)
 	ELAN_EU3A14_SYS(config, m_sys, 0);
 	m_sys->set_cpu(m_maincpu);
 	m_sys->bank_change_callback().set(FUNC(elan_eu3a14_state::bank_change));
-
-	GFXDECODE(config, m_gfxdecode, m_palette, gfx_helper);
 
 	/* video hardware */
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
