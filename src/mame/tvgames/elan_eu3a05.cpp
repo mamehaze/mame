@@ -286,8 +286,8 @@ class elan_eu3a05_pvwwcas_state : public elan_eu3a05_state
 {
 public:
 	elan_eu3a05_pvwwcas_state(const machine_config &mconfig, device_type type, const char *tag) :
-		elan_eu3a05_state(mconfig, type, tag),
-		m_prevport_c(0xff)
+		elan_eu3a05_state(mconfig, type, tag)
+	//	m_prevport_c(0xff)
 	{ }
 
 	void pvwwcas(machine_config& config);
@@ -299,7 +299,7 @@ protected:
 private:
 	// TODO: uint8_t pvwwc_portc_r();
 	// TODO: void pvwwc_portc_w(uint8_t data);
-	uint8_t m_prevport_c;
+	//uint8_t m_prevport_c;
 };
 
 class elan_eu3a13_state : public elan_eu3a05_state
