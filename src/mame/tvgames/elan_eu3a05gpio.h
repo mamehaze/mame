@@ -10,12 +10,12 @@ class elan_eu3a05gpio_device : public device_t
 public:
 	elan_eu3a05gpio_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
 
-	auto write_0_callback() { return m_write_0_callback.bind(); }
-	auto write_1_callback() { return m_write_1_callback.bind(); }
-	auto write_2_callback() { return m_write_2_callback.bind(); }
-	auto read_0_callback() { return m_read_0_callback.bind(); }
-	auto read_1_callback() { return m_read_1_callback.bind(); }
-	auto read_2_callback() { return m_read_2_callback.bind(); }
+	auto write_0_callback() { return m_write_callback[0].bind(); }
+	auto write_1_callback() { return m_write_callback[1].bind(); }
+	auto write_2_callback() { return m_write_callback[2].bind(); }
+	auto read_0_callback() { return m_read_callback[0].bind(); }
+	auto read_1_callback() { return m_read_callback[1].bind(); }
+	auto read_2_callback() { return m_read_callback[2].bind(); }
 
 	uint8_t gpio_r(offs_t offset);
 	void gpio_w(offs_t offset, uint8_t data);
@@ -28,12 +28,8 @@ protected:
 	virtual void device_reset() override ATTR_COLD;
 
 private:
-	devcb_write8 m_write_0_callback;
-	devcb_write8 m_write_1_callback;
-	devcb_write8 m_write_2_callback;
-	devcb_read8 m_read_0_callback;
-	devcb_read8 m_read_1_callback;
-	devcb_read8 m_read_2_callback;
+	devcb_read8::array<3> m_read_callback;
+	devcb_write8::array<3> m_write_callback;
 
 	uint8_t read_port_data(int which);
 	uint8_t read_direction(int which);
