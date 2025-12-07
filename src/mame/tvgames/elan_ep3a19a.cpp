@@ -57,7 +57,7 @@ protected:
 
 private:
 	// screen updates
-	uint32_t screen_update(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
+	uint32_t screen_update(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect);
 
 	INTERRUPT_GEN_MEMBER(interrupt);
 
@@ -94,7 +94,7 @@ void elan_ep3a19a_state::video_start()
 {
 }
 
-uint32_t elan_ep3a19a_state::screen_update(screen_device& screen, bitmap_ind16& bitmap, const rectangle& cliprect)
+uint32_t elan_ep3a19a_state::screen_update(screen_device& screen, bitmap_rgb32& bitmap, const rectangle& cliprect)
 {
 	return m_vid->screen_update(screen, bitmap, cliprect);
 }
@@ -262,7 +262,6 @@ void elan_ep3a19a_state::elan_ep3a19a(machine_config &config)
 	m_screen->set_screen_update(FUNC(elan_ep3a19a_state::screen_update));
 	m_screen->set_size(32*8, 32*8);
 	m_screen->set_visarea(0*8, 32*8-1, 0*8, 28*8-1);
-	m_screen->set_palette(m_palette);
 
 	GFXDECODE(config, m_gfxdecode, m_palette, gfx_elan_eu3a05_fake);
 

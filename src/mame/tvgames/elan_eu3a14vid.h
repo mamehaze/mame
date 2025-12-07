@@ -25,7 +25,7 @@ public:
 	void set_tilerambase(int tilerambase) { m_tilerambase = tilerambase; }
 
 	void video_start();
-	uint32_t screen_update(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
+	uint32_t screen_update(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect);
 
 
 protected:
@@ -71,14 +71,14 @@ private:
 	uint8_t read_unmapped(offs_t offset);
 	void write_unmapped(offs_t offset, uint8_t data);
 
-	void draw_background_ramlayer(screen_device& screen, bitmap_ind16& bitmap, const rectangle& cliprect);
+	void draw_background_ramlayer(screen_device& screen, bitmap_rgb32& bitmap, const rectangle& cliprect);
 	int get_xscroll_for_screenypos(int line);
-	void draw_background_tile(bitmap_ind16 &bitmap, const rectangle &cliprect, int bpp, int tileno, int palette, int priority, int flipx, int flipy, int xpos, int ypos, int transpen, int size, int base, int drawfromram);
-	void draw_background_page(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect, int ramstart, int ramend, int xbase, int ybase, int size, int bpp, int base, int pagewidth,int pageheight, int bytespertile, int palettepri, int drawfromram);
-	void draw_background(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
-	void draw_sprite_pix(const rectangle& cliprect, uint16_t* dst, uint8_t* pridst, int realx, int priority, uint8_t pix, uint8_t mask, uint8_t shift, int palette);
-	void draw_sprite_line(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect, int offset, int line, int pal, int flipx, int pri, int xpos, int ypos, int bpp);
-	void draw_sprites(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
+	void draw_background_tile(bitmap_rgb32 &bitmap, const rectangle &cliprect, int bpp, int tileno, int palette, int priority, int flipx, int flipy, int xpos, int ypos, int transpen, int size, int base, int drawfromram);
+	void draw_background_page(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect, int ramstart, int ramend, int xbase, int ybase, int size, int bpp, int base, int pagewidth,int pageheight, int bytespertile, int palettepri, int drawfromram);
+	void draw_background(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect);
+	void draw_sprite_pix(const rectangle& cliprect, uint32_t* dst, uint8_t* pridst, int realx, int priority, uint8_t pix, uint8_t mask, uint8_t shift, int palette);
+	void draw_sprite_line(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect, int offset, int line, int pal, int flipx, int pri, int xpos, int ypos, int bpp);
+	void draw_sprites(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect);
 
 	uint8_t m_scrollregs[4];
 	uint8_t m_tilecfg[6];

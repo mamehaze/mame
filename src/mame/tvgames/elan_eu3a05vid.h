@@ -19,7 +19,7 @@ public:
 
 	void map(address_map &map) ATTR_COLD;
 
-	uint32_t screen_update(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
+	uint32_t screen_update(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect);
 
 protected:
 	elan_eu3a05vid_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, uint32_t clock);
@@ -56,9 +56,9 @@ private:
 	uint16_t get_scroll(int which);
 
 	bool get_tile_data(int base, int drawpri, int& tile, int &attr, int &unk2);
-	void draw_tilemaps(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect, int drawpri);
-	void draw_sprites(screen_device &screen, bitmap_ind16 &bitmap, bitmap_ind8 &priority_bitmap, const rectangle &cliprect);
-	void draw_tilemaps_tileline(int drawpri, int tile, int attr, int unk2, int tilexsize, int tileline, int xpos, uint16_t *row);
+	void draw_tilemaps(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect, int drawpri);
+	void draw_sprites(screen_device &screen, bitmap_rgb32 &bitmap, bitmap_ind8 &priority_bitmap, const rectangle &cliprect);
+	void draw_tilemaps_tileline(int drawpri, int tile, int attr, int unk2, int tilexsize, int tileline, int xpos, uint32_t *row);
 	uint16_t get_tilemapindex_from_xy(uint16_t x, uint16_t y);
 
 	uint8_t read_spriteram(int offset);

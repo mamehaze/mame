@@ -144,9 +144,10 @@ uint8_t elan_eu3a05vid_device::read_vram(int offset)
    that space (Tetris seems to rely on mirroring? as it sets all addresses up for the lower 1MB instead)
 */
 
-void elan_eu3a05vid_device::draw_sprites(screen_device &screen, bitmap_ind16 &bitmap, bitmap_ind8 &priority_bitmap, const rectangle &cliprect)
+void elan_eu3a05vid_device::draw_sprites(screen_device &screen, bitmap_rgb32 &bitmap, bitmap_ind8 &priority_bitmap, const rectangle &cliprect)
 {
 	address_space& fullbankspace = m_bank->space(AS_PROGRAM);
+	const pen_t *pen = m_palette->pens();
 
 	/*
 	    Sprites
@@ -251,7 +252,7 @@ void elan_eu3a05vid_device::draw_sprites(screen_device &screen, bitmap_ind16 &bi
 
 		for (int yy = 0; yy < sizey; yy++)
 		{
-			uint16_t* row;
+			uint32_t* row;
 			uint8_t* rowpri;
 
 			if (flags & 0x08) // guess flipy
@@ -292,7 +293,7 @@ void elan_eu3a05vid_device::draw_sprites(screen_device &screen, bitmap_ind16 &bi
 						if (rowpri[xdrawpos] > priority)
 						{
 							rowpri[xdrawpos] = priority;
-							row[xdrawpos] = (pix + ((colour & 0x70) << 1)) & 0xff;
+							row[xdrawpos] = pen[(pix + ((colour & 0x70) << 1)) & 0xff];
 						}
 					}
 					else
@@ -302,7 +303,7 @@ void elan_eu3a05vid_device::draw_sprites(screen_device &screen, bitmap_ind16 &bi
 						if (rowpri[xdrawpos] > priority)
 						{
 							rowpri[xdrawpos] = priority;
-							row[xdrawpos] = (pix + ((colour & 0x70) << 1)) & 0xff;
+							row[xdrawpos] = pen[(pix + ((colour & 0x70) << 1)) & 0xff];
 						}
 					}
 				}
@@ -363,9 +364,10 @@ bool elan_eu3a05vid_device::get_tile_data(int base, int drawpri, int& tile, int 
 }
 
 
-void elan_eu3a05vid_device::draw_tilemaps_tileline(int drawpri, int tile, int attr, int unk2, int tilexsize, int i, int xpos, uint16_t* row)
+void elan_eu3a05vid_device::draw_tilemaps_tileline(int drawpri, int tile, int attr, int unk2, int tilexsize, int i, int xpos, uint32_t* row)
 {
 	address_space& fullbankspace = m_bank->space(AS_PROGRAM);
+	const pen_t *pen = m_palette->pens();
 	int colour = attr & 0xf0;
 
 	/* 'tiles' are organized / extracted from 'texture' lines that form a 'page' the length of the rom
@@ -405,11 +407,11 @@ void elan_eu3a05vid_device::draw_tilemaps_tileline(int drawpri, int tile, int at
 
 			drawxpos = xpos + xx + 0;
 			if ((drawxpos >= 0) && (drawxpos < 256))
-				row[drawxpos] = ((pix & 0xf0) >> 4) + colour;
+				row[drawxpos] = pen[((pix & 0xf0) >> 4) + colour];
 
 			drawxpos = xpos + xx + 1;
 			if ((drawxpos >= 0) && (drawxpos < 256))
-				row[drawxpos] = ((pix & 0x0f) >> 0) + colour;
+				row[drawxpos] = pen[((pix & 0x0f) >> 0) + colour];
 		}
 	}
 	else // 8bpp
@@ -421,7 +423,7 @@ void elan_eu3a05vid_device::draw_tilemaps_tileline(int drawpri, int tile, int at
 
 			int drawxpos = xpos + xx;
 			if ((drawxpos >= 0) && (drawxpos < 256))
-				row[drawxpos] = (pix + ((colour & 0x70) << 1)) & 0xff;
+				row[drawxpos] = pen[(pix + ((colour & 0x70) << 1)) & 0xff];
 		}
 	}
 }
@@ -539,7 +541,7 @@ uint16_t elan_eu3a05vid_device::get_tilemapindex_from_xy(uint16_t x, uint16_t y)
 	return index;
 }
 
-void elan_eu3a05vid_device::draw_tilemaps(screen_device& screen, bitmap_ind16& bitmap, const rectangle& cliprect, int drawpri)
+void elan_eu3a05vid_device::draw_tilemaps(screen_device& screen, bitmap_rgb32& bitmap, const rectangle& cliprect, int drawpri)
 {
 	/*
 	    this doesn't handle 8x8 4bpp (not used by anything yet)
@@ -576,7 +578,7 @@ void elan_eu3a05vid_device::draw_tilemaps(screen_device& screen, bitmap_ind16& b
 		if (m_force_basic_scroll)
 			scrollx = get_scroll(0);
 
-		uint16_t* row = &bitmap.pix(screenline);
+		uint32_t* row = &bitmap.pix(screenline);
 
 		int xtiles;
 		int xtilesize;
@@ -628,7 +630,7 @@ void elan_eu3a05vid_device::draw_tilemaps(screen_device& screen, bitmap_ind16& b
 	}
 }
 
-uint32_t elan_eu3a05vid_device::screen_update(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
+uint32_t elan_eu3a05vid_device::screen_update(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect)
 {
 	bitmap.fill(0, cliprect);
 	screen.priority().fill(0xff, cliprect);
