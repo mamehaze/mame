@@ -8,17 +8,10 @@
 // Currently these checksums fail in MAME due to the interrupt hack mapping over ROM, if you remove that hack they pass
 
 #include "emu.h"
-#include "elan_eu3a05_a.h"
-#include "elan_eu3a05gpio.h"
-#include "elan_ep3a19asys.h"
-#include "elan_eu3a05vid.h"
 
-#include "elan_ep3a19a_soc.h"
-
-#include "emupal.h"
 #include "screen.h"
-#include "speaker.h"
 
+#include "machine/elan_ep3a19a_soc.h"
 
 namespace {
 

@@ -208,16 +208,11 @@ Set 5043 bit 0 low
 
 #include "emu.h"
 
-#include "elan_eu3a05_soc.h"
-
-#include "emupal.h"
-#include "screen.h"
 #include "softlist_dev.h"
-#include "speaker.h"
 
 #include "bus/generic/slot.h"
 #include "bus/generic/carts.h"
-
+#include "machine/elan_eu3a05_soc.h"
 
 namespace {
 

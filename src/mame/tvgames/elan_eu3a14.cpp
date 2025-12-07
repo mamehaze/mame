@@ -62,16 +62,10 @@
 
 #include "emu.h"
 
-
-
-#include "elan_eu3a14_soc.h"
-
-#include "machine/timer.h"
-
-#include "emupal.h"
 #include "screen.h"
-#include "speaker.h"
 
+#include "machine/elan_eu3a14_soc.h"
+#include "machine/timer.h"
 
 namespace {
 

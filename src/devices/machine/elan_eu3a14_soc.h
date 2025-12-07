@@ -1,34 +1,37 @@
 // license:BSD-3-Clause
 // copyright-holders:David Haywood
 
-#ifndef MAME_TVGAMES_ELAN_EU3A05_SOC_H
-#define MAME_TVGAMES_ELAN_EU3A05_SOC_H
+#ifndef MAME_MACHINE_ELAN_EU3A14_SOC_H
+#define MAME_MACHINE_ELAN_EU3A14_SOC_H
 
 #include "elan_eu3a05_a.h"
-#include "elan_eu3a05gpio.h"
-#include "elan_eu3a05sys.h"
-#include "elan_eu3a05vid.h"
+#include "elan_eu3a14sys.h"
+#include "elan_eu3a14vid.h"
 
 #include "cpu/m6502/m6502.h"
-//#include "cpu/m6502/w65c02.h"
+
 #include "emupal.h"
 #include "screen.h"
 #include "speaker.h"
 
 
-class elan_eu3a05_cpu_device : public m6502_device {
+class elan_eu3a14_cpu_device : public m6502_device {
 public:
-	elan_eu3a05_cpu_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
+	elan_eu3a14_cpu_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
 
-	uint32_t screen_update(screen_device& screen, bitmap_rgb32& bitmap, const rectangle& cliprect)
+	void bank_change(uint16_t bank)	{ m_current_bank = bank; }
+	uint16_t m_current_bank;
+
+	uint32_t screen_update(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect)
 	{
 		return m_vid->screen_update(screen, bitmap, cliprect);
 	}
 
 	void generate_custom_interrupt(int irq) { m_sys->generate_custom_interrupt(irq); }
 
+
 protected:
-	elan_eu3a05_cpu_device(const machine_config& mconfig, device_type type, const char* tag, device_t* owner, uint32_t clock);
+	elan_eu3a14_cpu_device(const machine_config& mconfig, device_type type, const char* tag, device_t* owner, uint32_t clock);
 
 	virtual void device_add_mconfig(machine_config &config) override ATTR_COLD;
 	virtual void device_reset() override ATTR_COLD;
@@ -41,6 +44,7 @@ protected:
 	address_space_config m_extbus_config;
 	address_space *m_extbus_space;
 
+
 	// sound callback
 	uint8_t read_full_space(offs_t offset)
 	{
@@ -48,17 +52,45 @@ protected:
 		return fullbankspace.read_byte(offset);
 	}
 
-	void bank_change(uint16_t bank)	{ m_current_bank = bank; }
-	uint16_t m_current_bank;
+	void porta_dir_w(uint8_t data)
+	{
+		m_portdir[0] = data;
+		// update state
+	}
 
-	required_device<elan_eu3a05sys_device> m_sys;
-	required_device<elan_eu3a05gpio_device> m_gpio;
+	void portb_dir_w(uint8_t data)
+	{
+		m_portdir[1] = data;
+		// update state
+	}
 
+	void portc_dir_w(uint8_t data)
+	{
+		m_portdir[2] = data;
+		// update state
+	}
+
+	void porta_dat_w(uint8_t data)
+	{
+	}
+
+	void portb_dat_w(uint8_t data)
+	{
+	}
+
+	void portc_dat_w(uint8_t data)
+	{
+	}
+
+
+	required_device<elan_eu3a14sys_device> m_sys;
+	required_device<elan_eu3a05_sound_device> m_sound;
+	required_device<elan_eu3a14vid_device> m_vid;
+
+	required_device<palette_device> m_palette;
 	required_device<screen_device> m_screen;
 
-	required_device<elan_eu3a05_sound_device> m_sound;
-	required_device<elan_eu3a05vid_device> m_vid;
-	required_device<palette_device> m_palette;
+	uint8_t m_portdir[3];
 
 	void sound_end0(int state) { m_sys->generate_custom_interrupt(2); }
 	void sound_end1(int state) { m_sys->generate_custom_interrupt(3); }
@@ -80,25 +112,14 @@ protected:
 
 	uint8_t fixed_r(offs_t offset)
 	{
-		return space(5).read_byte(m_fixed_bank_address + offset);
-	}	
-
-	uint32_t m_fixed_bank_address;
+		// always at 0 for this SoC?
+		return space(5).read_byte(offset);
+	}
 
 private:
 
 };
 
-class elan_eu3a13_cpu_device : public elan_eu3a05_cpu_device {
+DECLARE_DEVICE_TYPE(ELAN_EU3A14_SOC,     elan_eu3a14_cpu_device)
 
-public:
-	elan_eu3a13_cpu_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
-
-	virtual void device_add_mconfig(machine_config &config) override ATTR_COLD;
-};
-
-
-DECLARE_DEVICE_TYPE(ELAN_EU3A05_SOC,     elan_eu3a05_cpu_device)
-DECLARE_DEVICE_TYPE(ELAN_EU3A13_SOC,     elan_eu3a13_cpu_device)
-
-#endif // MAME_TVGAMES_ELAN_EU3A05_SOC_H
+#endif // MAME_MACHINE_ELAN_EU3A14_SOC_H

@@ -1,12 +1,11 @@
 // license:BSD-3-Clause
 // copyright-holders:David Haywood
 
-#ifndef MAME_TVGAMES_ELAN_EU3A14VID_H
-#define MAME_TVGAMES_ELAN_EU3A14VID_H
+#ifndef MAME_MACHINE_ELAN_EU3A14VID_H
+#define MAME_MACHINE_ELAN_EU3A14VID_H
 
 #include "elan_eu3a05commonvid.h"
 #include "cpu/m6502/m6502.h"
-#include "machine/bankdev.h"
 #include "screen.h"
 
 class elan_eu3a14vid_device : public elan_eu3a05commonvid_device, public device_memory_interface
@@ -101,4 +100,4 @@ private:
 
 DECLARE_DEVICE_TYPE(ELAN_EU3A14_VID, elan_eu3a14vid_device)
 
-#endif // MAME_TVGAMES_ELAN_EU3A14VID_H
+#endif // MAME_MACHINE_ELAN_EU3A14VID_H

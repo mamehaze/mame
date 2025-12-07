@@ -1,8 +1,8 @@
 // license:BSD-3-Clause
 // copyright-holders:David Haywood
 
-#ifndef MAME_TVGAMES_ELAN_EP3A19A_SOC_H
-#define MAME_TVGAMES_ELAN_EP3A19A_SOC_H
+#ifndef MAME_MACHINE_ELAN_EP3A19A_SOC_H
+#define MAME_MACHINE_ELAN_EP3A19A_SOC_H
 
 #include "cpu/m6502/m6502.h"
 
@@ -95,4 +95,4 @@ private:
 
 DECLARE_DEVICE_TYPE(ELAN_EP3A19A_SOC,     elan_ep3a19a_cpu_device)
 
-#endif // MAME_TVGAMES_ELAN_EP3A19A_SOC_H
+#endif // MAME_MACHINE_ELAN_EP3A19A_SOC_H
