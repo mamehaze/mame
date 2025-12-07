@@ -748,23 +748,26 @@ INTERRUPT_GEN_MEMBER(elan_eu3a14_state::interrupt)
 
 void elan_eu3a14_state::radica_eu3a14(machine_config &config)
 {
-	/* basic machine hardware */
 	ELAN_EU3A14_SOC(config, m_maincpu, XTAL(21'477'272)/2); // marked as 21'477'270
 	m_maincpu->set_addrmap(AS_PROGRAM, &elan_eu3a14_state::radica_eu3a14_map);
 	m_maincpu->set_addrmap(5, &elan_eu3a14_state::bank_map);
 	m_maincpu->set_vblank_int("screen", FUNC(elan_eu3a14_state::interrupt));
 
-	ELAN_EU3A14_SYS(config, m_sys, 0);
-	m_sys->set_cpu(m_maincpu);
-	m_sys->bank_change_callback().set(FUNC(elan_eu3a14_state::bank_change));
-
-	/* video hardware */
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
 	m_screen->set_refresh_hz(60);
 	m_screen->set_vblank_time(ATTOSECONDS_IN_USEC(2500));
 	m_screen->set_screen_update(FUNC(elan_eu3a14_state::screen_update));
 	m_screen->set_size(32*8, 32*8);
 	m_screen->set_visarea(0*8, 32*8-1, 0*8, 28*8-1);
+
+
+
+
+	ELAN_EU3A14_SYS(config, m_sys, 0);
+	m_sys->set_cpu(m_maincpu);
+	m_sys->bank_change_callback().set(FUNC(elan_eu3a14_state::bank_change));
+
+	/* video hardware */
 
 	PALETTE(config, m_palette).set_entries(512);
 
