@@ -246,6 +246,9 @@ public:
 	void elan_eu3a05(machine_config &config);
 	void elan_eu3a05_pal(machine_config& config);
 
+	void bank_change(uint16_t bank)	{ m_current_bank = bank; }
+	uint16_t m_current_bank;
+
 protected:
 	// driver_device overrides
 	virtual void machine_start() override ATTR_COLD;
@@ -851,6 +854,7 @@ void elan_eu3a05_state::elan_eu3a05(machine_config &config)
 	ELAN_EU3A05_SYS(config, m_sys, 0);
 	m_sys->set_cpu(m_maincpu);
 	m_sys->set_addrbank(m_bank);
+	m_sys->bank_change_callback().set(FUNC(elan_eu3a05_state::bank_change));
 
 	ELAN_EU3A05_VID(config, m_vid, 0);
 	m_vid->set_cpu(m_maincpu);
@@ -897,6 +901,7 @@ void elan_eu3a13_state::elan_eu3a13(machine_config& config)
 	m_sys->set_cpu(m_maincpu);
 	m_sys->set_addrbank(m_bank);
 	m_sys->set_alt_timer(); // for Carl Edwards'
+	m_sys->bank_change_callback().set(FUNC(elan_eu3a13_state::bank_change));
 }
 
 void elan_eu3a13_state::elan_eu3a13_pal(machine_config& config)

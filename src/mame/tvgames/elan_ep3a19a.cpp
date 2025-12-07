@@ -44,6 +44,9 @@ public:
 
 	void init_tvbg();
 
+	void bank_change(uint16_t bank)	{ m_current_bank = bank; }
+	uint16_t m_current_bank;
+
 protected:
 	// driver_device overrides
 	virtual void machine_start() override ATTR_COLD;
@@ -273,6 +276,7 @@ void elan_ep3a19a_state::elan_ep3a19a(machine_config &config)
 	ELAN_EP3A19A_SYS(config, m_sys, 0);
 	m_sys->set_cpu(m_maincpu);
 	m_sys->set_addrbank(m_bank);
+	m_sys->bank_change_callback().set(FUNC(elan_ep3a19a_state::bank_change));
 
 	ELAN_EP3A19A_VID(config, m_vid, 0);
 	m_vid->set_cpu(m_maincpu);

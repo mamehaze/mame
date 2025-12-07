@@ -176,7 +176,8 @@ elan_eu3a05commonsys_device::elan_eu3a05commonsys_device(const machine_config &m
 	m_is_pal(false),
 	m_allow_timer_irq(true),
 	m_bank_on_low_bank_writes(false),
-	m_whichtimer(0)
+	m_whichtimer(0),
+	m_bankchange_cb(*this)
 {
 }
 
@@ -266,7 +267,10 @@ void elan_eu3a05commonsys_device::device_reset()
 
 	m_rombank_lo = 0x7f;
 	m_rombank_hi = 0x00;
-	m_bank->set_bank(0x7f);
+	if (m_bank)
+		m_bank->set_bank(0x7f);
+	else
+		m_bankchange_cb(0x7f);
 
 	// generate at a fixed frequency for now, but can probably be configured.  drives 3D stages in Air Blaster Joystick
 	m_unk_timer->adjust(attotime::from_hz(4096), 0, attotime::from_hz(2048));
@@ -357,7 +361,10 @@ void elan_eu3a05commonsys_device::elan_eu3a05_rombank_w(offs_t offset, uint8_t d
 		//logerror("%s: elan_eu3a05_rombank_hi_w (set ROM bank) %02x\n", machine().describe_context(), data);
 		m_rombank_hi = data;
 
-		m_bank->set_bank(m_rombank_lo | (m_rombank_hi << 8));
+		if (m_bank)
+			m_bank->set_bank(m_rombank_lo | (m_rombank_hi << 8));
+		else
+			m_bankchange_cb(m_rombank_lo | (m_rombank_hi << 8));
 	}
 	else
 	{
@@ -369,7 +376,10 @@ void elan_eu3a05commonsys_device::elan_eu3a05_rombank_w(offs_t offset, uint8_t d
 			// rad_ftet writes only the low and expects bank to change
 			// however qix in rad_sinv disagrees.  could this be an
 			// eu3a05 / eu3a13 difference?
-			m_bank->set_bank(m_rombank_lo | (m_rombank_hi << 8));
+			if (m_bank)
+				m_bank->set_bank(m_rombank_lo | (m_rombank_hi << 8));
+			else
+				m_bankchange_cb(m_rombank_lo | (m_rombank_hi << 8));
 		}
 	}
 

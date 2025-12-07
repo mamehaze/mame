@@ -111,6 +111,9 @@ public:
 
 	int tsbuzz_inputs_r();
 
+	void bank_change(uint16_t bank)	{ m_current_bank = bank; }
+	uint16_t m_current_bank;
+
 private:
 	// screen updates
 	uint32_t screen_update(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect);
@@ -789,6 +792,7 @@ void elan_eu3a14_state::radica_eu3a14(machine_config &config)
 	ELAN_EU3A14_SYS(config, m_sys, 0);
 	m_sys->set_cpu(m_maincpu);
 	m_sys->set_addrbank(m_bank);
+	m_sys->bank_change_callback().set(FUNC(elan_eu3a14_state::bank_change));
 
 	GFXDECODE(config, m_gfxdecode, m_palette, gfx_helper);
 
