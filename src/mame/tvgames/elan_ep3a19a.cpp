@@ -101,6 +101,11 @@ private:
 		m_maincpu->space(5).write_byte((m_current_bank * 0x8000) + offset, data);
 	}
 
+	uint8_t fixed_r(offs_t offset)
+	{
+		// always at 0 for this SoC?
+		return m_maincpu->space(5).read_byte(offset);
+	}	
 };
 
 void elan_ep3a19a_state::video_start()
@@ -142,7 +147,7 @@ void elan_ep3a19a_state::elan_ep3a19a_map(address_map &map)
 	//map(0x5000, 0x50ff).ram();
 	map(0x6000, 0xdfff).rw(FUNC(elan_ep3a19a_state::bank_r), FUNC(elan_ep3a19a_state::bank_w));
 
-	map(0xe000, 0xffff).rom().region("maincpu", 0x0000);
+	map(0xe000, 0xffff).r(FUNC(elan_ep3a19a_state::fixed_r));
 	// not sure how these work, might be a modified 6502 core instead.
 	//map(0xfffa, 0xfffb).r(m_sys, FUNC(elan_eu3a05commonsys_device::nmi_vector_r)); // custom vectors handled with NMI for now
 	map(0xfffa, 0xfffb).r(FUNC(elan_ep3a19a_state::nmi_vector_r)); // custom vectors handled with NMI for now

@@ -241,7 +241,9 @@ public:
 		m_bank(*this, "bank"),
 		m_gfxdecode(*this, "gfxdecode"),
 		m_palette(*this, "palette")
-	{ }
+	{
+		m_fixed_bank_address = 0x3f8000;
+	}
 
 	void elan_eu3a05(machine_config &config);
 	void elan_eu3a05_pal(machine_config& config);
@@ -296,6 +298,13 @@ protected:
 	{
 		m_maincpu->space(5).write_byte((m_current_bank * 0x8000) + offset, data);
 	}
+
+	uint8_t fixed_r(offs_t offset)
+	{
+		return m_maincpu->space(5).read_byte(m_fixed_bank_address + offset);
+	}	
+
+	uint32_t m_fixed_bank_address;
 };
 
 class elan_eu3a05_buzztime_state : public elan_eu3a05_state
@@ -347,7 +356,9 @@ class elan_eu3a13_state : public elan_eu3a05_state
 public:
 	elan_eu3a13_state(const machine_config &mconfig, device_type type, const char *tag)
 		: elan_eu3a05_state(mconfig, type, tag)
-	{}
+	{
+		m_fixed_bank_address = 0x0;
+	}
 
 	void elan_eu3a13(machine_config &config);
 	void elan_eu3a13_pal(machine_config &config);
@@ -357,7 +368,6 @@ public:
 	void init_sudelan3();
 
 private:
-	void elan_eu3a13_map(address_map &map) ATTR_COLD;
 };
 
 
@@ -467,22 +477,11 @@ void elan_eu3a05_state::elan_eu3a05_map(address_map &map)
 	//map(0x6000, 0xdfff).m(m_bank, FUNC(address_map_bank_device::amap8));
 	map(0x6000, 0xdfff).rw(FUNC(elan_eu3a05_state::bank_r), FUNC(elan_eu3a05_state::bank_w));
 
-	map(0xe000, 0xffff).rom().region("maincpu", 0x3f8000);
+	map(0xe000, 0xffff).r(FUNC(elan_eu3a05_state::fixed_r));
 	// not sure how these work, might be a modified 6502 core instead.
 	map(0xfffa, 0xfffb).r(m_sys, FUNC(elan_eu3a05commonsys_device::nmi_vector_r)); // custom vectors handled with NMI for now
 	//map(0xfffe, 0xffff).r(m_sys, FUNC(elan_eu3a05commonsys_device::irq_vector_r));  // allow normal IRQ for brk
 }
-
-// default e000 mapping is the same as eu3a14, other registers seem closer to eua05
-void elan_eu3a13_state::elan_eu3a13_map(address_map& map)
-{
-	elan_eu3a05_map(map);
-	map(0xe000, 0xffff).rom().region("maincpu", 0x0000);
-	// not sure how these work, might be a modified 6502 core instead.
-	map(0xfffa, 0xfffb).r(m_sys, FUNC(elan_eu3a05commonsys_device::nmi_vector_r)); // custom vectors handled with NMI for now
-	//map(0xfffe, 0xffff).r(m_sys, FUNC(elan_eu3a05commonsys_device::irq_vector_r));  // allow normal IRQ for brk
-}
-
 
 void elan_eu3a05_state::elan_eu3a05_bank_map(address_map &map)
 {
@@ -901,7 +900,6 @@ void elan_eu3a05_state::elan_eu3a05_pal(machine_config& config)
 void elan_eu3a13_state::elan_eu3a13(machine_config& config)
 {
 	elan_eu3a05(config);
-	m_maincpu->set_addrmap(AS_PROGRAM, &elan_eu3a13_state::elan_eu3a13_map);
 
 	ELAN_EU3A13_VID(config.replace(), m_vid, 0);
 	m_vid->set_cpu(m_maincpu);
@@ -926,7 +924,6 @@ void elan_eu3a13_state::elan_eu3a13_pal(machine_config& config)
 void elan_eu3a13_state::elan_eu3a13_pvmil8(machine_config& config)
 {
 	elan_eu3a13_pal(config);
-	m_maincpu->set_addrmap(AS_PROGRAM, &elan_eu3a13_state::elan_eu3a13_map);
 	m_sys->set_alt_timer();
 }
 

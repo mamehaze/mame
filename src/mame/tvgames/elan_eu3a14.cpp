@@ -175,6 +175,12 @@ private:
 	{
 		m_maincpu->space(5).write_byte((m_current_bank * 0x8000) + offset, data);
 	}
+
+	uint8_t fixed_r(offs_t offset)
+	{
+		// always at 0 for this SoC?
+		return m_maincpu->space(5).read_byte(offset);
+	}	
 };
 
 
@@ -264,7 +270,7 @@ void elan_eu3a14_state::radica_eu3a14_map(address_map& map)
 
 	map(0x6000, 0xdfff).rw(FUNC(elan_eu3a14_state::bank_r), FUNC(elan_eu3a14_state::bank_w));
 
-	map(0xe000, 0xffff).rom().region("maincpu", 0x0000);
+	map(0xe000, 0xffff).r(FUNC(elan_eu3a14_state::fixed_r));
 
 	map(0xfffa, 0xfffb).r(m_sys, FUNC(elan_eu3a05commonsys_device::nmi_vector_r)); // custom vectors handled with NMI for now
 	//map(0xfffe, 0xffff).r(m_sys, FUNC(elan_eu3a05commonsys_device::irq_vector_r));  // allow normal IRQ for brk
