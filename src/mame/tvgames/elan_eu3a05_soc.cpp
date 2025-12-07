@@ -4,7 +4,8 @@
 #include "emu.h"
 #include "elan_eu3a05_soc.h"
 
-DEFINE_DEVICE_TYPE(ELAN_EU3A05_SOC,     elan_eu3a05_cpu_device,     "elan_eu3a05_cpu_device",     "ELAN EU3A05 (NTSC)")
+DEFINE_DEVICE_TYPE(ELAN_EU3A05_SOC,     elan_eu3a05_cpu_device,     "elan_eu3a05_cpu_device",     "ELAN EU3A05")
+DEFINE_DEVICE_TYPE(ELAN_EU3A13_SOC,     elan_eu3a13_cpu_device,     "elan_eu3a13_cpu_device",     "ELAN EU3A13")
 
 elan_eu3a05_cpu_device::elan_eu3a05_cpu_device(const machine_config& mconfig, device_type type, const char* tag, device_t* owner, uint32_t clock) :
 	m6502_device(mconfig, type, tag, owner, clock),
@@ -27,6 +28,13 @@ elan_eu3a05_cpu_device::elan_eu3a05_cpu_device(const machine_config &mconfig, co
 	elan_eu3a05_cpu_device(mconfig, ELAN_EU3A05_SOC, tag, owner, clock)
 {
 }
+
+elan_eu3a13_cpu_device::elan_eu3a13_cpu_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock) :
+	elan_eu3a05_cpu_device(mconfig, ELAN_EU3A13_SOC, tag, owner, clock)
+{
+	m_fixed_bank_address = 0;
+}
+
 
 void elan_eu3a05_cpu_device::device_add_mconfig(machine_config &config)
 {
@@ -60,6 +68,21 @@ void elan_eu3a05_cpu_device::device_add_mconfig(machine_config &config)
 	m_sound->sound_end_cb<4>().set(FUNC(elan_eu3a05_state::sound_end4));
 	m_sound->sound_end_cb<5>().set(FUNC(elan_eu3a05_state::sound_end5));
 	*/
+}
+
+void elan_eu3a13_cpu_device::device_add_mconfig(machine_config &config)
+{
+	elan_eu3a05_cpu_device::device_add_mconfig(config);
+
+	ELAN_EU3A13_VID(config.replace(), m_vid, 0);
+	m_vid->set_cpu(":maincpu");
+	m_vid->set_palette(m_palette);
+	m_vid->set_entries(256);
+
+	ELAN_EU3A13_SYS(config.replace(), m_sys, 0);
+	m_sys->set_cpu(":maincpu");
+	m_sys->set_alt_timer(); // for Carl Edwards'
+	m_sys->bank_change_callback().set(FUNC(elan_eu3a13_cpu_device::bank_change));
 }
 
 device_memory_interface::space_config_vector elan_eu3a05_cpu_device::memory_space_config() const

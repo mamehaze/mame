@@ -701,19 +701,17 @@ void elan_eu3a05_state::elan_eu3a05_pal(machine_config& config)
 
 void elan_eu3a13_state::elan_eu3a13(machine_config& config)
 {
-	elan_eu3a05(config);
+	/* basic machine hardware */
+	ELAN_EU3A13_SOC(config, m_maincpu, XTAL(21'281'370)/8); // wrong, this is the PAL clock
+	m_maincpu->set_addrmap(5, &elan_eu3a13_state::elan_eu3a05_bank_map);
+	m_maincpu->set_vblank_int("screen", FUNC(elan_eu3a13_state::interrupt));
 
-/* TODO:
-	ELAN_EU3A13_VID(config.replace(), m_vid, 0);
-	m_vid->set_cpu(m_maincpu);
-	m_vid->set_palette(m_palette);
-	m_vid->set_entries(256);
-
-	ELAN_EU3A13_SYS(config.replace(), m_sys, 0);
-	m_sys->set_cpu(m_maincpu);
-	m_sys->set_alt_timer(); // for Carl Edwards'
-	m_sys->bank_change_callback().set(FUNC(elan_eu3a13_state::bank_change));
-*/
+	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
+	m_screen->set_refresh_hz(60);
+	m_screen->set_vblank_time(ATTOSECONDS_IN_USEC(2500));
+	m_screen->set_screen_update(FUNC(elan_eu3a13_state::screen_update));
+	m_screen->set_size(32*8, 32*8);
+	m_screen->set_visarea(0*8, 32*8-1, 0*8, 28*8-1);
 }
 
 void elan_eu3a13_state::elan_eu3a13_pal(machine_config& config)

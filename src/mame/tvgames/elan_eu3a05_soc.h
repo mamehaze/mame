@@ -89,6 +89,16 @@ private:
 
 };
 
+class elan_eu3a13_cpu_device : public elan_eu3a05_cpu_device {
+
+public:
+	elan_eu3a13_cpu_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
+
+	virtual void device_add_mconfig(machine_config &config) override ATTR_COLD;
+};
+
+
 DECLARE_DEVICE_TYPE(ELAN_EU3A05_SOC,     elan_eu3a05_cpu_device)
+DECLARE_DEVICE_TYPE(ELAN_EU3A13_SOC,     elan_eu3a13_cpu_device)
 
 #endif // MAME_TVGAMES_ELAN_EU3A05_SOC_H
