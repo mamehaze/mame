@@ -17,7 +17,6 @@ elan_eu3a05vid_device::elan_eu3a05vid_device(const machine_config& mconfig, devi
 	elan_eu3a05commonvid_device(mconfig, type, tag, owner, clock),
 	device_memory_interface(mconfig, *this),
 	m_cpu(*this, finder_base::DUMMY_TAG),
-	m_bank(*this, finder_base::DUMMY_TAG),
 	m_space_config("regs", ENDIANNESS_NATIVE, 8, 5, 0, address_map_constructor(FUNC(elan_eu3a05vid_device::map), this))
 {
 	m_force_basic_scroll = false;

@@ -27,9 +27,6 @@ void elan_ep3a19asys_device::rombank_w(offs_t offset, uint8_t data)
 {
 	m_rombank_lo = data;
 
-	if (m_bank)
-		m_bank->set_bank(m_rombank_lo);
-
 	m_bankchange_cb(m_rombank_lo | (m_rombank_hi << 8));
 }
 

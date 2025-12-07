@@ -35,7 +35,6 @@ public:
 		m_ram(*this, "ram"),
 		m_sound(*this, "eu3a05sound"),
 		m_vid(*this, "vid"),
-		m_bank(*this, "bank"),
 		m_gfxdecode(*this, "gfxdecode"),
 		m_palette(*this, "palette")
 	{ }
@@ -75,7 +74,6 @@ private:
 	required_shared_ptr<uint8_t> m_ram;
 	required_device<elan_eu3a05_sound_device> m_sound;
 	required_device<elan_eu3a05vid_device> m_vid;
-	required_device<address_map_bank_device> m_bank;
 	required_device<gfxdecode_device> m_gfxdecode;
 	required_device<palette_device> m_palette;
 
@@ -271,8 +269,6 @@ void elan_ep3a19a_state::elan_ep3a19a(machine_config &config)
 	m_maincpu->set_addrmap(5, &elan_ep3a19a_state::elan_ep3a19a_bank_map);
 	m_maincpu->set_vblank_int("screen", FUNC(elan_ep3a19a_state::interrupt));
 
-	ADDRESS_MAP_BANK(config, m_bank).set_map(&elan_ep3a19a_state::elan_ep3a19a_bank_map).set_options(ENDIANNESS_LITTLE, 8, 24, 0x8000);
-
 	PALETTE(config, m_palette).set_entries(256);
 
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
@@ -291,12 +287,10 @@ void elan_ep3a19a_state::elan_ep3a19a(machine_config &config)
 
 	ELAN_EP3A19A_SYS(config, m_sys, 0);
 	m_sys->set_cpu(m_maincpu);
-	m_sys->set_addrbank(m_bank);
 	m_sys->bank_change_callback().set(FUNC(elan_ep3a19a_state::bank_change));
 
 	ELAN_EP3A19A_VID(config, m_vid, 0);
 	m_vid->set_cpu(m_maincpu);
-	m_vid->set_addrbank(m_bank);
 	m_vid->set_palette(m_palette);
 	m_vid->set_entries(256);
 

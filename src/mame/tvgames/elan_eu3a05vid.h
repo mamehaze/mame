@@ -15,7 +15,6 @@ public:
 	elan_eu3a05vid_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
 
 	template <typename T> void set_cpu(T &&tag) { m_cpu.set_tag(std::forward<T>(tag)); }
-	template <typename T> void set_addrbank(T &&tag) { m_bank.set_tag(std::forward<T>(tag)); }
 
 	void map(address_map &map) ATTR_COLD;
 
@@ -38,7 +37,6 @@ protected:
 	uint8_t m_vidctrl = 0;
 private:
 	required_device<m6502_device> m_cpu;
-	required_device<address_map_bank_device> m_bank;
 	const address_space_config      m_space_config;
 
 

@@ -10,7 +10,6 @@ elan_eu3a14vid_device::elan_eu3a14vid_device(const machine_config &mconfig, cons
 	: elan_eu3a05commonvid_device(mconfig, ELAN_EU3A14_VID, tag, owner, clock),
 	device_memory_interface(mconfig, *this),
 	m_cpu(*this, finder_base::DUMMY_TAG),
-	m_bank(*this, finder_base::DUMMY_TAG),
 	m_screen(*this, finder_base::DUMMY_TAG),
 	m_space_config("regs", ENDIANNESS_NATIVE, 8, 7, 0, address_map_constructor(FUNC(elan_eu3a14vid_device::map), this))
 {

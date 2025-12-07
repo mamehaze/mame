@@ -238,7 +238,6 @@ public:
 		m_sound(*this, "eu3a05sound"),
 		m_vid(*this, "vid"),
 		m_pixram(*this, "pixram"),
-		m_bank(*this, "bank"),
 		m_gfxdecode(*this, "gfxdecode"),
 		m_palette(*this, "palette")
 	{
@@ -278,7 +277,6 @@ protected:
 	required_device<elan_eu3a05_sound_device> m_sound;
 	required_device<elan_eu3a05vid_device> m_vid;
 	required_shared_ptr<uint8_t> m_pixram;
-	required_device<address_map_bank_device> m_bank;
 	required_device<gfxdecode_device> m_gfxdecode;
 	required_device<palette_device> m_palette;
 
@@ -474,7 +472,6 @@ void elan_eu3a05_state::elan_eu3a05_map(address_map &map)
 	map(0x5080, 0x50bf).m(m_sound, FUNC(elan_eu3a05_sound_device::map));
 
 	//map(0x5000, 0x50ff).ram();
-	//map(0x6000, 0xdfff).m(m_bank, FUNC(address_map_bank_device::amap8));
 	map(0x6000, 0xdfff).rw(FUNC(elan_eu3a05_state::bank_r), FUNC(elan_eu3a05_state::bank_w));
 
 	map(0xe000, 0xffff).r(FUNC(elan_eu3a05_state::fixed_r));
@@ -844,8 +841,6 @@ void elan_eu3a05_state::elan_eu3a05(machine_config &config)
 	m_maincpu->set_addrmap(5, &elan_eu3a05_state::elan_eu3a05_bank_map);
 	m_maincpu->set_vblank_int("screen", FUNC(elan_eu3a05_state::interrupt));
 
-	ADDRESS_MAP_BANK(config, m_bank).set_map(&elan_eu3a05_state::elan_eu3a05_bank_map).set_options(ENDIANNESS_LITTLE, 8, 24, 0x8000);
-
 	PALETTE(config, m_palette).set_entries(256);
 
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
@@ -864,12 +859,10 @@ void elan_eu3a05_state::elan_eu3a05(machine_config &config)
 
 	ELAN_EU3A05_SYS(config, m_sys, 0);
 	m_sys->set_cpu(m_maincpu);
-	m_sys->set_addrbank(m_bank);
 	m_sys->bank_change_callback().set(FUNC(elan_eu3a05_state::bank_change));
 
 	ELAN_EU3A05_VID(config, m_vid, 0);
 	m_vid->set_cpu(m_maincpu);
-	m_vid->set_addrbank(m_bank);
 	m_vid->set_palette(m_palette);
 	m_vid->set_entries(256);
 
@@ -903,13 +896,11 @@ void elan_eu3a13_state::elan_eu3a13(machine_config& config)
 
 	ELAN_EU3A13_VID(config.replace(), m_vid, 0);
 	m_vid->set_cpu(m_maincpu);
-	m_vid->set_addrbank(m_bank);
 	m_vid->set_palette(m_palette);
 	m_vid->set_entries(256);
 
 	ELAN_EU3A13_SYS(config.replace(), m_sys, 0);
 	m_sys->set_cpu(m_maincpu);
-	m_sys->set_addrbank(m_bank);
 	m_sys->set_alt_timer(); // for Carl Edwards'
 	m_sys->bank_change_callback().set(FUNC(elan_eu3a13_state::bank_change));
 }

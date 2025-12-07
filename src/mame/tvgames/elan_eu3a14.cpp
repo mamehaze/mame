@@ -89,7 +89,6 @@ public:
 		m_vid(*this, "commonvid"),
 		m_mainregion(*this, "maincpu"),
 		m_mainram(*this, "mainram"),
-		m_bank(*this, "bank"),
 		m_palette(*this, "palette"),
 		m_gfxdecode(*this, "gfxdecode"),
 		m_screen(*this, "screen")
@@ -151,7 +150,6 @@ private:
 	required_region_ptr<uint8_t> m_mainregion;
 
 	required_shared_ptr<uint8_t> m_mainram;
-	required_device<address_map_bank_device> m_bank;
 	required_device<palette_device> m_palette;
 	required_device<gfxdecode_device> m_gfxdecode;
 	required_device<screen_device> m_screen;
@@ -719,7 +717,7 @@ void elan_eu3a14_state::machine_reset()
 	// rather be safe
 	m_maincpu->set_state_int(M6502_S, 0x1ff);
 
-	m_bank->set_bank(0x01);
+	m_current_bank = 0x01;
 
 	m_portdir[0] = 0x00;
 	m_portdir[1] = 0x00;
@@ -805,11 +803,8 @@ void elan_eu3a14_state::radica_eu3a14(machine_config &config)
 	m_maincpu->set_addrmap(5, &elan_eu3a14_state::bank_map);
 	m_maincpu->set_vblank_int("screen", FUNC(elan_eu3a14_state::interrupt));
 
-	ADDRESS_MAP_BANK(config, m_bank).set_map(&elan_eu3a14_state::bank_map).set_options(ENDIANNESS_LITTLE, 8, 24, 0x8000);
-
 	ELAN_EU3A14_SYS(config, m_sys, 0);
 	m_sys->set_cpu(m_maincpu);
-	m_sys->set_addrbank(m_bank);
 	m_sys->bank_change_callback().set(FUNC(elan_eu3a14_state::bank_change));
 
 	GFXDECODE(config, m_gfxdecode, m_palette, gfx_helper);
@@ -826,7 +821,6 @@ void elan_eu3a14_state::radica_eu3a14(machine_config &config)
 
 	ELAN_EU3A14_VID(config, m_vid, 0);
 	m_vid->set_cpu(m_maincpu);
-	m_vid->set_addrbank(m_bank);
 	m_vid->set_palette(m_palette);
 	m_vid->set_screen(m_screen);
 	m_vid->set_entries(512);
