@@ -66,7 +66,8 @@
 #include "elan_eu3a14sys.h"
 #include "elan_eu3a14vid.h"
 
-#include "cpu/m6502/m6502.h"
+#include "elan_eu3a14_soc.h"
+
 #include "machine/bankdev.h"
 #include "machine/timer.h"
 
@@ -779,7 +780,7 @@ GFXDECODE_END
 void elan_eu3a14_state::radica_eu3a14(machine_config &config)
 {
 	/* basic machine hardware */
-	M6502(config, m_maincpu, XTAL(21'477'272)/2); // marked as 21'477'270
+	ELAN_EU3A14_SOC(config, m_maincpu, XTAL(21'477'272)/2); // marked as 21'477'270
 	m_maincpu->set_addrmap(AS_PROGRAM, &elan_eu3a14_state::radica_eu3a14_map);
 	m_maincpu->set_vblank_int("screen", FUNC(elan_eu3a14_state::interrupt));
 

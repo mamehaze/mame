@@ -209,8 +209,8 @@ Set 5043 bit 0 low
 #include "emu.h"
 
 #include "elan_eu3a05_a.h"
+#include "elan_eu3a05_soc.h"
 
-#include "cpu/m6502/m6502.h"
 //#include "cpu/m6502/w65c02.h"
 #include "emupal.h"
 #include "screen.h"
@@ -235,7 +235,6 @@ public:
 		m_gpio(*this, "gpio"),
 		m_maincpu(*this, "maincpu"),
 		m_screen(*this, "screen"),
-		m_ram(*this, "ram"),
 		m_sound(*this, "eu3a05sound"),
 		m_vid(*this, "vid"),
 		m_pixram(*this, "pixram"),
@@ -271,7 +270,6 @@ protected:
 
 	virtual void video_start() override ATTR_COLD;
 
-	required_shared_ptr<uint8_t> m_ram;
 	required_device<elan_eu3a05_sound_device> m_sound;
 	required_device<elan_eu3a05vid_device> m_vid;
 	required_shared_ptr<uint8_t> m_pixram;
@@ -436,7 +434,6 @@ uint8_t elan_eu3a05_state::read_full_space(offs_t offset)
 void elan_eu3a05_state::elan_eu3a05_map(address_map &map)
 {
 	// can the addresses move around?
-	map(0x0000, 0x3fff).ram().share("ram");
 	map(0x4800, 0x49ff).rw(m_vid, FUNC(elan_eu3a05commonvid_device::palette_r), FUNC(elan_eu3a05commonvid_device::palette_w));
 
 	map(0x5000, 0x501f).m(m_sys, FUNC(elan_eu3a05sys_device::map)); // including DMA controller
@@ -829,7 +826,7 @@ INTERRUPT_GEN_MEMBER(elan_eu3a05_state::interrupt)
 void elan_eu3a05_state::elan_eu3a05(machine_config &config)
 {
 	/* basic machine hardware */
-	M6502(config, m_maincpu, XTAL(21'281'370)/8); // wrong, this is the PAL clock
+	ELAN_EU3A05_SOC(config, m_maincpu, XTAL(21'281'370)/8); // wrong, this is the PAL clock
 	m_maincpu->set_addrmap(AS_PROGRAM, &elan_eu3a05_state::elan_eu3a05_map);
 	m_maincpu->set_vblank_int("screen", FUNC(elan_eu3a05_state::interrupt));
 

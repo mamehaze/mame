@@ -13,7 +13,7 @@
 #include "elan_ep3a19asys.h"
 #include "elan_eu3a05vid.h"
 
-#include "cpu/m6502/m6502.h"
+#include "elan_ep3a19a_soc.h"
 #include "machine/bankdev.h"
 
 #include "emupal.h"
@@ -248,7 +248,7 @@ INTERRUPT_GEN_MEMBER(elan_ep3a19a_state::interrupt)
 void elan_ep3a19a_state::elan_ep3a19a(machine_config &config)
 {
 	/* basic machine hardware */
-	M6502(config, m_maincpu, XTAL(21'477'272)/8);
+	ELAN_EP3A19A_SOC(config, m_maincpu, XTAL(21'477'272)/8);
 	m_maincpu->set_addrmap(AS_PROGRAM, &elan_ep3a19a_state::elan_ep3a19a_map);
 	m_maincpu->set_vblank_int("screen", FUNC(elan_ep3a19a_state::interrupt));
 
