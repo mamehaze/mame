@@ -42,6 +42,22 @@ device_memory_interface::space_config_vector elan_eu3a05_cpu_device::memory_spac
 void elan_eu3a05_cpu_device::device_reset()
 {
 	m6502_device::device_reset();
+
+	/* the 6502 core sets the default stack value to 0x01bd
+	   and Tetris does not initialize it to anything else
+
+	   Tetris stores the playfield data at 0x100 - 0x1c7 and
+	   has a clear routine that will erase that range and
+	   trash the stack
+
+	   It seems likely this 6502 sets it to 0x1ff by default
+	   at least.
+
+	   According to
+	   http://mametesters.org/view.php?id=6486
+	   this isn't right for known 6502 types either
+	*/
+	set_state_int(M6502_S, 0x1ff);
 }
 
 void elan_eu3a05_cpu_device::device_start()

@@ -42,6 +42,9 @@ device_memory_interface::space_config_vector elan_eu3a14_cpu_device::memory_spac
 void elan_eu3a14_cpu_device::device_reset()
 {
 	m6502_device::device_reset();
+
+	// see note in eu3a05, probably applies here too but nothing depends on it
+	set_state_int(M6502_S, 0x1ff);
 }
 
 void elan_eu3a14_cpu_device::device_start()

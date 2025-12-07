@@ -729,21 +729,6 @@ void elan_eu3a05_state::machine_start()
 
 void elan_eu3a05_state::machine_reset()
 {
-	/* the 6502 core sets the default stack value to 0x01bd
-	   and Tetris does not initialize it to anything else
-
-	   Tetris stores the playfield data at 0x100 - 0x1c7 and
-	   has a clear routine that will erase that range and
-	   trash the stack
-
-	   It seems likely this 6502 sets it to 0x1ff by default
-	   at least.
-
-	   According to
-	   http://mametesters.org/view.php?id=6486
-	   this isn't right for known 6502 types either
-	*/
-	m_maincpu->set_state_int(M6502_S, 0x1ff);
 }
 
 

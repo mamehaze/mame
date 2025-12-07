@@ -712,9 +712,6 @@ void elan_eu3a14_state::machine_start()
 
 void elan_eu3a14_state::machine_reset()
 {
-	// rather be safe
-	m_maincpu->set_state_int(M6502_S, 0x1ff);
-
 	m_current_bank = 0x01;
 
 	m_portdir[0] = 0x00;

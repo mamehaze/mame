@@ -190,7 +190,6 @@ void elan_ep3a19a_state::machine_start()
 
 void elan_ep3a19a_state::machine_reset()
 {
-	m_maincpu->set_state_int(M6502_S, 0x1ff);
 }
 
 INTERRUPT_GEN_MEMBER(elan_ep3a19a_state::interrupt)
