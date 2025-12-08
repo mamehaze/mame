@@ -690,7 +690,7 @@ void elan_eu3a05_state::elan_eu3a05_pal(machine_config& config)
 {
 	elan_eu3a05(config);
 	m_screen->set_refresh_hz(50);
-	// TODO: m_sys->set_pal(); // TODO: also set PAL clocks
+	m_maincpu->set_is_pal();
 }
 
 
@@ -715,7 +715,7 @@ void elan_eu3a13_state::elan_eu3a13(machine_config& config)
 void elan_eu3a13_state::elan_eu3a13_pal(machine_config& config)
 {
 	elan_eu3a13(config);
-	// TODO: m_sys->set_pal(); // TODO: also set PAL clocks
+	m_maincpu->set_is_pal();
 	m_screen->set_refresh_hz(50);
 }
 
@@ -767,7 +767,7 @@ void elan_eu3a05_pvwwcas_state::pvwwcas(machine_config& config)
 {
 	elan_eu3a05(config);
 	m_screen->set_refresh_hz(50);
-	// TODO: m_sys->set_pal(); // TODO: also set PAL clocks
+	m_maincpu->set_is_pal();
 
 	m_maincpu->read_callback<2>().set(FUNC(elan_eu3a05_pvwwcas_state::pvwwc_portc_r));
 	m_maincpu->write_callback<2>().set(FUNC(elan_eu3a05_pvwwcas_state::pvwwc_portc_w));
@@ -825,6 +825,14 @@ ROM_START( sudoku2p )
 ROM_END
 
 ROM_START( rad_ftet )
+	ROM_REGION( 0x400000, "maincpu", ROMREGION_ERASE00 )
+	ROM_LOAD( "familytetris.u2", 0x00000, 0x100000, CRC(2b65a70d) SHA1(1c9a960ebb4c2c51177b8596c017a04bf816b020) )
+	ROM_RELOAD(0x100000,0x100000)
+	ROM_RELOAD(0x200000,0x100000)
+	ROM_RELOAD(0x300000,0x100000)
+ROM_END
+
+ROM_START( rad_ftetp ) // ROM is the same on a UK unit
 	ROM_REGION( 0x400000, "maincpu", ROMREGION_ERASE00 )
 	ROM_LOAD( "familytetris.u2", 0x00000, 0x100000, CRC(2b65a70d) SHA1(1c9a960ebb4c2c51177b8596c017a04bf816b020) )
 	ROM_RELOAD(0x100000,0x100000)
@@ -928,8 +936,8 @@ CONS( 2005, sudelan, 0,         0, elan_eu3a13_pal,  sudoku,   elan_eu3a13_state
 
 CONS( 2005, sudoku2p, 0,        0, elan_eu3a13_pal,  sudoku2p, elan_eu3a13_state, empty_init,  "<unknown>",  "Sudoku TV Game (PAL, 2 players)", MACHINE_NOT_WORKING ) // a pair of yellow controllers with 'TV Sudoku Awesome Puzzles' on their label
 
-CONS( 2006, rad_ftet, 0,        0, elan_eu3a13,      rad_ftet, elan_eu3a13_state, empty_init,  "Radica",  "Family Tetris", MACHINE_NOT_WORKING )
-// rad_ftet shows UK logo if set to PAL
+CONS( 2006, rad_ftet,  0,        0, elan_eu3a13,      rad_ftet, elan_eu3a13_state, empty_init,  "Radica",  "Family Tetris (NTSC)", MACHINE_NOT_WORKING )
+CONS( 2006, rad_ftetp, rad_ftet, 0, elan_eu3a13_pal,  rad_ftet, elan_eu3a13_state, empty_init,  "Radica",  "Family Tetris (PAL)", MACHINE_NOT_WORKING )
 
 CONS( 200?, carlecfg, 0,        0, elan_eu3a13,      carlecfg, elan_eu3a13_state, empty_init,  "Excalibur Electronics",  "Carl Edwards' Chase For Glory", MACHINE_NOT_WORKING )
 

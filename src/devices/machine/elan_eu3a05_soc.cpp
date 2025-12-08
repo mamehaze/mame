@@ -17,7 +17,8 @@ elan_eu3a05_cpu_device::elan_eu3a05_cpu_device(const machine_config& mconfig, de
 	m_vid(*this, "vid"),
 	m_palette(*this, "palette"),
 	m_read_callback(*this, 0xff),
-	m_write_callback(*this)
+	m_write_callback(*this),
+	m_is_pal(false)
 {
 	m_extbus_config.m_addr_width = 24;
 	m_extbus_config.m_logaddr_width = 24;
@@ -124,6 +125,9 @@ void elan_eu3a05_cpu_device::device_reset()
 	   this isn't right for known 6502 types either
 	*/
 	set_state_int(M6502_S, 0x1ff);
+
+	if (m_is_pal)
+		m_sys->set_pal();
 }
 
 void elan_eu3a05_cpu_device::device_start()
