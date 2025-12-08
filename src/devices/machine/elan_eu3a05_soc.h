@@ -59,9 +59,7 @@ protected:
 
 	required_device<elan_eu3a05sys_device> m_sys;
 	required_device<elan_eu3a05gpio_device> m_gpio;
-
 	required_device<screen_device> m_screen;
-
 	required_device<elan_eu3a05_sound_device> m_sound;
 	required_device<elan_eu3a05vid_device> m_vid;
 	required_device<palette_device> m_palette;
@@ -74,20 +72,9 @@ protected:
 	void sound_end5(int state) { m_sys->generate_custom_interrupt(7); }
 
 
-	uint8_t bank_r(offs_t offset)
-	{
-		return space(5).read_byte((m_current_bank * 0x8000) + offset);
-	}
-
-	void bank_w(offs_t offset, uint8_t data)
-	{
-		space(5).write_byte((m_current_bank * 0x8000) + offset, data);
-	}
-
-	uint8_t fixed_r(offs_t offset)
-	{
-		return space(5).read_byte(m_fixed_bank_address + offset);
-	}	
+	uint8_t bank_r(offs_t offset) {	return space(5).read_byte((m_current_bank * 0x8000) + offset); }
+	void bank_w(offs_t offset, uint8_t data) { space(5).write_byte((m_current_bank * 0x8000) + offset, data); }
+	uint8_t fixed_r(offs_t offset) { return space(5).read_byte(m_fixed_bank_address + offset); }	
 
 	uint32_t m_fixed_bank_address;
 
@@ -95,12 +82,11 @@ private:
 	devcb_read8::array<3> m_read_callback;
 	devcb_write8::array<3> m_write_callback;
 
-	void port0_w(uint8_t data) { m_write_callback[0](data); }
-	void port1_w(uint8_t data) { m_write_callback[1](data); }
-	void port2_w(uint8_t data) { m_write_callback[2](data); }
-	uint8_t port0_r() { return m_read_callback[0](); }
-	uint8_t port1_r() { return m_read_callback[1](); }
-	uint8_t port2_r() { return m_read_callback[2](); }
+	template <int Port>
+	void port_w(uint8_t data) { m_write_callback[Port](data); }
+
+	template <int Port>
+	uint8_t port_r() { return m_read_callback[Port](); }
 
 	bool m_is_pal; // configuration (probably a pin)
 	bool m_use_alt_timer; // hack, until timer enables are understood

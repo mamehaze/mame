@@ -43,7 +43,7 @@ void elan_eu3a14_cpu_device::device_add_mconfig(machine_config &config)
 	m_vid->set_palette(m_palette);
 	m_vid->set_screen(m_screen);
 	m_vid->set_entries(512);
-	m_vid->set_tilerambase(0x0200 - 0x200);
+	m_vid->set_tilerambase(0);
 
 	/* sound hardware */
 	SPEAKER(config, "mono").front_center();
