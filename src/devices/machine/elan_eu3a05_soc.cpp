@@ -53,11 +53,11 @@ void elan_eu3a05_cpu_device::device_add_mconfig(machine_config &config)
 	m_gpio->write_callback<2>().set(FUNC(elan_eu3a05_cpu_device::port2_w));
 
 	ELAN_EU3A05_SYS(config, m_sys, 0);
-	m_sys->set_cpu(":maincpu");
+	m_sys->set_cpu(DEVICE_SELF);
 	m_sys->bank_change_callback().set(FUNC(elan_eu3a05_cpu_device::bank_change));
 
 	ELAN_EU3A05_VID(config, m_vid, 0);
-	m_vid->set_cpu(":maincpu");
+	m_vid->set_cpu(DEVICE_SELF);
 	m_vid->set_palette(m_palette);
 	m_vid->set_entries(256);
 
@@ -82,12 +82,12 @@ void elan_eu3a13_cpu_device::device_add_mconfig(machine_config &config)
 	elan_eu3a05_cpu_device::device_add_mconfig(config);
 
 	ELAN_EU3A13_VID(config.replace(), m_vid, 0);
-	m_vid->set_cpu(":maincpu");
+	m_vid->set_cpu(DEVICE_SELF);
 	m_vid->set_palette(m_palette);
 	m_vid->set_entries(256);
 
 	ELAN_EU3A13_SYS(config.replace(), m_sys, 0);
-	m_sys->set_cpu(":maincpu");
+	m_sys->set_cpu(DEVICE_SELF);
 	m_sys->bank_change_callback().set(FUNC(elan_eu3a13_cpu_device::bank_change));
 }
 

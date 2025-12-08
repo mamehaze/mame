@@ -39,9 +39,11 @@ uint8_t elan_eu3a05gpio_device::read_direction(int which)
 
 uint8_t elan_eu3a05gpio_device::gpio_r(offs_t offset)
 {
-	int port = offset/2;
-	if (!(offset&1)) return read_direction(port);
-	else return read_port_data(port);
+	int port = offset / 2;
+	if (!(offset & 1))
+		return read_direction(port);
+	else
+		return read_port_data(port);
 }
 
 void elan_eu3a05gpio_device::write_port_data(int which, uint8_t data)
@@ -59,9 +61,11 @@ void elan_eu3a05gpio_device::write_direction(int which, uint8_t data)
 
 void elan_eu3a05gpio_device::gpio_w(offs_t offset, uint8_t data)
 {
-	int port = offset/2;
-	if (!(offset&1)) return write_direction(port, data);
-	else return write_port_data(port, data);
+	int port = offset / 2;
+	if (!(offset & 1))
+		return write_direction(port, data);
+	else
+		return write_port_data(port, data);
 }
 
 void elan_eu3a05gpio_device::gpio_unk_w(offs_t offset, uint8_t data)

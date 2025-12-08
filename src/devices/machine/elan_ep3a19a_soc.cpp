@@ -37,11 +37,11 @@ void elan_ep3a19a_cpu_device::device_add_mconfig(machine_config &config)
 	m_gpio->read_callback<2>().set_ioport(":IN2");
 
 	ELAN_EP3A19A_SYS(config, m_sys, 0);
-	m_sys->set_cpu(":maincpu");
+	m_sys->set_cpu(DEVICE_SELF);
 	m_sys->bank_change_callback().set(FUNC(elan_ep3a19a_cpu_device::bank_change));
 
 	ELAN_EP3A19A_VID(config, m_vid, 0);
-	m_vid->set_cpu(":maincpu");
+	m_vid->set_cpu(DEVICE_SELF);
 	m_vid->set_palette(m_palette);
 	m_vid->set_entries(256);
 

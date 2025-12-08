@@ -31,7 +31,7 @@ elan_eu3a14_cpu_device::elan_eu3a14_cpu_device(const machine_config &mconfig, co
 void elan_eu3a14_cpu_device::device_add_mconfig(machine_config &config)
 {
 	ELAN_EU3A14_SYS(config, m_sys, 0);
-	m_sys->set_cpu(":maincpu");
+	m_sys->set_cpu(DEVICE_SELF);
 	m_sys->bank_change_callback().set(FUNC(elan_eu3a14_cpu_device::bank_change));
 
 	/* video hardware */
@@ -39,7 +39,7 @@ void elan_eu3a14_cpu_device::device_add_mconfig(machine_config &config)
 	PALETTE(config, m_palette).set_entries(512);
 
 	ELAN_EU3A14_VID(config, m_vid, 0);
-	m_vid->set_cpu(":maincpu");
+	m_vid->set_cpu(DEVICE_SELF);
 	m_vid->set_palette(m_palette);
 	m_vid->set_screen(m_screen);
 	m_vid->set_entries(512);
