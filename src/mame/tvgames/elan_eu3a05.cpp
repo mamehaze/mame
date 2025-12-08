@@ -306,7 +306,6 @@ public:
 
 	void elan_eu3a13(machine_config &config);
 	void elan_eu3a13_pal(machine_config &config);
-	void elan_eu3a13_pvmil8(machine_config &config);
 
 	void init_sudelan();
 	void init_sudelan3();
@@ -351,7 +350,7 @@ void elan_eu3a05_buzztime_state::elan_buzztime(machine_config &config)
 {
 	elan_eu3a05_state::elan_eu3a05(config);
 
-	// TODO: m_sys->set_alt_timer();
+	m_maincpu->set_alt_timer();
 
 	m_maincpu->read_callback<0>().set(FUNC(elan_eu3a05_buzztime_state::porta_r)); // I/O lives in here
 //  m_maincpu->read_callback<1>().set(FUNC(elan_eu3a05_buzztime_state::random_r)); // nothing of note
@@ -703,6 +702,7 @@ void elan_eu3a13_state::elan_eu3a13(machine_config& config)
 	m_maincpu->read_callback<0>().set_ioport("IN0");
 	m_maincpu->read_callback<1>().set_ioport("IN1");
 	m_maincpu->read_callback<2>().set_ioport("IN2");
+	m_maincpu->set_alt_timer(); // carlecfg needs it, some other eu3a13 games might not
 
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
 	m_screen->set_refresh_hz(60);
@@ -717,12 +717,6 @@ void elan_eu3a13_state::elan_eu3a13_pal(machine_config& config)
 	elan_eu3a13(config);
 	m_maincpu->set_is_pal();
 	m_screen->set_refresh_hz(50);
-}
-
-void elan_eu3a13_state::elan_eu3a13_pvmil8(machine_config& config)
-{
-	elan_eu3a13_pal(config);
-	// TODO: m_sys->set_alt_timer();
 }
 
 uint8_t elan_eu3a05_pvwwcas_state::pvwwc_portc_r()
@@ -943,9 +937,9 @@ CONS( 200?, carlecfg, 0,        0, elan_eu3a13,      carlecfg, elan_eu3a13_state
 
 // this is in very similar packaging to the 'pvmil' game in tvgames/spg2xx_playvision.cpp, and the casing is identical
 // however this is from a year earlier, and there is a subtle difference in the otherwise identical text on the back of the box, mentioning that it uses an 8-bit processor, where the other box states 16-bit
-CONS( 2005, pvmil8,   0,        0, elan_eu3a13_pvmil8,  sudoku,   elan_eu3a13_state, empty_init,  "Play Vision", "Who Wants to Be a Millionaire? (Play Vision, Plug and Play, UK, 8-bit version)", MACHINE_NOT_WORKING )
+CONS( 2005, pvmil8,   0,        0, elan_eu3a13_pal,  sudoku,   elan_eu3a13_state, empty_init,  "Play Vision", "Who Wants to Be a Millionaire? (Play Vision, Plug and Play, UK, 8-bit version)", MACHINE_NOT_WORKING )
 // see https://millionaire.fandom.com/wiki/Haluatko_miljon%C3%A4%C3%A4riksi%3F_(Play_Vision_game)
-CONS( 2005, pvmilfin, pvmil8,   0, elan_eu3a13_pvmil8,  sudoku,   elan_eu3a13_state, empty_init,  "Play Vision", u8"Haluatko miljonääriksi? (Finland)", MACHINE_NOT_WORKING )
+CONS( 2005, pvmilfin, pvmil8,   0, elan_eu3a13_pal,  sudoku,   elan_eu3a13_state, empty_init,  "Play Vision", u8"Haluatko miljonääriksi? (Finland)", MACHINE_NOT_WORKING )
 
 // Below are unknown, probably belong here, but dumps are bad
 

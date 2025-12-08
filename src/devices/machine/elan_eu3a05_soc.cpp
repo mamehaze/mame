@@ -18,7 +18,8 @@ elan_eu3a05_cpu_device::elan_eu3a05_cpu_device(const machine_config& mconfig, de
 	m_palette(*this, "palette"),
 	m_read_callback(*this, 0xff),
 	m_write_callback(*this),
-	m_is_pal(false)
+	m_is_pal(false),
+	m_use_alt_timer(false)
 {
 	m_extbus_config.m_addr_width = 24;
 	m_extbus_config.m_logaddr_width = 24;
@@ -87,7 +88,6 @@ void elan_eu3a13_cpu_device::device_add_mconfig(machine_config &config)
 
 	ELAN_EU3A13_SYS(config.replace(), m_sys, 0);
 	m_sys->set_cpu(":maincpu");
-	m_sys->set_alt_timer(); // for Carl Edwards'
 	m_sys->bank_change_callback().set(FUNC(elan_eu3a13_cpu_device::bank_change));
 }
 
@@ -128,6 +128,9 @@ void elan_eu3a05_cpu_device::device_reset()
 
 	if (m_is_pal)
 		m_sys->set_pal();
+
+	if (m_use_alt_timer)
+		m_sys->set_alt_timer();
 }
 
 void elan_eu3a05_cpu_device::device_start()

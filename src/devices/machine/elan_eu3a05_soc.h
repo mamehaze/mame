@@ -31,6 +31,7 @@ public:
 	template <int Port> auto read_callback() { return m_read_callback[Port].bind(); }
 
 	void set_is_pal() { m_is_pal = true; }
+	void set_alt_timer() { m_use_alt_timer = true; }
 
 protected:
 	elan_eu3a05_cpu_device(const machine_config& mconfig, device_type type, const char* tag, device_t* owner, uint32_t clock);
@@ -101,7 +102,8 @@ private:
 	uint8_t port1_r() { return m_read_callback[1](); }
 	uint8_t port2_r() { return m_read_callback[2](); }
 
-	bool m_is_pal;
+	bool m_is_pal; // configuration (probably a pin)
+	bool m_use_alt_timer; // hack, until timer enables are understood
 };
 
 class elan_eu3a13_cpu_device : public elan_eu3a05_cpu_device {
