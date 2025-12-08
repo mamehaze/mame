@@ -13,7 +13,10 @@ elan_eu3a14_cpu_device::elan_eu3a14_cpu_device(const machine_config& mconfig, de
 	m_sound(*this, "eu3a05sound"),
 	m_vid(*this, "commonvid"),
 	m_palette(*this, "palette"),
-	m_screen(*this, ":screen")
+	m_screen(*this, ":screen"),
+	m_default_spriteramaddr(0),
+	m_default_tileramaddr(0),
+	m_disable_timer(false)
 {
 	m_extbus_config.m_addr_width = 24;
 	m_extbus_config.m_logaddr_width = 24;
@@ -83,6 +86,12 @@ void elan_eu3a14_cpu_device::device_reset()
 
 	// see note in eu3a05, probably applies here too but nothing depends on it
 	set_state_int(M6502_S, 0x1ff);
+
+	// pass per-game kludges to subdevices
+	m_vid->set_default_spriteramaddr(m_default_spriteramaddr);
+	m_vid->set_tilerambase(m_default_tileramaddr);
+	if (m_disable_timer)
+		m_sys->disable_timer_irq();
 }
 
 void elan_eu3a14_cpu_device::device_start()

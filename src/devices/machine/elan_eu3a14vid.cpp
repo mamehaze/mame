@@ -157,9 +157,11 @@ uint8_t elan_eu3a14vid_device::read_vram(int offset)
 
 uint32_t elan_eu3a14vid_device::screen_update(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect)
 {
+	const pen_t *pen = m_palette->pens();
+
 	m_spriterambase = (m_spriteaddr * 0x200) - 0x200;
 
-	bitmap.fill(0, cliprect);
+	bitmap.fill(pen[0], cliprect);
 	m_prioritybitmap.fill(0, cliprect);
 
 	draw_background(screen, bitmap, cliprect);

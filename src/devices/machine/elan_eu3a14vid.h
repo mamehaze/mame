@@ -95,7 +95,7 @@ private:
 
 	bitmap_ind8 m_prioritybitmap;
 
-	uint8_t m_default_spriteramaddr = 0x14;
+	uint8_t m_default_spriteramaddr;
 };
 
 DECLARE_DEVICE_TYPE(ELAN_EU3A14_VID, elan_eu3a14vid_device)

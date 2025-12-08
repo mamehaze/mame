@@ -29,6 +29,10 @@ public:
 
 	void generate_custom_interrupt(int irq) { m_sys->generate_custom_interrupt(irq); }
 
+	// set per game kludges to pass to subdevices
+	void set_default_spriteramaddr(int addr) { m_default_spriteramaddr = addr; }
+	void set_tilerambase(int addr) { m_default_tileramaddr = addr; }
+	void disable_timer_irq() { m_disable_timer = true; }
 
 protected:
 	elan_eu3a14_cpu_device(const machine_config& mconfig, device_type type, const char* tag, device_t* owner, uint32_t clock);
@@ -117,7 +121,10 @@ protected:
 	}
 
 private:
-
+	// per game config kludges (until registers are figured out)
+	uint16_t m_default_spriteramaddr;
+	uint16_t m_default_tileramaddr;
+	bool m_disable_timer;
 };
 
 DECLARE_DEVICE_TYPE(ELAN_EU3A14_SOC,     elan_eu3a14_cpu_device)

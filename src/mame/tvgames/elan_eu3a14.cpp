@@ -103,7 +103,8 @@ private:
 
 	TIMER_DEVICE_CALLBACK_MEMBER(scanline_cb);
 
-	void bank_map(address_map &map) ATTR_COLD;
+	void external_map_8mb(address_map &map) ATTR_COLD;
+	void external_map_4mb(address_map &map) ATTR_COLD;
 
 	// driver_device overrides
 	virtual void machine_start() override ATTR_COLD;
@@ -124,9 +125,14 @@ uint32_t elan_eu3a14_state::screen_update(screen_device& screen, bitmap_rgb32& b
 
 
 
-void elan_eu3a14_state::bank_map(address_map &map)
+void elan_eu3a14_state::external_map_8mb(address_map &map)
 {
 	map(0x000000, 0x7fffff).rom().region("maincpu", 0);
+}
+
+void elan_eu3a14_state::external_map_4mb(address_map &map)
+{
+	map(0x000000, 0x3fffff).mirror(0x400000).rom().region("maincpu", 0);
 }
 
 static INPUT_PORTS_START( eu3a14 )
@@ -600,8 +606,10 @@ INTERRUPT_GEN_MEMBER(elan_eu3a14_state::interrupt)
 void elan_eu3a14_state::radica_eu3a14(machine_config &config)
 {
 	ELAN_EU3A14_SOC(config, m_maincpu, XTAL(21'477'272)/2); // marked as 21'477'270
-	m_maincpu->set_addrmap(5, &elan_eu3a14_state::bank_map);
+	m_maincpu->set_addrmap(5, &elan_eu3a14_state::external_map_4mb);
 	m_maincpu->set_vblank_int("screen", FUNC(elan_eu3a14_state::interrupt));
+	m_maincpu->set_default_spriteramaddr(0x14);
+	m_maincpu->set_tilerambase(0x0000);
 
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
 	m_screen->set_refresh_hz(60);
@@ -609,34 +617,33 @@ void elan_eu3a14_state::radica_eu3a14(machine_config &config)
 	m_screen->set_screen_update(FUNC(elan_eu3a14_state::screen_update));
 	m_screen->set_size(32*8, 32*8);
 	m_screen->set_visarea(0*8, 32*8-1, 0*8, 28*8-1);
-
-
 }
 
 void elan_eu3a14_state::radica_eu3a14_altspritebase(machine_config& config)
 {
 	radica_eu3a14(config);
-	// TODO: m_vid->set_default_spriteramaddr(0x04); // at 0x800
+	m_maincpu->set_addrmap(5, &elan_eu3a14_state::external_map_8mb);
+	m_maincpu->set_default_spriteramaddr(0x04); // at 0x800
 }
 
 void elan_eu3a14_state::radica_eu3a14_altspritebase_bat(machine_config& config)
 {
 	radica_eu3a14(config);
-	// TODO: m_vid->set_default_spriteramaddr(0x0c); // at 0x1800
+	m_maincpu->set_addrmap(5, &elan_eu3a14_state::external_map_8mb);
+	m_maincpu->set_default_spriteramaddr(0x0c); // at 0x1800
 }
-
 
 
 void elan_eu3a14_state::radica_eu3a14_altrambase(machine_config& config)
 {
 	radica_eu3a14(config);
-	// TODO: m_vid->set_tilerambase(0x0a00 - 0x200);
+	m_maincpu->set_tilerambase(0x0800);
 }
 
 void elan_eu3a14_state::radica_eu3a14_altrambase_bb3(machine_config& config)
 {
 	radica_eu3a14_altrambase(config);
-	// TODO: m_sys->disable_timer_irq();
+	m_maincpu->disable_timer_irq();
 }
 
 void elan_eu3a14_state::radica_eu3a14_altrambase_adc(machine_config &config)
@@ -651,74 +658,73 @@ void elan_eu3a14_state::radica_eu3a14p(machine_config &config) // TODO, clocks d
 {
 	radica_eu3a14(config);
 	// TODO: m_sys->set_pal(); // TODO: also set PAL clocks
-	// TODO: m_screen->set_refresh_hz(50);
+	m_screen->set_refresh_hz(50);
 }
 
 void elan_eu3a14_state::radica_eu3a14p_altrambase(machine_config& config)
 {
 	radica_eu3a14p(config);
-	// TODO: m_vid->set_tilerambase(0x0a00 - 0x200);
+	m_maincpu->set_tilerambase(0x0800);
 }
 
 void elan_eu3a14_state::radica_eu3a14p_altrambase_bb3(machine_config& config)
 {
 	radica_eu3a14p_altrambase(config);
-	// TODO: m_sys->disable_timer_irq();
+	m_maincpu->disable_timer_irq();
 }
 
-
 ROM_START( rad_gtg )
-	ROM_REGION( 0x800000, "maincpu", ROMREGION_ERASE00 )
+	ROM_REGION( 0x400000, "maincpu", ROMREGION_ERASE00 )
 	ROM_LOAD( "goldentee.bin", 0x000000, 0x400000, CRC(2d6cdb85) SHA1(ce6ed39d692ff16ea407f39c37b6e731f952b9d5) )
 ROM_END
 
 ROM_START( rad_rsg )
-	ROM_REGION( 0x800000, "maincpu", ROMREGION_ERASE00 )
+	ROM_REGION( 0x400000, "maincpu", ROMREGION_ERASE00 )
 	ROM_LOAD( "realswinggolf.bin", 0x000000, 0x400000, CRC(89e5b6a6) SHA1(0b14aa84d7e7ae7190cd64e3eb125de2104342bc) )
 ROM_END
 
 ROM_START( rad_rsgp )
-	ROM_REGION( 0x800000, "maincpu", ROMREGION_ERASE00 )
+	ROM_REGION( 0x400000, "maincpu", ROMREGION_ERASE00 )
 	ROM_LOAD( "realswinggolf.bin", 0x000000, 0x400000, CRC(89e5b6a6) SHA1(0b14aa84d7e7ae7190cd64e3eb125de2104342bc) )
 ROM_END
 
 ROM_START( rad_rsgpa )
-	ROM_REGION( 0x800000, "maincpu", ROMREGION_ERASE00 )
+	ROM_REGION( 0x400000, "maincpu", ROMREGION_ERASE00 )
 	ROM_LOAD( "realswinggolf_multilanguage.bin", 0x000000, 0x400000, CRC(c03752a6) SHA1(7e9cc804edf0c23a8dedfa0c0a51d1bc811ea5c1) )
 ROM_END
 
 ROM_START( rad_foot )
-	ROM_REGION( 0x800000, "maincpu", ROMREGION_ERASE00 )
+	ROM_REGION( 0x400000, "maincpu", ROMREGION_ERASE00 )
 	ROM_LOAD( "connectvfootball.bin", 0x000000, 0x400000, CRC(00ac4fc0) SHA1(2b60ae5c6bc7e9ef7cdbd3f6a0a0657ed3ab5afe) )
 ROM_END
 
 ROM_START( rad_bb3 )
-	ROM_REGION( 0x800000, "maincpu", ROMREGION_ERASE00 )
+	ROM_REGION( 0x400000, "maincpu", ROMREGION_ERASE00 )
 	ROM_LOAD( "baseball3.bin", 0x000000, 0x400000, CRC(af86aab0) SHA1(5fed48a295f045ca839f87b0f9b78ecc51104cdc) )
 ROM_END
 
 ROM_START( rad_bb3p )
-	ROM_REGION( 0x800000, "maincpu", ROMREGION_ERASE00 )
+	ROM_REGION( 0x400000, "maincpu", ROMREGION_ERASE00 )
 	ROM_LOAD( "baseball3.bin", 0x000000, 0x400000, CRC(af86aab0) SHA1(5fed48a295f045ca839f87b0f9b78ecc51104cdc) )
 ROM_END
 
 ROM_START( rad_hnt3 )
-	ROM_REGION( 0x800000, "maincpu", ROMREGION_ERASE00 )
+	ROM_REGION( 0x400000, "maincpu", ROMREGION_ERASE00 )
 	ROM_LOAD( "huntin3.bin", 0x000000, 0x400000, CRC(c8e3e40b) SHA1(81eb16ac5ab6d93525fcfadbc6703b2811d7de7f) )
 ROM_END
 
 ROM_START( rad_hnt3p )
-	ROM_REGION( 0x800000, "maincpu", ROMREGION_ERASE00 )
+	ROM_REGION( 0x400000, "maincpu", ROMREGION_ERASE00 )
 	ROM_LOAD( "huntin3.bin", 0x000000, 0x400000, CRC(c8e3e40b) SHA1(81eb16ac5ab6d93525fcfadbc6703b2811d7de7f) )
 ROM_END
 
 ROM_START( rad_bask )
-	ROM_REGION( 0x800000, "maincpu", ROMREGION_ERASE00 )
+	ROM_REGION( 0x400000, "maincpu", ROMREGION_ERASE00 )
 	ROM_LOAD( "basketball.bin", 0x000000, 0x400000, CRC(7d6ff53c) SHA1(1c75261d55e0107a3b8e8d4c1eb2854750f2d0e8) )
 ROM_END
 
 ROM_START( rad_baskp )
-	ROM_REGION( 0x800000, "maincpu", ROMREGION_ERASE00 )
+	ROM_REGION( 0x400000, "maincpu", ROMREGION_ERASE00 )
 	ROM_LOAD( "basketball.bin", 0x000000, 0x400000, CRC(7d6ff53c) SHA1(1c75261d55e0107a3b8e8d4c1eb2854750f2d0e8) )
 ROM_END
 
