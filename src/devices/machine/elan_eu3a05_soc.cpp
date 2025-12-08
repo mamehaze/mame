@@ -15,7 +15,9 @@ elan_eu3a05_cpu_device::elan_eu3a05_cpu_device(const machine_config& mconfig, de
 	m_screen(*this, ":screen"),
 	m_sound(*this, "eu3a05sound"),
 	m_vid(*this, "vid"),
-	m_palette(*this, "palette")
+	m_palette(*this, "palette"),
+	m_read_callback(*this, 0xff),
+	m_write_callback(*this)
 {
 	m_extbus_config.m_addr_width = 24;
 	m_extbus_config.m_logaddr_width = 24;
@@ -41,9 +43,12 @@ void elan_eu3a05_cpu_device::device_add_mconfig(machine_config &config)
 	PALETTE(config, m_palette).set_entries(256);
 
 	ELAN_EU3A05_GPIO(config, m_gpio, 0);
-	m_gpio->read_callback<0>().set_ioport(":IN0");
-	m_gpio->read_callback<1>().set_ioport(":IN1");
-	m_gpio->read_callback<2>().set_ioport(":IN2");
+	m_gpio->read_callback<0>().set(FUNC(elan_eu3a05_cpu_device::port0_r));
+	m_gpio->write_callback<0>().set(FUNC(elan_eu3a05_cpu_device::port0_w));
+	m_gpio->read_callback<1>().set(FUNC(elan_eu3a05_cpu_device::port1_r));
+	m_gpio->write_callback<1>().set(FUNC(elan_eu3a05_cpu_device::port1_w));
+	m_gpio->read_callback<2>().set(FUNC(elan_eu3a05_cpu_device::port2_r));
+	m_gpio->write_callback<2>().set(FUNC(elan_eu3a05_cpu_device::port2_w));
 
 	ELAN_EU3A05_SYS(config, m_sys, 0);
 	m_sys->set_cpu(":maincpu");

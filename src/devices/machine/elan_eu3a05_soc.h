@@ -27,6 +27,9 @@ public:
 
 	void generate_custom_interrupt(int irq) { m_sys->generate_custom_interrupt(irq); }
 
+	template <int Port> auto write_callback() { return m_write_callback[Port].bind(); }
+	template <int Port> auto read_callback() { return m_read_callback[Port].bind(); }
+
 protected:
 	elan_eu3a05_cpu_device(const machine_config& mconfig, device_type type, const char* tag, device_t* owner, uint32_t clock);
 
@@ -86,6 +89,15 @@ protected:
 	uint32_t m_fixed_bank_address;
 
 private:
+	devcb_read8::array<3> m_read_callback;
+	devcb_write8::array<3> m_write_callback;
+
+	void port0_w(uint8_t data) { m_write_callback[0](data); }
+	void port1_w(uint8_t data) { m_write_callback[1](data); }
+	void port2_w(uint8_t data) { m_write_callback[2](data); }
+	uint8_t port0_r() { return m_read_callback[0](); }
+	uint8_t port1_r() { return m_read_callback[1](); }
+	uint8_t port2_r() { return m_read_callback[2](); }
 
 };
 

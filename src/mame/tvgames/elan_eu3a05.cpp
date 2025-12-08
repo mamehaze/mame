@@ -267,9 +267,8 @@ protected:
 	virtual void machine_start() override ATTR_COLD;
 
 private:
-	//uint8_t random_r() { return machine().rand(); }
-	// TODO: uint8_t porta_r();
-	// TODO: void portb_w(uint8_t data);
+	uint8_t porta_r();
+	void portb_w(uint8_t data);
 
 	DECLARE_DEVICE_IMAGE_LOAD_MEMBER(cart_load);
 
@@ -281,8 +280,8 @@ class elan_eu3a05_pvwwcas_state : public elan_eu3a05_state
 {
 public:
 	elan_eu3a05_pvwwcas_state(const machine_config &mconfig, device_type type, const char *tag) :
-		elan_eu3a05_state(mconfig, type, tag)
-	//	m_prevport_c(0xff)
+		elan_eu3a05_state(mconfig, type, tag),
+		m_prevport_c(0xff)
 	{ }
 
 	void pvwwcas(machine_config& config);
@@ -292,9 +291,9 @@ public:
 protected:
 
 private:
-	// TODO: uint8_t pvwwc_portc_r();
-	// TODO: void pvwwc_portc_w(uint8_t data);
-	//uint8_t m_prevport_c;
+	uint8_t pvwwc_portc_r();
+	void pvwwc_portc_w(uint8_t data);
+	uint8_t m_prevport_c;
 };
 
 class elan_eu3a13_state : public elan_eu3a05_state
@@ -354,10 +353,10 @@ void elan_eu3a05_buzztime_state::elan_buzztime(machine_config &config)
 
 	// TODO: m_sys->set_alt_timer();
 
-	// TODO:  m_gpio->read_callback<0>().set(FUNC(elan_eu3a05_buzztime_state::porta_r)); // I/O lives in here
-//  m_gpio->read_callback<1>().set(FUNC(elan_eu3a05_buzztime_state::random_r)); // nothing of note
-//  m_gpio->read_callback<2>().set(FUNC(elan_eu3a05_buzztime_state::random_r)); // nothing of note
-	// TODO:  m_gpio->write_callback<1>().set(FUNC(elan_eu3a05_buzztime_state::portb_w)); // control related
+	m_maincpu->read_callback<0>().set(FUNC(elan_eu3a05_buzztime_state::porta_r)); // I/O lives in here
+//  m_maincpu->read_callback<1>().set(FUNC(elan_eu3a05_buzztime_state::random_r)); // nothing of note
+//  m_maincpu->read_callback<2>().set(FUNC(elan_eu3a05_buzztime_state::random_r)); // nothing of note
+	m_maincpu->write_callback<1>().set(FUNC(elan_eu3a05_buzztime_state::portb_w)); // control related
 
 	GENERIC_CARTSLOT(config, m_cart, generic_plain_slot, "buzztime_cart");
 	m_cart->set_width(GENERIC_ROM16_WIDTH);
@@ -366,7 +365,6 @@ void elan_eu3a05_buzztime_state::elan_buzztime(machine_config &config)
 	SOFTWARE_LIST(config, "buzztime_cart").set_original("buzztime_cart");
 }
 
-/* TODO
 uint8_t elan_eu3a05_buzztime_state::porta_r()
 {
 	logerror("%s: porta_r\n", machine().describe_context());
@@ -377,7 +375,6 @@ void elan_eu3a05_buzztime_state::portb_w(uint8_t data)
 {
 	logerror("%s: portb_w %02x\n", machine().describe_context(), data);
 }
-*/
 
 void elan_eu3a05_state::video_start()
 {
@@ -676,6 +673,9 @@ void elan_eu3a05_state::elan_eu3a05(machine_config &config)
 	ELAN_EU3A05_SOC(config, m_maincpu, XTAL(21'281'370)/8); // wrong, this is the PAL clock
 	m_maincpu->set_addrmap(5, &elan_eu3a05_state::elan_eu3a05_bank_map);
 	m_maincpu->set_vblank_int("screen", FUNC(elan_eu3a05_state::interrupt));
+	m_maincpu->read_callback<0>().set_ioport("IN0");
+	m_maincpu->read_callback<1>().set_ioport("IN1");
+	m_maincpu->read_callback<2>().set_ioport("IN2");
 
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
 	m_screen->set_refresh_hz(60);
@@ -700,6 +700,9 @@ void elan_eu3a13_state::elan_eu3a13(machine_config& config)
 	ELAN_EU3A13_SOC(config, m_maincpu, XTAL(21'281'370)/8); // wrong, this is the PAL clock
 	m_maincpu->set_addrmap(5, &elan_eu3a13_state::elan_eu3a05_bank_map);
 	m_maincpu->set_vblank_int("screen", FUNC(elan_eu3a13_state::interrupt));
+	m_maincpu->read_callback<0>().set_ioport("IN0");
+	m_maincpu->read_callback<1>().set_ioport("IN1");
+	m_maincpu->read_callback<2>().set_ioport("IN2");
 
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
 	m_screen->set_refresh_hz(60);
@@ -722,7 +725,6 @@ void elan_eu3a13_state::elan_eu3a13_pvmil8(machine_config& config)
 	// TODO: m_sys->set_alt_timer();
 }
 
-/* TODO
 uint8_t elan_eu3a05_pvwwcas_state::pvwwc_portc_r()
 {
 	int pc = m_maincpu->pc();
@@ -735,9 +737,7 @@ uint8_t elan_eu3a05_pvwwcas_state::pvwwc_portc_r()
 
 	return m_prevport_c | 0x4;
 }
-*/
 
-/* TODO
 void elan_eu3a05_pvwwcas_state::pvwwc_portc_w(uint8_t data)
 {
 	logerror("%s: pvwwc_portc_w %02x\n", machine().describe_context());
@@ -761,7 +761,7 @@ void elan_eu3a05_pvwwcas_state::pvwwc_portc_w(uint8_t data)
 
 	m_prevport_c = data;
 }
-*/
+
 
 void elan_eu3a05_pvwwcas_state::pvwwcas(machine_config& config)
 {
@@ -769,8 +769,8 @@ void elan_eu3a05_pvwwcas_state::pvwwcas(machine_config& config)
 	m_screen->set_refresh_hz(50);
 	// TODO: m_sys->set_pal(); // TODO: also set PAL clocks
 
-	// TODO: m_gpio->read_callback<2>().set(FUNC(elan_eu3a05_pvwwcas_state::pvwwc_portc_r));
-	// TODO: m_gpio->write_callback<2>().set(FUNC(elan_eu3a05_pvwwcas_state::pvwwc_portc_w));
+	m_maincpu->read_callback<2>().set(FUNC(elan_eu3a05_pvwwcas_state::pvwwc_portc_r));
+	m_maincpu->write_callback<2>().set(FUNC(elan_eu3a05_pvwwcas_state::pvwwc_portc_w));
 }
 
 
