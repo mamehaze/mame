@@ -214,14 +214,51 @@ public:
 		m_maincpu(*this, "maincpu"),
 		m_cart(*this, "cartslot"),
 		m_palette(*this, "palette"),
-		m_buttons(*this, "BUTTONS")
+		m_buttons(*this, "BUTTONS"),
+		m_touch(*this, {"TOUCHX", "TOUCHY", "TOUCH"})
 		{ }
 
 	void leapster(machine_config &config);
 
 	void init_leapster();
 
+	DECLARE_INPUT_CHANGED_MEMBER(leapster_touch_down);
+
 private:
+	void fire_adc_interrupt()
+	{
+			m_int_fired_flags |= 0x100;
+			m_maincpu->set_input_line(0x10, ASSERT_LINE);
+	}
+
+	void adc_fifo_push(int channel, int data)
+	{
+		if (m_adc_fifo_base == m_adc_fifo_head && !m_adc_fifo_empty)
+		{
+			fatalerror("ADC FIFO full!\n");
+		}
+
+		m_adc_fifo[m_adc_fifo_head] = (channel << 16) | (data << 5); 
+		m_adc_fifo_head += 1;
+		m_adc_fifo_head %= sizeof(m_adc_fifo) / sizeof(*m_adc_fifo);
+		m_adc_fifo_empty = false;
+	}
+
+	uint32_t adc_fifo_pop()
+	{
+		if(m_adc_fifo_empty)
+		{
+			return 0;
+		}
+
+		uint32_t ret = m_adc_fifo[m_adc_fifo_base];
+		m_adc_fifo_base += 1;
+		m_adc_fifo_base %= sizeof(m_adc_fifo) / sizeof(*m_adc_fifo);;
+		m_adc_fifo_empty = m_adc_fifo_head == m_adc_fifo_base;
+
+		return ret;
+	}
+
 	virtual void machine_start() override ATTR_COLD;
 	virtual void machine_reset() override ATTR_COLD;
 
@@ -229,7 +266,7 @@ private:
 	DECLARE_DEVICE_IMAGE_LOAD_MEMBER(cart_load);
 
 	TIMER_CALLBACK_MEMBER(leapster_timer_overflow);
-
+	TIMER_CALLBACK_MEMBER(leapster_touch_adc_update);
 	uint32_t leapster_1801000_r();
 	uint32_t leapster_1801004_r();
 	uint32_t leapster_1801008_r();
@@ -247,6 +284,9 @@ private:
 
 	uint32_t leapster_cpu_clock_r();
 	void leapster_cpu_clock_w(uint32_t data);
+
+	uint32_t leapster_int_flag_r();
+	void leapster_int_flag_w(uint32_t data);
 
 	uint32_t leapster_adc_r(uint32_t offset);
 	void leapster_adc_w(uint32_t offset, uint32_t data);
@@ -281,7 +321,7 @@ private:
 	static constexpr int TIMER_IRQS[3] = {0x19, 0x1a, 0x1e};
 
 	uint16_t m_framebuffer_base;
-	uint32_t m_display_format = 0;
+	uint32_t m_display_format;
 	uint32_t m_display_stride;
 
 	uint32_t m_dma_src_addr;
@@ -291,11 +331,25 @@ private:
 
 	uint32_t m_clock_div;
 
+	emu_timer *m_adc_timer{};
+
+	uint32_t m_adc_channel_control[4]{};
+
+	uint32_t m_adc_fifo[0x10000]{}; // Actual size unknown
+	uint32_t m_adc_fifo_base;
+	uint32_t m_adc_fifo_head;
+	bool m_adc_fifo_empty;
+
+	bool m_touchscreen_initted;
+
+	uint32_t m_int_fired_flags;
+
 	required_device<arcompact_device> m_maincpu;
 	required_device<generic_slot_device> m_cart;
 	required_device<palette_device> m_palette;
 	
 	required_ioport m_buttons;
+	required_ioport_array<3> m_touch;
 
 	memory_region *m_cart_rom = nullptr;
 	uint32_t m_cart_bit = 0x0400'0000;
@@ -304,22 +358,31 @@ private:
 
 static INPUT_PORTS_START( leapster )
 	PORT_START("BUTTONS")
-	PORT_BIT(0x0000'0080, IP_ACTIVE_LOW, IPT_JOYSTICK_RIGHT) PORT_NAME("Right");
-	PORT_BIT(0x0000'0100, IP_ACTIVE_LOW, IPT_JOYSTICK_DOWN)  PORT_NAME("Down");
-	PORT_BIT(0x0000'0200, IP_ACTIVE_LOW, IPT_JOYSTICK_LEFT)  PORT_NAME("Left");
-	PORT_BIT(0x0000'2000, IP_ACTIVE_LOW, IPT_BUTTON2)        PORT_NAME("B");
-	PORT_BIT(0x0000'4000, IP_ACTIVE_LOW, IPT_BUTTON1)        PORT_NAME("A");
-	PORT_BIT(0x0000'8000, IP_ACTIVE_LOW, IPT_VOLUME_DOWN)    PORT_NAME("Volume Down");
-	PORT_BIT(0x0001'0000, IP_ACTIVE_LOW, IPT_VOLUME_UP)      PORT_NAME("Volume Up");
-	PORT_BIT(0x0400'0000, IP_ACTIVE_LOW, IPT_SELECT)         PORT_NAME("Select");
-	PORT_BIT(0x1000'0000, IP_ACTIVE_LOW, IPT_BUTTON3)        PORT_NAME("Hint");
-	PORT_BIT(0x2000'0000, IP_ACTIVE_LOW, IPT_BUTTON4)        PORT_NAME("Home");
-	PORT_BIT(0x8000'0000, IP_ACTIVE_LOW, IPT_JOYSTICK_UP)    PORT_NAME("Up");
+	PORT_BIT(0x0000'0080, IP_ACTIVE_LOW, IPT_JOYSTICK_RIGHT) PORT_NAME("Right")
+	PORT_BIT(0x0000'0100, IP_ACTIVE_LOW, IPT_JOYSTICK_DOWN)  PORT_NAME("Down")
+	PORT_BIT(0x0000'0200, IP_ACTIVE_LOW, IPT_JOYSTICK_LEFT)  PORT_NAME("Left")
+	PORT_BIT(0x0000'2000, IP_ACTIVE_LOW, IPT_BUTTON3)        PORT_NAME("B")
+	PORT_BIT(0x0000'4000, IP_ACTIVE_LOW, IPT_BUTTON2)        PORT_NAME("A")
+	PORT_BIT(0x0000'8000, IP_ACTIVE_LOW, IPT_VOLUME_DOWN)    PORT_NAME("Volume Down")
+	PORT_BIT(0x0001'0000, IP_ACTIVE_LOW, IPT_VOLUME_UP)      PORT_NAME("Volume Up")
+	PORT_BIT(0x0400'0000, IP_ACTIVE_LOW, IPT_SELECT)         PORT_NAME("Select")
+	PORT_BIT(0x1000'0000, IP_ACTIVE_LOW, IPT_BUTTON4)        PORT_NAME("Hint")
+	PORT_BIT(0x2000'0000, IP_ACTIVE_LOW, IPT_BUTTON5)        PORT_NAME("Home")
+	PORT_BIT(0x8000'0000, IP_ACTIVE_LOW, IPT_JOYSTICK_UP)    PORT_NAME("Up")
 
 	// Used for contrast and brightness control on hardware? Used to dump Flash debug info in software
-	PORT_BIT(0x0002'0000, IP_ACTIVE_LOW, IPT_UNKNOWN)        PORT_NAME("Unknown 1");
-	PORT_BIT(0x0100'0000, IP_ACTIVE_LOW, IPT_UNKNOWN)        PORT_NAME("Unknown 2");
-	PORT_BIT(0x0200'0000, IP_ACTIVE_LOW, IPT_UNKNOWN)        PORT_NAME("Unknown 3");
+	PORT_BIT(0x0002'0000, IP_ACTIVE_LOW, IPT_UNKNOWN)        PORT_NAME("Unknown 1")
+	PORT_BIT(0x0100'0000, IP_ACTIVE_LOW, IPT_UNKNOWN)        PORT_NAME("Unknown 2")
+	PORT_BIT(0x0200'0000, IP_ACTIVE_LOW, IPT_UNKNOWN)        PORT_NAME("Unknown 3")
+
+	PORT_START("TOUCHX")
+	PORT_BIT(0x7ff, 0x3df, IPT_LIGHTGUN_X) PORT_MINMAX(0x00, 0x7f0) PORT_CROSSHAIR(X, 1.0, 0.0, 0) PORT_SENSITIVITY(25) PORT_CHANGED_MEMBER(DEVICE_SELF, FUNC(leapster_state::leapster_touch_down), 1)
+
+	PORT_START("TOUCHY")
+	PORT_BIT(0x7ff, 0x3df, IPT_LIGHTGUN_Y) PORT_MINMAX(0x00, 0x7f0) PORT_CROSSHAIR(Y, 1.0, 0.0, 0) PORT_SENSITIVITY(25) PORT_CHANGED_MEMBER(DEVICE_SELF, FUNC(leapster_state::leapster_touch_down), 1)
+
+	PORT_START("TOUCH")
+	PORT_BIT(0x01, IP_ACTIVE_HIGH, IPT_BUTTON1) PORT_CHANGED_MEMBER(DEVICE_SELF, FUNC(leapster_state::leapster_touch_down), 0) PORT_NAME("Touchscreen Touch")
 INPUT_PORTS_END
 
 void leapster_state::leapster_aux0010_w(uint32_t data)
@@ -409,17 +472,17 @@ uint32_t leapster_state::leapster_1801018_r()
 	return 0x00000000;
 }
 
-// Bits: UUUU UCSS SLDU UUUU UCUU UUUU UUUU UUUU
+// Bits: UUUU UCSS SLDU UUUU UTUU UUUU UUUU UUUU
 // C: 0 if a cartridge is present, 1 otherwise
 // S: Identifies the LCD the leapster was manufactured with? On the original Leapster, 4, 6, and 7 are valid possibilites.
 // L: Controls logging level?
 // D: If not set, there are many places where execution infinite loops on error rather than panic. Controls debug logging level
-// C: If not set, the system will boot to the touch calibration
+// T: If not set, the system will boot to the touch calibration
 // U: Unknown
 uint32_t leapster_state::leapster_1809004_r()
 {
 	logerror("%s: leapster_1809004_r (return usually checked against 0x00200000)\n", machine().describe_context());
-	return 0x0380'4000 | m_cart_bit;
+	return 0x0380'0000 | m_cart_bit;
 }
 
 uint32_t leapster_state::leapster_cpu_clock_r()
@@ -486,19 +549,61 @@ uint32_t leapster_state::leapster_180004c_r()
 // The audio driver will wait for this before making any more voice changes
 void leapster_state::leapster_1802070_w(uint32_t data)
 {
-	m_maincpu->set_input_line(29, ASSERT_LINE);
+	m_maincpu->set_input_line(0x1d, ASSERT_LINE);
+}
+
+// Seems to signal fired interrupts for cases where one line is used by 2 sources
+// ADC in particular uses this
+// EEPROM IO expects bit 7 to be set as a ready bit before doing anything
+uint32_t leapster_state::leapster_int_flag_r()
+{
+	return m_int_fired_flags | 0x80;
+}
+
+// Writing a 1 to a flag bit seems to ACK and set it to 0
+void leapster_state::leapster_int_flag_w(uint32_t data)
+{
+	m_int_fired_flags &= ~data;
 }
 
 // ADC: I/O registers 0x0180'0090 - 0x0180'00ab, Drives IRQ vector 0x10
-// Controls communication related to battery power level(?)
-// 0x0180'00a8: Seems to be a status register. Bit 9 (0x100) seems to be a ready / received bit. 
+// 0x0180'0090 - 0x0180'009f: ADC channel controls
+// 0x0180'00a0: ADC in: UUUU UUUU UUUU UUCC DDDD DDDD DDDU UUUU
+//   C: Channel index
+//   D: Packet data
+//   U: Unknown
+// 0x0180'00a8: Seems to be a status register. Bit 8 being 0 indicates that there is waiting input data
+//   Reading from 0x0180'00a0 (or maybe 0x0180'00a8 itself?) is taken as an ACK and can set bit 8
+
+// ADC input is almost certainly a FIFO, but I'm not sure what the depth or exact behaviour is
+//   and for MAME's purposes, only the touchscreen is emulated anyway
+
+// The ADC takes in 4 channels as input
+// Channel 0: Touchscreen
+// Channel 1: Unused?
+// Channel 2: Something to do with the LCD
+// Channel 3: Power / Battery level info?
+
+// After the touchscreen ADC channel is activated, the BIOS waits for it to send 17 packets.
+// The actual data of the first 8 of these packets is completely ignored.
+// The next 8 are summed and stored, but never used after that.
+// The last one is ignored
 
 uint32_t leapster_state::leapster_adc_r(uint32_t offset)
 {
-	// The BIOS busy-loops while waiting for the ready bit to be set, so it needs to be emulated
-	if (offset == 6) // status
+	switch (offset)
 	{
-		return 0x100;
+		case 0x00:
+		case 0x01:
+		case 0x02:
+		case 0x03:
+			return m_adc_channel_control[offset];
+		case 0x04:
+			return adc_fifo_pop();
+		case 0x05: // Unk
+			break;
+		case 0x06:
+			return m_adc_fifo_empty << 8;
 	}
 
 	logerror("%s: Unknown ADC I/O read! Addr: %08x\n", machine().describe_context(), 0x0180'0090 + (offset * 4));
@@ -507,6 +612,42 @@ uint32_t leapster_state::leapster_adc_r(uint32_t offset)
 
 void leapster_state::leapster_adc_w(uint32_t offset, uint32_t data)
 {
+	switch (offset)
+	{
+		// Channel 0 (Touchscreen) control
+		case 0x00:
+			// Channel enable bit
+			if (data & 0x8000)
+			{
+				m_adc_timer->enable();
+
+//				// Begin init process
+				if (!m_touchscreen_initted)
+				{
+					fire_adc_interrupt();
+
+					// Whatever these are, they're never used
+					for (int i = 0; i < 17; i++)
+					{
+						adc_fifo_push(0, 0);
+					}
+
+					m_touchscreen_initted = true;
+
+					m_adc_timer->reset(attotime::from_hz(60));
+				}
+			}
+			else
+			{
+				m_adc_timer->enable(false);
+			}
+			[[fallthrough]];
+		case 0x01:
+		case 0x02:
+		case 0x03:
+			m_adc_channel_control[offset] = data;
+	}
+
 	logerror("%s: Unknown ADC I/O write! Addr: %08x, data: %08x\n", machine().describe_context(), 0x0180'0090 + (offset * 4), data);
 }
 
@@ -548,7 +689,7 @@ void leapster_state::leapster_lcd_w(uint32_t offset, uint32_t data)
 		case 3: // Display format
 			if (BIT(data, 31) && BIT(data, 0, 30) != 4)
 			{
-				fatalerror("Unimplemented display mode\n");
+//				fatalerror("Unimplemented display mode\n");
 			}
 
 			m_display_format = data;
@@ -584,7 +725,7 @@ void leapster_state::leapster_dma_w(uint32_t offset, uint32_t data)
 				}
 
 				// IRQ 0x12 when DMA is finished
-				m_maincpu->set_input_line(18, ASSERT_LINE);
+				m_maincpu->set_input_line(0x12, ASSERT_LINE);
 			}
 
 			return;
@@ -686,25 +827,40 @@ void leapster_state::leapster_timer_w(uint32_t offset, uint32_t data)
 
 uint32_t leapster_state::screen_update_leapster(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect)
 {
-	if (!BIT(m_display_format, 31))
+	if (!BIT(m_display_format, 31) || (BIT(m_display_format, 0, 30) != 4 && BIT(m_display_format, 0, 30) != 3))
 	{
 		return 0;
 	}
 
-	for (int i = 0; i < 160; i++)
+	if (BIT(m_display_format, 0, 30) == 4)
 	{
-		for (int j = 0; j < 80; j++)
+		for (int i = 0; i < 160; i++)
 		{
-			uint8_t byteOne;
-			uint8_t byteTwo;
-			uint8_t byteThree;
+			for (int j = 0; j < 80; j++)
+			{
+				uint8_t bytes[3];
 
-			byteOne = m_maincpu->space().read_byte(0x0300'0000 + m_framebuffer_base + i * m_display_stride + j * 3);
-			byteTwo = m_maincpu->space().read_byte(0x0300'0000 + m_framebuffer_base + i * m_display_stride + j * 3 + 1);
-			byteThree = m_maincpu->space().read_byte(0x0300'0000 + m_framebuffer_base + i * m_display_stride + j * 3 + 2);
+				bytes[0] = m_maincpu->space().read_byte(0x0300'0000 + m_framebuffer_base + i * m_display_stride + j * 3);
+				bytes[1] = m_maincpu->space().read_byte(0x0300'0000 + m_framebuffer_base + i * m_display_stride + j * 3 + 1);
+				bytes[2] = m_maincpu->space().read_byte(0x0300'0000 + m_framebuffer_base + i * m_display_stride + j * 3 + 2);
 
-			bitmap.pix(i, j * 2) = pal444(byteOne | ((byteTwo & 0xF0) << 4), 8, 4, 0);
-			bitmap.pix(i, j * 2 + 1) = pal444((byteThree << 4) | (byteTwo & 0x0F), 0, 8, 4);
+				bitmap.pix(i, j * 2) = pal444(bytes[0] | ((bytes[1] & 0xF0) << 4), 8, 4, 0);
+				bitmap.pix(i, j * 2 + 1) = pal444((bytes[2] << 4) | (bytes[1] & 0x0F), 0, 8, 4);
+			}
+		}
+	}
+	else if (BIT(m_display_format, 0, 30) == 3) // Used in touch cal
+	{
+		for (int i = 0; i < 160; i++)
+		{
+			for (int j = 0; j < 160; j++)
+			{
+				uint8_t byte;
+
+				byte = m_maincpu->space().read_byte(0x0300'0000 + m_framebuffer_base + i * m_display_stride + j);
+
+				bitmap.pix(i, j) = pal332(byte, 5, 2, 0);
+			}
 		}
 	}
 
@@ -738,6 +894,8 @@ void leapster_state::machine_start()
 		m_overflow_timer[i]->set_param(i);
 	}
 
+	m_adc_timer = timer_alloc(FUNC(leapster_state::leapster_touch_adc_update), this);
+
 	save_item(NAME(m_1a_data));
 }
 
@@ -763,6 +921,17 @@ void leapster_state::machine_reset()
 	m_dma_scanline_count = 0;
 	m_dma_start_offset = 0;
 	m_dma_stride = 0;
+
+	for (int i = 0; i < 4; i++)
+	{
+		m_adc_channel_control[i] = 0;
+	}
+	
+	m_adc_fifo_base = 0;
+	m_adc_fifo_head = 0;
+	m_adc_fifo_empty = true;
+
+	m_touchscreen_initted = false;
 }
 
 void leapster_state::leapster_map(address_map &map)
@@ -771,6 +940,8 @@ void leapster_state::leapster_map(address_map &map)
 //  or if it should be copying a different table.
 	map(0x0000'0000, 0x007f'ffff).mirror(0x40000000).rom().region("maincpu", 0);
 //	map(0x4000'0000, 0x407f'ffff).rom().region("maincpu", 0);
+
+	map(0x0180'0080, 0x0180'0083).rw(FUNC(leapster_state::leapster_int_flag_r), FUNC(leapster_state::leapster_int_flag_w));
 
 	map(0x0180'0090, 0x0180'00ab).rw(FUNC(leapster_state::leapster_adc_r), FUNC(leapster_state::leapster_adc_w));
 
@@ -833,6 +1004,96 @@ TIMER_CALLBACK_MEMBER(leapster_state::leapster_timer_overflow)
 	if (BIT(m_timer_control[param], 0))
 	{
 		m_maincpu->set_input_line(TIMER_IRQS[param], ASSERT_LINE);
+	}
+}
+
+uint32_t releasedCounter = 30;
+
+TIMER_CALLBACK_MEMBER(leapster_state::leapster_touch_adc_update)
+{
+	uint16_t pressure;
+	uint16_t adc_x;
+	uint16_t adc_y;
+
+	adc_x = m_touch[0]->read();
+	adc_y = m_touch[1]->read();
+
+	if(!m_touch[2]->read()) {
+		pressure = 0x7FF;
+	}
+	else
+	{
+		releasedCounter = 0;
+		pressure = 0;
+	}
+
+	// Takes 2 groups of 6 samples and checks discards any inputs where
+	//   The two groups differ significantly.
+	// Not exactly sure what's up with samples 0, 1, 4, and 5, but if their average is
+	//   greater than 0x7F0 it'll get interpretted as there not being a touch, so I'm assuming
+	//   they're pressure or something?
+
+	adc_fifo_push(0, pressure);
+	adc_fifo_push(0, pressure);
+	adc_fifo_push(0, adc_x);
+	adc_fifo_push(0, adc_y);
+	adc_fifo_push(0, pressure);
+	adc_fifo_push(0, pressure);
+
+	adc_fifo_push(0, pressure);
+	adc_fifo_push(0, pressure);
+	adc_fifo_push(0, adc_x);
+	adc_fifo_push(0, adc_y);
+	adc_fifo_push(0, pressure);
+	adc_fifo_push(0, pressure);
+
+	fire_adc_interrupt();
+
+	m_adc_timer->reset(attotime::from_hz(60));
+}
+
+INPUT_CHANGED_MEMBER(leapster_state::leapster_touch_down)
+{
+	if (m_touchscreen_initted && (m_adc_channel_control[0] & 0x8000))
+	{
+//		uint16_t adc_x;
+//		uint16_t adc_y;
+//
+//		// Movement without a touch down
+//		if (param && !m_touch[2]->read())
+//		{
+//			return;
+//		}
+//
+//		// Touch release
+//		if (!param && !newval)
+//		{
+//			adc_x = 0x7ff;
+//			adc_y = 0x7ff;
+//		}
+//		else
+//		{
+//			adc_x = m_touch[0]->read();
+//			adc_y = m_touch[0]->read();
+//		}
+//
+//		printf("Touch at %02X, %02X\n", m_touch[0]->read(), m_touch[1]->read());
+//
+//		adc_fifo_push(0, adc_x);
+//		adc_fifo_push(0, adc_y);
+//		adc_fifo_push(0, 0); // Unk
+//		adc_fifo_push(0, 0); // Unk
+//		adc_fifo_push(0, adc_x);
+//		adc_fifo_push(0, adc_y);
+//
+//		adc_fifo_push(0, adc_x);
+//		adc_fifo_push(0, adc_y);
+//		adc_fifo_push(0, 0); // Unk
+//		adc_fifo_push(0, 0); // Unk
+//		adc_fifo_push(0, adc_x);
+//		adc_fifo_push(0, adc_y);
+//
+//		fire_adc_interrupt();
 	}
 }
 
