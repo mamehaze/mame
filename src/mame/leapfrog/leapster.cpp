@@ -227,8 +227,8 @@ public:
 private:
 	void fire_adc_interrupt()
 	{
-			m_int_fired_flags |= 0x100;
-			m_maincpu->set_input_line(0x10, ASSERT_LINE);
+		m_int_fired_flags |= 0x100;
+		m_maincpu->set_input_line(0x10, ASSERT_LINE);
 	}
 
 	void adc_fifo_push(int channel, int data)
@@ -281,6 +281,9 @@ private:
 	uint32_t leapster_180004c_r();
 
 	void leapster_1802070_w(uint32_t data);
+
+	uint32_t leapster_eeprom_r(uint32_t offset);
+	void leapster_eeprom_w(uint32_t offset, uint32_t data);
 
 	uint32_t leapster_cpu_clock_r();
 	void leapster_cpu_clock_w(uint32_t data);
@@ -343,6 +346,11 @@ private:
 	bool m_touchscreen_initted;
 
 	uint32_t m_int_fired_flags;
+
+	uint32_t m_current_eeprom_command;
+
+	uint8_t m_system_eeprom[512];
+	uint8_t m_cartridge_eeprom[2048];
 
 	required_device<arcompact_device> m_maincpu;
 	required_device<generic_slot_device> m_cart;
@@ -483,6 +491,35 @@ uint32_t leapster_state::leapster_1809004_r()
 {
 	logerror("%s: leapster_1809004_r (return usually checked against 0x00200000)\n", machine().describe_context());
 	return 0x0380'0000 | m_cart_bit;
+}
+
+uint32_t leapster_state::leapster_eeprom_r(uint32_t offset)
+{
+	if(offset == 2) {
+		// This is really hacky and needs a better defined solution to identify the target bank
+		uint8_t *eepromBank = BIT(m_current_eeprom_command, 8, 8) == 0x26 ? m_system_eeprom : m_cartridge_eeprom;
+		return eepromBank[m_current_eeprom_command >> 16];
+	}
+
+	return 0;
+}
+
+void leapster_state::leapster_eeprom_w(uint32_t offset, uint32_t data)
+{
+	switch(offset)
+	{
+		case 0:
+			m_current_eeprom_command = data;
+			break;
+		case 1:
+			if(data == 2)
+			{
+				uint8_t *eepromBank = BIT(m_current_eeprom_command, 8, 8) == 0x26 ? m_system_eeprom : m_cartridge_eeprom;
+				eepromBank[m_current_eeprom_command >> 16] = m_current_eeprom_command & 0xff;
+			}
+
+			break;
+	}
 }
 
 uint32_t leapster_state::leapster_cpu_clock_r()
@@ -896,6 +933,9 @@ void leapster_state::machine_start()
 
 	m_adc_timer = timer_alloc(FUNC(leapster_state::leapster_touch_adc_update), this);
 
+	memset(m_system_eeprom, 0, sizeof(m_system_eeprom));
+	memset(m_cartridge_eeprom, 0, sizeof(m_system_eeprom));
+
 	save_item(NAME(m_1a_data));
 }
 
@@ -940,6 +980,8 @@ void leapster_state::leapster_map(address_map &map)
 //  or if it should be copying a different table.
 	map(0x0000'0000, 0x007f'ffff).mirror(0x40000000).rom().region("maincpu", 0);
 //	map(0x4000'0000, 0x407f'ffff).rom().region("maincpu", 0);
+
+	map(0x0180'0030, 0x0180'003f).rw(FUNC(leapster_state::leapster_eeprom_r), FUNC(leapster_state::leapster_eeprom_w));
 
 	map(0x0180'0080, 0x0180'0083).rw(FUNC(leapster_state::leapster_int_flag_r), FUNC(leapster_state::leapster_int_flag_w));
 
@@ -1027,10 +1069,10 @@ TIMER_CALLBACK_MEMBER(leapster_state::leapster_touch_adc_update)
 		pressure = 0;
 	}
 
-	// Takes 2 groups of 6 samples and checks discards any inputs where
+	// Takes 2 groups of 6 samples and discards any inputs where
 	//   The two groups differ significantly.
 	// Not exactly sure what's up with samples 0, 1, 4, and 5, but if their average is
-	//   greater than 0x7F0 it'll get interpretted as there not being a touch, so I'm assuming
+	//   greater than 0x7F0 it'll get interpreted as there not being a touch, so I'm assuming
 	//   they're pressure or something?
 
 	adc_fifo_push(0, pressure);
@@ -1048,6 +1090,10 @@ TIMER_CALLBACK_MEMBER(leapster_state::leapster_touch_adc_update)
 	adc_fifo_push(0, pressure);
 
 	fire_adc_interrupt();
+
+	// The leapster touch driver will wait 3 or 4 accepted inputs before confirming a touchscreen
+	//   press and 6 or 7 before confirming a release. I'm not sure what the intended frequency is,
+	//   so I've just set it at 60. 
 
 	m_adc_timer->reset(attotime::from_hz(60));
 }
