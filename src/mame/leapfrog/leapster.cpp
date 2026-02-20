@@ -480,17 +480,19 @@ uint32_t leapster_state::leapster_1801018_r()
 	return 0x00000000;
 }
 
-// Bits: UUUU UCSS SLDU UUUU UTUU UUUU UUUU UUUU
+// Bits: UUUU UCSS SLDU UUUU FTUU UUUU UUUU UUUU
 // C: 0 if a cartridge is present, 1 otherwise
 // S: Identifies the LCD the leapster was manufactured with? On the original Leapster, 4, 6, and 7 are valid possibilites.
 // L: Controls logging level?
 // D: If not set, there are many places where execution infinite loops on error rather than panic. Controls debug logging level
+// F: If not set, Flash will run at 10x the SWF framerate (effectively uncapping the framerate)
 // T: If not set, the system will boot to the touch calibration
 // U: Unknown
+//   The Flash uncapping bit at least is known to be toggleable by shorting one of the cartridge pins
 uint32_t leapster_state::leapster_1809004_r()
 {
 	logerror("%s: leapster_1809004_r (return usually checked against 0x00200000)\n", machine().describe_context());
-	return 0x0380'0000 | m_cart_bit;
+	return 0x0380'8000 | m_cart_bit;
 }
 
 uint32_t leapster_state::leapster_eeprom_r(uint32_t offset)
@@ -531,7 +533,8 @@ uint32_t leapster_state::leapster_cpu_clock_r()
 void leapster_state::leapster_cpu_clock_w(uint32_t data)
 {
 	m_clock_div = data;
-	m_maincpu->set_unscaled_clock_int(96000000 / (1 << (data & 0x07)));
+	// Commented out for performance reasons while testing for my sanity
+//	m_maincpu->set_unscaled_clock_int(96000000 / (1 << (data & 0x07)));
 }
 
 uint32_t leapster_state::leapster_180b000_r()
