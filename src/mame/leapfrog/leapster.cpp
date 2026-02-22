@@ -924,7 +924,7 @@ void leapster_state::machine_start()
 
 	if (m_cart_rom)
 	{
-		m_maincpu->space(AS_PROGRAM).install_rom(0x80000000, 0x807fffff, m_cart_rom->base());
+		m_maincpu->space(AS_PROGRAM).install_rom(0x8000'0000, 0x8000'0000 + m_cart_rom->bytes() - 1, m_cart_rom->base());
 		m_cart_bit = 0;
 	}
 
