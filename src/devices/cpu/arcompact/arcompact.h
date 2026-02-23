@@ -503,34 +503,28 @@ private:
 		m_regs[REG_PCL] = m_pc & 0xfffffffc; // always 32-bit aligned
 	}
 
+	// On ARCtangent-A5/ARC600, the effect of unaligned data access is system dependent.
+	// On the Leapster, Flash will attempt an unaligned access every time it draws a frame.
+	// This seems to be a Flash bug (the bool that it reads before doing the access is uninitialized),
+	// and it occurs on every version of Flash for the Leapster.
+	// Behaviour should be checked on hardware, but for now misaligned bits are dropped, which
+	// seems to allow running without issue.
+
 	uint32_t READ32(uint32_t address)
 	{
-		if (address & 0x3)
-			fatalerror("%08x: attempted unaligned READ32 on address %08x", m_pc, address);
-
-		return m_program->read_dword(address);
+		return m_program->read_dword(address & 0xfffffffc);
 	}
-
 	void WRITE32(uint32_t address, uint32_t data)
 	{
-		if (address & 0x3)
-			fatalerror("%08x: attempted unaligned WRITE32 on address %08x", m_pc, address);
-
-		m_program->write_dword(address, data);
+		m_program->write_dword(address & 0xfffffffc, data);
 	}
 	uint16_t READ16(uint32_t address)
 	{
-		if (address & 0x1)
-			fatalerror("%08x: attempted unaligned READ16 on address %08x", m_pc, address);
-
-		return m_program->read_word(address);
+		return m_program->read_word(address & 0xfffffffe);
 	}
 	void WRITE16(uint32_t address, uint16_t data)
 	{
-		if (address & 0x1)
-			fatalerror("%08x: attempted unaligned WRITE16 on address %08x", m_pc, address);
-
-		m_program->write_word(address, data);
+		m_program->write_word(address & 0xfffffffe, data);
 	}
 	uint8_t READ8(uint32_t address)
 	{
@@ -546,7 +540,8 @@ private:
 
 	// arcompact_helper.ipp
 	bool check_condition(uint8_t condition);
-	void do_flags_overflow(uint32_t result, uint32_t b, uint32_t c);
+	void do_flags_overflow_add(uint32_t result, uint32_t b, uint32_t c);
+	void do_flags_overflow_sub(uint32_t result, uint32_t b, uint32_t c);
 	void do_flags_add(uint32_t result, uint32_t b, uint32_t c);
 	void do_flags_sub(uint32_t result, uint32_t b, uint32_t c);
 	void do_flags_nz(uint32_t result);
@@ -571,7 +566,7 @@ private:
 	bool m_delaylinks;
 	uint32_t m_delayjump;
 	bool m_allow_loop_check;
-	bool m_irq_pending;
+	uint32_t m_pending_ints;
 
 //  f  e  d  c| b  a  9  8| 7  6  5  4| 3  2  1  0
 //  -  -  -  L| Z  N  C  V| U DE AE A2|A1 E2 E1  H
