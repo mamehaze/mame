@@ -46,7 +46,7 @@ Undumped carts:
 -->
 
 <softwarelist name="telestory_cart" description="JAKKS Pacific Telestory cartridges">
-	
+
 	<software name="cinders" supported="no"> <!-- single story, but in both Spanish and English -->
 		<description>La Cenicienta - Bellezas en Flor / Cinderella - Beauties in Bloom (Spain)</description>
 		<year>2006</year>

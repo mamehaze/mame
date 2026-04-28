@@ -218,7 +218,7 @@ void generalplus_gpce4_soc_device::internal_map(address_map &map)
 	map(0x003091, 0x003091).rw(FUNC(generalplus_gpce4_soc_device::spi2_txstatus_r), FUNC(generalplus_gpce4_soc_device::spi2_txstatus_w)); // SPI2_TXStatus
 	map(0x003092, 0x003092).w(FUNC(generalplus_gpce4_soc_device::spi2_txdata_w)); // SPI2_TXData
 	map(0x003093, 0x003093).rw(FUNC(generalplus_gpce4_soc_device::spi2_rxstatus_r), FUNC(generalplus_gpce4_soc_device::spi2_rxstatus_w)); // SPI2_RXStatus
-	map(0x003094, 0x003094).r(FUNC(generalplus_gpce4_soc_device::spi2_rxdata_r)); // SPI2_RXData 
+	map(0x003094, 0x003094).r(FUNC(generalplus_gpce4_soc_device::spi2_rxdata_r)); // SPI2_RXData
 	map(0x003095, 0x003095).rw(FUNC(generalplus_gpce4_soc_device::spi2_misc_r), FUNC(generalplus_gpce4_soc_device::spi2_misc_w)); // SPI2_Misc
 
 	// 309a - SPI2_DMA_Start
@@ -584,7 +584,7 @@ void generalplus_gpce4_soc_device::wait_ctrl_w(u16 data)
 //  6  ---
 //  5  ---
 //  4  ---
-// 
+//
 //  3  ---
 //  2  ---
 //  1  Cache_Clr
@@ -665,14 +665,11 @@ void generalplus_gpce4_soc_device::interrupt2_status_w(u16 data)
 {
 	LOGMASKED(LOG_IRQ, "%s: interrupt2_status_w %04x\n", machine().describe_context(), data);
 
-	if (data & 0x0200)
-		clear_interrupt(9);
-
-	if (data & 0x0004)
-		clear_interrupt(2);
-
-	if (data & 0x0001)
-		clear_interrupt(0);
+	for (int i = 0; i < 16; i++)
+	{
+		if (data & (1 << i))
+			clear_interrupt(i);
+	}
 }
 
 u16 generalplus_gpce4_soc_device::interrupt2_ctrl_r()
@@ -743,7 +740,7 @@ TIMER_DEVICE_CALLBACK_MEMBER(generalplus_gpce4_soc_device::timer_spi_tx)
 		m_spi_tx_fifo[i - 1] = m_spi_tx_fifo[i];
 	}
 	m_spi_tx_fifo[7] = 0;
-	
+
 	// only 8-bits are written to FIFO
 	// the SoC turns this into actual SPI signals
 	m_spi_out(ret);
@@ -985,14 +982,12 @@ u16 generalplus_gpce4_soc_device::interrupt_status_r()
 
 void generalplus_gpce4_soc_device::interrupt_status_w(u16 data)
 {
-	if (data & 0x8000)
-		clear_interrupt(31);
-
-	if (data & 0x2000)
-		clear_interrupt(29);
-
-	if (data & 0x0100)
-		clear_interrupt(24);
+	LOGMASKED(LOG_IRQ, "%s: interrupt_status_w %04x\n", machine().describe_context(), data);
+	for (int i = 0; i < 16; i++)
+	{
+		if (data & (1 << i))
+			clear_interrupt(i + 16);
+	}
 }
 
 u16 generalplus_gpce4_soc_device::fiq_sel_r()
@@ -1030,12 +1025,12 @@ void generalplus_gpce4_soc_device::fiq2_sel_w(u16 data)
 // 10  ---
 //  9  ---
 //  8  MOD
-// 
+//
 //  7  ---
 //  6  ---
 //  5  SCKPHA
 //  4  SCKPOL
-// 
+//
 //  3  ---
 //  2  SCKSEL[2]
 //  1  SCKSEL[1]
@@ -1075,12 +1070,12 @@ void generalplus_gpce4_soc_device::spi2_rxstatus_w(u16 data)
 // 10  --
 //  9  --
 //  8  --
-// 
+//
 //  7  TXFLEV[3]
 //  6  TXFLEV[2]
 //  5  TXFLEV[1]
 //  4  TXFLEX[0]
-// 
+//
 //  3  TXFFLAG[3]
 //  2  TXFFLAG[2]
 //  1  TXFFLAG[1]
@@ -1111,22 +1106,22 @@ u16 generalplus_gpce4_soc_device::spi2_rxdata_r()
 }
 
 // P_SPI2_MISC
-// 
+//
 // 15  ---
 // 14  ---
 // 13  ---
 // 12  ---
-// 
+//
 // 11  ---
 // 10  ---
 //  9  OVER
 //  8  SMART
-// 
+//
 //  7  ---
 //  6  ---
 //  5  ---
 //  4  BSY
-// 
+//
 //  3  RFF
 //  2  RNE
 //  1  TNF

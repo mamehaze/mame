@@ -59,7 +59,7 @@ void st7735_lcdc_device::lcdc_command_w(u8 data)
 	{
 		logerror("command is %02x (SLEEP IN - no params expected)\n", m_command);
 		m_sleep = 1;
-	}	
+	}
 	else if (m_command == 0x11)
 	{
 		logerror("command is %02x (SLEEP OUT - no params expected)\n", m_command);
@@ -303,7 +303,7 @@ void st7735_lcdc_device::lcdc_data_w(u8 data)
 		default: logerror("unexpected parameter for command %02x\n", m_command); break;
 		}
 	}
-	else if (m_command == 0xe0) // GMCTRP (Gamma +polarity Correction Characteristics) 
+	else if (m_command == 0xe0) // GMCTRP (Gamma +polarity Correction Characteristics)
 	{
 		if (m_commandstep < 16)
 		{
@@ -314,7 +314,7 @@ void st7735_lcdc_device::lcdc_data_w(u8 data)
 			logerror("unexpected parameter for command %02x\n", m_command);
 		}
 	}
-	else if (m_command == 0xe1) // GMCTRN (Gamma -polarity Correction Characteristics) 
+	else if (m_command == 0xe1) // GMCTRN (Gamma -polarity Correction Characteristics)
 	{
 		if (m_commandstep < 16)
 		{

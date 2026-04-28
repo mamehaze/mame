@@ -2705,7 +2705,7 @@ ROM_END
 // 80-32700 ABC Jungle Fun (US?)
 CONS( 1999, hippofr,  0,          0,  xavix_2mb, xavix,xavix_state,      init_xavix,    "VTech",             "2 en 1 Hippo: et la formidable aventure des lettres (France)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND ) // needs keyboard emulating
 
-CONS( 1999?, multiplt, 0,         0,  xavix_2mb, multiplt,xavix_state,      init_xavix,    "VTech",             "2 en 1 Multi'Pilote (France)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND ) 
+CONS( 1999?, multiplt, 0,         0,  xavix_2mb, multiplt,xavix_state,      init_xavix,    "VTech",             "2 en 1 Multi'Pilote (France)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND )
 
 // Let's!TVプレイCLASSIC タイトーノスタルジア1
 CONS( 2006, taitons1,  0,          0,  xavix_i2c_24lc04_2mb, nostalgia,xavix_i2c_state,      init_xavix,    "Bandai / SSD Company LTD / Taito",             "Let's! TV Play Classic - Taito Nostalgia 1 (Japan)", MACHINE_IMPERFECT_SOUND )

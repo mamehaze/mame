@@ -93,7 +93,7 @@ private:
 	void pwm1_ctrl_w(u16 data);
 	void pwm2_ctrl_w(u16 data);
 	void pwm3_ctrl_w(u16 data);
-	
+
 	void system_clock_w(u16 data);
 
 	void timebase_clear_w(u16 data);
@@ -130,7 +130,7 @@ private:
 	u16 spi2_rxdata_r();
 	u16 spi2_misc_r();
 	void spi2_misc_w(u16 data);
-	
+
 	u16 spi_man_ctrl_r();
 	void spi_man_ctrl_w(u16 data);
 	u16 spi_ctrl_r();
