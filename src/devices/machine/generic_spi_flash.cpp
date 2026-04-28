@@ -101,6 +101,11 @@ void generic_spi_flash_device::get_command(u8 data)
 		LOGMASKED(LOG_SPI, "Set SPI to DP (deep power down)\n");
 		m_spi_state = READY_FOR_COMMAND;
 	}
+	else if (data == COMMAND_EB_4READ)
+	{
+		LOGMASKED(LOG_SPI, "Set SPI to 4READ (Quad I/O read with configurable dummy bytes)\n");
+		m_spi_state = COMMAND_EB_4READ;
+	}
 	else
 	{
 		fatalerror("SPI set to unknown/unhandled command %02x\n", data);
@@ -142,6 +147,29 @@ void generic_spi_flash_device::process_hsread_command(u8 data)
 		m_spiaddr = (m_spiaddr & 0xffff00) | (data); m_spi_state_step++;
 		break;
 	case 0x03:
+		/* dummy */  m_spi_state_step++;
+		break;
+	default:
+		m_spilatch = m_spiptr[(m_spiaddr++) & (m_length - 1)];
+		break;
+	}
+}
+
+// has configurable dummy bytes?
+void generic_spi_flash_device::process_read4_command(u8 data)
+{
+	switch (m_spi_state_step)
+	{
+	case 0x00:
+		m_spiaddr = (m_spiaddr & 0x00ffff) | (data << 16); m_spi_state_step++;
+		break;
+	case 0x01:
+		m_spiaddr = (m_spiaddr & 0xff00ff) | (data << 8); m_spi_state_step++;
+		break;
+	case 0x02:
+		m_spiaddr = (m_spiaddr & 0xffff00) | (data); m_spi_state_step++;
+		break;
+	case 0x03: case 0x04: case 0x05:
 		/* dummy */  m_spi_state_step++;
 		break;
 	default:
@@ -322,6 +350,10 @@ void generic_spi_flash_device::write(u8 data)
 
 	case COMMAND_9F_RDID:
 		process_status_rdid_command(data);
+		break;
+
+	case COMMAND_EB_4READ:
+		process_read4_command(data);
 		break;
 	}
 }

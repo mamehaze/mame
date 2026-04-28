@@ -9,9 +9,9 @@ class generic_spi_flash_device : public device_t,
 							  public device_nvram_interface
 {
 public:
-	generic_spi_flash_device(const machine_config& mconfig, const char* tag, device_t* owner, u32 clock);
+	generic_spi_flash_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock);
 
-	void set_rom_ptr(u8* rom) { m_spiptr = rom; }
+	void set_rom_ptr(u8 *rom) { m_spiptr = rom; }
 	void set_rom_size(size_t size) { m_length = size; }
 
 	u8 read()
@@ -22,12 +22,6 @@ public:
 	void set_ready()
 	{
 		m_spi_state = READY_FOR_COMMAND;
-	}
-
-	void dir_w(int state)
-	{
-		// was previously hooked up for Monon, but SPI doesn't have a direction pin
-		// and it isn't important, must be something internal to the AX208
 	}
 
 	void write(u8 data);
@@ -67,11 +61,14 @@ private:
 		COMMAND_AB_RDP = 0xab,
 
 		COMMAND_B9_DP = 0xb9,
+
+		COMMAND_EB_4READ = 0xeb,
 	};
 
 	void get_command(u8 data);
 	void process_hsread_command(u8 data);
 	void process_read_command(u8 data);
+	void process_read4_command(u8 data);
 	void process_write_command(u8 data);
 	void process_sector_erase_command(u8 data);
 	void process_status_write_command(u8 data);
@@ -85,7 +82,7 @@ private:
 	u8 m_spi_state_step;
 
 	// config
-	u8* m_spiptr;
+	u8 *m_spiptr;
 	size_t m_length;
 	u8 m_multibyte_status_read;
 	u8 m_multibyte_status_write;
