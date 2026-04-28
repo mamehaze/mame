@@ -16,6 +16,7 @@ public:
 
 	uint8_t read()
 	{
+		logerror("returning %02x\n", m_spilatch);
 		return m_spilatch;
 	}
 
@@ -26,10 +27,14 @@ public:
 
 	void dir_w(int state)
 	{
-		m_spidir = state;
+		// was previously hooked up for Monon, but SPI doesn't have a direction pin
+		// and it isn't important, must be something internal to the AX208
 	}
 
 	void write(uint8_t data);
+
+	void set_single_byte_status_read() { m_multibyte_status_read = 0; };
+	void set_single_byte_status_writes() { m_multibyte_status_write = 0; };
 
 protected:
 	// device-level overrides
@@ -66,7 +71,26 @@ private:
 		READY_FOR_WRITE = 0x0e,
 
 		READY_FOR_READ = 0x0f,
+
 		READY_FOR_STATUS_READ = 0x10,
+		READY_FOR_STATUS_READ2 = 0x11,
+
+		REMS_STEP3 = 0x12,
+		REMS_STEP2 = 0x13,
+		REMS_STEP1 = 0x14,
+		REMS_STEP0 = 0x15,
+		REMS_STEPx = 0x16,
+
+		READY_FOR_ERASEADDRESS2 = 0x17,
+		READY_FOR_ERASEADDRESS1 = 0x18,
+		READY_FOR_ERASEADDRESS0 = 0x19,
+
+		READY_FOR_STATUS_VALUES2 = 0x1a,
+		READY_FOR_STATUS_VALUES1 = 0x1b,
+
+		READY_FOR_RDID2 = 0x1c,
+		READY_FOR_RDID1 = 0x1d,
+		READY_FOR_RDID0 = 0x1e,
 	};
 
 	uint32_t m_spiaddr;
@@ -74,8 +98,11 @@ private:
 	uint8_t m_spilatch;
 	bool m_spidir;
 
+	// config
 	uint8_t* m_spiptr;
 	size_t m_length;
+	uint8_t m_multibyte_status_read;
+	uint8_t m_multibyte_status_write;
 };
 
 DECLARE_DEVICE_TYPE(GENERIC_SPI_FLASH, generic_spi_flash_device)
