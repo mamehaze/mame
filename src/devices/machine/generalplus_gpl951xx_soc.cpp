@@ -77,52 +77,38 @@ void generalplus_gpl951xx_device::spi_direct_78e8_w(uint16_t data)
 
 void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map& map)
 {
-	sunplus_gcm394_base_device::base_internal_map(map);
+	map(0x000000, 0x0027ff).ram().share("mainram");
 
-	map(0x000000, 0x0027ff).rw(FUNC(generalplus_gpl951xx_device::ramread_r), FUNC(generalplus_gpl951xx_device::ramwrite_w));
-	// TODO: RAM is only 0x2800 on this, like earlier SPG2xx models? unmap the extra from the base_internal_map?
+	map(0x007000, 0x007007).rw(m_spg_video, FUNC(gcm394_base_video_device::tmap2_regs_r), FUNC(gcm394_base_video_device::tmap2_regs_w)); // 7000 - Tx3_X_Position
 
-	// 7000 - Tx3_X_Position
-	// 7001 - Tx3_Y_Position
-	// 7002 - Tx3_X_Offset
-	// 7003 - Tx3_Y_Offset
-	// 7004 - Tx3_Attribute
-	// 7005 - Tx3_Control
-	// 7006 - Tx3_N_PTR
-	// 7007 - Tx3_A_PTR
+	map(0x007010, 0x007015).rw(m_spg_video, FUNC(gcm394_base_video_device::tmap0_regs_r), FUNC(gcm394_base_video_device::tmap0_regs_w));
+	map(0x007016, 0x00701b).rw(m_spg_video, FUNC(gcm394_base_video_device::tmap1_regs_r), FUNC(gcm394_base_video_device::tmap1_regs_w));
+	map(0x00701c, 0x00701c).w(m_spg_video, FUNC(gcm394_base_video_device::video_701c_w)); // 701c - VComValue
+	map(0x00701d, 0x00701d).w(m_spg_video, FUNC(gcm394_base_video_device::video_701d_w)); // 701d - VComOffset
+	map(0x00701e, 0x00701e).w(m_spg_video, FUNC(gcm394_base_video_device::video_701e_w)); // 701e - VComStep
 
-	// 7010 - Tx1_X_Position
-	// 7011 - Tx1_Y_Position
-	// 7012 - Tx1_Attribute
-	// 7013 - Tx1_Control
-	// 7014 - Tx1_N_PTR
-	// 7015 - Tx1_A_PTR
-	// 7016 - Tx2_X_Position
-	// 7017 - Tx2_Y_Position
-	// 7018 - Tx2_Attribute
-	// 7019 - Tx2_Contro
-	// 701a - Tx2_N_PTR
-	// 701b - Tx2_A_PTR
-	// 701c - VComValue
-	// 701d - VComOffset
-	// 701e - VComStep
+	map(0x007020, 0x007020).rw(m_spg_video, FUNC(gcm394_base_video_device::tmap0_tilebase_lsb_r), FUNC(gcm394_base_video_device::tmap0_tilebase_lsb_w));           // 7020 - Segment_Tx1
+	map(0x007021, 0x007021).rw(m_spg_video, FUNC(gcm394_base_video_device::tmap1_tilebase_lsb_r), FUNC(gcm394_base_video_device::tmap1_tilebase_lsb_w));           // 7021 - Segment_Tx2
+	map(0x007022, 0x007022).rw(m_spg_video, FUNC(gcm394_base_video_device::sprite_7022_gfxbase_lsb_r), FUNC(gcm394_base_video_device::sprite_7022_gfxbase_lsb_w)); // 7022 - Segment_sp
+	map(0x007023, 0x007023).rw(m_spg_video, FUNC(gcm394_base_video_device::tmap2_tilebase_lsb_r), FUNC(gcm394_base_video_device::tmap2_tilebase_lsb_w));           // 7023 - Segment_Tx3
 
-	// 7020 - Segment_Tx1
-	// 7021 - Segment_Tx2
-	// 7022 - Segment_sp
-	// 7023 - Segment_Tx3
 	//
-	// 702a - Blending
-	// 702b - Segment_Tx1H
-	// 702c - Segment_Tx2H
-	// 702d - Segment_spH
-	// 702e - Segment_Tx3H
+	// 
+	// 
+	// 
 	//
-	// 7030 - Fade_Control
+	map(0x00702a, 0x00702a).w(m_spg_video, FUNC(gcm394_base_video_device::video_702a_w)); // 702a - Blending
+	map(0x00702b, 0x00702b).rw(m_spg_video, FUNC(gcm394_base_video_device::tmap0_tilebase_msb_r), FUNC(gcm394_base_video_device::tmap0_tilebase_msb_w));           // 702b - Segment_Tx1H
+	map(0x00702c, 0x00702c).rw(m_spg_video, FUNC(gcm394_base_video_device::tmap1_tilebase_msb_r), FUNC(gcm394_base_video_device::tmap1_tilebase_msb_w));           // 702c - Segment_Tx2H
+	map(0x00702d, 0x00702d).rw(m_spg_video, FUNC(gcm394_base_video_device::sprite_702d_gfxbase_msb_r), FUNC(gcm394_base_video_device::sprite_702d_gfxbase_msb_w)); // 702d - Segment_spH
+	map(0x00702e, 0x00702e).rw(m_spg_video, FUNC(gcm394_base_video_device::tmap2_tilebase_msb_r), FUNC(gcm394_base_video_device::tmap2_tilebase_msb_w));           // 702e - Segment_Tx3H
+		
 	//
-	// 703a - Palette_Control
+	map(0x007030, 0x007030).rw(m_spg_video, FUNC(gcm394_base_video_device::video_7030_brightness_r), FUNC(gcm394_base_video_device::video_7030_brightness_w)); // 7030 - Fade_Control
 	//
-	// 7042 - SControl
+	map(0x00703a, 0x00703a).rw(m_spg_video, FUNC(gcm394_base_video_device::video_703a_palettebank_r), FUNC(gcm394_base_video_device::video_703a_palettebank_w)); // 703a - Palette_Control
+	//
+	map(0x007042, 0x007042).rw(m_spg_video, FUNC(gcm394_base_video_device::sprite_7042_extra_r), FUNC(gcm394_base_video_device::sprite_7042_extra_w)); // 7042 - SControl
 	//
 	// 7050 - TFT_Ctrl
 	// 7051 - TFT_V_Width
@@ -141,8 +127,8 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map& map)
 	// 705e - STN_PIC_SEG
 	// 705f - STN_Ctrl1
 	//
-	// 7062 - TFT_INT_EN
-	// 7063 - TFT_INT_CLR
+	map(0x007062, 0x007062).rw(m_spg_video, FUNC(gcm394_base_video_device::videoirq_source_enable_r), FUNC(gcm394_base_video_device::videoirq_source_enable_w));             // 7062 - TFT_INT_EN
+	map(0x007063, 0x007063).rw(m_spg_video, FUNC(gcm394_base_video_device::video_7063_videoirq_source_r), FUNC(gcm394_base_video_device::video_7063_videoirq_source_ack_w)); // 7063 - TFT_INT_CLR
 	// 7064 - US_Ctrl
 	// 7065 - US_Hscaling
 	// 7066 - US_Vscaling
@@ -156,16 +142,16 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map& map)
 	// 706e - TFT_H_Show_Start
 	// 706f - TFT_H_Show_End
 	//
-	// 7070 - SPDMA_Source
-	// 7071 - SPDMA_Target
-	// 7072 - SPDMA_Number
+	map(0x007070, 0x007070).w(m_spg_video, FUNC(gcm394_base_video_device::video_dma_source_w)); // 7070 - SPDMA_Source
+	map(0x007071, 0x007071).w(m_spg_video, FUNC(gcm394_base_video_device::video_dma_dest_w));   // 7071 - SPDMA_Target
+	map(0x007072, 0x007072).rw(m_spg_video, FUNC(gcm394_base_video_device::video_dma_size_busy_r), FUNC(gcm394_base_video_device::video_dma_size_trigger_w)); // 7072 - SPDMA_Number
 	// 7073 - HB_Ctrl
 	// 7074 - HB_GO
 	//
 	// 707d - BLD_Color
 	//
-	// 707e - PPU_RAM_BANK
-	// 707f - PPU_Enable
+	map(0x00707e, 0x00707e).w(m_spg_video, FUNC(gcm394_base_video_device::video_707e_spritebank_w));    // 707e - PPU_RAM_BANK
+	map(0x00707f, 0x00707f).rw(m_spg_video, FUNC(gcm394_base_video_device::video_707f_r), FUNC(gcm394_base_video_device::video_707f_w));// 707f - PPU_Enable
 	//
 	// 7080 - STN_SEG
 	// 7081 - STN_COM
@@ -185,13 +171,13 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map& map)
 	// 70db - Free_Height
 	// 70dc - Free_Width
 	//
-	// 70e0 - Random0 (15-bit)
+	map(0x0070e0, 0x0070e0).r(m_spg_video, FUNC(gcm394_base_video_device::video_70e0_prng_r)); // 70e0 - Random0 (15-bit)
 	// 70e1 - Random1 (15-bit)
 	//
-	// 7100 to 71ff - Tx_Hvoffset
-	// 7200 to 72ff - HCMValue
-	// 7300 to 73ff - Palette (banked)
-	// 7400 to 74ff - Sprite Ram (banked)
+	map(0x007100, 0x0071ff).ram().share("rowscroll"); // 7100 to 71ff - Tx_Hvoffset
+	map(0x007200, 0x0072ff).ram().share("rowzoom"); // 7200 to 72ff - HCMValue
+	map(0x007300, 0x0073ff).rw(m_spg_video, FUNC(gcm394_base_video_device::palette_r), FUNC(gcm394_base_video_device::palette_w)); // 7300 to 73ff - Palette (banked)
+	map(0x007400, 0x0077ff).rw(m_spg_video, FUNC(gcm394_base_video_device::spriteram_r), FUNC(gcm394_base_video_device::spriteram_w)); // 7400 to 74ff - Sprite Ram (banked)
 	//
 	// 7800 - BodyID
 	// 7801 - unused
@@ -259,37 +245,37 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map& map)
 	// 785e - ECC_ERR0_LB     or BCH_Parity5
 	// 785f - ECC_ERR1_LB     or BCH_Parity6
 
-	// 7860 - IOA_Data
-	// 7861 - IOA_Buffer
-	// 7862 - IOA_Dir
-	// 7863 - IOA_Attrib
+	map(0x007860, 0x007860).rw(FUNC(generalplus_gpl951xx_device::ioarea_7860_porta_r), FUNC(generalplus_gpl951xx_device::ioarea_7860_porta_w));                     // 7860 - IOA_Data
+	map(0x007861, 0x007861).rw(FUNC(generalplus_gpl951xx_device::ioarea_7861_porta_buffer_r), FUNC(generalplus_gpl951xx_device::ioarea_7861_porta_buffer_w));       // 7861 - IOA_Buffer
+	map(0x007862, 0x007862).rw(FUNC(generalplus_gpl951xx_device::ioarea_7862_porta_direction_r), FUNC(generalplus_gpl951xx_device::ioarea_7862_porta_direction_w)); // 7862 - IOA_Dir
+	map(0x007863, 0x007863).rw(FUNC(generalplus_gpl951xx_device::ioarea_7863_porta_attribute_r), FUNC(generalplus_gpl951xx_device::ioarea_7863_porta_attribute_w)); // 7863 - IOA_Attrib
 	// 7864 - IOA_Drv
 	// 7865 - IOA_Mux
 	// 7866 - IOA_Latch
 	// 7867 - IOA_KeyEN
 
-	// 7868 - IOB_Data
-	// 7869 - IOB_Buffer
-	// 786a - IOB_Dir
-	// 786b - IOB_Attrib
+	map(0x007868, 0x007868).rw(FUNC(generalplus_gpl951xx_device::ioarea_7868_portb_r), FUNC(generalplus_gpl951xx_device::ioarea_7868_portb_w));                     // 7868 - IOB_Data
+	map(0x007869, 0x007869).rw(FUNC(generalplus_gpl951xx_device::ioarea_7869_portb_buffer_r), FUNC(generalplus_gpl951xx_device::ioarea_7869_portb_buffer_w));       // 7869 - IOB_Buffer
+	map(0x00786a, 0x00786a).rw(FUNC(generalplus_gpl951xx_device::ioarea_786a_portb_direction_r), FUNC(generalplus_gpl951xx_device::ioarea_786a_portb_direction_w)); // 786a - IOB_Dir
+	map(0x00786b, 0x00786b).rw(FUNC(generalplus_gpl951xx_device::ioarea_786b_portb_attribute_r), FUNC(generalplus_gpl951xx_device::ioarea_786b_portb_attribute_w)); // 786b - IOB_Attrib
 	// 786c - IOB_Drv
 	// 786d - IOB_Mux
 	// 786e - IOB_Latch
 	// 786f - IOB_KeyEN
 
-	// 7870 - IOC_Data
-	// 7871 - IOC_Buffer
-	// 7872 - IOC_Dir
-	// 7873 - IOC_Attrib
+	map(0x007870, 0x007870).rw(FUNC(generalplus_gpl951xx_device::ioarea_7870_portc_r) ,FUNC(generalplus_gpl951xx_device::ioarea_7870_portc_w));                     // 7870 - IOC_Data
+	map(0x007871, 0x007871).rw(FUNC(generalplus_gpl951xx_device::ioarea_7871_portc_buffer_r), FUNC(generalplus_gpl951xx_device::ioarea_7871_portc_buffer_w));       // 7871 - IOC_Buffer
+	map(0x007872, 0x007872).rw(FUNC(generalplus_gpl951xx_device::ioarea_7872_portc_direction_r), FUNC(generalplus_gpl951xx_device::ioarea_7872_portc_direction_w)); // 7872 - IOC_Dir
+	map(0x007873, 0x007873).rw(FUNC(generalplus_gpl951xx_device::ioarea_7873_portc_attribute_r), FUNC(generalplus_gpl951xx_device::ioarea_7873_portc_attribute_w)); // 7873 - IOC_Attrib	
 	// 7874 - IOC_Drv
 	// 7875 - IOC_Mux
 	// 7876 - IOC_Latch
 	// 7877 - IOC_KeyEN
 
-	// 7878 - IOD_Data
-	// 7879 - IOD_Buffer
-	// 787a - IOD_Dir
-	// 787b - IOD_Attrib
+	map(0x007878, 0x007878).rw(FUNC(generalplus_gpl951xx_device::ioarea_7878_portd_r) ,FUNC(generalplus_gpl951xx_device::ioarea_7878_portd_w));                     // 7878 - IOD_Data
+	map(0x007879, 0x007879).rw(FUNC(generalplus_gpl951xx_device::ioarea_7879_portd_buffer_r), FUNC(generalplus_gpl951xx_device::ioarea_7879_portd_buffer_w));       // 7879 - IOD_Buffer
+	map(0x00787a, 0x00787a).rw(FUNC(generalplus_gpl951xx_device::ioarea_787a_portd_direction_r), FUNC(generalplus_gpl951xx_device::ioarea_787a_portd_direction_w)); // 787a - IOD_Dir
+	map(0x00787b, 0x00787b).rw(FUNC(generalplus_gpl951xx_device::ioarea_787b_portd_attribute_r), FUNC(generalplus_gpl951xx_device::ioarea_787b_portd_attribute_w)); // 787b - IOD_Attrib
 	// 787c - IOD_Drv
 	// 787d - IOD_Mux
 
@@ -311,15 +297,15 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map& map)
 	// 788e - IOF_Latch
 	// 788f - IOF_KeyEN
 
-	// 78a0 - INT_Status1
-	// 78a1 - INT_Status2
+	map(0x0078a0, 0x0078a0).rw(FUNC(generalplus_gpl951xx_device::unkarea_78a0_r), FUNC(generalplus_gpl951xx_device::unkarea_78a0_w)); // 78a0 - INT_Status1
+	map(0x0078a1, 0x0078a1).r(FUNC(generalplus_gpl951xx_device::unkarea_78a1_r)); // 78a1 - INT_Status2
 	// 78a2 - INT_Status3
 	// 78a3 - INT_Priority1
-	// 78a4 - INT_Priority2
-	// 78a5 - INT_Priority3
-	// 78a6 - MINT_Ctrl
+	map(0x0078a4, 0x0078a4).w(FUNC(generalplus_gpl951xx_device::unkarea_78a4_w)); // 78a4 - INT_Priority2
+	map(0x0078a5, 0x0078a5).w(FUNC(generalplus_gpl951xx_device::unkarea_78a5_w)); // 78a5 - INT_Priority3
+	map(0x0078a6, 0x0078a6).w(FUNC(generalplus_gpl951xx_device::unkarea_78a6_w)); // 78a6 - MINT_Ctrl
 	// 78a7 - IOAB_KCIEN
-	// 78a8 - IOC_KCIEN
+	map(0x0078a8, 0x0078a8).w(FUNC(generalplus_gpl951xx_device::unkarea_78a8_w)); // 78a8 - IOC_KCIEN
 	// 78a9 - IOE_KCIEN
 	// 78aa - IOF_KCIEN
 	// 78ab - IOAB_KCIFC
@@ -327,11 +313,11 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map& map)
 	// 78ad - IOE_ KCIFC
 	// 78ae - IOF_ KCIFC
 
-	// 78b0 - TimeBaseA_Ctrl
-	// 78b1 - TimeBaseB_Ctrl
-	// 78b2 - TimeBaseC_Ctrl
+	map(0x0078b0, 0x0078b0).w(FUNC(generalplus_gpl951xx_device::unkarea_78b0_w)); // 78b0 - TimeBaseA_Ctrl
+	map(0x0078b1, 0x0078b1).w(FUNC(generalplus_gpl951xx_device::unkarea_78b1_w)); // 78b1 - TimeBaseB_Ctrl
+	map(0x0078b2, 0x0078b2).rw(FUNC(generalplus_gpl951xx_device::unkarea_78b2_r), FUNC(generalplus_gpl951xx_device::unkarea_78b2_w)); // 78b2 - TimeBaseC_Ctrl
 
-	// 78b8 - TimeBase_Reset
+	map(0x0078b8, 0x0078b8).w(FUNC(generalplus_gpl951xx_device::unkarea_78b8_w)); // 78b8 - TimeBase_Reset
 
 	// 78c0 - I2C_Ctrl
 	// 78c1 - I2C_Status
@@ -513,29 +499,15 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map& map)
 	//
 	// 7a6c - USBD_INTF
 
-	// 7a80 - DMA_Ctrl0
-	// 7a81 - DMA_SRC_AddrL0
-	// 7a82 - DMA_TAR_AddrL0
-	// 7a83 - DMA_TCountL0
-	// 7a84 - DMA_SRC_AddrH0
-	// 7a85 - DMA_TAR_AddrH0
-	// 7a86 - DMA_TCountH0
-	// 7a87 - DMA_MISC0
-	// 7a88 - DMA_Ctrl1
-	// 7a89 - DMA_SRC_AddrL1
-	// 7a8a - DMA_TAR_AddrL1
-	// 7a8b - DMA_TCountL1
-	// 7a8c - DMA_SRC_AddrH1
-	// 7a8d - DMA_TAR_AddrH1
-	// 7a8e - DMA_TCountH1
-	// 7a8f - DMA_MISC1
+	map(0x007a80, 0x007a87).rw(FUNC(generalplus_gpl951xx_device::system_dma_params_channel0_r), FUNC(generalplus_gpl951xx_device::system_dma_params_channel0_w));
+	map(0x007a88, 0x007a8f).rw(FUNC(generalplus_gpl951xx_device::system_dma_params_channel1_r), FUNC(generalplus_gpl951xx_device::system_dma_params_channel1_w));
 	//
 	// 7ab0 - DMA_SPRISize0
 	// 7ab1 - DMA_SPRISize1
 	//
 	// 7abd - DMA_LineLength
-	// 7abe - DMA_SS
-	// 7abf - DMA_INT
+	map(0x007abe, 0x007abe).rw(FUNC(generalplus_gpl951xx_device::system_dma_memtype_r), FUNC(generalplus_gpl951xx_device::system_dma_memtype_w)); // 7abe - DMA_SS
+	map(0x007abf, 0x007abf).rw(FUNC(generalplus_gpl951xx_device::system_dma_status_r), FUNC(generalplus_gpl951xx_device::system_dma_7abf_unk_w)); // 7abf - DMA_INT
 	//
 	// 7ac0 - CTS_Ctrl1
 	// 7ac1 - CTS_CH
@@ -568,22 +540,22 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map& map)
 	// 7b31 - KS_Data9
 	// 7b32 - KS_Data10
 
-	map(0x007b40, 0x007b40).r(FUNC(generalplus_gpl951xx_device::spi_direct_7b40_r)).nopw();; // SPIFC_Ctrl1
-	map(0x007b41, 0x007b41).nopw(); // SPIFC_CMD
-	map(0x007b42, 0x007b42).nopw(); // SPIFC_PARA
+	//map(0x007b40, 0x007b40).r(FUNC(generalplus_gpl951xx_device::spi_direct_7b40_r)).nopw();; // SPIFC_Ctrl1
+	//map(0x007b41, 0x007b41).nopw(); // SPIFC_CMD
+	//map(0x007b42, 0x007b42).nopw(); // SPIFC_PARA
 	// 7b43 - SPIFC_ADDRL
 	// 7b44 - SPIFC_ADDRH
 	// 7b45 - SPIFC_TX_Dat
 	map(0x007b46, 0x007b46).ram(); // SPIFC_RX_Data - values must be written and read from here, but is there any transformation?
-	map(0x007b47, 0x007b47).nopw(); // SPIFC_TX_BC
-	map(0x007b48, 0x007b48).nopw(); // SPIFC_RX_BC
-	map(0x007b49, 0x007b49).ram(); // SPIFC_TIMING
+	//map(0x007b47, 0x007b47).nopw(); // SPIFC_TX_BC
+	//map(0x007b48, 0x007b48).nopw(); // SPIFC_RX_BC
+	//map(0x007b49, 0x007b49).ram(); // SPIFC_TIMING
 
 	// 7b4b - SPIFC_Ctrl2
 
-	// 7b80 to 7b9f - Audio
-	// 7c00 to 7cff - Audio
-	// 7e00 to 7eff - Audio
+	map(0x007b80, 0x007bbf).rw(m_spg_audio, FUNC(sunplus_gcm394_audio_device::control_r), FUNC(sunplus_gcm394_audio_device::control_w));
+	map(0x007c00, 0x007dff).rw(m_spg_audio, FUNC(sunplus_gcm394_audio_device::audio_r), FUNC(sunplus_gcm394_audio_device::audio_w));
+	map(0x007e00, 0x007fff).rw(m_spg_audio, FUNC(sunplus_gcm394_audio_device::audio_phase_r), FUNC(sunplus_gcm394_audio_device::audio_phase_w));
 
 	// 8000 - 8fff internal boot ROM (same on all devices of the same type, not OTP)
 

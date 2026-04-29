@@ -179,7 +179,7 @@ protected:
 	void cs_bank_space_w(offs_t offset, uint16_t data);
 	int m_romtype;
 
-private:
+protected:
 	devcb_read16 m_space_read_cb;
 	devcb_write16 m_space_write_cb;
 	devcb_write_line m_dma_complete_cb;
