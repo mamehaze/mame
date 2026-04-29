@@ -32,8 +32,8 @@ public:
 	void clear_interrupt(int which);
 
 	void recieve_spi_fifo_data(u8 data);
-	u8* get_spi_romregion();
-	void set_spi_romregion(u8* region, u32 size) { m_spiregion = region; m_spisize = size; }
+	u8 *get_spi_romregion();
+	void set_spi_romregion(u8 *region, u32 size) { m_spiregion = region; m_spisize = size; }
 
 protected:
 	// device-level overrides
@@ -168,7 +168,7 @@ private:
 	TIMER_DEVICE_CALLBACK_MEMBER(timer_2khz_cb);
 	TIMER_DEVICE_CALLBACK_MEMBER(timer_spi_tx);
 
-	u8* m_spiregion;
+	u8 *m_spiregion;
 	u32 m_spisize;
 
 	u16 m_ioa_buffer;

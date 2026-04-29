@@ -79,7 +79,7 @@ void generalplus_gpce4_soc_device::device_start()
 	m_spisize = 0;
 }
 
-u8* generalplus_gpce4_soc_device::get_spi_romregion()
+u8 *generalplus_gpce4_soc_device::get_spi_romregion()
 {
 	return m_spiregion;
 }

@@ -54,15 +54,16 @@ public:
 		m_genspi(*this, "spi")
 	{ }
 
-	void bbl380(machine_config &config);
-	void bbl380_menuprot(machine_config &config);
-	void bbl380_24mhz(machine_config &config);
+	void bbl380(machine_config &config) ATTR_COLD;
+	void bbl380_menuprot(machine_config &config) ATTR_COLD;
+	void bbl380_24mhz(machine_config &config) ATTR_COLD;
 
-private:
+protected:
 	virtual void machine_start() override ATTR_COLD;
 	virtual void machine_reset() override ATTR_COLD;
 
-	void bbl380_do_maincpu_config();
+private:
+	void bbl380_do_maincpu_config() ATTR_COLD;
 
 	u32 screen_update(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect);
 
