@@ -25,8 +25,6 @@
    supreme 0x243e
 */
 
-// TODO: convert to use generic_spi_flash.cpp (but there seems to be some buffering of writes / reads?)
-
 #include "emu.h"
 
 #include "cpu/m6502/st2205u.h"
@@ -474,7 +472,7 @@ CONS( 201?, supreme,       0,       0,      bbl380_menuprot,   bbl380_prot, bbl3
 
 CONS( 201?, throwbck,      0,       0,      bbl380_menuprot,   bbl380_prot, bbl380_state, empty_init, "Westminster", "Throwback Pocket Video Game Console 150+ 8-Bit Games", MACHINE_IMPERFECT_SOUND )
 
-// releases with different internal ROM, these currently have rendering issues for unknown reasons
+// releases with different internal ROM
 
 // for the UK market, runs at a slightly slower clock
 CONS( 201?, retro150,      0,       0,      bbl380_24mhz,   bbl380, bbl380_state, empty_init, "Red5", "Retro Arcade Game Controller (150-in-1) (set 1)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND )
