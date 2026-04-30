@@ -36,7 +36,7 @@ private:
 	void byte_swap_w(uint16_t data);
 	uint16_t rtc_readdata_r();
 	uint16_t timerh_ctrl_r();
-	void spi_direct_78e8_w(uint16_t data);
+	void timerh_ctrl_w(uint16_t data);
 	uint16_t rtc_ready_r();
 
 	uint16_t m_byteswap;

@@ -60,9 +60,9 @@ void generalplus_gpl951xx_device::device_reset()
 	m_byteswap = 0;
 }
 
-void generalplus_gpl951xx_device::spi_direct_78e8_w(uint16_t data)
+void generalplus_gpl951xx_device::timerh_ctrl_w(uint16_t data)
 {
-	logerror("%s: spi_direct_78e8_w %04x\n", machine().describe_context(), data);
+	logerror("%s: timerh_ctrl_w %04x\n", machine().describe_context(), data);
 }
 
 void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map& map)
@@ -325,7 +325,7 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map& map)
 	// 78e5
 	// 78e6
 	// 78e7
-	map(0x0078e8, 0x0078e8).rw(FUNC(generalplus_gpl951xx_device::timerh_ctrl_r), FUNC(generalplus_gpl951xx_device::spi_direct_78e8_w)); // TimerH_Ctrl
+	map(0x0078e8, 0x0078e8).rw(FUNC(generalplus_gpl951xx_device::timerh_ctrl_r), FUNC(generalplus_gpl951xx_device::timerh_ctrl_w)); // TimerH_Ctrl
 	// 78e9
 	// 78ea - TimerH_Preload
 	// 78eb
