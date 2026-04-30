@@ -19,14 +19,17 @@
 // 14  rx_empty
 // 13
 // 12
+// 
 // 11
 // 10
 // 9   ig_clk
 // 8   manual
+// 
 // 7   cmio[1]
 // 6   cmio[0]
 // 5   amio[1]
 // 4   amio[0]
+// 
 // 3   mio[1]
 // 2   mio[0]
 // 1
@@ -44,6 +47,28 @@ void generalplus_gpl951xx_device::spifc_ctrl_w(u16 data)
 	m_spifc_ctrl = data;
 }
 
+// P_SPIFC_CMD
+//
+// 15
+// 14
+// 13  one_cmd
+// 12
+//
+// 11
+// 10
+//  9  cmd_only
+//  8  wo_cmd
+// 
+//  7  wpif_cmd[7]
+//  6  wpif_cmd[6]
+//  5  wpif_cmd[5]
+//  4  wpif_cmd[4]
+// 
+//  3  wpif_cmd[3]
+//  2  wpif_cmd[2]
+//  1  wpif_cmd[1]
+//  0  wpif_cmd[0]
+
 u16 generalplus_gpl951xx_device::spifc_cmd_r()
 {
 	LOGMASKED(LOG_SPIFC, "%s: spifc_cmd_r\n", machine().describe_context());
@@ -54,6 +79,28 @@ void generalplus_gpl951xx_device::spifc_cmd_w(u16 data)
 {
 	LOGMASKED(LOG_SPIFC, "%s: spifc_cmd_w %04x\n", machine().describe_context(), data);
 }
+
+// P_SPIFC_PARA
+//
+// 15
+// 14  wo_enha
+// 13  to_addr
+// 12  wo_addr
+//
+// 11  dummy_ck_cnt[3]
+// 10  dummy_ck_cnt[2]
+// 9   dummy_ck_cnt[1]
+// 8   dummy_ck_cnt[0]
+//
+// 7   enhan_by[7]
+// 6   enhan_by[6]
+// 5   enhan_by[5]
+// 4   enhan_by[4]
+// 3   enhan_by[4]
+// 2   enhan_by[3]
+// 1   enhan_by[2]
+// 0   enhan_by[1]
+
 
 u16 generalplus_gpl951xx_device::spifc_para_r()
 {
@@ -99,6 +146,12 @@ void generalplus_gpl951xx_device::spifc_txdat_w(u16 data)
 	LOGMASKED(LOG_SPIFC, "%s: spifc_txdat_w %04x\n", machine().describe_context(), data);
 }
 
+// P_SPIFC_RX_Data
+//
+// 15-0  2 bytes of RX_Data
+//
+// write the register once before reading the register once
+
 u16 generalplus_gpl951xx_device::spifc_rxdat_r()
 {
 	LOGMASKED(LOG_SPIFC, "%s: spifc_rxdat_r\n", machine().describe_context());
@@ -113,6 +166,11 @@ void generalplus_gpl951xx_device::spifc_rxdat_w(u16 data)
 	LOGMASKED(LOG_SPIFC, "%s: spifc_rxdat_w %04x\n", machine().describe_context(), data);
 }
 
+// P_SPIFC_TX_BC - SPIFC TX byte count register
+//
+// 15-9 unused
+// 8-0  9-bit byte count (TX_BC)
+
 u16 generalplus_gpl951xx_device::spifc_tx_bc_r()
 {
 	LOGMASKED(LOG_SPIFC, "%s: spifc_tx_bc_r\n", machine().describe_context());
@@ -123,6 +181,11 @@ void generalplus_gpl951xx_device::spifc_tx_bc_w(u16 data)
 {
 	LOGMASKED(LOG_SPIFC, "%s: spifc_tx_bc_w %04x\n", machine().describe_context(), data);
 }
+
+// P_SPIFC_RX_BC - SPIFC RX byte count register
+//
+// 15-9 unused
+// 8-0  9-bit byte count (RX_BC)
 
 u16 generalplus_gpl951xx_device::spifc_rx_bc_r()
 {
@@ -149,12 +212,13 @@ void generalplus_gpl951xx_device::spifc_timing_w(u16 data)
 u16 generalplus_gpl951xx_device::spifc_ctrl2_r()
 {
 	LOGMASKED(LOG_SPIFC, "%s: spifc_ctrl2_r\n", machine().describe_context());
-	return 0xffff;
+	return m_spifc_ctrl2;
 }
 
 void generalplus_gpl951xx_device::spifc_ctrl2_w(u16 data)
 {
 	LOGMASKED(LOG_SPIFC, "%s: spifc_ctrl2_w %04x\n", machine().describe_context(), data);
+	m_spifc_ctrl2 = data;
 }
 
 // Other bits
@@ -206,6 +270,7 @@ void generalplus_gpl951xx_device::device_start()
 	save_item(NAME(m_gpl951xx_timerh_ctrl));
 	save_item(NAME(m_gpl951xx_timerh_preload));
 	save_item(NAME(m_spifc_ctrl));
+	save_item(NAME(m_spifc_ctrl2));
 }
 
 void generalplus_gpl951xx_device::device_reset()
@@ -217,6 +282,7 @@ void generalplus_gpl951xx_device::device_reset()
 	m_gpl951xx_timerh_ctrl = 0;
 	m_gpl951xx_timerh_preload = 0;
 	m_spifc_ctrl = 0;
+	m_spifc_ctrl2 = 0;
 }
 
 // Timers

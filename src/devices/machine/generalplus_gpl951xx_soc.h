@@ -84,6 +84,7 @@ private:
 	u16 m_gpl951xx_timerh_ctrl;
 
 	u16 m_spifc_ctrl;
+	u16 m_spifc_ctrl2;
 };
 
 DECLARE_DEVICE_TYPE(GPL951XX, generalplus_gpl951xx_device)
