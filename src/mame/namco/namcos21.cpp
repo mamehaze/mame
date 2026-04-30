@@ -1,7 +1,8 @@
 // license:BSD-3-Clause
 // copyright-holders:Phil Stroffolino
-/**
-Namco System 21
+/*
+
+Namco System 21 "Polygonizer"
 
                           | Winning Run(1)|Driver's Eyes(2) | Cyber Sled, Star Blade etc.(3)
 --------------------------+---------------+-----------------+--------------------------
@@ -424,6 +425,14 @@ u16 namcos21_state::gpu_register_r(offs_t offset)
 
 void namcos21_state::gpu_register_w(offs_t offset, u16 data, u16 mem_mask)
 {
+	// GPU registers:
+	// 0: x scroll
+	// 1: y scroll relative to vpos
+	// 2: always [reg 0] + 1 (not counting initial value)
+	// 5: always 0xa
+	// 6: commit/apply?
+	// other: unused
+
 	m_screen->update_partial(m_screen->vpos() - 1);
 	COMBINE_DATA(&m_gpu_register[offset]);
 }
@@ -458,7 +467,7 @@ u16 namcos21_state::gpu_videoram_r(offs_t offset)
 
 void namcos21_state::bitmap_draw(bitmap_ind16 &bitmap, const rectangle &cliprect)
 {
-	// show gpu registers & related
+	// show GPU registers & related
 #if 0
 	printf("%3d %3d (%3d %3d) - ", cliprect.top(), cliprect.bottom(), m_screen->vpos(), m_posirq_line);
 	for (int i = 0; i < 8; i++)
@@ -579,11 +588,11 @@ void namcos21_state::master_map(address_map &map)
 	map(0x1c0000, 0x1fffff).m(m_master_intc, FUNC(namco_c148_device::map));
 
 	// DSP Related
-	map(0x250000, 0x25ffff).ram().share("namcos21dsp:winrun_polydata");
+	map(0x250000, 0x25ffff).ram().share("namcos21dsp:polydata");
 	map(0x260000, 0x26ffff).ram(); // unused?
-	map(0x280000, 0x281fff).w(m_namcos21_dsp, FUNC(namcos21_dsp_device::winrun_dspbios_w));
-	map(0x380000, 0x38000f).rw(m_namcos21_dsp, FUNC(namcos21_dsp_device::winrun_dspcomram_control_r), FUNC(namcos21_dsp_device::winrun_dspcomram_control_w));
-	map(0x3c0000, 0x3c1fff).rw(m_namcos21_dsp, FUNC(namcos21_dsp_device::winrun_68k_dspcomram_r), FUNC(namcos21_dsp_device::winrun_68k_dspcomram_w));
+	map(0x280000, 0x281fff).w(m_namcos21_dsp, FUNC(namcos21_dsp_device::dspbios_w));
+	map(0x380000, 0x38000f).rw(m_namcos21_dsp, FUNC(namcos21_dsp_device::dspcomram_control_r), FUNC(namcos21_dsp_device::dspcomram_control_w));
+	map(0x3c0000, 0x3c1fff).rw(m_namcos21_dsp, FUNC(namcos21_dsp_device::m68k_dspcomram_r), FUNC(namcos21_dsp_device::m68k_dspcomram_w));
 	map(0x400000, 0x400001).w(m_namcos21_dsp, FUNC(namcos21_dsp_device::pointram_control_w));
 	map(0x440000, 0x440001).rw(m_namcos21_dsp, FUNC(namcos21_dsp_device::pointram_data_r), FUNC(namcos21_dsp_device::pointram_data_w));
 }
@@ -933,7 +942,7 @@ ROM_START( winrun )
 	ROM_LOAD16_BYTE( "wr1-gd0u-2.1p",  0x00000, 0x40000, CRC(9752eef5) SHA1(d6df0faf9c2696247bdf463f53c1e474ec595dd0) )
 	ROM_LOAD16_BYTE( "wr1-gd0l-2.3p",  0x00001, 0x40000, CRC(349c95cc) SHA1(8898eecf5918485ec683900520f123483077df28) )
 
-	ROM_REGION16_BE( 0x80000, "namcos21dsp:point16", 0 ) /* 3d objects */
+	ROM_REGION16_BE( 0x40000, "namcos21dsp:point16", 0 ) /* 3d objects */
 	ROM_LOAD16_BYTE( "wr1-pt0u.8j", 0x00000, 0x20000, CRC(7ec4cf6b) SHA1(92ec92567b9f7321efb4a3724cbcdba216eb22f9) )
 	ROM_LOAD16_BYTE( "wr1-pt0l.8d", 0x00001, 0x20000, CRC(58c14b73) SHA1(e34a26866cd870743e166669f7fa5915a82104e9) )
 
@@ -1066,10 +1075,10 @@ ROM_END
 } // Anonymous namespace
 
 
-/*    YEAR  NAME       PARENT    MACHINE   INPUT       CLASS           INIT          MONITOR  COMPANY  FULLNAME                                                           FLAGS */
+/*    YEAR  NAME       PARENT    MACHINE   INPUT       CLASS           INIT          MONITOR  COMPANY  FULLNAME                                             FLAGS */
 
-GAME( 1988, winrun,    0,        winrun,   winrun,     namcos21_state, empty_init,   ROT0,    "Namco", "Winning Run (World) (89/06/06, Ver.09)",                          MACHINE_IMPERFECT_GRAPHICS | MACHINE_SUPPORTS_SAVE ) // Sub Ver.09, 1989, Graphic Ver .06, 89/01/14, Sound Ver.2.00
-GAME( 1989, winrungp,  0,        winrun,   winrungp,   namcos21_state, empty_init,   ROT0,    "Namco", "Winning Run Suzuka Grand Prix (Japan) (89/12/03, Ver.02)",        MACHINE_IMPERFECT_GRAPHICS | MACHINE_NODEVICE_LAN | MACHINE_SUPPORTS_SAVE ) // Sub Ver.02, 1989, Graphic Ver.02 89/12/03, Sound Ver.0000
+GAME( 1988, winrun,    0,        winrun,   winrun,     namcos21_state, empty_init,   ROT0,    "Namco", "Winning Run (World) (89/06/06, Ver.09)",            MACHINE_IMPERFECT_GRAPHICS | MACHINE_SUPPORTS_SAVE ) // Sub Ver.09, 1989, Graphic Ver .06, 89/01/14, Sound Ver.2.00
+GAME( 1989, winrungp,  0,        winrun,   winrungp,   namcos21_state, empty_init,   ROT0,    "Namco", "Winning Run: Suzuka GP (Japan) (89/12/03, Ver.02)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_NODEVICE_LAN | MACHINE_SUPPORTS_SAVE ) // Sub Ver.02, 1989, Graphic Ver.02 89/12/03, Sound Ver.0000
 
 // Available on a size/cost reduced 2 PCB set with 'Namco System 21B' printed on each board, still C65 I/O MCU, appears to be functionally identical to original NS21
-GAME( 1991, winrun91,  0,        winrun,   winrungp,   namcos21_state, empty_init,   ROT0,    "Namco", "Winning Run '91 (Japan) (1991/03/05, Main Ver 1.0, Sub Ver 1.0)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_NODEVICE_LAN | MACHINE_SUPPORTS_SAVE )
+GAME( 1991, winrun91,  0,        winrun,   winrungp,   namcos21_state, empty_init,   ROT0,    "Namco", "Winning Run '91 (Japan) (1991/03/05, Ver 1.0)",     MACHINE_IMPERFECT_GRAPHICS | MACHINE_NODEVICE_LAN | MACHINE_SUPPORTS_SAVE ) // Main Ver 1.0 1991/03/05, Graphic Ver 1.0 1991/03/05

@@ -37,17 +37,17 @@ void namcos21_3d_device::allocate_poly_framebuffer()
 	assert(m_num_palettes != 0);
 	assert(m_framebuffer_size > 0);
 
-	m_mpPolyFrameBufferZ = std::make_unique<u16[]>(m_framebuffer_size);
-	m_mpPolyFrameBufferPens = std::make_unique<u16[]>(m_framebuffer_size);
+	m_poly_framebuffer_z = std::make_unique<u16[]>(m_framebuffer_size);
+	m_poly_framebuffer_pens = std::make_unique<u16[]>(m_framebuffer_size);
 
-	m_mpPolyFrameBufferZ2 = std::make_unique<u16[]>(m_framebuffer_size);
-	m_mpPolyFrameBufferPens2 = std::make_unique<u16[]>(m_framebuffer_size);
+	m_poly_framebuffer_z2 = std::make_unique<u16[]>(m_framebuffer_size);
+	m_poly_framebuffer_pens2 = std::make_unique<u16[]>(m_framebuffer_size);
 
-	save_pointer(NAME(m_mpPolyFrameBufferZ), m_framebuffer_size);
-	save_pointer(NAME(m_mpPolyFrameBufferPens), m_framebuffer_size);
+	save_pointer(NAME(m_poly_framebuffer_z), m_framebuffer_size);
+	save_pointer(NAME(m_poly_framebuffer_pens), m_framebuffer_size);
 
-	save_pointer(NAME(m_mpPolyFrameBufferZ2), m_framebuffer_size);
-	save_pointer(NAME(m_mpPolyFrameBufferPens2), m_framebuffer_size);
+	save_pointer(NAME(m_poly_framebuffer_z2), m_framebuffer_size);
+	save_pointer(NAME(m_poly_framebuffer_pens2), m_framebuffer_size);
 
 	swap_and_clear_poly_framebuffer();
 	swap_and_clear_poly_framebuffer();
@@ -56,12 +56,12 @@ void namcos21_3d_device::allocate_poly_framebuffer()
 void namcos21_3d_device::swap_and_clear_poly_framebuffer()
 {
 	// swap work and visible framebuffers
-	m_mpPolyFrameBufferZ.swap(m_mpPolyFrameBufferZ2);
-	m_mpPolyFrameBufferPens.swap(m_mpPolyFrameBufferPens2);
+	m_poly_framebuffer_z.swap(m_poly_framebuffer_z2);
+	m_poly_framebuffer_pens.swap(m_poly_framebuffer_pens2);
 
 	// wipe work framebuffers
-	std::fill_n(m_mpPolyFrameBufferZ.get(), m_framebuffer_size, 0x7fff);
-	std::fill_n(m_mpPolyFrameBufferPens.get(), m_framebuffer_size, 0);
+	std::fill_n(m_poly_framebuffer_z.get(), m_framebuffer_size, 0x7fff);
+	std::fill_n(m_poly_framebuffer_pens.get(), m_framebuffer_size, 0);
 }
 
 void namcos21_3d_device::copy_visible_poly_framebuffer(bitmap_ind16 &bitmap, const rectangle &cliprect)
@@ -73,7 +73,7 @@ void namcos21_3d_device::copy_visible_poly_framebuffer(bitmap_ind16 &bitmap, con
 	for (int sy = clip.top(); sy <= clip.bottom(); sy++)
 	{
 		u16 *const dest = &bitmap.pix(sy);
-		const u16 *const pPen = m_mpPolyFrameBufferPens2.get() + m_poly_frame_width * sy;
+		const u16 *const pPen = m_poly_framebuffer_pens2.get() + m_poly_frame_width * sy;
 		for (int sx = clip.left(); sx <= clip.right(); sx++)
 		{
 			const u16 pen = pPen[sx];
@@ -90,8 +90,8 @@ void namcos21_3d_device::renderscanline_flat(const edge *e1, const edge *e2, int
 	if (e1->x > e2->x)
 		std::swap(e1, e2);
 
-	u16 *pDest = m_mpPolyFrameBufferPens.get() + sy * m_poly_frame_width;
-	u16 *pZBuf = m_mpPolyFrameBufferZ.get() + sy * m_poly_frame_width;
+	u16 *pDest = m_poly_framebuffer_pens.get() + sy * m_poly_frame_width;
+	u16 *pZBuf = m_poly_framebuffer_z.get() + sy * m_poly_frame_width;
 	int x0 = (int)e1->x;
 	int x1 = (int)e2->x;
 	int w = x1 - x0;
@@ -274,12 +274,13 @@ void namcos21_3d_device::draw_direct_quad(const u16 *source, u16 color)
 	blit_single_quad(sx, sy, zcode, color);
 }
 
-void namcos21_3d_device::draw_quads(const u16 *source, const u8 *pointram, const u32 ptram_size, u32 quad_idx)
+int namcos21_3d_device::draw_quads(const u16 *source, const u8 *pointram, const u32 ptram_size, u32 quad_idx)
 {
 	const u32 ptram_mask = ptram_size - 1;
 	quad_idx = (quad_idx * 6) & ptram_mask;
 
 	int sx[4], sy[4], zcode[4];
+	int max_vi = -1; // for debug
 
 	for (int count = 0; count < ptram_size / 6; count++)
 	{
@@ -297,6 +298,9 @@ void namcos21_3d_device::draw_quads(const u16 *source, const u8 *pointram, const
 			sx[i] = m_poly_frame_width / 2 + (s16)source[vi * 3 + 0];
 			sy[i] = m_poly_frame_height / 2 + (s16)source[vi * 3 + 1];
 			zcode[i] = source[vi * 3 + 2];
+
+			if (vi > max_vi)
+				max_vi = vi;
 		}
 
 		blit_single_quad(sx, sy, zcode, color & 0x7fff);
@@ -307,4 +311,6 @@ void namcos21_3d_device::draw_quads(const u16 *source, const u8 *pointram, const
 			break;
 		}
 	}
+
+	return (max_vi + 1) * 3;
 }
