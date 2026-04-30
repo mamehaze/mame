@@ -113,26 +113,34 @@ void generalplus_gpl951xx_device::spifc_para_w(u16 data)
 	LOGMASKED(LOG_SPIFC, "%s: spifc_para_w %04x\n", machine().describe_context(), data);
 }
 
+// P_SPIFC_ADDRL
+// 15-0 low 16 bits of SPIF Address
+
 u16 generalplus_gpl951xx_device::spifc_addrl_r()
 {
 	LOGMASKED(LOG_SPIFC, "%s: spifc_addrl_r\n", machine().describe_context());
-	return 0xffff;
+	return m_spifc_addr & 0x0000ffff;
 }
 
 void generalplus_gpl951xx_device::spifc_addrl_w(u16 data)
 {
 	LOGMASKED(LOG_SPIFC, "%s: spifc_addrl_w %04x\n", machine().describe_context(), data);
+	m_spifc_addr = (m_spifc_addr & 0xffff0000) | data;
 }
+
+// P_SPIFC_ADDRH
+// 15-0  high 16 bits of SPIF Address
 
 u16 generalplus_gpl951xx_device::spifc_addrh_r()
 {
 	LOGMASKED(LOG_SPIFC, "%s: spifc_addrh_r\n", machine().describe_context());
-	return 0xffff;
+	return (m_spifc_addr & 0xffff0000) >> 16;
 }
 
 void generalplus_gpl951xx_device::spifc_addrh_w(u16 data)
 {
 	LOGMASKED(LOG_SPIFC, "%s: spifc_addrh_w %04x\n", machine().describe_context(), data);
+	m_spifc_addr = (m_spifc_addr & 0x0000ffff) | (data << 16);
 }
 
 u16 generalplus_gpl951xx_device::spifc_txdat_r()
@@ -209,6 +217,12 @@ void generalplus_gpl951xx_device::spifc_timing_w(u16 data)
 	LOGMASKED(LOG_SPIFC, "%s: spifc_timing_w %04x\n", machine().describe_context(), data);
 }
 
+// P_SPIFC_Ctrl2
+//
+// 15-8  Ear[7:0] - Extend address range from 24 bits to 32-bits
+// 7-1
+// 0     en - SPF flash controller enable
+
 u16 generalplus_gpl951xx_device::spifc_ctrl2_r()
 {
 	LOGMASKED(LOG_SPIFC, "%s: spifc_ctrl2_r\n", machine().describe_context());
@@ -271,6 +285,7 @@ void generalplus_gpl951xx_device::device_start()
 	save_item(NAME(m_gpl951xx_timerh_preload));
 	save_item(NAME(m_spifc_ctrl));
 	save_item(NAME(m_spifc_ctrl2));
+	save_item(NAME(m_spifc_addr));
 }
 
 void generalplus_gpl951xx_device::device_reset()
@@ -283,6 +298,7 @@ void generalplus_gpl951xx_device::device_reset()
 	m_gpl951xx_timerh_preload = 0;
 	m_spifc_ctrl = 0;
 	m_spifc_ctrl2 = 0;
+	m_spifc_addr = 0;
 }
 
 // Timers
