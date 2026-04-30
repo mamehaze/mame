@@ -4,23 +4,46 @@
 #include "emu.h"
 #include "generalplus_gpl951xx_soc.h"
 
+#define LOG_SPIFC     (1U << 1)
+
+#define VERBOSE     (LOG_SPIFC)
+
+#include "logmacro.h"
+
+
+// SPIFC - the directly mapped SPI interface
 
 uint16_t generalplus_gpl951xx_device::spifc_ctrl_r()
 {
+	LOGMASKED(LOG_SPIFC, "%s: spifc_ctrl_r\n", machine().describe_context());
 	return 0xffff; // doesn't care for now
 }
 
-uint16_t generalplus_gpl951xx_device::rtc_readdata_r()
+void generalplus_gpl951xx_device::spifc_ctrl_w(u16 data)
 {
-	return 0xffff; // hangs if returning 0
+	LOGMASKED(LOG_SPIFC, "%s: spifc_ctrl_w %04x\n", machine().describe_context(), data);
 }
 
-uint16_t generalplus_gpl951xx_device::spifc_rx_data_r()
+
+uint16_t generalplus_gpl951xx_device::spifc_rxdat_r()
 {
+	LOGMASKED(LOG_SPIFC, "%s: spifc_rxdat_r\n", machine().describe_context());
 	int i = machine().rand();
 
 	if (i & 1) return 0x01;
 	else return 0x02;
+}
+
+void generalplus_gpl951xx_device::spifc_rxdat_w(u16 data)
+{
+	LOGMASKED(LOG_SPIFC, "%s: spifc_rxdat_w %04x\n", machine().describe_context(), data);
+}
+
+
+
+uint16_t generalplus_gpl951xx_device::rtc_readdata_r()
+{
+	return 0xffff; // hangs if returning 0
 }
 
 uint16_t generalplus_gpl951xx_device::rtc_ready_r()
@@ -530,18 +553,19 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map& map)
 	// 7b31 - KS_Data9
 	// 7b32 - KS_Data10
 
-	//map(0x007b40, 0x007b40).r(FUNC(generalplus_gpl951xx_device::spifc_ctrl_r)).nopw();; // SPIFC_Ctrl1
-	//map(0x007b41, 0x007b41).nopw(); // SPIFC_CMD
-	//map(0x007b42, 0x007b42).nopw(); // SPIFC_PARA
-	// 7b43 - SPIFC_ADDRL
-	// 7b44 - SPIFC_ADDRH
-	// 7b45 - SPIFC_TX_Dat
-	map(0x007b46, 0x007b46).ram(); // SPIFC_RX_Data - values must be written and read from here, but is there any transformation?
-	//map(0x007b47, 0x007b47).nopw(); // SPIFC_TX_BC
-	//map(0x007b48, 0x007b48).nopw(); // SPIFC_RX_BC
-	//map(0x007b49, 0x007b49).ram(); // SPIFC_TIMING
+	map(0x007b40, 0x007b40).rw(FUNC(generalplus_gpl951xx_device::spifc_ctrl_r), FUNC(generalplus_gpl951xx_device::spifc_ctrl_w)); // SPIFC_Ctrl1
+//	map(0x007b41, 0x007b41).rw(FUNC(generalplus_gpl951xx_device::spifc_cmd_r), FUNC(generalplus_gpl951xx_device::spifc_cmd_w)); // SPIFC_CMD
+//	map(0x007b42, 0x007b42).rw(FUNC(generalplus_gpl951xx_device::spifc_para_r), FUNC(generalplus_gpl951xx_device::spifc_para_w)); // SPIFC_PARA
+//	map(0x007b43, 0x007b43).rw(FUNC(generalplus_gpl951xx_device::spifc_addrl_r), FUNC(generalplus_gpl951xx_device::spifc_addrl_w)); // 7b43 - SPIFC_ADDRL
+//	map(0x007b44, 0x007b44).rw(FUNC(generalplus_gpl951xx_device::spifc_addrh_r), FUNC(generalplus_gpl951xx_device::spifc_addrh_w)); // 7b44 - SPIFC_ADDRH
+//	map(0x007b45, 0x007b45).rw(FUNC(generalplus_gpl951xx_device::spifc_txdat_r), FUNC(generalplus_gpl951xx_device::spifc_txdat_w)); // 7b45 - SPIFC_TX_Dat
+	map(0x007b46, 0x007b46).rw(FUNC(generalplus_gpl951xx_device::spifc_rxdat_r), FUNC(generalplus_gpl951xx_device::spifc_rxdat_w)); // SPIFC_RX_Data - values must be written and read from here, but is there any transformation?
+//	map(0x007b47, 0x007b47).rw(FUNC(generalplus_gpl951xx_device::spifc_tx_bc_r), FUNC(generalplus_gpl951xx_device::spifc_tx_bc_w)); // SPIFC_TX_BC
+//	map(0x007b48, 0x007b48).rw(FUNC(generalplus_gpl951xx_device::spifc_rx_bc_r), FUNC(generalplus_gpl951xx_device::spifc_rx_bc_w)); // SPIFC_RX_BC
+//	map(0x007b49, 0x007b49).rw(FUNC(generalplus_gpl951xx_device::spifc_timing_r), FUNC(generalplus_gpl951xx_device::spifc_timing_w)); // SPIFC_TIMING
+	// 7b4a
+//	map(0x007b4b, 0x007b4b).rw(FUNC(generalplus_gpl951xx_device::spifc_ctrl2_r), FUNC(generalplus_gpl951xx_device::spifc_ctrl2_w)); // 7b4b - SPIFC_Ctrl2
 
-	// 7b4b - SPIFC_Ctrl2
 
 	map(0x007b80, 0x007bbf).rw(m_spg_audio, FUNC(sunplus_gcm394_audio_device::control_r), FUNC(sunplus_gcm394_audio_device::control_w));
 	map(0x007c00, 0x007dff).rw(m_spg_audio, FUNC(sunplus_gcm394_audio_device::audio_r), FUNC(sunplus_gcm394_audio_device::audio_w));

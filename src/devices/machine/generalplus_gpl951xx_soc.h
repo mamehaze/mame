@@ -30,8 +30,13 @@ protected:
 	virtual void device_reset() override ATTR_COLD;
 
 private:
+	// SPIFC interface
 	uint16_t spifc_ctrl_r();
-	uint16_t spifc_rx_data_r();
+	void spifc_ctrl_w(uint16_t data);
+	uint16_t spifc_rxdat_r();
+	void spifc_rxdat_w(uint16_t data);
+
+
 	uint16_t byte_swap_r();
 	void byte_swap_w(uint16_t data);
 	uint16_t rtc_readdata_r();

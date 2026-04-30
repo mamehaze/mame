@@ -349,9 +349,9 @@ void generalplus_gpspi_direct_game_state::init_fif()
 
 	// the games upload some self-check code to 0x100 in RAM, it's unclear what it is checking, skip it for now
 	// goto mr -> nop
-	if (spirom16[0x00d8] == 0xf161) spirom16[0x00d8] = 0xf165; // fixitflx, bfpacman, bfmpac
-	if (spirom16[0x00ac] == 0xf161) spirom16[0x00ac] = 0xf165; // wiwcs, bfgalaga, bfdigdug, bfspyhnt
-	if (spirom16[0x00a2] == 0xf161) spirom16[0x00a2] = 0xf165; // bftetris
+	//if (spirom16[0x00d8] == 0xf161) spirom16[0x00d8] = 0xf165; // fixitflx, bfpacman, bfmpac
+	//if (spirom16[0x00ac] == 0xf161) spirom16[0x00ac] = 0xf165; // wiwcs, bfgalaga, bfdigdug, bfspyhnt
+	//if (spirom16[0x00a2] == 0xf161) spirom16[0x00a2] = 0xf165; // bftetris
 }
 
 } // anonymous namespace
