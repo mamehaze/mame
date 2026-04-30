@@ -224,44 +224,49 @@ protected:
 	void unkarea_782d_w(u16 data);
 
 	// Port A
-	u16 ioarea_7860_porta_r();
-	void ioarea_7860_porta_w(u16 data);
-	u16 ioarea_7861_porta_buffer_r();
-	void ioarea_7861_porta_buffer_w(u16 data);
-	u16 ioarea_7862_porta_direction_r();
-	void ioarea_7862_porta_direction_w(u16 data);
-	u16 ioarea_7863_porta_attribute_r();
-	void ioarea_7863_porta_attribute_w(u16 data);
+	u16 ioa_data_r();
+	void ioa_data_w(u16 data);
+	u16 ioa_buffer_r();
+	void ioa_buffer_w(u16 data);
+	u16 ioa_dir_r();
+	void ioa_dir_w(u16 data);
+	u16 ioa_attrib_r();
+	void ioa_attrib_w(u16 data);
 
 	// Port B
-	u16 ioarea_7868_portb_r();
-	void ioarea_7868_portb_w(u16 data);
-	u16 ioarea_7869_portb_buffer_r();
-	void ioarea_7869_portb_buffer_w(u16 data);
-	u16 ioarea_786a_portb_direction_r();
-	void ioarea_786a_portb_direction_w(u16 data);
-	u16 ioarea_786b_portb_attribute_r();
-	void ioarea_786b_portb_attribute_w(u16 data);
+	u16 iob_data_r();
+	void iob_data_w(u16 data);
+	u16 iob_buffer_r();
+	void iob_buffer_w(u16 data);
+	u16 iob_dir_r();
+	void iob_dir_w(u16 data);
+	u16 iob_attrib_r();
+	void iob_attrib_w(u16 data);
 
 	// Port C
-	u16 ioarea_7870_portc_r();
-	void ioarea_7870_portc_w(u16 data);
-	u16 ioarea_7871_portc_buffer_r();
-	void ioarea_7871_portc_buffer_w(u16 data);
-	u16 ioarea_7872_portc_direction_r();
-	void ioarea_7872_portc_direction_w(u16 data);
-	u16 ioarea_7873_portc_attribute_r();
-	void ioarea_7873_portc_attribute_w(u16 data);
+	u16 ioc_data_r();
+	void ioc_data_w(u16 data);
+	u16 ioc_buffer_r();
+	void ioc_buffer_w(u16 data);
+	u16 ioc_dir_r();
+	void ioc_dir_w(u16 data);
+	u16 ioc_attrib_r();
+	void ioc_attrib_w(u16 data);
 
 	// Port D
-	u16 ioarea_7878_portd_r();
-	void ioarea_7878_portd_w(u16 data);
-	u16 ioarea_7879_portd_buffer_r();
-	void ioarea_7879_portd_buffer_w(u16 data);
-	u16 ioarea_787a_portd_direction_r();
-	void ioarea_787a_portd_direction_w(u16 data);
-	u16 ioarea_787b_portd_attribute_r();
-	void ioarea_787b_portd_attribute_w(u16 data);
+	u16 iod_data_r();
+	void iod_data_w(u16 data);
+	u16 iod_buffer_r();
+	void iod_buffer_w(u16 data);
+	u16 iod_dir_r();
+	void iod_dir_w(u16 data);
+	u16 iod_attib_r();
+	void iod_attib_w(u16 data);
+	u16 iod_drv_r();
+	void iod_drv_w(u16 data);
+	u16 iod_mux_r();
+	void iod_mux_w(u16 data);
+
 
 	u16 ioe_dir_r();
 	void ioe_dir_w(u16 data);

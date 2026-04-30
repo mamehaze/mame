@@ -423,205 +423,228 @@ void sunplus_gcm394_base_device::unkarea_7835_w(uint16_t data) { LOGMASKED(LOG_G
 
 // Port A
 
-uint16_t sunplus_gcm394_base_device::ioarea_7860_porta_r()
+uint16_t sunplus_gcm394_base_device::ioa_data_r()
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioarea_7860_porta_r\n", machine().describe_context());
+	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioa_data_r\n", machine().describe_context());
 	return m_porta_in();
 }
 
-void sunplus_gcm394_base_device::ioarea_7860_porta_w(uint16_t data)
+void sunplus_gcm394_base_device::ioa_data_w(uint16_t data)
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioarea_7860_porta_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioa_data_w %04x\n", machine().describe_context(), data);
 	m_porta_out(data);
 }
 
-uint16_t sunplus_gcm394_base_device::ioarea_7861_porta_buffer_r()
+uint16_t sunplus_gcm394_base_device::ioa_buffer_r()
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioarea_7861_porta_buffer_r\n", machine().describe_context());
+	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioa_buffer_r\n", machine().describe_context());
 	return 0x0000;// 0xffff;
 }
 
-void sunplus_gcm394_base_device::ioarea_7861_porta_buffer_w(uint16_t data)
+void sunplus_gcm394_base_device::ioa_buffer_w(uint16_t data)
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioarea_7861_porta_buffer_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioa_buffer_w %04x\n", machine().describe_context(), data);
 }
 
-uint16_t sunplus_gcm394_base_device::ioarea_7862_porta_direction_r()
+uint16_t sunplus_gcm394_base_device::ioa_dir_r()
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioarea_7862_porta_direction_r\n", machine().describe_context());
+	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioa_dir_r\n", machine().describe_context());
 	return m_7862_porta_direction;
 }
 
-void sunplus_gcm394_base_device::ioarea_7862_porta_direction_w(uint16_t data)
+void sunplus_gcm394_base_device::ioa_dir_w(uint16_t data)
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioarea_7862_porta_direction_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioa_dir_w %04x\n", machine().describe_context(), data);
 	m_7862_porta_direction = data;
 }
 
-uint16_t sunplus_gcm394_base_device::ioarea_7863_porta_attribute_r()
+uint16_t sunplus_gcm394_base_device::ioa_attrib_r()
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioarea_7863_porta_attribute_r\n", machine().describe_context());
+	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioa_attrib_r\n", machine().describe_context());
 	return m_7863_porta_attribute;
 }
 
-void sunplus_gcm394_base_device::ioarea_7863_porta_attribute_w(uint16_t data)
+void sunplus_gcm394_base_device::ioa_attrib_w(uint16_t data)
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioarea_7863_porta_attribute_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioa_attrib_w %04x\n", machine().describe_context(), data);
 	m_7863_porta_attribute = data;
 }
 
 // Port B
 
-uint16_t sunplus_gcm394_base_device::ioarea_7868_portb_r()
+uint16_t sunplus_gcm394_base_device::iob_buffer_r()
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioarea_7868_portb_r\n", machine().describe_context());
-	return m_portb_in();
-}
-
-uint16_t sunplus_gcm394_base_device::ioarea_7869_portb_buffer_r()
-{
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioarea_7869_portb_buffer_r\n", machine().describe_context());
+	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iob_buffer_r\n", machine().describe_context());
 	return machine().rand();
 }
 
-void sunplus_gcm394_base_device::ioarea_7869_portb_buffer_w(uint16_t data)
+void sunplus_gcm394_base_device::iob_buffer_w(uint16_t data)
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioarea_7869_portb_buffer_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iob_buffer_w %04x\n", machine().describe_context(), data);
 	m_portb_out(data); // buffer writes must update output state too, beijuehh requires it for banking
 }
 
-void sunplus_gcm394_base_device::ioarea_7868_portb_w(uint16_t data)
+uint16_t sunplus_gcm394_base_device::iob_data_r()
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioarea_7868_portb_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iob_data_r\n", machine().describe_context());
+	return m_portb_in();
+}
+
+void sunplus_gcm394_base_device::iob_data_w(uint16_t data)
+{
+	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iob_data_w %04x\n", machine().describe_context(), data);
 	m_portb_out(data);
 }
 
-uint16_t sunplus_gcm394_base_device::ioarea_786a_portb_direction_r()
+uint16_t sunplus_gcm394_base_device::iob_dir_r()
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioarea_786a_portb_direction_r\n", machine().describe_context());
+	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iob_dir_r\n", machine().describe_context());
 	return m_786a_portb_direction;
 }
 
-void sunplus_gcm394_base_device::ioarea_786a_portb_direction_w(uint16_t data)
+void sunplus_gcm394_base_device::iob_dir_w(uint16_t data)
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioarea_786a_portb_direction_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iob_dir_w %04x\n", machine().describe_context(), data);
 	m_786a_portb_direction = data;
 }
 
-uint16_t sunplus_gcm394_base_device::ioarea_786b_portb_attribute_r()
+uint16_t sunplus_gcm394_base_device::iob_attrib_r()
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioarea_786b_portb_attribute_r\n", machine().describe_context());
+	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iob_attrib_r\n", machine().describe_context());
 	return m_786b_portb_attribute;
 }
 
-void sunplus_gcm394_base_device::ioarea_786b_portb_attribute_w(uint16_t data)
+void sunplus_gcm394_base_device::iob_attrib_w(uint16_t data)
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioarea_786b_portb_attribute_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iob_attrib_w %04x\n", machine().describe_context(), data);
 	m_786b_portb_attribute = data;
 }
 
 // Port C
 
-uint16_t sunplus_gcm394_base_device::ioarea_7870_portc_r()
+uint16_t sunplus_gcm394_base_device::ioc_data_r()
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioarea_7870_portc_r\n", machine().describe_context());
+	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioc_data_r\n", machine().describe_context());
 	return m_portc_in();
 }
 
-void sunplus_gcm394_base_device::ioarea_7870_portc_w(uint16_t data)
+void sunplus_gcm394_base_device::ioc_data_w(uint16_t data)
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioarea_7870_portc_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioc_data_w %04x\n", machine().describe_context(), data);
 	m_ioc_data = data;
 	m_portc_out(data);
 }
 
-uint16_t sunplus_gcm394_base_device::ioarea_7871_portc_buffer_r()
+uint16_t sunplus_gcm394_base_device::ioc_buffer_r()
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioarea_7871_portc_buffer_r\n", machine().describe_context());
+	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioc_buffer_r\n", machine().describe_context());
 	return 0xffff;// m_7871;
 }
 
-void sunplus_gcm394_base_device::ioarea_7871_portc_buffer_w(uint16_t data)
+void sunplus_gcm394_base_device::ioc_buffer_w(uint16_t data)
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioarea_7871_portc_buffer_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioc_buffer_w %04x\n", machine().describe_context(), data);
 }
 
-
-uint16_t sunplus_gcm394_base_device::ioarea_7872_portc_direction_r()
+uint16_t sunplus_gcm394_base_device::ioc_dir_r()
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioarea_7872_portc_direction_r\n", machine().describe_context());
+	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioc_dir_r\n", machine().describe_context());
 	return m_7872_portc_direction;
 }
 
-void sunplus_gcm394_base_device::ioarea_7872_portc_direction_w(uint16_t data)
+void sunplus_gcm394_base_device::ioc_dir_w(uint16_t data)
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioarea_7872_portc_direction_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioc_dir_w %04x\n", machine().describe_context(), data);
 	m_7872_portc_direction = data;
 }
 
-uint16_t sunplus_gcm394_base_device::ioarea_7873_portc_attribute_r()
+uint16_t sunplus_gcm394_base_device::ioc_attrib_r()
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioarea_7873_portc_attribute_r\n", machine().describe_context());
+	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioc_attrib_r\n", machine().describe_context());
 	return m_7873_portc_attribute;
 }
 
-void sunplus_gcm394_base_device::ioarea_7873_portc_attribute_w(uint16_t data)
+void sunplus_gcm394_base_device::ioc_attrib_w(uint16_t data)
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioarea_7873_portc_attribute_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioc_attrib_w %04x\n", machine().describe_context(), data);
 	m_7873_portc_attribute = data;
 }
 
 // Port D
 
-uint16_t sunplus_gcm394_base_device::ioarea_7878_portd_r()
+uint16_t sunplus_gcm394_base_device::iod_data_r()
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioarea_7878_portd_r\n", machine().describe_context());
+	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iod_data_r\n", machine().describe_context());
 	return m_portd_in();
 }
 
-void sunplus_gcm394_base_device::ioarea_7878_portd_w(uint16_t data)
+void sunplus_gcm394_base_device::iod_data_w(uint16_t data)
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioarea_7878_portd_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iod_data_w %04x\n", machine().describe_context(), data);
 	//m_7878 = data;
 	m_portd_out(data);
 }
 
-uint16_t sunplus_gcm394_base_device::ioarea_7879_portd_buffer_r()
+uint16_t sunplus_gcm394_base_device::iod_buffer_r()
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioarea_7879_portd_buffer_r\n", machine().describe_context());
+	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iod_buffer_r\n", machine().describe_context());
 	return 0xffff;// m_7871;
 }
 
-void sunplus_gcm394_base_device::ioarea_7879_portd_buffer_w(uint16_t data)
+void sunplus_gcm394_base_device::iod_buffer_w(uint16_t data)
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioarea_7879_portd_buffer_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iod_buffer_w %04x\n", machine().describe_context(), data);
 	m_portd_out(data); // buffer writes must update output state too, beijuehh requires it for banking
 }
 
 
-uint16_t sunplus_gcm394_base_device::ioarea_787a_portd_direction_r()
+uint16_t sunplus_gcm394_base_device::iod_dir_r()
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioarea_787a_portd_direction_r\n", machine().describe_context());
+	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iod_dir_r\n", machine().describe_context());
 	return m_787a_portd_direction;
 }
 
-void sunplus_gcm394_base_device::ioarea_787a_portd_direction_w(uint16_t data)
+void sunplus_gcm394_base_device::iod_dir_w(uint16_t data)
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioarea_787a_portd_direction_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iod_dir_w %04x\n", machine().describe_context(), data);
 	m_787a_portd_direction = data;
 }
 
-uint16_t sunplus_gcm394_base_device::ioarea_787b_portd_attribute_r()
+uint16_t sunplus_gcm394_base_device::iod_attib_r()
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioarea_787b_portd_attribute_r\n", machine().describe_context());
+	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iod_attib_r\n", machine().describe_context());
 	return m_787b_portd_attribute;
 }
 
-void sunplus_gcm394_base_device::ioarea_787b_portd_attribute_w(uint16_t data)
+void sunplus_gcm394_base_device::iod_attib_w(uint16_t data)
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioarea_787b_portd_attribute_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iod_attib_w %04x\n", machine().describe_context(), data);
 	m_787b_portd_attribute = data;
 }
+
+uint16_t sunplus_gcm394_base_device::iod_drv_r()
+{
+	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iod_drv_r\n", machine().describe_context());
+	return 0xffff;
+}
+
+void sunplus_gcm394_base_device::iod_drv_w(uint16_t data)
+{
+	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iod_drv_w %04x\n", machine().describe_context(), data);
+}
+
+uint16_t sunplus_gcm394_base_device::iod_mux_r()
+{
+	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iod_mux_r\n", machine().describe_context());
+	return 0xffff;
+}
+
+void sunplus_gcm394_base_device::iod_mux_w(uint16_t data)
+{
+	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iod_mux_w %04x\n", machine().describe_context(), data);
+}
+
+
 
 uint16_t sunplus_gcm394_base_device::ioe_dir_r() { LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::ioe_dir_r\n", machine().describe_context()); return 0xffff;// m_ioe_dir;
 }
@@ -1294,31 +1317,30 @@ void sunplus_gcm394_base_device::base_internal_map(address_map &map)
 	// 786x - 787x - IO related?
 	// ######################################################################################################################################################################################
 
-	map(0x007860, 0x007860).rw(FUNC(sunplus_gcm394_base_device::ioarea_7860_porta_r), FUNC(sunplus_gcm394_base_device::ioarea_7860_porta_w)); //    7860  I/O PortA Data Register
-	map(0x007861, 0x007861).rw(FUNC(sunplus_gcm394_base_device::ioarea_7861_porta_buffer_r), FUNC(sunplus_gcm394_base_device::ioarea_7861_porta_buffer_w)); // 7861  I/O PortA Buffer Register
-	map(0x007862, 0x007862).rw(FUNC(sunplus_gcm394_base_device::ioarea_7862_porta_direction_r), FUNC(sunplus_gcm394_base_device::ioarea_7862_porta_direction_w));  // 7862  I/O PortA Direction Register
-	map(0x007863, 0x007863).rw(FUNC(sunplus_gcm394_base_device::ioarea_7863_porta_attribute_r), FUNC(sunplus_gcm394_base_device::ioarea_7863_porta_attribute_w)); //    7863  I/O PortA Attribute Register
+	map(0x007860, 0x007860).rw(FUNC(sunplus_gcm394_base_device::ioa_data_r), FUNC(sunplus_gcm394_base_device::ioa_data_w)); //    7860  I/O PortA Data Register
+	map(0x007861, 0x007861).rw(FUNC(sunplus_gcm394_base_device::ioa_buffer_r), FUNC(sunplus_gcm394_base_device::ioa_buffer_w)); // 7861  I/O PortA Buffer Register
+	map(0x007862, 0x007862).rw(FUNC(sunplus_gcm394_base_device::ioa_dir_r), FUNC(sunplus_gcm394_base_device::ioa_dir_w));  // 7862  I/O PortA Direction Register
+	map(0x007863, 0x007863).rw(FUNC(sunplus_gcm394_base_device::ioa_attrib_r), FUNC(sunplus_gcm394_base_device::ioa_attrib_w)); //    7863  I/O PortA Attribute Register
 
-	map(0x007868, 0x007868).rw(FUNC(sunplus_gcm394_base_device::ioarea_7868_portb_r), FUNC(sunplus_gcm394_base_device::ioarea_7868_portb_w)); // on startup   // 7868  I/O PortB Data Register
-	map(0x007869, 0x007869).rw(FUNC(sunplus_gcm394_base_device::ioarea_7869_portb_buffer_r), FUNC(sunplus_gcm394_base_device::ioarea_7869_portb_buffer_w)); //  7869  I/O PortB Buffer Register   // jak_s500
-	map(0x00786a, 0x00786a).rw(FUNC(sunplus_gcm394_base_device::ioarea_786a_portb_direction_r), FUNC(sunplus_gcm394_base_device::ioarea_786a_portb_direction_w)); // 786a  I/O PortB Direction Register
-	map(0x00786b, 0x00786b).rw(FUNC(sunplus_gcm394_base_device::ioarea_786b_portb_attribute_r), FUNC(sunplus_gcm394_base_device::ioarea_786b_portb_attribute_w)); // 786b  I/O PortB Attribute Register
+	map(0x007868, 0x007868).rw(FUNC(sunplus_gcm394_base_device::iob_data_r), FUNC(sunplus_gcm394_base_device::iob_data_w)); // on startup   // 7868  I/O PortB Data Register
+	map(0x007869, 0x007869).rw(FUNC(sunplus_gcm394_base_device::iob_buffer_r), FUNC(sunplus_gcm394_base_device::iob_buffer_w)); //  7869  I/O PortB Buffer Register   // jak_s500
+	map(0x00786a, 0x00786a).rw(FUNC(sunplus_gcm394_base_device::iob_dir_r), FUNC(sunplus_gcm394_base_device::iob_dir_w)); // 786a  I/O PortB Direction Register
+	map(0x00786b, 0x00786b).rw(FUNC(sunplus_gcm394_base_device::iob_attrib_r), FUNC(sunplus_gcm394_base_device::iob_attrib_w)); // 786b  I/O PortB Attribute Register
 	// 786c  I/O PortB Latch / Wakeup
 
-	map(0x007870, 0x007870).rw(FUNC(sunplus_gcm394_base_device::ioarea_7870_portc_r) ,FUNC(sunplus_gcm394_base_device::ioarea_7870_portc_w)); // 7870  I/O PortC Data Register
-	map(0x007871, 0x007871).rw(FUNC(sunplus_gcm394_base_device::ioarea_7871_portc_buffer_r), FUNC(sunplus_gcm394_base_device::ioarea_7871_portc_buffer_w)); // 7871  I/O PortC Buffer Register
-	map(0x007872, 0x007872).rw(FUNC(sunplus_gcm394_base_device::ioarea_7872_portc_direction_r), FUNC(sunplus_gcm394_base_device::ioarea_7872_portc_direction_w)); // 7872  I/O PortC Direction Register
-	map(0x007873, 0x007873).rw(FUNC(sunplus_gcm394_base_device::ioarea_7873_portc_attribute_r), FUNC(sunplus_gcm394_base_device::ioarea_7873_portc_attribute_w)); // 7873  I/O PortC Attribute Register
+	map(0x007870, 0x007870).rw(FUNC(sunplus_gcm394_base_device::ioc_data_r) ,FUNC(sunplus_gcm394_base_device::ioc_data_w)); // 7870  I/O PortC Data Register
+	map(0x007871, 0x007871).rw(FUNC(sunplus_gcm394_base_device::ioc_buffer_r), FUNC(sunplus_gcm394_base_device::ioc_buffer_w)); // 7871  I/O PortC Buffer Register
+	map(0x007872, 0x007872).rw(FUNC(sunplus_gcm394_base_device::ioc_dir_r), FUNC(sunplus_gcm394_base_device::ioc_dir_w)); // 7872  I/O PortC Direction Register
+	map(0x007873, 0x007873).rw(FUNC(sunplus_gcm394_base_device::ioc_attrib_r), FUNC(sunplus_gcm394_base_device::ioc_attrib_w)); // 7873  I/O PortC Attribute Register
 
 	// 7874 (data 0x1249) (bkrankp data 0x36db)
 
-	map(0x007878, 0x007878).rw(FUNC(sunplus_gcm394_base_device::ioarea_7878_portd_r) ,FUNC(sunplus_gcm394_base_device::ioarea_7878_portd_w)); // 7878  I/O PortD Data Register
-	map(0x007879, 0x007879).rw(FUNC(sunplus_gcm394_base_device::ioarea_7879_portd_buffer_r), FUNC(sunplus_gcm394_base_device::ioarea_7879_portd_buffer_w)); // 7879  I/O PortD Buffer Register
-	map(0x00787a, 0x00787a).rw(FUNC(sunplus_gcm394_base_device::ioarea_787a_portd_direction_r), FUNC(sunplus_gcm394_base_device::ioarea_787a_portd_direction_w)); // 787a  I/O PortD Direction Register
-	map(0x00787b, 0x00787b).rw(FUNC(sunplus_gcm394_base_device::ioarea_787b_portd_attribute_r), FUNC(sunplus_gcm394_base_device::ioarea_787b_portd_attribute_w)); // 787b  I/O PortD Attribute Register
-
-	// 787c (data 0x1249) (bkrankp data 0x36db)
-	// 787e (data 0x1249) (bkrankp data 0x36db)
+	map(0x007878, 0x007878).rw(FUNC(sunplus_gcm394_base_device::iod_data_r) ,FUNC(sunplus_gcm394_base_device::iod_data_w)); // 7878  I/O PortD Data Register
+	map(0x007879, 0x007879).rw(FUNC(sunplus_gcm394_base_device::iod_buffer_r), FUNC(sunplus_gcm394_base_device::iod_buffer_w)); // 7879  I/O PortD Buffer Register
+	map(0x00787a, 0x00787a).rw(FUNC(sunplus_gcm394_base_device::iod_dir_r), FUNC(sunplus_gcm394_base_device::iod_dir_w)); // 787a  I/O PortD Direction Register
+	map(0x00787b, 0x00787b).rw(FUNC(sunplus_gcm394_base_device::iod_attib_r), FUNC(sunplus_gcm394_base_device::iod_attib_w)); // 787b  I/O PortD Attribute Register
+	map(0x00787c, 0x00787c).rw(FUNC(sunplus_gcm394_base_device::iod_drv_r), FUNC(sunplus_gcm394_base_device::iod_drv_w)); // P_IOD_Drv - I/O PortD Driving Capability Register
+	map(0x00787d, 0x00787d).rw(FUNC(sunplus_gcm394_base_device::iod_mux_r), FUNC(sunplus_gcm394_base_device::iod_mux_w)); // 787e (data 0x1249) (bkrankp data 0x36db)
 
 	// 7880
 

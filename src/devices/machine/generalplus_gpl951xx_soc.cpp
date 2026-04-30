@@ -297,7 +297,7 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map& map)
 	// 7804 - CLK_Ctrl0
 	// 7805 - CLK_Ctrl1
 	// 7806 - Reset_Flag
-	// 7807 - Clock_Ctrl
+	map(0x007807, 0x007807).w(FUNC(generalplus_gpl951xx_device::clock_ctrl_w)); // 7807 - Clock_Ctrl
 	// 7808 - LVR_Ctrl
 	// 7809 - PM_Ctrl
 	// 780a - Watchdog_Ctrl
@@ -356,39 +356,39 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map& map)
 	// 785e - ECC_ERR0_LB     or BCH_Parity5
 	// 785f - ECC_ERR1_LB     or BCH_Parity6
 
-	map(0x007860, 0x007860).rw(FUNC(generalplus_gpl951xx_device::ioarea_7860_porta_r), FUNC(generalplus_gpl951xx_device::ioarea_7860_porta_w));                     // 7860 - IOA_Data
-	map(0x007861, 0x007861).rw(FUNC(generalplus_gpl951xx_device::ioarea_7861_porta_buffer_r), FUNC(generalplus_gpl951xx_device::ioarea_7861_porta_buffer_w));       // 7861 - IOA_Buffer
-	map(0x007862, 0x007862).rw(FUNC(generalplus_gpl951xx_device::ioarea_7862_porta_direction_r), FUNC(generalplus_gpl951xx_device::ioarea_7862_porta_direction_w)); // 7862 - IOA_Dir
-	map(0x007863, 0x007863).rw(FUNC(generalplus_gpl951xx_device::ioarea_7863_porta_attribute_r), FUNC(generalplus_gpl951xx_device::ioarea_7863_porta_attribute_w)); // 7863 - IOA_Attrib
+	map(0x007860, 0x007860).rw(FUNC(generalplus_gpl951xx_device::ioa_data_r), FUNC(generalplus_gpl951xx_device::ioa_data_w));                     // 7860 - IOA_Data
+	map(0x007861, 0x007861).rw(FUNC(generalplus_gpl951xx_device::ioa_buffer_r), FUNC(generalplus_gpl951xx_device::ioa_buffer_w));       // 7861 - IOA_Buffer
+	map(0x007862, 0x007862).rw(FUNC(generalplus_gpl951xx_device::ioa_dir_r), FUNC(generalplus_gpl951xx_device::ioa_dir_w)); // 7862 - IOA_Dir
+	map(0x007863, 0x007863).rw(FUNC(generalplus_gpl951xx_device::ioa_attrib_r), FUNC(generalplus_gpl951xx_device::ioa_attrib_w)); // 7863 - IOA_Attrib
 	// 7864 - IOA_Drv
 	// 7865 - IOA_Mux
 	// 7866 - IOA_Latch
 	// 7867 - IOA_KeyEN
 
-	map(0x007868, 0x007868).rw(FUNC(generalplus_gpl951xx_device::ioarea_7868_portb_r), FUNC(generalplus_gpl951xx_device::ioarea_7868_portb_w));                     // 7868 - IOB_Data
-	map(0x007869, 0x007869).rw(FUNC(generalplus_gpl951xx_device::ioarea_7869_portb_buffer_r), FUNC(generalplus_gpl951xx_device::ioarea_7869_portb_buffer_w));       // 7869 - IOB_Buffer
-	map(0x00786a, 0x00786a).rw(FUNC(generalplus_gpl951xx_device::ioarea_786a_portb_direction_r), FUNC(generalplus_gpl951xx_device::ioarea_786a_portb_direction_w)); // 786a - IOB_Dir
-	map(0x00786b, 0x00786b).rw(FUNC(generalplus_gpl951xx_device::ioarea_786b_portb_attribute_r), FUNC(generalplus_gpl951xx_device::ioarea_786b_portb_attribute_w)); // 786b - IOB_Attrib
+	map(0x007868, 0x007868).rw(FUNC(generalplus_gpl951xx_device::iob_data_r), FUNC(generalplus_gpl951xx_device::iob_data_w));                     // 7868 - IOB_Data
+	map(0x007869, 0x007869).rw(FUNC(generalplus_gpl951xx_device::iob_buffer_r), FUNC(generalplus_gpl951xx_device::iob_buffer_w));       // 7869 - IOB_Buffer
+	map(0x00786a, 0x00786a).rw(FUNC(generalplus_gpl951xx_device::iob_dir_r), FUNC(generalplus_gpl951xx_device::iob_dir_w)); // 786a - IOB_Dir
+	map(0x00786b, 0x00786b).rw(FUNC(generalplus_gpl951xx_device::iob_attrib_r), FUNC(generalplus_gpl951xx_device::iob_attrib_w)); // 786b - IOB_Attrib
 	// 786c - IOB_Drv
 	// 786d - IOB_Mux
 	// 786e - IOB_Latch
 	// 786f - IOB_KeyEN
 
-	map(0x007870, 0x007870).rw(FUNC(generalplus_gpl951xx_device::ioarea_7870_portc_r) ,FUNC(generalplus_gpl951xx_device::ioarea_7870_portc_w));                     // 7870 - IOC_Data
-	map(0x007871, 0x007871).rw(FUNC(generalplus_gpl951xx_device::ioarea_7871_portc_buffer_r), FUNC(generalplus_gpl951xx_device::ioarea_7871_portc_buffer_w));       // 7871 - IOC_Buffer
-	map(0x007872, 0x007872).rw(FUNC(generalplus_gpl951xx_device::ioarea_7872_portc_direction_r), FUNC(generalplus_gpl951xx_device::ioarea_7872_portc_direction_w)); // 7872 - IOC_Dir
-	map(0x007873, 0x007873).rw(FUNC(generalplus_gpl951xx_device::ioarea_7873_portc_attribute_r), FUNC(generalplus_gpl951xx_device::ioarea_7873_portc_attribute_w)); // 7873 - IOC_Attrib	
+	map(0x007870, 0x007870).rw(FUNC(generalplus_gpl951xx_device::ioc_data_r) ,FUNC(generalplus_gpl951xx_device::ioc_data_w));                     // 7870 - IOC_Data
+	map(0x007871, 0x007871).rw(FUNC(generalplus_gpl951xx_device::ioc_buffer_r), FUNC(generalplus_gpl951xx_device::ioc_buffer_w));       // 7871 - IOC_Buffer
+	map(0x007872, 0x007872).rw(FUNC(generalplus_gpl951xx_device::ioc_dir_r), FUNC(generalplus_gpl951xx_device::ioc_dir_w)); // 7872 - IOC_Dir
+	map(0x007873, 0x007873).rw(FUNC(generalplus_gpl951xx_device::ioc_attrib_r), FUNC(generalplus_gpl951xx_device::ioc_attrib_w)); // 7873 - IOC_Attrib	
 	// 7874 - IOC_Drv
 	// 7875 - IOC_Mux
 	// 7876 - IOC_Latch
 	// 7877 - IOC_KeyEN
 
-	map(0x007878, 0x007878).rw(FUNC(generalplus_gpl951xx_device::ioarea_7878_portd_r) ,FUNC(generalplus_gpl951xx_device::ioarea_7878_portd_w));                     // 7878 - IOD_Data
-	map(0x007879, 0x007879).rw(FUNC(generalplus_gpl951xx_device::ioarea_7879_portd_buffer_r), FUNC(generalplus_gpl951xx_device::ioarea_7879_portd_buffer_w));       // 7879 - IOD_Buffer
-	map(0x00787a, 0x00787a).rw(FUNC(generalplus_gpl951xx_device::ioarea_787a_portd_direction_r), FUNC(generalplus_gpl951xx_device::ioarea_787a_portd_direction_w)); // 787a - IOD_Dir
-	map(0x00787b, 0x00787b).rw(FUNC(generalplus_gpl951xx_device::ioarea_787b_portd_attribute_r), FUNC(generalplus_gpl951xx_device::ioarea_787b_portd_attribute_w)); // 787b - IOD_Attrib
-	// 787c - IOD_Drv
-	// 787d - IOD_Mux
+	map(0x007878, 0x007878).rw(FUNC(generalplus_gpl951xx_device::iod_data_r) ,FUNC(generalplus_gpl951xx_device::iod_data_w));                     // 7878 - IOD_Data
+	map(0x007879, 0x007879).rw(FUNC(generalplus_gpl951xx_device::iod_buffer_r), FUNC(generalplus_gpl951xx_device::iod_buffer_w));       // 7879 - IOD_Buffer
+	map(0x00787a, 0x00787a).rw(FUNC(generalplus_gpl951xx_device::iod_dir_r), FUNC(generalplus_gpl951xx_device::iod_dir_w)); // 787a - IOD_Dir
+	map(0x00787b, 0x00787b).rw(FUNC(generalplus_gpl951xx_device::iod_attib_r), FUNC(generalplus_gpl951xx_device::iod_attib_w)); // 787b - IOD_Attrib
+	map(0x00787c, 0x00787c).rw(FUNC(generalplus_gpl951xx_device::iod_drv_r), FUNC(generalplus_gpl951xx_device::iod_drv_w)); // 787c - IOD_Drv
+	map(0x00787d, 0x00787d).rw(FUNC(generalplus_gpl951xx_device::iod_mux_r), FUNC(generalplus_gpl951xx_device::iod_mux_w)); // 787d - IOD_Mux
 
 	// 7880 - IOE_Data
 	// 7881 - IOE_Buffer
