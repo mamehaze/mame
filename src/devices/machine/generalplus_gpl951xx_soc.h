@@ -12,7 +12,7 @@ class generalplus_gpl951xx_device : public sunplus_gcm394_base_device
 {
 public:
 	template <typename T>
-	generalplus_gpl951xx_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock, T &&screen_tag) :
+	generalplus_gpl951xx_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock, T &&screen_tag) :
 		generalplus_gpl951xx_device(mconfig, tag, owner, clock)
 	{
 		m_screen.set_tag(std::forward<T>(screen_tag));
@@ -21,7 +21,7 @@ public:
 		m_csbase = 0xffffffff;
 	}
 
-	generalplus_gpl951xx_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
+	generalplus_gpl951xx_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock);
 
 protected:
 	void gpspi_direct_internal_map(address_map &map) ATTR_COLD;
@@ -30,18 +30,39 @@ protected:
 	virtual void device_reset() override ATTR_COLD;
 
 private:
-	uint16_t ramread_r(offs_t offset);
-	void ramwrite_w(offs_t offset, uint16_t data);
-	uint16_t spi_direct_7b40_r();
-	uint16_t spi_direct_7b46_r();
-	uint16_t spi_direct_7af0_r();
-	void spi_direct_7af0_w(uint16_t data);
-	uint16_t spi_direct_79f5_r();
-	uint16_t spi_direct_78e8_r();
-	void spi_direct_78e8_w(uint16_t data);
-	uint16_t spi_direct_79f4_r();
+	// SPIFC interface
 
-	uint16_t m_7af0;
+	u16 spifc_ctrl_r();
+	void spifc_ctrl_w(u16 data);
+	u16 spifc_cmd_r();
+	void spifc_cmd_w(u16 data);
+	u16 spifc_para_r();
+	void spifc_para_w(u16 data);
+	u16 spifc_addrl_r();
+	void spifc_addrl_w(u16 data);
+	u16 spifc_addrh_r();
+	void spifc_addrh_w(u16 data);
+	u16 spifc_txdat_r();
+	void spifc_txdat_w(u16 data);
+	u16 spifc_rxdat_r();
+	void spifc_rxdat_w(u16 data);
+	u16 spifc_tx_bc_r();
+	void spifc_tx_bc_w(u16 data);
+	u16 spifc_rx_bc_r();
+	void spifc_rx_bc_w(u16 data);
+	u16 spifc_timing_r();
+	void spifc_timing_w(u16 data);
+	u16 spifc_ctrl2_r();
+	void spifc_ctrl2_w(u16 data);
+
+	u16 byte_swap_r();
+	void byte_swap_w(u16 data);
+	u16 rtc_readdata_r();
+	u16 timerh_ctrl_r();
+	void timerh_ctrl_w(u16 data);
+	u16 rtc_ready_r();
+
+	u16 m_byteswap;
 };
 
 DECLARE_DEVICE_TYPE(GPL951XX, generalplus_gpl951xx_device)

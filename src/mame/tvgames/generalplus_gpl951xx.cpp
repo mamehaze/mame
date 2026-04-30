@@ -32,7 +32,7 @@ protected:
 	virtual void machine_start() override ATTR_COLD;
 	virtual void machine_reset() override ATTR_COLD;
 
-	virtual uint16_t cs0_r(offs_t offset) override;
+	virtual u16 cs0_r(offs_t offset) override;
 };
 
 void generalplus_gpspi_direct_game_state::machine_start()
@@ -98,7 +98,7 @@ static INPUT_PORTS_START( bfspyhnt )
 INPUT_PORTS_END
 
 
-uint16_t generalplus_gpspi_direct_game_state::cs0_r(offs_t offset)
+u16 generalplus_gpspi_direct_game_state::cs0_r(offs_t offset)
 {
 	// TODO: is cs_space even used by this type?
 	return 0x00;
@@ -340,7 +340,7 @@ ROM_END
 
 void generalplus_gpspi_direct_game_state::init_fif()
 {
-	uint16_t* spirom16 = (uint16_t*)memregion("maincpu:spidirect")->base();
+	u16* spirom16 = (u16*)memregion("maincpu:spidirect")->base();
 	for (int i = 0; i < 0x800000 / 2; i++)
 	{
 		spirom16[i] = bitswap<16>(spirom16[i] ^ 0xdd0d,
@@ -349,9 +349,9 @@ void generalplus_gpspi_direct_game_state::init_fif()
 
 	// the games upload some self-check code to 0x100 in RAM, it's unclear what it is checking, skip it for now
 	// goto mr -> nop
-	if (spirom16[0x00d8] == 0xf161) spirom16[0x00d8] = 0xf165; // fixitflx, bfpacman, bfmpac
-	if (spirom16[0x00ac] == 0xf161) spirom16[0x00ac] = 0xf165; // wiwcs, bfgalaga, bfdigdug, bfspyhnt
-	if (spirom16[0x00a2] == 0xf161) spirom16[0x00a2] = 0xf165; // bftetris
+	//if (spirom16[0x00d8] == 0xf161) spirom16[0x00d8] = 0xf165; // fixitflx, bfpacman, bfmpac
+	//if (spirom16[0x00ac] == 0xf161) spirom16[0x00ac] = 0xf165; // wiwcs, bfgalaga, bfdigdug, bfspyhnt
+	//if (spirom16[0x00a2] == 0xf161) spirom16[0x00a2] = 0xf165; // bftetris
 }
 
 } // anonymous namespace
