@@ -13,15 +13,35 @@
 
 // SPIFC - the directly mapped SPI interface
 
+// P_SPIFC_Ctrl1
+
+// 15  tx_done
+// 14  rx_empty
+// 13
+// 12
+// 11
+// 10
+// 9   ig_clk
+// 8   manual
+// 7   cmio[1]
+// 6   cmio[0]
+// 5   amio[1]
+// 4   amio[0]
+// 3   mio[1]
+// 2   mio[0]
+// 1
+// 0   back2idle
+
 u16 generalplus_gpl951xx_device::spifc_ctrl_r()
 {
 	LOGMASKED(LOG_SPIFC, "%s: spifc_ctrl_r\n", machine().describe_context());
-	return 0xffff;
+	return m_spifc_ctrl;
 }
 
 void generalplus_gpl951xx_device::spifc_ctrl_w(u16 data)
 {
 	LOGMASKED(LOG_SPIFC, "%s: spifc_ctrl_w %04x\n", machine().describe_context(), data);
+	m_spifc_ctrl = data;
 }
 
 u16 generalplus_gpl951xx_device::spifc_cmd_r()
@@ -185,7 +205,7 @@ void generalplus_gpl951xx_device::device_start()
 	save_item(NAME(m_gpl951xx_timerg_preload));
 	save_item(NAME(m_gpl951xx_timerh_ctrl));
 	save_item(NAME(m_gpl951xx_timerh_preload));
-
+	save_item(NAME(m_spifc_ctrl));
 }
 
 void generalplus_gpl951xx_device::device_reset()
@@ -196,6 +216,7 @@ void generalplus_gpl951xx_device::device_reset()
 	m_gpl951xx_timerg_preload = 0;
 	m_gpl951xx_timerh_ctrl = 0;
 	m_gpl951xx_timerh_preload = 0;
+	m_spifc_ctrl = 0;
 }
 
 // Timers
@@ -236,6 +257,24 @@ void generalplus_gpl951xx_device::gpl951xx_timerh_preload_w(u16 data)
 	m_gpl951xx_timerh_preload = data;
 }
 
+// P_TimerH_Ctrl
+
+// 15  TMHIF/C
+// 14  TMHIE
+// 13  TMHEN
+// 12
+// 11  EXT0SEL[1]
+// 10  EXT0SEL[0]
+// 9   EXT1SEL[1]
+// 8   EXT1SEL[0]
+// 7
+// 6   SRCBSEL[2]
+// 5   SRCBSEL[1]
+// 4   SRCBSEL[0]
+// 3   SRCASEL[3]
+// 2   SRCASEL[2]
+// 1   SRCASEL[1]
+// 0   SRCASEL[0]
 
 u16 generalplus_gpl951xx_device::gpl951xx_timerh_ctrl_r()
 {
