@@ -298,7 +298,7 @@ protected:
 	u16 timerc_ctrl_r();
 	u16 timerd_ctrl_r();
 
-	u16 unkarea_78f0_r();
+	u16 cha_ctrl_r();
 	void cha_ctrl_w(u16 data);
 
 	u16 unkarea_7904_r();

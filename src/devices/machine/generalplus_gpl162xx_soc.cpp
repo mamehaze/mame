@@ -597,7 +597,6 @@ void sunplus_gcm394_base_device::iod_buffer_w(uint16_t data)
 	m_portd_out(data); // buffer writes must update output state too, beijuehh requires it for banking
 }
 
-
 uint16_t sunplus_gcm394_base_device::iod_dir_r()
 {
 	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iod_dir_r\n", machine().describe_context());
@@ -644,16 +643,35 @@ void sunplus_gcm394_base_device::iod_mux_w(uint16_t data)
 	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iod_mux_w %04x\n", machine().describe_context(), data);
 }
 
-
-
-uint16_t sunplus_gcm394_base_device::ioe_dir_r() { LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::ioe_dir_r\n", machine().describe_context()); return 0xffff;// m_ioe_dir;
+uint16_t sunplus_gcm394_base_device::ioe_dir_r()
+{
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::ioe_dir_r\n", machine().describe_context());
+	return m_ioe_dir;
 }
-void sunplus_gcm394_base_device::ioe_dir_w(uint16_t data) { LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::ioe_dir_w %04x\n", machine().describe_context(), data); m_ioe_dir = data; }
-uint16_t sunplus_gcm394_base_device::ioe_attrib_r() { LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::ioe_attrib_r\n", machine().describe_context()); return 0xffff;// m_ioe_attrib;
-}
-void sunplus_gcm394_base_device::ioe_attrib_w(uint16_t data) { LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::ioe_attrib_w %04x\n", machine().describe_context(), data); m_ioe_attrib = data; }
 
-void sunplus_gcm394_base_device::int_status1_w(uint16_t data) { LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::int_status1_w %04x\n", machine().describe_context(), data); m_int_status1 = data; }
+void sunplus_gcm394_base_device::ioe_dir_w(uint16_t data)
+{
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::ioe_dir_w %04x\n", machine().describe_context(), data);
+	m_ioe_dir = data;
+}
+
+uint16_t sunplus_gcm394_base_device::ioe_attrib_r()
+{
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::ioe_attrib_r\n", machine().describe_context());
+	return m_ioe_attrib;
+}
+
+void sunplus_gcm394_base_device::ioe_attrib_w(uint16_t data)
+{
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::ioe_attrib_w %04x\n", machine().describe_context(), data);
+	m_ioe_attrib = data;
+}
+
+void sunplus_gcm394_base_device::int_status1_w(uint16_t data)
+{
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::int_status1_w %04x\n", machine().describe_context(), data);
+	m_int_status1 = data;
+}
 
 uint16_t sunplus_gcm394_base_device::int_status1_r()
 {
@@ -667,15 +685,41 @@ uint16_t sunplus_gcm394_base_device::int_status2_r()
 	return 0xffff;// machine().rand();
 }
 
-void sunplus_gcm394_base_device::int_priority_1_w(uint16_t data) { LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::int_priority_1_w %04x\n", machine().describe_context(), data); m_int_priority_1 = data; }
-void sunplus_gcm394_base_device::int_priority_2_w(uint16_t data) { LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::int_priority_2_w %04x\n", machine().describe_context(), data); m_int_priority_2 = data; }
-void sunplus_gcm394_base_device::int_priority_3_w(uint16_t data) { LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::int_priority_3_w %04x\n", machine().describe_context(), data); m_int_priority_3 = data; }
+void sunplus_gcm394_base_device::int_priority_1_w(uint16_t data)
+{
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::int_priority_1_w %04x\n", machine().describe_context(), data);
+	m_int_priority_1 = data;
+}
 
-void sunplus_gcm394_base_device::mint_ctrl_w(uint16_t data) { LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::mint_ctrl_w %04x\n", machine().describe_context(), data); m_misc_int_ctrl = data; }
+void sunplus_gcm394_base_device::int_priority_2_w(uint16_t data)
+{
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::int_priority_2_w %04x\n", machine().describe_context(), data);
+	m_int_priority_2 = data;
+}
 
+void sunplus_gcm394_base_device::int_priority_3_w(uint16_t data)
+{
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::int_priority_3_w %04x\n", machine().describe_context(), data);
+	m_int_priority_3 = data;
+}
 
-void sunplus_gcm394_base_device::timebasea_ctrl_w(uint16_t data) { LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::timebasea_ctrl_w %04x\n", machine().describe_context(), data); m_timebasea_ctrl = data; }
-void sunplus_gcm394_base_device::timebaseb_ctrl_w(uint16_t data) { LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::timebaseb_ctrl_w %04x\n", machine().describe_context(), data); m_timebaseb_ctrl = data; }
+void sunplus_gcm394_base_device::mint_ctrl_w(uint16_t data)
+{
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::mint_ctrl_w %04x\n", machine().describe_context(), data);
+	m_misc_int_ctrl = data;
+}
+
+void sunplus_gcm394_base_device::timebasea_ctrl_w(uint16_t data)
+{
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::timebasea_ctrl_w %04x\n", machine().describe_context(), data);
+	m_timebasea_ctrl = data;
+}
+
+void sunplus_gcm394_base_device::timebaseb_ctrl_w(uint16_t data)
+{
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::timebaseb_ctrl_w %04x\n", machine().describe_context(), data);
+	m_timebaseb_ctrl = data;
+}
 
 uint16_t sunplus_gcm394_base_device::timebasec_ctrl_r()
 {
@@ -683,18 +727,29 @@ uint16_t sunplus_gcm394_base_device::timebasec_ctrl_r()
 	return 0xffff;// m_timebasec_ctrl;
 }
 
-void sunplus_gcm394_base_device::timebasec_ctrl_w(uint16_t data) { LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::timebasec_ctrl_w %04x\n", machine().describe_context(), data); m_timebasec_ctrl = data; }
-
-void sunplus_gcm394_base_device::timebase_reset_w(uint16_t data) { LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::timebase_reset_w %04x\n", machine().describe_context(), data); m_timebase_reset = data; }
-
-
-uint16_t sunplus_gcm394_base_device::unkarea_78f0_r()
+void sunplus_gcm394_base_device::timebasec_ctrl_w(uint16_t data)
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::unkarea_78f0_r\n", machine().describe_context());
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::timebasec_ctrl_w %04x\n", machine().describe_context(), data);
+	m_timebasec_ctrl = data;
+}
+
+void sunplus_gcm394_base_device::timebase_reset_w(uint16_t data)
+{
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::timebase_reset_w %04x\n", machine().describe_context(), data);
+	m_timebase_reset = data;
+}
+
+uint16_t sunplus_gcm394_base_device::cha_ctrl_r()
+{
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::cha_ctrl_r\n", machine().describe_context());
 	return 0xffff;
 }
 
-void sunplus_gcm394_base_device::cha_ctrl_w(uint16_t data) { LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::cha_ctrl_w %04x\n", machine().describe_context(), data); m_cha_ctrl = data; }
+void sunplus_gcm394_base_device::cha_ctrl_w(uint16_t data)
+{
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::cha_ctrl_w %04x\n", machine().describe_context(), data);
+	m_cha_ctrl = data;
+}
 
 uint16_t sunplus_gcm394_base_device::timera_ctrl_r()
 {
@@ -726,7 +781,6 @@ uint16_t sunplus_gcm394_base_device::unkarea_7904_r()
 {
 	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::unkarea_7904_r\n", machine().describe_context());
 	return machine().rand(); // lazertag waits on a bit, status flag for something?
-
 }
 
 uint16_t sunplus_gcm394_base_device::rtc_ctrl_r()
@@ -1385,7 +1439,7 @@ void sunplus_gcm394_base_device::base_internal_map(address_map &map)
 	// 78fx - unknown
 	// ######################################################################################################################################################################################
 
-	map(0x0078f0, 0x0078f0).rw(FUNC(sunplus_gcm394_base_device::unkarea_78f0_r), FUNC(sunplus_gcm394_base_device::cha_ctrl_w));
+	map(0x0078f0, 0x0078f0).rw(FUNC(sunplus_gcm394_base_device::cha_ctrl_r), FUNC(sunplus_gcm394_base_device::cha_ctrl_w));
 
 	map(0x0078fb, 0x0078fb).r(FUNC(sunplus_gcm394_base_device::unkarea_78fb_status_r));
 

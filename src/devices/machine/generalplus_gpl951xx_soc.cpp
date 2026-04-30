@@ -38,7 +38,13 @@
 u16 generalplus_gpl951xx_device::spifc_ctrl_r()
 {
 	LOGMASKED(LOG_SPIFC, "%s: spifc_ctrl_r\n", machine().describe_context());
-	return m_spifc_ctrl;
+	u16 ret = m_spifc_ctrl;
+
+	if (machine().rand() & 1) ret |= 0x8000;
+	if (machine().rand() & 1) ret |= 0x4000;
+	if (machine().rand() & 1) ret |= 0x0001;
+
+	return ret;
 }
 
 void generalplus_gpl951xx_device::spifc_ctrl_w(u16 data)
@@ -318,7 +324,11 @@ void generalplus_gpl951xx_device::gpl951xx_timerg_preload_w(u16 data)
 u16 generalplus_gpl951xx_device::gpl951xx_timerg_ctrl_r()
 {
 	logerror("%s: gpl951xx_timerg_ctrl_r\n", machine().describe_context());
-	return m_gpl951xx_timerg_ctrl;
+	u16 ret = m_gpl951xx_timerg_ctrl;
+
+	if (machine().rand() & 1) ret |= 0x8000;
+
+	return ret;
 }
 
 void generalplus_gpl951xx_device::gpl951xx_timerg_ctrl_w(u16 data)
@@ -361,13 +371,32 @@ void generalplus_gpl951xx_device::gpl951xx_timerh_preload_w(u16 data)
 u16 generalplus_gpl951xx_device::gpl951xx_timerh_ctrl_r()
 {
 	logerror("%s: gpl951xx_timerh_ctrl_r\n", machine().describe_context());
-	return m_gpl951xx_timerh_ctrl;
+	u16 ret = m_gpl951xx_timerh_ctrl;
+
+	if (machine().rand() & 1) ret |= 0x8000;
+
+	return ret;
 }
 
 void generalplus_gpl951xx_device::gpl951xx_timerh_ctrl_w(u16 data)
 {
 	logerror("%s: gpl951xx_timerh_ctrl_w %04x\n", machine().describe_context(), data);
 	m_gpl951xx_timerh_ctrl = data;
+}
+
+u16 generalplus_gpl951xx_device::spi_direct_r(offs_t offset)
+{
+	// The GPL951xx chips can see a bank of SPI memory as a flat space
+	// as they will automatically generate SPI signals for random memory
+	// access on demand
+	// 
+	// Emulating it this way is impractical for emulation (DASM wouldn't
+	// work) so we just present it as a flat space directly.
+	if (!m_spiregion)
+		return 0x0000;
+
+	u16 ret = (m_spiregion[(offset * 2) + 0]) | (m_spiregion[(offset * 2) + 1] << 8);
+	return ret;
 }
 
 void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map& map)
@@ -639,7 +668,7 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map& map)
 	// 78ee
 	// 78ef
 
-	// 78f0 - CHA_Ctrl
+	map(0x0078f0, 0x0078f0).rw(FUNC(generalplus_gpl951xx_device::cha_ctrl_r), FUNC(generalplus_gpl951xx_device::cha_ctrl_w)); // 78f0 - CHA_Ctrl
 	// 78f1 - CHA_Data
 	// 78f2 - CHA_FIFO
 	// 78f3
@@ -855,7 +884,7 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map& map)
 
 	// 8000 - 8fff internal boot ROM (same on all devices of the same type, not OTP)
 
-	map(0x009000, 0x3fffff).rom().region("spidirect", 0);
+	map(0x009000, 0x3fffff).r(FUNC(generalplus_gpl951xx_device::spi_direct_r));
 }
 
 

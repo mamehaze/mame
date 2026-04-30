@@ -23,6 +23,8 @@ public:
 
 	generalplus_gpl951xx_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock);
 
+	void set_spi_romregion(u8 *region, u32 size) { m_spiregion = region; m_spisize = size; }
+
 protected:
 	void gpspi_direct_internal_map(address_map &map) ATTR_COLD;
 
@@ -76,6 +78,8 @@ private:
 	u16 gpl951xx_timerh_preload_r();
 	void gpl951xx_timerh_preload_w(u16 data);
 
+	u16 spi_direct_r(offs_t offset);
+
 	u16 m_byteswap;
 
 	u16 m_gpl951xx_timerg_preload;
@@ -86,6 +90,10 @@ private:
 	u16 m_spifc_ctrl;
 	u16 m_spifc_ctrl2;
 	u32 m_spifc_addr;
+
+	// config
+	u8 *m_spiregion;
+	u32 m_spisize;
 };
 
 DECLARE_DEVICE_TYPE(GPL951XX, generalplus_gpl951xx_device)
