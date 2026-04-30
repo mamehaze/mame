@@ -109,7 +109,7 @@ protected:
 	u16 m_membankswitch_7810;
 
 	u16 m_7816;
-	u16 m_7817;
+	u16 m_pllchange;
 
 	u16 m_cache_ctrl;
 
@@ -211,7 +211,7 @@ protected:
 	void membankswitch_7810_w(u16 data);
 
 	void unkarea_7816_w(u16 data);
-	void unkarea_7817_w(u16 data);
+	void pllchange_w(u16 data);
 
 	u16 cache_ctrl_r();
 	void cache_ctrl_w(u16 data);

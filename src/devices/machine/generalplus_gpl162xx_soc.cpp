@@ -381,10 +381,10 @@ void sunplus_gcm394_base_device::unkarea_7816_w(uint16_t data)
 	m_7816 = data;
 }
 
-void sunplus_gcm394_base_device::unkarea_7817_w(uint16_t data)
+void sunplus_gcm394_base_device::pllchange_w(uint16_t data)
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::unkarea_7817_w %04x\n", machine().describe_context(), data);
-	m_7817 = data;
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::pllchange_w %04x\n", machine().describe_context(), data);
+	m_pllchange = data;
 }
 
 void sunplus_gcm394_base_device::chipselect_csx_memory_device_control_w(offs_t offset, uint16_t data)
@@ -1287,7 +1287,7 @@ void sunplus_gcm394_base_device::base_internal_map(address_map &map)
 	map(0x007819, 0x007819).rw(FUNC(sunplus_gcm394_base_device::cache_ctrl_r), FUNC(sunplus_gcm394_base_device::cache_ctrl_w));
 
 	map(0x007816, 0x007816).w(FUNC(sunplus_gcm394_base_device::unkarea_7816_w));
-	map(0x007817, 0x007817).w(FUNC(sunplus_gcm394_base_device::unkarea_7817_w));
+	map(0x007817, 0x007817).w(FUNC(sunplus_gcm394_base_device::pllchange_w));
 
 	// ######################################################################################################################################################################################
 	// 782x region = memory config / control
@@ -1534,7 +1534,7 @@ void sunplus_gcm394_base_device::device_start()
 	save_item(NAME(m_clock_ctrl));
 	save_item(NAME(m_membankswitch_7810));
 	save_item(NAME(m_7816));
-	save_item(NAME(m_7817));
+	save_item(NAME(m_pllchange));
 	save_item(NAME(m_cache_ctrl));
 	save_item(NAME(m_782x));
 	save_item(NAME(m_782d));
@@ -1595,7 +1595,7 @@ void sunplus_gcm394_base_device::device_reset()
 	m_membankswitch_7810 = 0x0001;
 
 	m_7816 = 0x0000;
-	m_7817 = 0x0000;
+	m_pllchange = 0x0000;
 
 	m_cache_ctrl = 0x0000;
 

@@ -139,6 +139,20 @@ void generalplus_gpl951xx_device::spifc_ctrl2_w(u16 data)
 
 // Other bits
 
+u16 generalplus_gpl951xx_device::pllsel_r()
+{
+	logerror("%s: pllsel_r\n", machine().describe_context());
+	return m_pllchange;
+}
+
+void generalplus_gpl951xx_device::pllsel_w(uint16_t data)
+{
+	// very similar to pllchange on GPL162xx, but with extra SPI bits
+	logerror("%s: generalplus_gpl951xx_device::pllsel_w %04x\n", machine().describe_context(), data);
+	m_pllchange = data;
+}
+
+
 u16 generalplus_gpl951xx_device::rtc_readdata_r()
 {
 	return 0xffff; // hangs if returning 0
@@ -163,27 +177,76 @@ void generalplus_gpl951xx_device::byte_swap_w(u16 data)
 	m_byteswap = ((data & 0xff00) >> 8) | ((data & 0x00ff) << 8);
 }
 
-
-u16 generalplus_gpl951xx_device::timerh_ctrl_r()
-{
-	return machine().rand();
-}
-
 void generalplus_gpl951xx_device::device_start()
 {
 	sunplus_gcm394_base_device::device_start();
 	save_item(NAME(m_byteswap));
+	save_item(NAME(m_gpl951xx_timerg_ctrl));
+	save_item(NAME(m_gpl951xx_timerg_preload));
+	save_item(NAME(m_gpl951xx_timerh_ctrl));
+	save_item(NAME(m_gpl951xx_timerh_preload));
+
 }
 
 void generalplus_gpl951xx_device::device_reset()
 {
 	sunplus_gcm394_base_device::device_reset();
 	m_byteswap = 0;
+	m_gpl951xx_timerg_ctrl = 0;
+	m_gpl951xx_timerg_preload = 0;
+	m_gpl951xx_timerh_ctrl = 0;
+	m_gpl951xx_timerh_preload = 0;
 }
 
-void generalplus_gpl951xx_device::timerh_ctrl_w(u16 data)
+// Timers
+
+u16 generalplus_gpl951xx_device::gpl951xx_timerg_preload_r()
 {
-	logerror("%s: timerh_ctrl_w %04x\n", machine().describe_context(), data);
+	logerror("%s: gpl951xx_timerg_preload_r\n", machine().describe_context());
+	return m_gpl951xx_timerg_preload;
+}
+
+void generalplus_gpl951xx_device::gpl951xx_timerg_preload_w(u16 data)
+{
+	logerror("%s: gpl951xx_timerg_preload_w %04x\n", machine().describe_context(), data);
+	m_gpl951xx_timerg_preload = data;
+}
+
+u16 generalplus_gpl951xx_device::gpl951xx_timerg_ctrl_r()
+{
+	logerror("%s: gpl951xx_timerg_ctrl_r\n", machine().describe_context());
+	return m_gpl951xx_timerg_ctrl;
+}
+
+void generalplus_gpl951xx_device::gpl951xx_timerg_ctrl_w(u16 data)
+{
+	logerror("%s: gpl951xx_timerg_ctrl_w %04x\n", machine().describe_context(), data);
+	m_gpl951xx_timerg_ctrl = data;
+}
+
+u16 generalplus_gpl951xx_device::gpl951xx_timerh_preload_r()
+{
+	logerror("%s: gpl951xx_timerh_preload_r\n", machine().describe_context());
+	return m_gpl951xx_timerh_preload;
+}
+
+void generalplus_gpl951xx_device::gpl951xx_timerh_preload_w(u16 data)
+{
+	logerror("%s: gpl951xx_timerh_preload_w %04x\n", machine().describe_context(), data);
+	m_gpl951xx_timerh_preload = data;
+}
+
+
+u16 generalplus_gpl951xx_device::gpl951xx_timerh_ctrl_r()
+{
+	logerror("%s: gpl951xx_timerh_ctrl_r\n", machine().describe_context());
+	return m_gpl951xx_timerh_ctrl;
+}
+
+void generalplus_gpl951xx_device::gpl951xx_timerh_ctrl_w(u16 data)
+{
+	logerror("%s: gpl951xx_timerh_ctrl_w %04x\n", machine().describe_context(), data);
+	m_gpl951xx_timerh_ctrl = data;
 }
 
 void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map& map)
@@ -313,9 +376,9 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map& map)
 	// 7814 - unused
 	// 7815 - unused
 	// 7816 - unused
-	// 7817 - PLL_Sel
+	map(0x007817, 0x007817).rw(FUNC(generalplus_gpl951xx_device::pllsel_r), FUNC(generalplus_gpl951xx_device::pllsel_w)); // 7817 - PLL_Sel
 	// 7818 - PLLWaitCLK
-	// 7819 - Cache_Ctrl
+	map(0x007819, 0x007819).rw(FUNC(generalplus_gpl951xx_device::cache_ctrl_r), FUNC(generalplus_gpl951xx_device::cache_ctrl_w)); // 7819 - Cache_Ctrl
 	// 781a - Cache_HitRate
 	// 781b - unused
 	// 781c - unused
@@ -438,17 +501,17 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map& map)
 	// 78c5 - I2C_Clk
 	// 78c6 - I2C_MISC
 
-	// 78e0 - TimerG_Ctrl
+	map(0x0078e0, 0x0078e0).rw(FUNC(generalplus_gpl951xx_device::gpl951xx_timerg_ctrl_r), FUNC(generalplus_gpl951xx_device::gpl951xx_timerg_ctrl_w)); // 78e0 - gpl951xx_timerg_Ctrl
 	// 78e1
-	// 78e2 - TimerG_Preload
+	map(0x0078e2, 0x0078e2).rw(FUNC(generalplus_gpl951xx_device::gpl951xx_timerg_preload_r), FUNC(generalplus_gpl951xx_device::gpl951xx_timerg_preload_w)); // 78e2 - gpl951xx_timerg_Preload
 	// 78e3
 	// 78e4 - TimerG_UpCount
 	// 78e5
 	// 78e6
 	// 78e7
-	map(0x0078e8, 0x0078e8).rw(FUNC(generalplus_gpl951xx_device::timerh_ctrl_r), FUNC(generalplus_gpl951xx_device::timerh_ctrl_w)); // TimerH_Ctrl
+	map(0x0078e8, 0x0078e8).rw(FUNC(generalplus_gpl951xx_device::gpl951xx_timerh_ctrl_r), FUNC(generalplus_gpl951xx_device::gpl951xx_timerh_ctrl_w)); // gpl951xx_timerh_Ctrl
 	// 78e9
-	// 78ea - TimerH_Preload
+	map(0x0078ea, 0x0078ea).rw(FUNC(generalplus_gpl951xx_device::gpl951xx_timerh_preload_r), FUNC(generalplus_gpl951xx_device::gpl951xx_timerh_preload_w)); // 78ea - gpl951xx_timerh_Preload
 	// 78eb
 	// 78ec - TimerH_UpCount
 	// 78ed
@@ -652,17 +715,17 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map& map)
 	// 7b32 - KS_Data10
 
 	map(0x007b40, 0x007b40).rw(FUNC(generalplus_gpl951xx_device::spifc_ctrl_r), FUNC(generalplus_gpl951xx_device::spifc_ctrl_w)); // SPIFC_Ctrl1
-//	map(0x007b41, 0x007b41).rw(FUNC(generalplus_gpl951xx_device::spifc_cmd_r), FUNC(generalplus_gpl951xx_device::spifc_cmd_w)); // SPIFC_CMD
-//	map(0x007b42, 0x007b42).rw(FUNC(generalplus_gpl951xx_device::spifc_para_r), FUNC(generalplus_gpl951xx_device::spifc_para_w)); // SPIFC_PARA
-//	map(0x007b43, 0x007b43).rw(FUNC(generalplus_gpl951xx_device::spifc_addrl_r), FUNC(generalplus_gpl951xx_device::spifc_addrl_w)); // 7b43 - SPIFC_ADDRL
-//	map(0x007b44, 0x007b44).rw(FUNC(generalplus_gpl951xx_device::spifc_addrh_r), FUNC(generalplus_gpl951xx_device::spifc_addrh_w)); // 7b44 - SPIFC_ADDRH
-//	map(0x007b45, 0x007b45).rw(FUNC(generalplus_gpl951xx_device::spifc_txdat_r), FUNC(generalplus_gpl951xx_device::spifc_txdat_w)); // 7b45 - SPIFC_TX_Dat
+	map(0x007b41, 0x007b41).rw(FUNC(generalplus_gpl951xx_device::spifc_cmd_r), FUNC(generalplus_gpl951xx_device::spifc_cmd_w)); // SPIFC_CMD
+	map(0x007b42, 0x007b42).rw(FUNC(generalplus_gpl951xx_device::spifc_para_r), FUNC(generalplus_gpl951xx_device::spifc_para_w)); // SPIFC_PARA
+	map(0x007b43, 0x007b43).rw(FUNC(generalplus_gpl951xx_device::spifc_addrl_r), FUNC(generalplus_gpl951xx_device::spifc_addrl_w)); // 7b43 - SPIFC_ADDRL
+	map(0x007b44, 0x007b44).rw(FUNC(generalplus_gpl951xx_device::spifc_addrh_r), FUNC(generalplus_gpl951xx_device::spifc_addrh_w)); // 7b44 - SPIFC_ADDRH
+	map(0x007b45, 0x007b45).rw(FUNC(generalplus_gpl951xx_device::spifc_txdat_r), FUNC(generalplus_gpl951xx_device::spifc_txdat_w)); // 7b45 - SPIFC_TX_Dat
 	map(0x007b46, 0x007b46).rw(FUNC(generalplus_gpl951xx_device::spifc_rxdat_r), FUNC(generalplus_gpl951xx_device::spifc_rxdat_w)); // SPIFC_RX_Data - values must be written and read from here, but is there any transformation?
-//	map(0x007b47, 0x007b47).rw(FUNC(generalplus_gpl951xx_device::spifc_tx_bc_r), FUNC(generalplus_gpl951xx_device::spifc_tx_bc_w)); // SPIFC_TX_BC
-//	map(0x007b48, 0x007b48).rw(FUNC(generalplus_gpl951xx_device::spifc_rx_bc_r), FUNC(generalplus_gpl951xx_device::spifc_rx_bc_w)); // SPIFC_RX_BC
-//	map(0x007b49, 0x007b49).rw(FUNC(generalplus_gpl951xx_device::spifc_timing_r), FUNC(generalplus_gpl951xx_device::spifc_timing_w)); // SPIFC_TIMING
+	map(0x007b47, 0x007b47).rw(FUNC(generalplus_gpl951xx_device::spifc_tx_bc_r), FUNC(generalplus_gpl951xx_device::spifc_tx_bc_w)); // SPIFC_TX_BC
+	map(0x007b48, 0x007b48).rw(FUNC(generalplus_gpl951xx_device::spifc_rx_bc_r), FUNC(generalplus_gpl951xx_device::spifc_rx_bc_w)); // SPIFC_RX_BC
+	map(0x007b49, 0x007b49).rw(FUNC(generalplus_gpl951xx_device::spifc_timing_r), FUNC(generalplus_gpl951xx_device::spifc_timing_w)); // SPIFC_TIMING
 	// 7b4a
-//	map(0x007b4b, 0x007b4b).rw(FUNC(generalplus_gpl951xx_device::spifc_ctrl2_r), FUNC(generalplus_gpl951xx_device::spifc_ctrl2_w)); // 7b4b - SPIFC_Ctrl2
+	map(0x007b4b, 0x007b4b).rw(FUNC(generalplus_gpl951xx_device::spifc_ctrl2_r), FUNC(generalplus_gpl951xx_device::spifc_ctrl2_w)); // 7b4b - SPIFC_Ctrl2
 
 
 	map(0x007b80, 0x007bbf).rw(m_spg_audio, FUNC(sunplus_gcm394_audio_device::control_r), FUNC(sunplus_gcm394_audio_device::control_w));

@@ -55,14 +55,33 @@ private:
 	u16 spifc_ctrl2_r();
 	void spifc_ctrl2_w(u16 data);
 
+	u16 pllsel_r();
+	void pllsel_w(uint16_t data);
+
+	// Byte swap etc.
 	u16 byte_swap_r();
 	void byte_swap_w(u16 data);
+
+	// RTC
 	u16 rtc_readdata_r();
-	u16 timerh_ctrl_r();
-	void timerh_ctrl_w(u16 data);
 	u16 rtc_ready_r();
 
+	// Timers (different compared to GPL162xx)
+	u16 gpl951xx_timerg_ctrl_r();
+	void gpl951xx_timerg_ctrl_w(u16 data);
+	u16 gpl951xx_timerg_preload_r();
+	void gpl951xx_timerg_preload_w(u16 data);
+	u16 gpl951xx_timerh_ctrl_r();
+	void gpl951xx_timerh_ctrl_w(u16 data);
+	u16 gpl951xx_timerh_preload_r();
+	void gpl951xx_timerh_preload_w(u16 data);
+
 	u16 m_byteswap;
+
+	u16 m_gpl951xx_timerg_preload;
+	u16 m_gpl951xx_timerg_ctrl;
+	u16 m_gpl951xx_timerh_preload;
+	u16 m_gpl951xx_timerh_ctrl;
 };
 
 DECLARE_DEVICE_TYPE(GPL951XX, generalplus_gpl951xx_device)
