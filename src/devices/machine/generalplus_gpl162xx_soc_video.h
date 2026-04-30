@@ -81,9 +81,9 @@ public:
 	void tmap3_tilebase_lsb_w(uint16_t data);
 	void tmap3_tilebase_msb_w(uint16_t data);
 
-	void video_701c_w(uint16_t data);
-	void video_701d_w(uint16_t data);
-	void video_701e_w(uint16_t data);
+	void vcomp_value_w(uint16_t data);
+	void vcomp_offset_w(uint16_t data);
+	void vcomp_step_w(uint16_t data);
 
 	uint16_t sprite_7022_gfxbase_lsb_r();
 	uint16_t sprite_702d_gfxbase_msb_r();
@@ -97,7 +97,7 @@ public:
 	void video_dma_dest_w(uint16_t data);
 	uint16_t video_dma_size_busy_r();
 	void video_dma_size_trigger_w(address_space &space, uint16_t data);
-	void video_707e_spritebank_w(uint16_t data);
+	void ppu_ram_bank_w(uint16_t data);
 
 	uint16_t video_703a_palettebank_r();
 	void video_703a_palettebank_w(uint16_t data);
@@ -112,7 +112,7 @@ public:
 	uint16_t video_7063_videoirq_source_r();
 	void video_7063_videoirq_source_ack_w(uint16_t data);
 
-	void video_702a_w(uint16_t data);
+	void blending_w(uint16_t data);
 	uint16_t video_7030_brightness_r();
 	void video_7030_brightness_w(uint16_t data);
 	uint16_t video_curline_r();
@@ -122,20 +122,20 @@ public:
 
 	uint16_t video_707c_r();
 
-	uint16_t video_707f_r();
-	void video_707f_w(uint16_t data);
+	uint16_t ppu_enable_r();
+	void ppu_enable_w(uint16_t data);
 
-	void video_7080_w(uint16_t data);
-	void video_7081_w(uint16_t data);
-	void video_7082_w(uint16_t data);
-	void video_7083_w(uint16_t data);
-	void video_7084_w(uint16_t data);
-	void video_7085_w(uint16_t data);
-	void video_7086_w(uint16_t data);
-	void video_7087_w(uint16_t data);
-	void video_7088_w(uint16_t data);
+	void tv_saturation_w(uint16_t data);
+	void tv_hue_w(uint16_t data);
+	void tv_brightness_w(uint16_t data);
+	void tv_sharpness_w(uint16_t data);
+	void tv_y_gain_w(uint16_t data);
+	void tv_y_delay_w(uint16_t data);
+	void tv_v_position_w(uint16_t data);
+	void tv_h_position_w(uint16_t data);
+	void tv_videodac_w(uint16_t data);
 
-	uint16_t video_7083_r();
+	uint16_t tv_sharpness_r();
 
 	uint16_t palette_r(offs_t offset);
 	void palette_w(offs_t offset, uint16_t data);

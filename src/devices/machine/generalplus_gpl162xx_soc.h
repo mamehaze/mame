@@ -204,13 +204,13 @@ protected:
 	uint16_t system_dma_memtype_r();
 	void system_dma_memtype_w(uint16_t data);
 
-	uint16_t unkarea_780f_status_r();
+	uint16_t power_state_r();
 	uint16_t unkarea_78fb_status_r();
 
 	uint16_t unkarea_7803_r();
 	void unkarea_7803_w(uint16_t data);
 
-	void unkarea_7807_w(uint16_t data);
+	void clock_ctrl_w(uint16_t data);
 
 	void waitmode_enter_780c_w(uint16_t data);
 
@@ -220,8 +220,8 @@ protected:
 	void unkarea_7816_w(uint16_t data);
 	void unkarea_7817_w(uint16_t data);
 
-	uint16_t unkarea_7819_r();
-	void unkarea_7819_w(uint16_t data);
+	uint16_t cache_ctrl_r();
+	void cache_ctrl_w(uint16_t data);
 
 	void chipselect_csx_memory_device_control_w(offs_t offset, uint16_t data);
 
@@ -270,49 +270,49 @@ protected:
 	uint16_t ioarea_787b_portd_attribute_r();
 	void ioarea_787b_portd_attribute_w(uint16_t data);
 
-	uint16_t unkarea_7882_r();
-	void unkarea_7882_w(uint16_t data);
-	uint16_t unkarea_7883_r();
-	void unkarea_7883_w(uint16_t data);
+	uint16_t ioe_dir_r();
+	void ioe_dir_w(uint16_t data);
+	uint16_t ioe_attrib_r();
+	void ioe_attrib_w(uint16_t data);
 
-	void unkarea_78a0_w(uint16_t data);
+	void int_status1_w(uint16_t data);
 
-	uint16_t unkarea_78a0_r();
-	uint16_t unkarea_78a1_r();
+	uint16_t int_status1_r();
+	uint16_t int_status2_r();
 
-	void unkarea_78a4_w(uint16_t data);
-	void unkarea_78a5_w(uint16_t data);
-	void unkarea_78a6_w(uint16_t data);
+	void int_priority_1_w(uint16_t data);
+	void int_priority_2_w(uint16_t data);
+	void int_priority_3_w(uint16_t data);
 
-	void unkarea_78a8_w(uint16_t data);
+	void mint_ctrl_w(uint16_t data);
 
-	void unkarea_78b0_w(uint16_t data);
-	void unkarea_78b1_w(uint16_t data);
+	void timebasea_ctrl_w(uint16_t data);
+	void timebaseb_ctrl_w(uint16_t data);
 
-	uint16_t unkarea_78b2_r();
-	void unkarea_78b2_w(uint16_t data);
+	uint16_t timebasec_ctrl_r();
+	void timebasec_ctrl_w(uint16_t data);
 
-	void unkarea_78b8_w(uint16_t data);
+	void timebase_reset_w(uint16_t data);
 
-	uint16_t unkarea_78c0_r();
-	uint16_t unkarea_78c8_r();
+	uint16_t timera_ctrl_r();
+	uint16_t timerb_ctrl_r();
 
-	uint16_t unkarea_78d0_r();
-	uint16_t unkarea_78d8_r();
+	uint16_t timerc_ctrl_r();
+	uint16_t timerd_ctrl_r();
 
 	uint16_t unkarea_78f0_r();
 	void unkarea_78f0_w(uint16_t data);
 
 	uint16_t unkarea_7904_r();
 
-	uint16_t unkarea_7934_r();
-	void unkarea_7934_w(uint16_t data);
+	uint16_t rtc_ctrl_r();
+	void rtc_ctrl_w(uint16_t data);
 
-	uint16_t unkarea_7935_r();
-	void unkarea_7935_w(uint16_t data);
+	uint16_t rtc_int_status_r();
+	void rtc_int_status_w(uint16_t data);
 
-	uint16_t unkarea_7936_r();
-	void unkarea_7936_w(uint16_t data);
+	uint16_t rtc_int_ctrl_r();
+	void rtc_int_ctrl_w(uint16_t data);
 
 	uint16_t spi_7944_rxdata_r();
 	uint16_t spi_7945_misc_control_reg_r();

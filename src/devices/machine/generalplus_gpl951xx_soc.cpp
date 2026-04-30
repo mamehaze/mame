@@ -83,9 +83,9 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map& map)
 
 	map(0x007010, 0x007015).rw(m_spg_video, FUNC(gcm394_base_video_device::tmap0_regs_r), FUNC(gcm394_base_video_device::tmap0_regs_w));
 	map(0x007016, 0x00701b).rw(m_spg_video, FUNC(gcm394_base_video_device::tmap1_regs_r), FUNC(gcm394_base_video_device::tmap1_regs_w));
-	map(0x00701c, 0x00701c).w(m_spg_video, FUNC(gcm394_base_video_device::video_701c_w)); // 701c - VComValue
-	map(0x00701d, 0x00701d).w(m_spg_video, FUNC(gcm394_base_video_device::video_701d_w)); // 701d - VComOffset
-	map(0x00701e, 0x00701e).w(m_spg_video, FUNC(gcm394_base_video_device::video_701e_w)); // 701e - VComStep
+	map(0x00701c, 0x00701c).w(m_spg_video, FUNC(gcm394_base_video_device::vcomp_value_w)); // 701c - VComValue
+	map(0x00701d, 0x00701d).w(m_spg_video, FUNC(gcm394_base_video_device::vcomp_offset_w)); // 701d - VComOffset
+	map(0x00701e, 0x00701e).w(m_spg_video, FUNC(gcm394_base_video_device::vcomp_step_w)); // 701e - VComStep
 
 	map(0x007020, 0x007020).rw(m_spg_video, FUNC(gcm394_base_video_device::tmap0_tilebase_lsb_r), FUNC(gcm394_base_video_device::tmap0_tilebase_lsb_w));           // 7020 - Segment_Tx1
 	map(0x007021, 0x007021).rw(m_spg_video, FUNC(gcm394_base_video_device::tmap1_tilebase_lsb_r), FUNC(gcm394_base_video_device::tmap1_tilebase_lsb_w));           // 7021 - Segment_Tx2
@@ -97,7 +97,7 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map& map)
 	// 
 	// 
 	//
-	map(0x00702a, 0x00702a).w(m_spg_video, FUNC(gcm394_base_video_device::video_702a_w)); // 702a - Blending
+	map(0x00702a, 0x00702a).w(m_spg_video, FUNC(gcm394_base_video_device::blending_w)); // 702a - Blending
 	map(0x00702b, 0x00702b).rw(m_spg_video, FUNC(gcm394_base_video_device::tmap0_tilebase_msb_r), FUNC(gcm394_base_video_device::tmap0_tilebase_msb_w));           // 702b - Segment_Tx1H
 	map(0x00702c, 0x00702c).rw(m_spg_video, FUNC(gcm394_base_video_device::tmap1_tilebase_msb_r), FUNC(gcm394_base_video_device::tmap1_tilebase_msb_w));           // 702c - Segment_Tx2H
 	map(0x00702d, 0x00702d).rw(m_spg_video, FUNC(gcm394_base_video_device::sprite_702d_gfxbase_msb_r), FUNC(gcm394_base_video_device::sprite_702d_gfxbase_msb_w)); // 702d - Segment_spH
@@ -150,8 +150,8 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map& map)
 	//
 	// 707d - BLD_Color
 	//
-	map(0x00707e, 0x00707e).w(m_spg_video, FUNC(gcm394_base_video_device::video_707e_spritebank_w));    // 707e - PPU_RAM_BANK
-	map(0x00707f, 0x00707f).rw(m_spg_video, FUNC(gcm394_base_video_device::video_707f_r), FUNC(gcm394_base_video_device::video_707f_w));// 707f - PPU_Enable
+	map(0x00707e, 0x00707e).w(m_spg_video, FUNC(gcm394_base_video_device::ppu_ram_bank_w));    // 707e - PPU_RAM_BANK
+	map(0x00707f, 0x00707f).rw(m_spg_video, FUNC(gcm394_base_video_device::ppu_enable_r), FUNC(gcm394_base_video_device::ppu_enable_w));// 707f - PPU_Enable
 	//
 	// 7080 - STN_SEG
 	// 7081 - STN_COM
@@ -297,15 +297,15 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map& map)
 	// 788e - IOF_Latch
 	// 788f - IOF_KeyEN
 
-	map(0x0078a0, 0x0078a0).rw(FUNC(generalplus_gpl951xx_device::unkarea_78a0_r), FUNC(generalplus_gpl951xx_device::unkarea_78a0_w)); // 78a0 - INT_Status1
-	map(0x0078a1, 0x0078a1).r(FUNC(generalplus_gpl951xx_device::unkarea_78a1_r)); // 78a1 - INT_Status2
+	map(0x0078a0, 0x0078a0).rw(FUNC(generalplus_gpl951xx_device::int_status1_r), FUNC(generalplus_gpl951xx_device::int_status1_w)); // 78a0 - INT_Status1
+	map(0x0078a1, 0x0078a1).r(FUNC(generalplus_gpl951xx_device::int_status2_r)); // 78a1 - INT_Status2
 	// 78a2 - INT_Status3
 	// 78a3 - INT_Priority1
-	map(0x0078a4, 0x0078a4).w(FUNC(generalplus_gpl951xx_device::unkarea_78a4_w)); // 78a4 - INT_Priority2
-	map(0x0078a5, 0x0078a5).w(FUNC(generalplus_gpl951xx_device::unkarea_78a5_w)); // 78a5 - INT_Priority3
-	map(0x0078a6, 0x0078a6).w(FUNC(generalplus_gpl951xx_device::unkarea_78a6_w)); // 78a6 - MINT_Ctrl
+	map(0x0078a4, 0x0078a4).w(FUNC(generalplus_gpl951xx_device::int_priority_1_w)); // 78a4 - INT_Priority2
+	map(0x0078a5, 0x0078a5).w(FUNC(generalplus_gpl951xx_device::int_priority_2_w)); // 78a5 - INT_Priority3
+	map(0x0078a6, 0x0078a6).w(FUNC(generalplus_gpl951xx_device::int_priority_3_w)); // 78a6 - MINT_Ctrl
 	// 78a7 - IOAB_KCIEN
-	map(0x0078a8, 0x0078a8).w(FUNC(generalplus_gpl951xx_device::unkarea_78a8_w)); // 78a8 - IOC_KCIEN
+	map(0x0078a8, 0x0078a8).w(FUNC(generalplus_gpl951xx_device::mint_ctrl_w)); // 78a8 - IOC_KCIEN
 	// 78a9 - IOE_KCIEN
 	// 78aa - IOF_KCIEN
 	// 78ab - IOAB_KCIFC
@@ -313,11 +313,11 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map& map)
 	// 78ad - IOE_ KCIFC
 	// 78ae - IOF_ KCIFC
 
-	map(0x0078b0, 0x0078b0).w(FUNC(generalplus_gpl951xx_device::unkarea_78b0_w)); // 78b0 - TimeBaseA_Ctrl
-	map(0x0078b1, 0x0078b1).w(FUNC(generalplus_gpl951xx_device::unkarea_78b1_w)); // 78b1 - TimeBaseB_Ctrl
-	map(0x0078b2, 0x0078b2).rw(FUNC(generalplus_gpl951xx_device::unkarea_78b2_r), FUNC(generalplus_gpl951xx_device::unkarea_78b2_w)); // 78b2 - TimeBaseC_Ctrl
+	map(0x0078b0, 0x0078b0).w(FUNC(generalplus_gpl951xx_device::timebasea_ctrl_w)); // 78b0 - TimeBaseA_Ctrl
+	map(0x0078b1, 0x0078b1).w(FUNC(generalplus_gpl951xx_device::timebaseb_ctrl_w)); // 78b1 - TimeBaseB_Ctrl
+	map(0x0078b2, 0x0078b2).rw(FUNC(generalplus_gpl951xx_device::timebasec_ctrl_r), FUNC(generalplus_gpl951xx_device::timebasec_ctrl_w)); // 78b2 - TimeBaseC_Ctrl
 
-	map(0x0078b8, 0x0078b8).w(FUNC(generalplus_gpl951xx_device::unkarea_78b8_w)); // 78b8 - TimeBase_Reset
+	map(0x0078b8, 0x0078b8).w(FUNC(generalplus_gpl951xx_device::timebase_reset_w)); // 78b8 - TimeBase_Reset
 
 	// 78c0 - I2C_Ctrl
 	// 78c1 - I2C_Status

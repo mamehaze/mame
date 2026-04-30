@@ -808,9 +808,9 @@ void gcm394_base_video_device::video_dma_size_trigger_w(address_space &space, ui
 	}
 }
 
-void gcm394_base_video_device::video_707e_spritebank_w(uint16_t data)
+void gcm394_base_video_device::ppu_ram_bank_w(uint16_t data)
 {
-	LOGMASKED(LOG_GCM394_VIDEO, "%s:gcm394_base_video_device::video_707e_spritebank_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GCM394_VIDEO, "%s:gcm394_base_video_device::ppu_ram_bank_w %04x\n", machine().describe_context(), data);
 	m_707e_spritebank = data;
 }
 
@@ -820,15 +820,15 @@ uint16_t gcm394_base_video_device::video_707c_r()
 	return 0x8000;
 }
 
-uint16_t gcm394_base_video_device::video_707f_r()
+uint16_t gcm394_base_video_device::ppu_enable_r()
 {
 	uint16_t retdata = m_renderer->get_video_reg_7f();
-	LOGMASKED(LOG_GCM394_VIDEO, "%s:gcm394_base_video_device::video_707f_r (returning %04x)\n", machine().describe_context(), retdata);
+	LOGMASKED(LOG_GCM394_VIDEO, "%s:gcm394_base_video_device::ppu_enable_r (returning %04x)\n", machine().describe_context(), retdata);
 	return retdata;
 }
-void gcm394_base_video_device::video_707f_w(uint16_t data)
+void gcm394_base_video_device::ppu_enable_w(uint16_t data)
 {
-	LOGMASKED(LOG_GCM394_VIDEO, "%s:gcm394_base_video_device::video_707f_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GCM394_VIDEO, "%s:gcm394_base_video_device::ppu_enable_w %04x\n", machine().describe_context(), data);
 
 	// Format for GPL1625x / GPAC800
 	//
@@ -910,9 +910,9 @@ void gcm394_base_video_device::video_7063_videoirq_source_ack_w(uint16_t data)
 		check_video_irq();
 }
 
-void gcm394_base_video_device::video_702a_w(uint16_t data)
+void gcm394_base_video_device::blending_w(uint16_t data)
 {
-	LOGMASKED(LOG_GCM394_VIDEO, "%s:gcm394_base_video_device::video_702a_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GCM394_VIDEO, "%s:gcm394_base_video_device::blending_w %04x\n", machine().describe_context(), data);
 	m_702a = data;
 	m_renderer->set_video_reg_2a(data);
 }
@@ -1003,17 +1003,17 @@ uint16_t gcm394_base_video_device::video_70e0_prng_r()
 
 
 // this block get set once, in a single function, could be important
-void gcm394_base_video_device::video_7080_w(uint16_t data) { LOGMASKED(LOG_GCM394_VIDEO, "%s:gcm394_base_video_device::video_7080_w %04x\n", machine().describe_context(), data); m_7080 = data; }
-void gcm394_base_video_device::video_7081_w(uint16_t data) { LOGMASKED(LOG_GCM394_VIDEO, "%s:gcm394_base_video_device::video_7081_w %04x\n", machine().describe_context(), data); m_7081 = data; }
-void gcm394_base_video_device::video_7082_w(uint16_t data) { LOGMASKED(LOG_GCM394_VIDEO, "%s:gcm394_base_video_device::video_7082_w %04x\n", machine().describe_context(), data); m_7082 = data; }
-void gcm394_base_video_device::video_7083_w(uint16_t data) { LOGMASKED(LOG_GCM394_VIDEO, "%s:gcm394_base_video_device::video_7083_w %04x\n", machine().describe_context(), data); m_7083 = data; }
-void gcm394_base_video_device::video_7084_w(uint16_t data) { LOGMASKED(LOG_GCM394_VIDEO, "%s:gcm394_base_video_device::video_7084_w %04x\n", machine().describe_context(), data); m_7084 = data; }
-void gcm394_base_video_device::video_7085_w(uint16_t data) { LOGMASKED(LOG_GCM394_VIDEO, "%s:gcm394_base_video_device::video_7085_w %04x\n", machine().describe_context(), data); m_7085 = data; }
-void gcm394_base_video_device::video_7086_w(uint16_t data) { LOGMASKED(LOG_GCM394_VIDEO, "%s:gcm394_base_video_device::video_7086_w %04x\n", machine().describe_context(), data); m_7086 = data; }
-void gcm394_base_video_device::video_7087_w(uint16_t data) { LOGMASKED(LOG_GCM394_VIDEO, "%s:gcm394_base_video_device::video_7087_w %04x\n", machine().describe_context(), data); m_7087 = data; }
-void gcm394_base_video_device::video_7088_w(uint16_t data) { LOGMASKED(LOG_GCM394_VIDEO, "%s:gcm394_base_video_device::video_7088_w %04x\n", machine().describe_context(), data); m_7088 = data; }
+void gcm394_base_video_device::tv_saturation_w(uint16_t data) { LOGMASKED(LOG_GCM394_VIDEO, "%s:gcm394_base_video_device::tv_saturation_w %04x\n", machine().describe_context(), data); m_7080 = data; }
+void gcm394_base_video_device::tv_hue_w(uint16_t data) { LOGMASKED(LOG_GCM394_VIDEO, "%s:gcm394_base_video_device::tv_hue_w %04x\n", machine().describe_context(), data); m_7081 = data; }
+void gcm394_base_video_device::tv_brightness_w(uint16_t data) { LOGMASKED(LOG_GCM394_VIDEO, "%s:gcm394_base_video_device::tv_brightness_w %04x\n", machine().describe_context(), data); m_7082 = data; }
+void gcm394_base_video_device::tv_sharpness_w(uint16_t data) { LOGMASKED(LOG_GCM394_VIDEO, "%s:gcm394_base_video_device::tv_sharpness_w %04x\n", machine().describe_context(), data); m_7083 = data; }
+void gcm394_base_video_device::tv_y_gain_w(uint16_t data) { LOGMASKED(LOG_GCM394_VIDEO, "%s:gcm394_base_video_device::tv_y_gain_w %04x\n", machine().describe_context(), data); m_7084 = data; }
+void gcm394_base_video_device::tv_y_delay_w(uint16_t data) { LOGMASKED(LOG_GCM394_VIDEO, "%s:gcm394_base_video_device::tv_y_delay_w %04x\n", machine().describe_context(), data); m_7085 = data; }
+void gcm394_base_video_device::tv_v_position_w(uint16_t data) { LOGMASKED(LOG_GCM394_VIDEO, "%s:gcm394_base_video_device::tv_v_position_w %04x\n", machine().describe_context(), data); m_7086 = data; }
+void gcm394_base_video_device::tv_h_position_w(uint16_t data) { LOGMASKED(LOG_GCM394_VIDEO, "%s:gcm394_base_video_device::tv_h_position_w %04x\n", machine().describe_context(), data); m_7087 = data; }
+void gcm394_base_video_device::tv_videodac_w(uint16_t data) { LOGMASKED(LOG_GCM394_VIDEO, "%s:gcm394_base_video_device::tv_videodac_w %04x\n", machine().describe_context(), data); m_7088 = data; }
 
-uint16_t gcm394_base_video_device::video_7083_r() { LOGMASKED(LOG_GCM394_VIDEO, "%s:gcm394_base_video_device::video_7083_r\n", machine().describe_context()); return m_7083; }
+uint16_t gcm394_base_video_device::tv_sharpness_r() { LOGMASKED(LOG_GCM394_VIDEO, "%s:gcm394_base_video_device::tv_sharpness_r\n", machine().describe_context()); return m_7083; }
 
 void gcm394_base_video_device::spriteram_w(offs_t offset, uint16_t data)
 {
@@ -1086,21 +1086,21 @@ uint16_t gcm394_base_video_device::palette_r(offs_t offset)
 	return m_paletteram[offset];
 }
 
-void gcm394_base_video_device::video_701c_w(uint16_t data)
+void gcm394_base_video_device::vcomp_value_w(uint16_t data)
 {
-	LOGMASKED(LOG_GCM394_VIDEO, "%s:gcm394_base_video_device::video_701c_w (unknown video reg?) %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GCM394_VIDEO, "%s:gcm394_base_video_device::vcomp_value_w (unknown video reg?) %04x\n", machine().describe_context(), data);
 	m_renderer->set_video_reg_1c(data);
 }
 
-void gcm394_base_video_device::video_701d_w(uint16_t data)
+void gcm394_base_video_device::vcomp_offset_w(uint16_t data)
 {
-	LOGMASKED(LOG_GCM394_VIDEO, "%s:gcm394_base_video_device::video_701d_w (unknown video reg?) %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GCM394_VIDEO, "%s:gcm394_base_video_device::vcomp_offset_w (unknown video reg?) %04x\n", machine().describe_context(), data);
 	m_renderer->set_video_reg_1d(data);
 }
 
-void gcm394_base_video_device::video_701e_w(uint16_t data)
+void gcm394_base_video_device::vcomp_step_w(uint16_t data)
 {
-	LOGMASKED(LOG_GCM394_VIDEO, "%s:gcm394_base_video_device::video_701e_w (unknown video reg?) %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GCM394_VIDEO, "%s:gcm394_base_video_device::vcomp_step_w (unknown video reg?) %04x\n", machine().describe_context(), data);
 	m_renderer->set_video_reg_1e(data);
 }
 
