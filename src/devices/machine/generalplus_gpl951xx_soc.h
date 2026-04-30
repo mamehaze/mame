@@ -30,18 +30,16 @@ protected:
 	virtual void device_reset() override ATTR_COLD;
 
 private:
-	uint16_t ramread_r(offs_t offset);
-	void ramwrite_w(offs_t offset, uint16_t data);
-	uint16_t spi_direct_7b40_r();
-	uint16_t spi_direct_7b46_r();
-	uint16_t spi_direct_7af0_r();
-	void spi_direct_7af0_w(uint16_t data);
-	uint16_t spi_direct_79f5_r();
-	uint16_t spi_direct_78e8_r();
+	uint16_t spifc_ctrl_r();
+	uint16_t spifc_rx_data_r();
+	uint16_t byte_swap_r();
+	void byte_swap_w(uint16_t data);
+	uint16_t rtc_readdata_r();
+	uint16_t timerh_ctrl_r();
 	void spi_direct_78e8_w(uint16_t data);
-	uint16_t spi_direct_79f4_r();
+	uint16_t rtc_ready_r();
 
-	uint16_t m_7af0;
+	uint16_t m_byteswap;
 };
 
 DECLARE_DEVICE_TYPE(GPL951XX, generalplus_gpl951xx_device)

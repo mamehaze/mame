@@ -5,27 +5,17 @@
 #include "generalplus_gpl951xx_soc.h"
 
 
-void generalplus_gpl951xx_device::ramwrite_w(offs_t offset, uint16_t data)
-{
-	m_mainram[offset] = data;
-}
-
-uint16_t generalplus_gpl951xx_device::ramread_r(offs_t offset)
-{
-	return m_mainram[offset];
-}
-
-uint16_t generalplus_gpl951xx_device::spi_direct_7b40_r()
+uint16_t generalplus_gpl951xx_device::spifc_ctrl_r()
 {
 	return 0xffff; // doesn't care for now
 }
 
-uint16_t generalplus_gpl951xx_device::spi_direct_79f5_r()
+uint16_t generalplus_gpl951xx_device::rtc_readdata_r()
 {
 	return 0xffff; // hangs if returning 0
 }
 
-uint16_t generalplus_gpl951xx_device::spi_direct_7b46_r()
+uint16_t generalplus_gpl951xx_device::spifc_rx_data_r()
 {
 	int i = machine().rand();
 
@@ -33,27 +23,27 @@ uint16_t generalplus_gpl951xx_device::spi_direct_7b46_r()
 	else return 0x02;
 }
 
-uint16_t generalplus_gpl951xx_device::spi_direct_79f4_r()
+uint16_t generalplus_gpl951xx_device::rtc_ready_r()
 {
 	// status bits?
 	return machine().rand();
 }
 
 
-uint16_t generalplus_gpl951xx_device::spi_direct_7af0_r()
+uint16_t generalplus_gpl951xx_device::byte_swap_r()
 {
-	return m_7af0;
+	return m_byteswap;
 }
 
-void generalplus_gpl951xx_device::spi_direct_7af0_w(uint16_t data)
+void generalplus_gpl951xx_device::byte_swap_w(uint16_t data)
 {
 	// words read from ROM are written here during the checksum routine in RAM, and must
 	// be shifted for the checksum to pass.
-	m_7af0 = data >> 8;
+	m_byteswap = ((data & 0xff00) >> 8) | ((data & 0x00ff) << 8);
 }
 
 
-uint16_t generalplus_gpl951xx_device::spi_direct_78e8_r()
+uint16_t generalplus_gpl951xx_device::timerh_ctrl_r()
 {
 	return machine().rand();
 }
@@ -61,13 +51,13 @@ uint16_t generalplus_gpl951xx_device::spi_direct_78e8_r()
 void generalplus_gpl951xx_device::device_start()
 {
 	sunplus_gcm394_base_device::device_start();
-	save_item(NAME(m_7af0));
+	save_item(NAME(m_byteswap));
 }
 
 void generalplus_gpl951xx_device::device_reset()
 {
 	sunplus_gcm394_base_device::device_reset();
-	m_7af0 = 0;
+	m_byteswap = 0;
 }
 
 void generalplus_gpl951xx_device::spi_direct_78e8_w(uint16_t data)
@@ -335,7 +325,7 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map& map)
 	// 78e5
 	// 78e6
 	// 78e7
-	map(0x0078e8, 0x0078e8).rw(FUNC(generalplus_gpl951xx_device::spi_direct_78e8_r), FUNC(generalplus_gpl951xx_device::spi_direct_78e8_w)); // TimerH_Ctrl
+	map(0x0078e8, 0x0078e8).rw(FUNC(generalplus_gpl951xx_device::timerh_ctrl_r), FUNC(generalplus_gpl951xx_device::spi_direct_78e8_w)); // TimerH_Ctrl
 	// 78e9
 	// 78ea - TimerH_Preload
 	// 78eb
@@ -413,8 +403,8 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map& map)
 	// 79f1 - RTC_Addr
 	// 79f2 - RTC_WriteData
 	// 79f3 - RTC_Request
-	map(0x0079f4, 0x0079f4).r(FUNC(generalplus_gpl951xx_device::spi_direct_79f4_r)); // RTC_Ready
-	map(0x0079f5, 0x0079f5).r(FUNC(generalplus_gpl951xx_device::spi_direct_79f5_r)); // RTC_ReadData
+	map(0x0079f4, 0x0079f4).r(FUNC(generalplus_gpl951xx_device::rtc_ready_r)); // RTC_Ready
+	map(0x0079f5, 0x0079f5).r(FUNC(generalplus_gpl951xx_device::rtc_readdata_r)); // RTC_ReadData
 	// 79f6
 	// 79f7
 	// 79f8
@@ -520,7 +510,7 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map& map)
 	// 7ac8 - CTS_FIFOLevel
 	// 7ac9 - CTS_CNT
 
-	map(0x007af0, 0x007af0).rw(FUNC(generalplus_gpl951xx_device::spi_direct_7af0_r), FUNC(generalplus_gpl951xx_device::spi_direct_7af0_w)); // Byte_Swap
+	map(0x007af0, 0x007af0).rw(FUNC(generalplus_gpl951xx_device::byte_swap_r), FUNC(generalplus_gpl951xx_device::byte_swap_w)); // Byte_Swap
 	// 7af1 - Nibble_Swap
 	// 7af2 - TwoBit_Swap
 	// 7af3 - Bit_Reverse
@@ -540,7 +530,7 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map& map)
 	// 7b31 - KS_Data9
 	// 7b32 - KS_Data10
 
-	//map(0x007b40, 0x007b40).r(FUNC(generalplus_gpl951xx_device::spi_direct_7b40_r)).nopw();; // SPIFC_Ctrl1
+	//map(0x007b40, 0x007b40).r(FUNC(generalplus_gpl951xx_device::spifc_ctrl_r)).nopw();; // SPIFC_Ctrl1
 	//map(0x007b41, 0x007b41).nopw(); // SPIFC_CMD
 	//map(0x007b42, 0x007b42).nopw(); // SPIFC_PARA
 	// 7b43 - SPIFC_ADDRL
