@@ -11,19 +11,24 @@
 */
 
 #include "emu.h"
-#include "generalplus_gpl16250.h"
 
+#include "screen.h"
+#include "speaker.h"
+
+#include "machine/generalplus_gpl951xx_soc.h"
 #include "machine/generic_spi_flash.h"
-
 
 namespace {
 
-class generalplus_gpspi_direct_game_state : public gcm394_game_state
+class generalplus_gpspi_direct_game_state : public driver_device
 {
 public:
 	generalplus_gpspi_direct_game_state(const machine_config& mconfig, device_type type, const char* tag) :
-		gcm394_game_state(mconfig, type, tag),
-		m_genspi(*this, "spi")
+		driver_device(mconfig, type, tag),
+		m_maincpu(*this, "maincpu"),
+		m_screen(*this, "screen"),
+		m_genspi(*this, "spi"),
+		m_io(*this, "IN%u", 0U)
 	{
 	}
 
@@ -35,28 +40,60 @@ protected:
 	virtual void machine_start() override ATTR_COLD;
 	virtual void machine_reset() override ATTR_COLD;
 
-	virtual u16 cs0_r(offs_t offset) override;
+	uint16_t porta_r();
+	uint16_t portb_r();
+	uint16_t portc_r();
+	void porta_w(uint16_t data);
 
+	required_device<generalplus_gpl951xx_device> m_maincpu;
+	required_device<screen_device> m_screen;
 	required_device<generic_spi_flash_device> m_genspi;
+	required_ioport_array<3> m_io;
 };
+
+
+uint16_t generalplus_gpspi_direct_game_state::porta_r()
+{
+	uint16_t data = m_io[0]->read();
+	logerror("Port A Read: %04x\n", data);
+	return data;
+}
+
+uint16_t generalplus_gpspi_direct_game_state::portb_r()
+{
+	uint16_t data = m_io[1]->read();
+	logerror("Port B Read: %04x\n", data);
+	return data;
+}
+
+uint16_t generalplus_gpspi_direct_game_state::portc_r()
+{
+	uint16_t data = m_io[2]->read();
+	logerror("Port C Read: %04x\n", data);
+	return data;
+}
+
+void generalplus_gpspi_direct_game_state::porta_w(uint16_t data)
+{
+	logerror("%s: Port A:WRITE %04x\n", machine().describe_context(), data);
+}
 
 void generalplus_gpspi_direct_game_state::machine_start()
 {
-	gcm394_game_state::machine_start();
 	m_genspi->set_rom_ptr(memregion("spi")->base());
 	m_genspi->set_rom_size(memregion("spi")->bytes());
-	// TODO: untangle from generalplus_gpspi_direct_game_state
-	dynamic_cast<generalplus_gpl951xx_device&>(*m_maincpu).set_spi_romregion(memregion("spi")->base(), memregion("spi")->bytes());
+	m_maincpu->set_spi_romregion(memregion("spi")->base(), memregion("spi")->bytes());
 }
 
 void generalplus_gpspi_direct_game_state::machine_reset()
 {
-	cs_callback(0x00, 0x00, 0x00, 0x00, 0x00);
-
 	m_maincpu->reset(); // reset CPU so vector gets read etc.
 }
 
 static INPUT_PORTS_START( bfmpac )
+	PORT_START("IN0")
+	PORT_START("IN1")
+
 	PORT_START("IN2")
 	PORT_DIPNAME( 0x0001, 0x0000, "0" )
 	PORT_DIPSETTING(      0x0000, DEF_STR( Off ) )
@@ -94,9 +131,6 @@ static INPUT_PORTS_START( bfmpac )
 	PORT_DIPNAME( 0x8000, 0x0000, DEF_STR( Unknown ) )
 	PORT_DIPSETTING(      0x0000, DEF_STR( Off ) )
 	PORT_DIPSETTING(      0x8000, DEF_STR( On ) )
-
-	PORT_START("IN1")
-	PORT_START("IN0")
 INPUT_PORTS_END
 
 static INPUT_PORTS_START( bfspyhnt )
@@ -106,30 +140,17 @@ static INPUT_PORTS_START( bfspyhnt )
 	PORT_BIT( 0x4000, IP_ACTIVE_HIGH, IPT_BUTTON2 )
 INPUT_PORTS_END
 
-
-u16 generalplus_gpspi_direct_game_state::cs0_r(offs_t offset)
-{
-	// TODO: is cs_space even used by this type?
-	return 0x00;
-}
-
 void generalplus_gpspi_direct_game_state::generalplus_gpspi_direct(machine_config &config)
 {
-	set_addrmap(0, &generalplus_gpspi_direct_game_state::cs_map_base);
-
 	GPL951XX(config, m_maincpu, 96000000/2, m_screen);
 	m_maincpu->porta_in().set(FUNC(generalplus_gpspi_direct_game_state::porta_r));
 	m_maincpu->portb_in().set(FUNC(generalplus_gpspi_direct_game_state::portb_r));
 	m_maincpu->portc_in().set(FUNC(generalplus_gpspi_direct_game_state::portc_r));
 	m_maincpu->porta_out().set(FUNC(generalplus_gpspi_direct_game_state::porta_w));
-	m_maincpu->space_read_callback().set(FUNC(generalplus_gpspi_direct_game_state::read_external_space));
-	m_maincpu->space_write_callback().set(FUNC(generalplus_gpspi_direct_game_state::write_external_space));
 	m_maincpu->set_irq_acknowledge_callback(m_maincpu, FUNC(sunplus_gcm394_base_device::irq_vector_cb));
 	m_maincpu->add_route(ALL_OUTPUTS, "speaker", 0.5, 0);
 	m_maincpu->add_route(ALL_OUTPUTS, "speaker", 0.5, 1);
 	m_maincpu->set_bootmode(0);
-	m_maincpu->set_cs_config_callback(FUNC(gcm394_game_state::cs_callback));
-	m_maincpu->set_cs_space(DEVICE_SELF, 0);
 
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
 	//m_screen->set_refresh_hz(20); // 20hz update gives more correct speed (and working inputs) in fixitflx and bfdigdug, but speed should probably be limited in some other way
@@ -144,9 +165,7 @@ void generalplus_gpspi_direct_game_state::generalplus_gpspi_direct(machine_confi
 	SPEAKER(config, "speaker", 2).front();
 }
 
-// Is there an internal ROM that gets mapped out or can this type really execute directly from scrambled SPI?
-// there doesn't appear to be anywhere to map an internal ROM, nor access to it, so I think they just execute
-// from SPI
+// There should be a small internal ROM (0x4000) bytes that does some basic setup
 
 ROM_START( fixitflx )
 	ROM_REGION16_BE( 0x40000, "maincpu:internal", ROMREGION_ERASE00 )
