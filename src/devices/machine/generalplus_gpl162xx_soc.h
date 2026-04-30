@@ -102,26 +102,22 @@ protected:
 	bool m_dma_latched[4];
 
 	// unk 78xx
-	uint16_t m_7803;
+	uint16_t m_sys_ctrl;
 
-	uint16_t m_7807;
+	uint16_t m_clock_ctrl;
 
 	uint16_t m_membankswitch_7810;
 
 	uint16_t m_7816;
 	uint16_t m_7817;
 
-	uint16_t m_7819;
+	uint16_t m_cache_ctrl;
 
 	uint16_t m_782x[5];
 
 	uint16_t m_782d;
 
 	uint16_t m_7835;
-
-	uint16_t m_7860;
-
-	uint16_t m_7861;
 
 	uint16_t m_7862_porta_direction;
 	uint16_t m_7863_porta_attribute;
@@ -135,36 +131,33 @@ protected:
 	uint16_t m_787a_portd_direction;
 	uint16_t m_787b_portd_attribute;
 
-	uint16_t m_7870;
+	uint16_t m_ioc_data;
 
-	//uint16_t m_7871;
+	uint16_t m_ioe_dir;
+	uint16_t m_ioe_attrib;
 
+	uint16_t m_int_status1;
 
-	uint16_t m_7882;
-	uint16_t m_7883;
+	uint16_t m_int_priority_1;
+	uint16_t m_int_priority_2;
+	uint16_t m_int_priority_3;
 
-	uint16_t m_78a0;
+	uint16_t m_misc_int_ctrl;
 
-	uint16_t m_78a4;
-	uint16_t m_78a5;
-	uint16_t m_78a6;
+	uint16_t m_timebasea_ctrl;
+	uint16_t m_timebaseb_ctrl;
+	uint16_t m_timebasec_ctrl;
 
-	uint16_t m_78a8;
+	uint16_t m_timebase_reset;
 
-	uint16_t m_78b0;
-	uint16_t m_78b1;
-	uint16_t m_78b2;
-
-	uint16_t m_78b8;
-
-	uint16_t m_78f0;
+	uint16_t m_cha_ctrl;
 
 	uint16_t m_78fb;
 
 	// unk 79xx
-	uint16_t m_7934;
-	uint16_t m_7935;
-	uint16_t m_7936;
+	uint16_t m_rtc_ctrl;
+	uint16_t m_rtc_int_status;
+	uint16_t m_rtc_int_ctrl;
 
 	uint16_t m_7960;
 	uint16_t m_7961;
@@ -301,7 +294,7 @@ protected:
 	uint16_t timerd_ctrl_r();
 
 	uint16_t unkarea_78f0_r();
-	void unkarea_78f0_w(uint16_t data);
+	void cha_ctrl_w(uint16_t data);
 
 	uint16_t unkarea_7904_r();
 
