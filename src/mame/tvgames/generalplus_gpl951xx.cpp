@@ -151,6 +151,7 @@ void generalplus_gpspi_direct_game_state::generalplus_gpspi_direct(machine_confi
 	m_maincpu->add_route(ALL_OUTPUTS, "speaker", 0.5, 0);
 	m_maincpu->add_route(ALL_OUTPUTS, "speaker", 0.5, 1);
 	m_maincpu->set_bootmode(0);
+	m_maincpu->set_cs_space(DEVICE_SELF, 0);
 
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
 	//m_screen->set_refresh_hz(20); // 20hz update gives more correct speed (and working inputs) in fixitflx and bfdigdug, but speed should probably be limited in some other way
@@ -379,9 +380,9 @@ void generalplus_gpspi_direct_game_state::init_fif()
 
 	// the games upload some self-check code to 0x100 in RAM, it's unclear what it is checking, skip it for now
 	// goto mr -> nop
-	if (spirom16[0x00d8] == 0xf161) spirom16[0x00d8] = 0xf165; // fixitflx, bfpacman, bfmpac
-	if (spirom16[0x00ac] == 0xf161) spirom16[0x00ac] = 0xf165; // wiwcs, bfgalaga, bfdigdug, bfspyhnt
-	if (spirom16[0x00a2] == 0xf161) spirom16[0x00a2] = 0xf165; // bftetris
+	//if (spirom16[0x00d8] == 0xf161) spirom16[0x00d8] = 0xf165; // fixitflx, bfpacman, bfmpac
+	//if (spirom16[0x00ac] == 0xf161) spirom16[0x00ac] = 0xf165; // wiwcs, bfgalaga, bfdigdug, bfspyhnt
+	//if (spirom16[0x00a2] == 0xf161) spirom16[0x00a2] = 0xf165; // bftetris
 }
 
 } // anonymous namespace

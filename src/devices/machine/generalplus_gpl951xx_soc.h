@@ -90,6 +90,8 @@ private:
 	u16 m_spifc_ctrl;
 	u16 m_spifc_ctrl2;
 	u32 m_spifc_addr;
+	u16 m_spifc_cmd;
+	u32 m_spifc_hackident; // hack, this should come from SPI command 9f
 
 	// config
 	u8 *m_spiregion;

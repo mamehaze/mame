@@ -13,6 +13,10 @@
 
 // SPIFC - the directly mapped SPI interface
 
+// this provides hardware accelerated SPI support, handling much of the underlying SPI
+// access, allowing 'easier' use of the device, as well as allowing it to run in XIP
+// mode (eXecute In Place) so the CPU can see it as a flat space
+
 // P_SPIFC_Ctrl1
 
 // 15  tx_done
@@ -78,12 +82,24 @@ void generalplus_gpl951xx_device::spifc_ctrl_w(u16 data)
 u16 generalplus_gpl951xx_device::spifc_cmd_r()
 {
 	LOGMASKED(LOG_SPIFC, "%s: spifc_cmd_r\n", machine().describe_context());
-	return 0xffff;
+	return m_spifc_cmd;
 }
 
 void generalplus_gpl951xx_device::spifc_cmd_w(u16 data)
 {
 	LOGMASKED(LOG_SPIFC, "%s: spifc_cmd_w %04x\n", machine().describe_context(), data);
+	m_spifc_cmd = data;
+
+	if ((m_spifc_cmd & 0xff) == 0x9f)
+	{
+		// GigaDevice, 25Q80CSIG, 1Mbyte capacity
+		// manufacturer = 0xc8;
+		// memorytype = 0x40;
+		// memorysize = 0x14;
+		m_spifc_hackident = 0x1440c8; // bfpacman, bfmpac, bfgalaga, bfdigdug (1 Mbyte SPI)
+		//m_spifc_hackident = 0xff15ffc8; // spyhunt, fixitflx (2 Mbyte SPI)
+		//m_spifc_hackident = 0xff17ffc8; // wiwcs (8 Mbyte SPI)
+	}
 }
 
 // P_SPIFC_PARA
@@ -169,6 +185,28 @@ void generalplus_gpl951xx_device::spifc_txdat_w(u16 data)
 u16 generalplus_gpl951xx_device::spifc_rxdat_r()
 {
 	LOGMASKED(LOG_SPIFC, "%s: spifc_rxdat_r\n", machine().describe_context());
+
+	/*
+	for bfpacman
+
+	after auto command bite spifc_cmd_w is set to 9f (ident)
+
+	at 672 R1 will be xx00 (results from device)
+    R2 will be xxxx (results from device)
+
+	continuing to 232 it restores these values and it checks if R1 is 0000 (it shouldn't be)
+
+	at 237 it gets a value of C814 from 0d69 (RAM) and puts it in R1
+	at 239 is compares R1 with R2
+	*/
+
+	if ((m_spifc_cmd & 0xff) == 0x9f)
+	{
+		u16 ret = m_spifc_hackident;
+		m_spifc_hackident >>= 16;
+		return ret;
+	}
+	
 	int i = machine().rand();
 
 	if (i & 1) return 0x01;
@@ -292,6 +330,8 @@ void generalplus_gpl951xx_device::device_start()
 	save_item(NAME(m_spifc_ctrl));
 	save_item(NAME(m_spifc_ctrl2));
 	save_item(NAME(m_spifc_addr));
+	save_item(NAME(m_spifc_cmd));
+	save_item(NAME(m_spifc_hackident));
 }
 
 void generalplus_gpl951xx_device::device_reset()
@@ -305,6 +345,8 @@ void generalplus_gpl951xx_device::device_reset()
 	m_spifc_ctrl = 0;
 	m_spifc_ctrl2 = 0;
 	m_spifc_addr = 0;
+	m_spifc_cmd = 0;
+	m_spifc_hackident = 0;
 }
 
 // Timers
@@ -518,7 +560,7 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map& map)
 	// 780c - WAIT
 	// 780d - HALT
 	// 780e - unused
-	// 780f - Power_State
+	map(0x00780f, 0x00780f).r(FUNC(generalplus_gpl951xx_device::power_state_r)); // 780f - Power_State
 	// 7810 - BankSwitch
 	// 7811 - unused
 	// 7812 - unused
