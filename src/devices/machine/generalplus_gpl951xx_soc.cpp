@@ -44,9 +44,9 @@ u16 generalplus_gpl951xx_device::spifc_ctrl_r()
 	LOGMASKED(LOG_SPIFC, "%s: spifc_ctrl_r\n", machine().describe_context());
 	u16 ret = m_spifc_ctrl;
 
-	if (machine().rand() & 1) ret |= 0x8000;
+	//if (machine().rand() & 1) ret |= 0x8000;
 	if (m_words_in_spifc_rx_fifo == 0) ret |= 0x4000;
-	if (machine().rand() & 1) ret |= 0x0001;
+	//if (machine().rand() & 1) ret |= 0x0001;
 
 	return ret;
 }
@@ -93,12 +93,14 @@ void generalplus_gpl951xx_device::spifc_cmd_w(u16 data)
 
 	if ((m_spifc_cmd & 0xff) == 0x9f)
 	{
+		// hack, this should come from the SPI flash ROM
 		m_words_in_spifc_rx_fifo = 2;
 
 		// GigaDevice, 25Q80CSIG, 1Mbyte capacity
 		// manufacturer = 0xc8;
 		// memorytype = 0x40;
 		// memorysize = 0x14;
+
 		if (m_spisize == 0x100000)
 			m_spifc_hackident = 0x1440c8; // bfpacman, bfmpac, bfgalaga, bfdigdug (1 Mbyte SPI)
 		else if (m_spisize == 0x200000)
@@ -109,8 +111,6 @@ void generalplus_gpl951xx_device::spifc_cmd_w(u16 data)
 			m_spifc_hackident = 0x1740c8;  // wiwcs (8 Mbyte SPI)
 		else if (m_spisize == 0x2000000)
 			m_spifc_hackident = 0x1940c2;
-		else
-			printf("spisize %08x\n", m_spisize);
 	}
 	else
 	{
@@ -226,10 +226,7 @@ u16 generalplus_gpl951xx_device::spifc_rxdat_r()
 		return ret;
 	}
 	
-	int i = machine().rand();
-
-	if (i & 1) return 0x01;
-	else return 0x02;
+	return 0xffff;
 }
 
 void generalplus_gpl951xx_device::spifc_rxdat_w(u16 data)
@@ -360,6 +357,7 @@ void generalplus_gpl951xx_device::device_start()
 	save_item(NAME(m_spifc_timing));
 	save_item(NAME(m_words_in_spifc_rx_fifo));
 	save_item(NAME(m_spifc_hackident));
+	save_item(NAME(m_spi_bank));
 }
 
 void generalplus_gpl951xx_device::device_reset()
@@ -380,6 +378,7 @@ void generalplus_gpl951xx_device::device_reset()
 	m_spifc_timing = 0;
 	m_words_in_spifc_rx_fifo = 0;
 	m_spifc_hackident = 0;
+	m_spi_bank = 0;
 }
 
 // Timers
@@ -526,6 +525,19 @@ void generalplus_gpl951xx_device::gpl951xx_timerh_ctrl_w(u16 data)
 
 }
 
+u16 generalplus_gpl951xx_device::spi_bank_r()
+{
+	LOGMASKED(LOG_SPIFC, "%s: spi_bank_r\n", machine().describe_context());
+	return m_spi_bank;
+}
+
+void generalplus_gpl951xx_device::spi_bank_w(u16 data)
+{
+	LOGMASKED(LOG_SPIFC, "%s: spi_bank_w %04x\n", machine().describe_context(), data);
+	m_spi_bank = data;
+}
+
+
 u16 generalplus_gpl951xx_device::spi_direct_r(offs_t offset)
 {
 	// The GPL951xx chips can see a bank of SPI memory as a flat space
@@ -539,6 +551,19 @@ u16 generalplus_gpl951xx_device::spi_direct_r(offs_t offset)
 
 	u16 ret = (m_spiregion[((offset * 2) + 0) & (m_spisize-1)]) | (m_spiregion[((offset * 2) + 1) & (m_spisize-1)] << 8);
 	return ret;
+}
+
+u16 generalplus_gpl951xx_device::spi_direct_bank_r(offs_t offset)
+{
+	if (!m_spiregion)
+		return 0x0000;
+
+	offset += 0x1f7000;
+	offset += (m_spi_bank & 0x3f) * 0x200000;
+
+	u16 ret = (m_spiregion[((offset * 2) + 0) & (m_spisize-1)]) | (m_spiregion[((offset * 2) + 1) & (m_spisize-1)] << 8);
+	return ret;
+
 }
 
 void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map& map)
@@ -661,7 +686,7 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map& map)
 	// 780d - HALT
 	// 780e - unused
 	map(0x00780f, 0x00780f).r(FUNC(generalplus_gpl951xx_device::power_state_r)); // 780f - Power_State
-	// 7810 - BankSwitch
+	map(0x007810, 0x007810).rw(FUNC(generalplus_gpl951xx_device::spi_bank_r), FUNC(generalplus_gpl951xx_device::spi_bank_w)); // 7810 - BankSwitch
 	// 7811 - unused
 	// 7812 - unused
 	// 7813 - unused
@@ -1026,7 +1051,8 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map& map)
 
 	// 8000 - 8fff internal boot ROM (same on all devices of the same type, not OTP)
 
-	map(0x009000, 0x3fffff).r(FUNC(generalplus_gpl951xx_device::spi_direct_r));
+	map(0x009000, 0x1fffff).r(FUNC(generalplus_gpl951xx_device::spi_direct_r));
+	map(0x200000, 0x3fffff).r(FUNC(generalplus_gpl951xx_device::spi_direct_bank_r));
 }
 
 TIMER_DEVICE_CALLBACK_MEMBER( generalplus_gpl951xx_device::timer_g_cb )

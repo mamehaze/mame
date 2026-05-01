@@ -82,7 +82,11 @@ private:
 	u16 gpl951xx_timerh_preload_r();
 	void gpl951xx_timerh_preload_w(u16 data);
 
+	u16 spi_bank_r();
+	void spi_bank_w(u16 data);
+
 	u16 spi_direct_r(offs_t offset);
+	u16 spi_direct_bank_r(offs_t offset);
 
 	TIMER_DEVICE_CALLBACK_MEMBER(timer_g_cb);
 	TIMER_DEVICE_CALLBACK_MEMBER(timer_h_cb);
@@ -104,6 +108,7 @@ private:
 	u16 m_spifc_timing;
 	u32 m_spifc_hackident; // hack, this should come from SPI command 9f
 	u8  m_words_in_spifc_rx_fifo;
+	u16 m_spi_bank;
 
 	// config
 	u8 *m_spiregion;
