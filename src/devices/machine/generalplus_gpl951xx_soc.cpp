@@ -45,7 +45,7 @@ u16 generalplus_gpl951xx_device::spifc_ctrl_r()
 	u16 ret = m_spifc_ctrl;
 
 	if (machine().rand() & 1) ret |= 0x8000;
-	if (machine().rand() & 1) ret |= 0x4000;
+	if (m_words_in_spifc_rx_fifo == 0) ret |= 0x4000;
 	if (machine().rand() & 1) ret |= 0x0001;
 
 	return ret;
@@ -90,15 +90,31 @@ void generalplus_gpl951xx_device::spifc_cmd_w(u16 data)
 	LOGMASKED(LOG_SPIFC, "%s: spifc_cmd_w %04x\n", machine().describe_context(), data);
 	m_spifc_cmd = data;
 
+
 	if ((m_spifc_cmd & 0xff) == 0x9f)
 	{
+		m_words_in_spifc_rx_fifo = 2;
+
 		// GigaDevice, 25Q80CSIG, 1Mbyte capacity
 		// manufacturer = 0xc8;
 		// memorytype = 0x40;
 		// memorysize = 0x14;
-		m_spifc_hackident = 0x1440c8; // bfpacman, bfmpac, bfgalaga, bfdigdug (1 Mbyte SPI)
-		//m_spifc_hackident = 0xff15ffc8; // spyhunt, fixitflx (2 Mbyte SPI)
-		//m_spifc_hackident = 0xff17ffc8; // wiwcs (8 Mbyte SPI)
+		if (m_spisize == 0x100000)
+			m_spifc_hackident = 0x1440c8; // bfpacman, bfmpac, bfgalaga, bfdigdug (1 Mbyte SPI)
+		else if (m_spisize == 0x200000)
+			m_spifc_hackident = 0x1540c8; // spyhunt, fixitflx (2 Mbyte SPI)
+		else if (m_spisize == 0x400000)
+			m_spifc_hackident = 0x1640c8;
+		else if (m_spisize == 0x800000)
+			m_spifc_hackident = 0x1740c8;  // wiwcs (8 Mbyte SPI)
+		else if (m_spisize == 0x2000000)
+			m_spifc_hackident = 0x1940c2;
+		else
+			printf("spisize %08x\n", m_spisize);
+	}
+	else
+	{
+		m_words_in_spifc_rx_fifo = 1;
 	}
 }
 
@@ -200,6 +216,8 @@ u16 generalplus_gpl951xx_device::spifc_rxdat_r()
 	at 239 is compares R1 with R2
 	*/
 
+	m_words_in_spifc_rx_fifo--;
+
 	if ((m_spifc_cmd & 0xff) == 0x9f)
 	{
 		u16 ret = m_spifc_hackident;
@@ -216,6 +234,7 @@ u16 generalplus_gpl951xx_device::spifc_rxdat_r()
 void generalplus_gpl951xx_device::spifc_rxdat_w(u16 data)
 {
 	LOGMASKED(LOG_SPIFC, "%s: spifc_rxdat_w %04x\n", machine().describe_context(), data);
+	//m_words_in_spifc_rx_fifo = 1;
 }
 
 // P_SPIFC_TX_BC - SPIFC TX byte count register
@@ -331,6 +350,7 @@ void generalplus_gpl951xx_device::device_start()
 	save_item(NAME(m_spifc_ctrl2));
 	save_item(NAME(m_spifc_addr));
 	save_item(NAME(m_spifc_cmd));
+	save_item(NAME(m_words_in_spifc_rx_fifo));
 	save_item(NAME(m_spifc_hackident));
 }
 
@@ -346,6 +366,7 @@ void generalplus_gpl951xx_device::device_reset()
 	m_spifc_ctrl2 = 0;
 	m_spifc_addr = 0;
 	m_spifc_cmd = 0;
+	m_words_in_spifc_rx_fifo = 0;
 	m_spifc_hackident = 0;
 }
 
@@ -437,7 +458,7 @@ u16 generalplus_gpl951xx_device::spi_direct_r(offs_t offset)
 	if (!m_spiregion)
 		return 0x0000;
 
-	u16 ret = (m_spiregion[(offset * 2) + 0]) | (m_spiregion[(offset * 2) + 1] << 8);
+	u16 ret = (m_spiregion[((offset * 2) + 0) & (m_spisize-1)]) | (m_spiregion[((offset * 2) + 1) & (m_spisize-1)] << 8);
 	return ret;
 }
 

@@ -92,6 +92,7 @@ private:
 	u32 m_spifc_addr;
 	u16 m_spifc_cmd;
 	u32 m_spifc_hackident; // hack, this should come from SPI command 9f
+	u8  m_words_in_spifc_rx_fifo;
 
 	// config
 	u8 *m_spiregion;

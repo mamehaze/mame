@@ -172,7 +172,7 @@ ROM_START( fixitflx )
 	ROM_REGION16_BE( 0x40000, "maincpu:internal", ROMREGION_ERASE00 )
 	//ROM_LOAD16_WORD_SWAP( "internal.rom", 0x00000, 0x40000, NO_DUMP )
 
-	ROM_REGION16_BE(0x800000, "spi", ROMREGION_ERASE00)
+	ROM_REGION16_BE(0x200000, "spi", ROMREGION_ERASE00)
 	ROM_LOAD16_WORD_SWAP( "fixitfelix_md25q16csig_c84015.bin", 0x0000, 0x200000, CRC(605c6863) SHA1(4f6cc2e8388e20eb90c6b05265273650eeea56eb) )
 ROM_END
 
@@ -191,7 +191,7 @@ ROM_START( bfpacman )
 	ROM_REGION16_BE( 0x40000, "maincpu:internal", ROMREGION_ERASE00 )
 	//ROM_LOAD16_WORD_SWAP( "internal.rom", 0x00000, 0x40000, NO_DUMP )
 
-	ROM_REGION16_BE(0x800000, "spi", ROMREGION_ERASE00)
+	ROM_REGION16_BE(0x100000, "spi", ROMREGION_ERASE00)
 	ROM_LOAD16_WORD_SWAP( "basicfunpacman_25q80_c84014.bin", 0x0000, 0x100000, CRC(dd39fc64) SHA1(48c0e1eb729f61b7359e1fd52b7faab56817dfe8) )
 ROM_END
 
@@ -199,7 +199,7 @@ ROM_START( bfmpac )
 	ROM_REGION16_BE( 0x40000, "maincpu:internal", ROMREGION_ERASE00 )
 	//ROM_LOAD16_WORD_SWAP( "internal.rom", 0x00000, 0x40000, NO_DUMP )
 
-	ROM_REGION16_BE(0x800000, "spi", ROMREGION_ERASE00)
+	ROM_REGION16_BE(0x100000, "spi", ROMREGION_ERASE00)
 	ROM_LOAD16_WORD_SWAP( "mspacman_25q80_c84014.bin", 0x0000, 0x100000, CRC(c0c3f8ce) SHA1(30da9b14f1a2c966167c97da9b8329f2f7f73291) )
 ROM_END
 
@@ -207,7 +207,7 @@ ROM_START( bfdigdug )
 	ROM_REGION16_BE( 0x40000, "maincpu:internal", ROMREGION_ERASE00 )
 	//ROM_LOAD16_WORD_SWAP( "internal.rom", 0x00000, 0x40000, NO_DUMP )
 
-	ROM_REGION16_BE(0x800000, "spi", ROMREGION_ERASE00)
+	ROM_REGION16_BE(0x100000, "spi", ROMREGION_ERASE00)
 	ROM_LOAD16_WORD_SWAP( "arcadeclassicsdigdug_25q80csig_c84014.bin", 0x0000, 0x100000, CRC(4030bc46) SHA1(8c086c96b9822e95c1862012786d6d6e59e0387e) )
 ROM_END
 
@@ -215,7 +215,7 @@ ROM_START( bfgalaga )
 	ROM_REGION16_BE( 0x40000, "maincpu:internal", ROMREGION_ERASE00 )
 	//ROM_LOAD16_WORD_SWAP( "internal.rom", 0x00000, 0x40000, NO_DUMP )
 
-	ROM_REGION16_BE(0x800000, "spi", ROMREGION_ERASE00)
+	ROM_REGION16_BE(0x100000, "spi", ROMREGION_ERASE00)
 	ROM_LOAD16_WORD_SWAP( "arcadeclassicsgalaga_25q80csig_c84014.bin", 0x0000, 0x100000, CRC(69982c9d) SHA1(0f8f403fefa7d8a9fdfcc04dca5a67919b662c7e) )
 ROM_END
 
@@ -223,7 +223,7 @@ ROM_START( bfspyhnt )
 	ROM_REGION16_BE( 0x40000, "maincpu:internal", ROMREGION_ERASE00 )
 	//ROM_LOAD16_WORD_SWAP( "internal.rom", 0x00000, 0x40000, NO_DUMP )
 
-	ROM_REGION16_BE(0x800000, "spi", ROMREGION_ERASE00)
+	ROM_REGION16_BE(0x200000, "spi", ROMREGION_ERASE00)
 	ROM_LOAD16_WORD_SWAP( "arcadeclassicsspyhunter_md25q16csig_c84015.bin", 0x0000, 0x200000, CRC(1f1eaabd) SHA1(1c484e0b0749123cfa1ac6d1959aefa6ed09ab20) )
 
 	// also has a 24C04 (to store high scores?)
@@ -233,7 +233,7 @@ ROM_START( bftetris )
 	ROM_REGION16_BE( 0x40000, "maincpu:internal", ROMREGION_ERASE00 )
 	//ROM_LOAD16_WORD_SWAP( "internal.rom", 0x00000, 0x40000, NO_DUMP )
 
-	ROM_REGION16_BE(0x800000, "spi", ROMREGION_ERASE00)
+	ROM_REGION16_BE(0x200000, "spi", ROMREGION_ERASE00)
 	ROM_LOAD16_WORD_SWAP( "arcadeclassicstetris_25q16ct_c84015.bin", 0x0000, 0x200000, CRC(a97e1bab) SHA1(400944d310d5d5fccb2c6d048d7bf0cb00da09de) )
 ROM_END
 
@@ -275,7 +275,7 @@ ROM_START( punistar )
 ROM_END
 
 ROM_START( flufflav )
-	ROM_REGION16_BE(0x800000, "spi", ROMREGION_ERASE00)
+	ROM_REGION16_BE(0x400000, "spi", ROMREGION_ERASE00)
 	ROM_LOAD16_WORD_SWAP( "gpr25l320.u2", 0x0000, 0x400000, CRC(67bcd4cb) SHA1(5ffb140bf8e4608b5420a649aede3946923f6dac) )
 ROM_END
 
@@ -372,7 +372,7 @@ ROM_END
 void generalplus_gpspi_direct_game_state::init_fif()
 {
 	u16* spirom16 = (u16*)memregion("spi")->base();
-	for (int i = 0; i < 0x800000 / 2; i++)
+	for (int i = 0; i < memregion("spi")->bytes() / 2; i++)
 	{
 		spirom16[i] = bitswap<16>(spirom16[i] ^ 0xdd0d,
 			3, 1, 11, 9, 6, 14, 0, 2, 8, 7, 13, 15, 4, 5, 12, 10);
