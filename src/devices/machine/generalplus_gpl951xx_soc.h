@@ -8,6 +8,8 @@
 
 #include "generalplus_gpl162xx_soc.h"
 
+#include "machine/timer.h"
+
 class generalplus_gpl951xx_device : public sunplus_gcm394_base_device
 {
 public:
@@ -26,6 +28,8 @@ public:
 	void set_spi_romregion(u8 *region, u32 size) { m_spiregion = region; m_spisize = size; }
 
 protected:
+	virtual void device_add_mconfig(machine_config& config) override ATTR_COLD;
+
 	void gpspi_direct_internal_map(address_map &map) ATTR_COLD;
 
 	virtual void device_start() override ATTR_COLD;
@@ -80,6 +84,9 @@ private:
 
 	u16 spi_direct_r(offs_t offset);
 
+	TIMER_DEVICE_CALLBACK_MEMBER(timer_g_cb);
+	TIMER_DEVICE_CALLBACK_MEMBER(timer_h_cb);
+
 	u16 m_byteswap;
 
 	u16 m_gpl951xx_timerg_preload;
@@ -101,6 +108,10 @@ private:
 	// config
 	u8 *m_spiregion;
 	u32 m_spisize;
+
+	// devices
+	required_device<timer_device> m_timer_g;
+	required_device<timer_device> m_timer_h;
 };
 
 DECLARE_DEVICE_TYPE(GPL951XX, generalplus_gpl951xx_device)

@@ -419,16 +419,37 @@ u16 generalplus_gpl951xx_device::gpl951xx_timerg_ctrl_r()
 {
 	logerror("%s: gpl951xx_timerg_ctrl_r\n", machine().describe_context());
 	u16 ret = m_gpl951xx_timerg_ctrl;
-
-	if (machine().rand() & 1) ret |= 0x8000;
-
 	return ret;
 }
 
 void generalplus_gpl951xx_device::gpl951xx_timerg_ctrl_w(u16 data)
 {
-	logerror("%s: gpl951xx_timerg_ctrl_w %04x\n", machine().describe_context(), data);
-	m_gpl951xx_timerg_ctrl = data;
+	u8 tmgif_clear = (data & 0x8000) >> 15;
+	u8 tmgie = (data & 0x4000) >> 14;
+	u8 tmgen = (data & 0x2000) >> 13;
+	u8 ext0sel = (data & 0x0c00) >> 10;
+	u8 ext1sel = (data & 0x0300) >> 8;
+	u8 srcbsel = (data & 0x0070) >> 4;
+	u8 srcasel = (data & 0x000f) >> 0;
+
+	logerror("%s: gpl951xx_timerg_ctrl_w %04x (tmgif_clear %01x) (interrupt enabled %01x) (timer enabled %01x) (ext0sel %01x) (ext1sel %01x) (srcbsel %01x) (srcasel %01x)\n", machine().describe_context(), data, tmgif_clear, tmgie, tmgen, ext0sel, ext1sel, srcbsel, srcasel);
+
+	if (data & 0x8000)
+		m_gpl951xx_timerg_ctrl &= 0x7fff;
+
+	if ((data & 0x2000) != (m_gpl951xx_timerg_ctrl & 0x2000))
+	{
+		if (data & 0x2000)
+		{
+			m_timer_g->adjust(attotime::zero, 0, attotime::from_hz(8'000'000));
+		}
+		else
+		{
+			m_timer_g->adjust(attotime::never);
+		}
+	}
+
+	m_gpl951xx_timerg_ctrl = (m_gpl951xx_timerg_ctrl & 0x8000) | (data & 0x7fff);
 }
 
 u16 generalplus_gpl951xx_device::gpl951xx_timerh_preload_r()
@@ -449,14 +470,17 @@ void generalplus_gpl951xx_device::gpl951xx_timerh_preload_w(u16 data)
 // 14  TMHIE
 // 13  TMHEN
 // 12
+// 
 // 11  EXT0SEL[1]
 // 10  EXT0SEL[0]
 // 9   EXT1SEL[1]
 // 8   EXT1SEL[0]
+// 
 // 7
 // 6   SRCBSEL[2]
 // 5   SRCBSEL[1]
 // 4   SRCBSEL[0]
+// 
 // 3   SRCASEL[3]
 // 2   SRCASEL[2]
 // 1   SRCASEL[1]
@@ -466,16 +490,40 @@ u16 generalplus_gpl951xx_device::gpl951xx_timerh_ctrl_r()
 {
 	logerror("%s: gpl951xx_timerh_ctrl_r\n", machine().describe_context());
 	u16 ret = m_gpl951xx_timerh_ctrl;
-
-	if (machine().rand() & 1) ret |= 0x8000;
-
 	return ret;
 }
 
 void generalplus_gpl951xx_device::gpl951xx_timerh_ctrl_w(u16 data)
 {
-	logerror("%s: gpl951xx_timerh_ctrl_w %04x\n", machine().describe_context(), data);
+	u8 tmhif_clear = (data & 0x8000) >> 15;
+	u8 tmhie = (data & 0x4000) >> 14;
+	u8 tmhen = (data & 0x2000) >> 13;
+	u8 ext0sel = (data & 0x0c00) >> 10;
+	u8 ext1sel = (data & 0x0300) >> 8;
+	u8 srcbsel = (data & 0x0070) >> 4;
+	u8 srcasel = (data & 0x000f) >> 0;
+
+	logerror("%s: gpl951xx_timerh_ctrl_w %04x (tmhif_clear %01x) (interrupt enabled %01x) (timer enabled %01x) (ext0sel %01x) (ext1sel %01x) (srcbsel %01x) (srcasel %01x)\n", machine().describe_context(), data, tmhif_clear, tmhie, tmhen, ext0sel, ext1sel, srcbsel, srcasel);
 	m_gpl951xx_timerh_ctrl = data;
+
+	if (data & 0x8000)
+		m_gpl951xx_timerh_ctrl &= 0x7fff;
+
+	if ((data & 0x2000) != (m_gpl951xx_timerh_ctrl & 0x2000))
+	{
+		if (data & 0x2000)
+		{
+			m_timer_h->adjust(attotime::zero, 0, attotime::from_hz(8'000'000));
+		}
+		else
+		{
+			m_timer_h->adjust(attotime::never);
+		}
+
+	}
+
+	m_gpl951xx_timerh_ctrl = (m_gpl951xx_timerh_ctrl & 0x8000) | (data & 0x7fff);
+
 }
 
 u16 generalplus_gpl951xx_device::spi_direct_r(offs_t offset)
@@ -981,11 +1029,30 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map& map)
 	map(0x009000, 0x3fffff).r(FUNC(generalplus_gpl951xx_device::spi_direct_r));
 }
 
+TIMER_DEVICE_CALLBACK_MEMBER( generalplus_gpl951xx_device::timer_g_cb )
+{
+	m_gpl951xx_timerg_ctrl |= 0x8000;
+}
+
+TIMER_DEVICE_CALLBACK_MEMBER( generalplus_gpl951xx_device::timer_h_cb )
+{
+	m_gpl951xx_timerh_ctrl |= 0x8000;
+}
+
+void generalplus_gpl951xx_device::device_add_mconfig(machine_config &config)
+{
+	sunplus_gcm394_base_device::device_add_mconfig(config);
+
+	TIMER(config, "timer_g").configure_generic(FUNC(generalplus_gpl951xx_device::timer_g_cb));
+	TIMER(config, "timer_h").configure_generic(FUNC(generalplus_gpl951xx_device::timer_h_cb));
+}
 
 DEFINE_DEVICE_TYPE(GPL951XX, generalplus_gpl951xx_device, "gpl951xx", "GeneralPlus GPL951xx")
 
 generalplus_gpl951xx_device::generalplus_gpl951xx_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock) :
-	sunplus_gcm394_base_device(mconfig, GPL951XX, tag, owner, clock, address_map_constructor(FUNC(generalplus_gpl951xx_device::gpspi_direct_internal_map), this))
+	sunplus_gcm394_base_device(mconfig, GPL951XX, tag, owner, clock, address_map_constructor(FUNC(generalplus_gpl951xx_device::gpspi_direct_internal_map), this)),
+	m_timer_g(*this, "timer_g"),
+	m_timer_h(*this, "timer_h")
 {
 }
 
