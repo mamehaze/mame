@@ -143,12 +143,13 @@ void generalplus_gpl951xx_device::spifc_cmd_w(u16 data)
 u16 generalplus_gpl951xx_device::spifc_para_r()
 {
 	LOGMASKED(LOG_SPIFC, "%s: spifc_para_r\n", machine().describe_context());
-	return 0xffff;
+	return m_spifc_para;
 }
 
 void generalplus_gpl951xx_device::spifc_para_w(u16 data)
 {
 	LOGMASKED(LOG_SPIFC, "%s: spifc_para_w %04x\n", machine().describe_context(), data);
+	m_spifc_para = data;
 }
 
 // P_SPIFC_ADDRL
@@ -245,12 +246,13 @@ void generalplus_gpl951xx_device::spifc_rxdat_w(u16 data)
 u16 generalplus_gpl951xx_device::spifc_tx_bc_r()
 {
 	LOGMASKED(LOG_SPIFC, "%s: spifc_tx_bc_r\n", machine().describe_context());
-	return 0xffff;
+	return m_spifc_tx_bc;
 }
 
 void generalplus_gpl951xx_device::spifc_tx_bc_w(u16 data)
 {
 	LOGMASKED(LOG_SPIFC, "%s: spifc_tx_bc_w %04x\n", machine().describe_context(), data);
+	m_spifc_tx_bc = data;
 }
 
 // P_SPIFC_RX_BC - SPIFC RX byte count register
@@ -261,23 +263,25 @@ void generalplus_gpl951xx_device::spifc_tx_bc_w(u16 data)
 u16 generalplus_gpl951xx_device::spifc_rx_bc_r()
 {
 	LOGMASKED(LOG_SPIFC, "%s: spifc_rx_bc_r\n", machine().describe_context());
-	return 0xffff;
+	return m_spifc_rx_bc;
 }
 
 void generalplus_gpl951xx_device::spifc_rx_bc_w(u16 data)
 {
 	LOGMASKED(LOG_SPIFC, "%s: spifc_rx_bc_w %04x\n", machine().describe_context(), data);
+	m_spifc_rx_bc = data;
 }
 
 u16 generalplus_gpl951xx_device::spifc_timing_r()
 {
 	LOGMASKED(LOG_SPIFC, "%s: spifc_timing_r\n", machine().describe_context());
-	return 0xffff;
+	return m_spifc_timing;
 }
 
 void generalplus_gpl951xx_device::spifc_timing_w(u16 data)
 {
 	LOGMASKED(LOG_SPIFC, "%s: spifc_timing_w %04x\n", machine().describe_context(), data);
+	m_spifc_timing = data;
 }
 
 // P_SPIFC_Ctrl2
@@ -350,6 +354,10 @@ void generalplus_gpl951xx_device::device_start()
 	save_item(NAME(m_spifc_ctrl2));
 	save_item(NAME(m_spifc_addr));
 	save_item(NAME(m_spifc_cmd));
+	save_item(NAME(m_spifc_para));
+	save_item(NAME(m_spifc_rx_bc));
+	save_item(NAME(m_spifc_tx_bc));
+	save_item(NAME(m_spifc_timing));
 	save_item(NAME(m_words_in_spifc_rx_fifo));
 	save_item(NAME(m_spifc_hackident));
 }
@@ -366,6 +374,10 @@ void generalplus_gpl951xx_device::device_reset()
 	m_spifc_ctrl2 = 0;
 	m_spifc_addr = 0;
 	m_spifc_cmd = 0;
+	m_spifc_para = 0;
+	m_spifc_rx_bc = 0;
+	m_spifc_tx_bc = 0;
+	m_spifc_timing = 0;
 	m_words_in_spifc_rx_fifo = 0;
 	m_spifc_hackident = 0;
 }
@@ -383,6 +395,25 @@ void generalplus_gpl951xx_device::gpl951xx_timerg_preload_w(u16 data)
 	logerror("%s: gpl951xx_timerg_preload_w %04x\n", machine().describe_context(), data);
 	m_gpl951xx_timerg_preload = data;
 }
+
+// P_TimerG_Ctrl
+
+// 15  TMGIF/C
+// 14  TMGIE
+// 13  TMGEN
+// 12
+// 11  EXT0SEL[1]
+// 10  EXT0SEL[0]
+// 9   EXT1SEL[1]
+// 8   EXT1SEL[0]
+// 7
+// 6   SRCBSEL[2]
+// 5   SRCBSEL[1]
+// 4   SRCBSEL[0]
+// 3   SRCASEL[3]
+// 2   SRCASEL[2]
+// 1   SRCASEL[1]
+// 0   SRCASEL[0]
 
 u16 generalplus_gpl951xx_device::gpl951xx_timerg_ctrl_r()
 {

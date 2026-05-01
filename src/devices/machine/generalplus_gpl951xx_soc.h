@@ -91,6 +91,10 @@ private:
 	u16 m_spifc_ctrl2;
 	u32 m_spifc_addr;
 	u16 m_spifc_cmd;
+	u16 m_spifc_para;
+	u16 m_spifc_rx_bc;
+	u16 m_spifc_tx_bc;
+	u16 m_spifc_timing;
 	u32 m_spifc_hackident; // hack, this should come from SPI command 9f
 	u8  m_words_in_spifc_rx_fifo;
 
