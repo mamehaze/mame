@@ -49,9 +49,9 @@ u16 generalplus_gpl951xx_device::spifc_ctrl_r()
 	LOGMASKED(LOG_SPIFC, "%s: spifc_ctrl_r\n", machine().describe_context());
 	u16 ret = m_spifc_ctrl;
 
-	//if (machine().rand() & 1) ret |= 0x8000;
-	if (m_words_in_spifc_rx_fifo == 0) ret |= 0x4000;
-	//if (machine().rand() & 1) ret |= 0x0001;
+	ret |= 0x8000; // tx_done
+	if (m_words_in_spifc_rx_fifo == 0) ret |= 0x4000; // rx_empty
+	ret |= 0x0001; // back2idle
 
 	return ret;
 }
@@ -92,20 +92,19 @@ u16 generalplus_gpl951xx_device::spifc_cmd_r()
 
 void generalplus_gpl951xx_device::spifc_cmd_w(u16 data)
 {
-	LOGMASKED(LOG_SPIFC, "%s: spifc_cmd_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_SPIFC, "%s: spifc_cmd_w %02x %02x with param %04x\n", machine().describe_context(), (data & 0xff00) >>8, data & 0xff, m_spifc_para);
+
 	m_spifc_cmd = data;
 
+	m_words_in_spifc_rx_fifo = (m_spifc_rx_bc +1) >> 1;
 
 	if ((m_spifc_cmd & 0xff) == 0x9f)
 	{
-		// hack, this should come from the SPI flash ROM
-		m_words_in_spifc_rx_fifo = 2;
-
 		// GigaDevice, 25Q80CSIG, 1Mbyte capacity
 		// manufacturer = 0xc8;
 		// memorytype = 0x40;
 		// memorysize = 0x14;
-
+		
 		if (m_spisize == 0x100000)
 			m_spifc_hackident = 0x1440c8; // bfpacman, bfmpac, bfgalaga, bfdigdug (1 Mbyte SPI)
 		else if (m_spisize == 0x200000)
@@ -116,11 +115,12 @@ void generalplus_gpl951xx_device::spifc_cmd_w(u16 data)
 			m_spifc_hackident = 0x1740c8;  // wiwcs (8 Mbyte SPI)
 		else if (m_spisize == 0x2000000)
 			m_spifc_hackident = 0x1940c2;
+		
 	}
-	else
-	{
-		m_words_in_spifc_rx_fifo = 1;
-	}
+
+
+	m_spi_reset(1);
+	m_spi_out_cmd(data & 0x00ff);
 }
 
 // P_SPIFC_PARA
@@ -139,6 +139,7 @@ void generalplus_gpl951xx_device::spifc_cmd_w(u16 data)
 // 6   enhan_by[6]
 // 5   enhan_by[5]
 // 4   enhan_by[4]
+// 
 // 3   enhan_by[4]
 // 2   enhan_by[3]
 // 1   enhan_by[2]
@@ -222,21 +223,27 @@ u16 generalplus_gpl951xx_device::spifc_rxdat_r()
 	at 239 is compares R1 with R2
 	*/
 
-	m_words_in_spifc_rx_fifo--;
-
 	if ((m_spifc_cmd & 0xff) == 0x9f)
 	{
 		u16 ret = m_spifc_hackident;
 		m_spifc_hackident >>= 16;
+		logerror("reading ident %02x\n", ret);
 		return ret;
 	}
-	
-	return 0xffff;
+
+	return machine().rand();
 }
+	
 
 void generalplus_gpl951xx_device::spifc_rxdat_w(u16 data)
 {
-	LOGMASKED(LOG_SPIFC, "%s: spifc_rxdat_w %04x\n", machine().describe_context(), data);
+	if (m_words_in_spifc_rx_fifo)
+		m_words_in_spifc_rx_fifo--;
+
+//	LOGMASKED(LOG_SPIFC, "%s: spifc_rxdat_w %04x\n", machine().describe_context(), data);
+//	m_spi_out((data & 0xff00) >> 8);
+//	m_spi_out((data & 0x00ff));
+
 	//m_words_in_spifc_rx_fifo = 1;
 }
 
@@ -492,8 +499,8 @@ void generalplus_gpl951xx_device::gpl951xx_timerh_preload_w(u16 data)
 
 u16 generalplus_gpl951xx_device::gpl951xx_timerh_ctrl_r()
 {
-	logerror("%s: gpl951xx_timerh_ctrl_r\n", machine().describe_context());
 	u16 ret = m_gpl951xx_timerh_ctrl;
+	logerror("%s: gpl951xx_timerh_ctrl_r (returning %04x)\n", machine().describe_context(), ret);
 	return ret;
 }
 
@@ -508,15 +515,19 @@ void generalplus_gpl951xx_device::gpl951xx_timerh_ctrl_w(u16 data)
 	u8 srcasel = (data & 0x000f) >> 0;
 
 	logerror("%s: gpl951xx_timerh_ctrl_w %04x (tmhif_clear %01x) (interrupt enabled %01x) (timer enabled %01x) (ext0sel %01x) (ext1sel %01x) (srcbsel %01x) (srcasel %01x)\n", machine().describe_context(), data, tmhif_clear, tmhie, tmhen, ext0sel, ext1sel, srcbsel, srcasel);
-	m_gpl951xx_timerh_ctrl = data;
 
 	if (data & 0x8000)
+	{
+		logerror("cleared timerh flag\n");
 		m_gpl951xx_timerh_ctrl &= 0x7fff;
+	}
 
 	if ((data & 0x2000) != (m_gpl951xx_timerh_ctrl & 0x2000))
 	{
+		logerror("changed\n");
 		if (data & 0x2000)
 		{
+			logerror("started timerh\n");
 			m_timer_h->adjust(attotime::zero, 0, attotime::from_hz(8'000'000));
 		}
 		else

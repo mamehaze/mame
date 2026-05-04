@@ -46,6 +46,10 @@ protected:
 	uint16_t portc_r();
 	void porta_w(uint16_t data);
 
+	void spi_reset(u8 data);
+	void spi_access_from_soc(u8 data);
+	void spi_cmd_access_from_soc(u8 data);
+
 	required_device<generalplus_gpl951xx_device> m_maincpu;
 	required_device<screen_device> m_screen;
 	required_device<generic_spi_flash_device> m_genspi;
@@ -141,6 +145,26 @@ static INPUT_PORTS_START( bfspyhnt )
 	PORT_BIT( 0x4000, IP_ACTIVE_HIGH, IPT_BUTTON2 )
 INPUT_PORTS_END
 
+void generalplus_gpl951xx_game_state::spi_reset(u8 data)
+{
+	m_genspi->reset();
+}
+
+void generalplus_gpl951xx_game_state::spi_access_from_soc(u8 data)
+{
+	logerror("spi_access_from_soc %02x\n", data);
+	m_genspi->write(data);
+	m_maincpu->recieve_spi_fifo_data(m_genspi->read());
+}
+
+void generalplus_gpl951xx_game_state::spi_cmd_access_from_soc(u8 data)
+{
+	logerror("spi_cmd_access_from_soc %02x\n", data);
+	m_genspi->write(data);
+}
+
+
+
 void generalplus_gpl951xx_game_state::gpl951xx(machine_config &config)
 {
 	GPL951XX(config, m_maincpu, 96000000/2, m_screen);
@@ -153,6 +177,10 @@ void generalplus_gpl951xx_game_state::gpl951xx(machine_config &config)
 	m_maincpu->add_route(ALL_OUTPUTS, "speaker", 0.5, 1);
 	m_maincpu->set_bootmode(0);
 	m_maincpu->set_cs_space(DEVICE_SELF, 0);
+	m_maincpu->spi_out().set(FUNC(generalplus_gpl951xx_game_state::spi_access_from_soc));
+	m_maincpu->spi_out_cmd().set(FUNC(generalplus_gpl951xx_game_state::spi_cmd_access_from_soc));
+	m_maincpu->spi_reset().set(FUNC(generalplus_gpl951xx_game_state::spi_reset));
+;
 
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
 	//m_screen->set_refresh_hz(20); // 20hz update gives more correct speed (and working inputs) in fixitflx and bfdigdug, but speed should probably be limited in some other way

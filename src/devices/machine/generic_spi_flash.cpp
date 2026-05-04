@@ -86,10 +86,25 @@ void generic_spi_flash_device::get_command(u8 data)
 		LOGMASKED(LOG_SPI, "Set SPI to SE (Sector Erase)\n");
 		m_spi_state = COMMAND_20_SE;
 	}
+	else if (data == COMMAND_35_UNKNOWN)
+	{
+		LOGMASKED(LOG_SPI, "Set SPI to COMMAND_35_UNKNOWN\n");
+		m_spi_state = COMMAND_35_UNKNOWN;
+	}
+	else if (data == COMMAND_66_UNKNOWN)
+	{
+		LOGMASKED(LOG_SPI, "Set SPI to COMMAND_66_UNKNOWN\n");
+		m_spi_state = READY_FOR_COMMAND;
+	}
 	else if (data == COMMAND_90_REMS)
 	{
 		LOGMASKED(LOG_SPI, "Set SPI to REMS (Read Electronic Manufacturer & Device ID)\n");
 		m_spi_state = COMMAND_90_REMS;
+	}
+	else if (data == COMMAND_99_UNKNOWN)
+	{
+		LOGMASKED(LOG_SPI, "Set SPI to COMMAND_99_UNKNOWN\n");
+		m_spi_state = READY_FOR_COMMAND;
 	}
 	else if (data == COMMAND_AB_RDP)
 	{
@@ -105,6 +120,16 @@ void generic_spi_flash_device::get_command(u8 data)
 	{
 		LOGMASKED(LOG_SPI, "Set SPI to 4READ (Quad I/O read with configurable dummy bytes)\n");
 		m_spi_state = COMMAND_EB_4READ;
+	}
+	else if (data == COMMAND_EC_UNKNOWN)
+	{
+		LOGMASKED(LOG_SPI, "Set SPI to COMMAND_EC_UNKNOWN\n");
+		m_spi_state = COMMAND_EC_UNKNOWN;
+	}
+	else if (data == COMMAND_FF_UNKNOWN)
+	{
+		LOGMASKED(LOG_SPI, "Set SPI to COMMAND_FF_UNKNOWN\n");
+		m_spi_state = READY_FOR_COMMAND;
 	}
 	else
 	{
@@ -355,6 +380,13 @@ void generic_spi_flash_device::write(u8 data)
 	case COMMAND_EB_4READ:
 		process_read4_command(data);
 		break;
+
+	case COMMAND_EC_UNKNOWN:
+		break;
+
+	case COMMAND_35_UNKNOWN:
+		break;
+
 	}
 }
 
