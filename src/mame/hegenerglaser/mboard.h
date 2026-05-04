@@ -1,13 +1,13 @@
 // license:BSD-3-Clause
-// copyright-holders:Sandro Ronco
+// copyright-holders:Sandro Ronco, hap
 /*******************************************************************************
 
     Mephisto Modular Sensors Board
 
 *******************************************************************************/
 
-#ifndef MAME_HEGENERGLASER_MMBOARD_H
-#define MAME_HEGENERGLASER_MMBOARD_H
+#ifndef MAME_HEGENERGLASER_MBOARD_H
+#define MAME_HEGENERGLASER_MBOARD_H
 
 #pragma once
 
@@ -29,19 +29,28 @@ public:
 
 	sensorboard_device *get() { return m_board; }
 
+	// high level interface (typical cpu addressmap)
 	u8 input_r();
 	void led_w(u8 data);
-	u8 mux_r();
 	void mux_w(u8 data);
 
+	// low level interface (direct pin access)
+	u8 data_r();
+	void data_w(u8 data);
+	void row_le_w(int state);
+	void ldc_le_w(int state);
+	void ldc_en_w(int state);
+	void cb_en_w(int state);
+
 protected:
-	// device-level overrides
+	// device_t implementation
 	virtual void device_start() override ATTR_COLD;
 	virtual void device_reset() override ATTR_COLD;
 
 	void set_config(machine_config &config, sensorboard_device::sb_type board_type);
 	void refresh_leds_w(offs_t offset, u8 data);
 	void update_led_pwm() { m_led_pwm->matrix(~m_mux, m_led_data); }
+	void update_board();
 
 	required_device<sensorboard_device> m_board;
 	required_device<pwm_display_device> m_led_pwm;
@@ -51,6 +60,15 @@ protected:
 	bool m_disable_leds;
 	u8 m_led_data;
 	u8 m_mux;
+
+	u8 m_led_latch;
+	u8 m_cb_latch;
+
+	u8 m_data;
+	int m_row_le;
+	int m_ldc_le;
+	int m_ldc_en;
+	int m_cb_en;
 };
 
 
@@ -87,4 +105,4 @@ DECLARE_DEVICE_TYPE(MEPHISTO_SENSORS_BOARD, mephisto_sensors_board_device)
 DECLARE_DEVICE_TYPE(MEPHISTO_BUTTONS_BOARD, mephisto_buttons_board_device)
 
 
-#endif // MAME_HEGENERGLASER_MMBOARD_H
+#endif // MAME_HEGENERGLASER_MBOARD_H

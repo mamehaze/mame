@@ -6,8 +6,8 @@
 
 *******************************************************************************/
 
-#ifndef MAME_HEGENERGLASER_MMDISPLAY2_H
-#define MAME_HEGENERGLASER_MMDISPLAY2_H
+#ifndef MAME_HEGENERGLASER_MDISPLAY2_H
+#define MAME_HEGENERGLASER_MDISPLAY2_H
 
 #pragma once
 
@@ -30,7 +30,7 @@ public:
 	u8 io_r() { return m_ctrl; }
 
 protected:
-	// device-level overrides
+	// device_t implementation
 	virtual void device_start() override ATTR_COLD;
 	virtual void device_reset() override ATTR_COLD;
 	virtual void device_add_mconfig(machine_config &config) override ATTR_COLD;
@@ -49,4 +49,4 @@ private:
 
 DECLARE_DEVICE_TYPE(MEPHISTO_DISPLAY_MODULE2, mephisto_display2_device)
 
-#endif // MAME_HEGENERGLASER_MMDISPLAY2_H
+#endif // MAME_HEGENERGLASER_MDISPLAY2_H

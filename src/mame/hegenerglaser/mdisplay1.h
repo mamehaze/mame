@@ -6,8 +6,8 @@
 
 *******************************************************************************/
 
-#ifndef MAME_HEGENERGLASER_MMDISPLAY1_H
-#define MAME_HEGENERGLASER_MMDISPLAY1_H
+#ifndef MAME_HEGENERGLASER_MDISPLAY1_H
+#define MAME_HEGENERGLASER_MDISPLAY1_H
 
 #pragma once
 
@@ -27,7 +27,7 @@ public:
 	void data_w(u8 data);
 
 protected:
-	// device-level overrides
+	// device_t implementation
 	virtual void device_start() override ATTR_COLD;
 	virtual void device_add_mconfig(machine_config &config) override ATTR_COLD;
 
@@ -39,11 +39,11 @@ private:
 	int m_common;
 	u32 m_digit_data;
 
-	void update_lcd();
 	void lcd_pwm_w(offs_t offset, u64 data);
+	void update_lcd();
 };
 
 
 DECLARE_DEVICE_TYPE(MEPHISTO_DISPLAY_MODULE1, mephisto_display1_device)
 
-#endif // MAME_HEGENERGLASER_MMDISPLAY1_H
+#endif // MAME_HEGENERGLASER_MDISPLAY1_H
