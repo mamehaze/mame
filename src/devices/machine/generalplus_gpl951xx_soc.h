@@ -27,6 +27,12 @@ public:
 
 	void set_spi_romregion(u8 *region, u32 size) { m_spiregion = region; m_spisize = size; }
 
+	auto spi_out() { return m_spi_out.bind(); }
+	auto spi_out_cmd() { return m_spi_out_cmd.bind(); }
+	auto spi_reset() { return m_spi_reset.bind(); }
+
+	void recieve_spi_fifo_data(u8 data);
+
 protected:
 	virtual void device_add_mconfig(machine_config& config) override ATTR_COLD;
 
@@ -113,6 +119,10 @@ private:
 	// config
 	u8 *m_spiregion;
 	u32 m_spisize;
+
+	devcb_write8 m_spi_out;
+	devcb_write8 m_spi_out_cmd;
+	devcb_write8 m_spi_reset;
 
 	// devices
 	required_device<timer_device> m_timer_g;

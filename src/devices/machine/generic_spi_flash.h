@@ -29,6 +29,11 @@ public:
 	void set_single_byte_status_read() { m_multibyte_status_read = 0; };
 	void set_single_byte_status_writes() { m_multibyte_status_write = 0; };
 
+	void set_jedec_manufacturer(u8 byte) { m_idbytes[0] = byte; }
+	void set_jedec_memtype(u8 byte) { m_idbytes[1] = byte; }
+	void set_jedec_capacity(u8 byte) { m_idbytes[2] = byte; }
+
+
 protected:
 	// device-level overrides
 	virtual void device_start() override ATTR_COLD;

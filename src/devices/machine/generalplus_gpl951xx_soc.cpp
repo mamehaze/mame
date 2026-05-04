@@ -13,6 +13,11 @@
 
 // SPIFC - the directly mapped SPI interface
 
+void generalplus_gpl951xx_device::recieve_spi_fifo_data(u8 data)
+{
+	logerror("%s: recieve_spi_fifo_data %02x\n", data);
+}
+
 // this provides hardware accelerated SPI support, handling much of the underlying SPI
 // access, allowing 'easier' use of the device, as well as allowing it to run in XIP
 // mode (eXecute In Place) so the CPU can see it as a flat space
@@ -1077,6 +1082,9 @@ DEFINE_DEVICE_TYPE(GPL951XX, generalplus_gpl951xx_device, "gpl951xx", "GeneralPl
 
 generalplus_gpl951xx_device::generalplus_gpl951xx_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock) :
 	sunplus_gcm394_base_device(mconfig, GPL951XX, tag, owner, clock, address_map_constructor(FUNC(generalplus_gpl951xx_device::gpspi_direct_internal_map), this)),
+	m_spi_out(*this),
+	m_spi_out_cmd(*this),
+	m_spi_reset(*this),
 	m_timer_g(*this, "timer_g"),
 	m_timer_h(*this, "timer_h")
 {

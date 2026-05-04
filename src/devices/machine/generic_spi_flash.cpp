@@ -8,7 +8,7 @@
 
 #define LOG_SPI (1U << 1)
 
-#define VERBOSE     (0)
+#define VERBOSE     (LOG_SPI)
 
 #include "logmacro.h"
 
@@ -306,7 +306,7 @@ void generic_spi_flash_device::process_status_rdid_command(u8 data)
 
 	case 0x02:
 		m_spilatch = m_idbytes[2];
-		m_spi_state = READY_FOR_COMMAND;
+		//m_spi_state = READY_FOR_COMMAND; // loops on reading the ID?
 		break;
 	}
 }
