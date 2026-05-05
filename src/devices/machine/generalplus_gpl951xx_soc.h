@@ -94,6 +94,8 @@ private:
 	u16 spi_direct_r(offs_t offset);
 	u16 spi_direct_bank_r(offs_t offset);
 
+	u8 get_byte_from_rx_fifo();
+
 	TIMER_DEVICE_CALLBACK_MEMBER(timer_g_cb);
 	TIMER_DEVICE_CALLBACK_MEMBER(timer_h_cb);
 
@@ -113,8 +115,12 @@ private:
 	u16 m_spifc_tx_bc;
 	u16 m_spifc_timing;
 	u32 m_spifc_hackident; // hack, this should come from SPI command 9f
-	u8  m_words_in_spifc_rx_fifo;
+	u8  m_bytes_in_spifc_rx_fifo;
+	u8 m_spifc_rx_fifo[16 * 2];
+	u16 m_spifc_rx_read_latch;
+
 	u16 m_spi_bank;
+
 
 	// config
 	u8 *m_spiregion;

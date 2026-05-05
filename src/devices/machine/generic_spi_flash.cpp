@@ -30,6 +30,7 @@ void generic_spi_flash_device::device_start()
 	save_item(NAME(m_spiaddr));
 	save_item(NAME(m_spi_state));
 	save_item(NAME(m_spilatch));
+	m_spi_statusreg = 0;
 }
 
 void generic_spi_flash_device::device_reset()
@@ -70,6 +71,7 @@ void generic_spi_flash_device::get_command(u8 data)
 	{
 		LOGMASKED(LOG_SPI, "Set SPI to WREN (Write Enable)\n");
 		m_spi_state = READY_FOR_COMMAND;
+		m_spi_statusreg |= 0x01;
 	}
 	else if (data == COMMAND_04_WRDI)
 	{
@@ -268,7 +270,11 @@ void generic_spi_flash_device::process_status_read_command(u8 data)
 	{
 	case 0x00:
 		LOGMASKED(LOG_SPI, "status read step 1\n");
-		m_spilatch = 0x00;
+		m_spilatch = machine().rand();// m_spi_statusreg;
+
+	//	if (m_spi_statusreg & 0x01)
+	//		m_spi_statusreg &= 0xfe;
+
 		if (m_multibyte_status_read != 0)
 			m_spi_state_step++;
 		else
@@ -283,6 +289,12 @@ void generic_spi_flash_device::process_status_read_command(u8 data)
 	}
 }
 
+void generic_spi_flash_device::process_status2_read_command(u8 data)
+{
+	LOGMASKED(LOG_SPI, "status2 read\n");
+	m_spilatch = machine().rand();// m_spi_statusreg;
+	m_spi_state = READY_FOR_COMMAND;
+}
 
 void generic_spi_flash_device::process_status_rems_command(u8 data)
 {
@@ -369,6 +381,10 @@ void generic_spi_flash_device::write(u8 data)
 		process_sector_erase_command(data);
 		break;
 
+	case COMMAND_35_UNKNOWN:
+		process_status2_read_command(data);
+		break;
+
 	case COMMAND_90_REMS:
 		process_status_rems_command(data);
 		break;
@@ -383,10 +399,6 @@ void generic_spi_flash_device::write(u8 data)
 
 	case COMMAND_EC_UNKNOWN:
 		break;
-
-	case COMMAND_35_UNKNOWN:
-		break;
-
 	}
 }
 

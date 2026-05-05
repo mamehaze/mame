@@ -15,7 +15,27 @@
 
 void generalplus_gpl951xx_device::recieve_spi_fifo_data(u8 data)
 {
-	logerror("%s: recieve_spi_fifo_data %02x\n", data);
+	if (m_bytes_in_spifc_rx_fifo < (16 * 2))
+	{
+		m_spifc_rx_fifo[m_bytes_in_spifc_rx_fifo] = data;
+		m_bytes_in_spifc_rx_fifo++;
+	}
+}
+
+u8 generalplus_gpl951xx_device::get_byte_from_rx_fifo()
+{
+	u8 ret = m_spifc_rx_fifo[0];
+	if (m_bytes_in_spifc_rx_fifo > 0)
+	{
+
+		for (int i = 1; i < (16 * 2); i++)
+		{
+			m_spifc_rx_fifo[i - 1] = m_spifc_rx_fifo[i];
+		}
+		m_spifc_rx_fifo[(16 * 2) - 1] = 0;
+		m_bytes_in_spifc_rx_fifo--;
+	}
+	return ret;
 }
 
 // this provides hardware accelerated SPI support, handling much of the underlying SPI
@@ -50,7 +70,7 @@ u16 generalplus_gpl951xx_device::spifc_ctrl_r()
 	u16 ret = m_spifc_ctrl;
 
 	ret |= 0x8000; // tx_done
-	if (m_words_in_spifc_rx_fifo == 0) ret |= 0x4000; // rx_empty
+	if (m_bytes_in_spifc_rx_fifo == 0) ret |= 0x4000; // rx_empty
 	ret |= 0x0001; // back2idle
 
 	return ret;
@@ -92,35 +112,21 @@ u16 generalplus_gpl951xx_device::spifc_cmd_r()
 
 void generalplus_gpl951xx_device::spifc_cmd_w(u16 data)
 {
-	LOGMASKED(LOG_SPIFC, "%s: spifc_cmd_w %02x %02x with param %04x\n", machine().describe_context(), (data & 0xff00) >>8, data & 0xff, m_spifc_para);
+	printf("%s: spifc_cmd_w %02x %02x with param %04x\n", machine().describe_context().c_str(), (data & 0xff00) >> 8, data & 0xff, m_spifc_para);
+	LOGMASKED(LOG_SPIFC, "%s: spifc_cmd_w %02x %02x with param %04x\n", machine().describe_context(), (data & 0xff00) >> 8, data & 0xff, m_spifc_para);
 
 	m_spifc_cmd = data;
 
-	m_words_in_spifc_rx_fifo = (m_spifc_rx_bc +1) >> 1;
-
-	if ((m_spifc_cmd & 0xff) == 0x9f)
-	{
-		// GigaDevice, 25Q80CSIG, 1Mbyte capacity
-		// manufacturer = 0xc8;
-		// memorytype = 0x40;
-		// memorysize = 0x14;
-		
-		if (m_spisize == 0x100000)
-			m_spifc_hackident = 0x1440c8; // bfpacman, bfmpac, bfgalaga, bfdigdug (1 Mbyte SPI)
-		else if (m_spisize == 0x200000)
-			m_spifc_hackident = 0x1540c8; // spyhunt, fixitflx (2 Mbyte SPI)
-		else if (m_spisize == 0x400000)
-			m_spifc_hackident = 0x1640c8;
-		else if (m_spisize == 0x800000)
-			m_spifc_hackident = 0x1740c8;  // wiwcs (8 Mbyte SPI)
-		else if (m_spisize == 0x2000000)
-			m_spifc_hackident = 0x1940c2;
-		
-	}
-
-
 	m_spi_reset(1);
 	m_spi_out_cmd(data & 0x00ff);
+
+	// how does byte count work? the FIFO is apparently in words
+	for (int i = 0; i < m_spifc_rx_bc; i++)
+	{
+		// clock it this many times to push data into the fifo?
+		m_spi_out(0x00);
+	}
+
 }
 
 // P_SPIFC_PARA
@@ -223,29 +229,23 @@ u16 generalplus_gpl951xx_device::spifc_rxdat_r()
 	at 239 is compares R1 with R2
 	*/
 
-	if ((m_spifc_cmd & 0xff) == 0x9f)
-	{
-		u16 ret = m_spifc_hackident;
-		m_spifc_hackident >>= 16;
-		logerror("reading ident %02x\n", ret);
-		return ret;
-	}
+	logerror("reading %04x\n", m_spifc_rx_read_latch);
 
-	return machine().rand();
+	return m_spifc_rx_read_latch;
 }
 	
 
 void generalplus_gpl951xx_device::spifc_rxdat_w(u16 data)
 {
-	if (m_words_in_spifc_rx_fifo)
-		m_words_in_spifc_rx_fifo--;
+	//if (m_bytes_in_spifc_rx_fifo)
+	//	m_bytes_in_spifc_rx_fifo--;
 
-//	LOGMASKED(LOG_SPIFC, "%s: spifc_rxdat_w %04x\n", machine().describe_context(), data);
-//	m_spi_out((data & 0xff00) >> 8);
-//	m_spi_out((data & 0x00ff));
+	u16 word = get_byte_from_rx_fifo();
+	word = (get_byte_from_rx_fifo() << 8) | word;
 
-	//m_words_in_spifc_rx_fifo = 1;
+	m_spifc_rx_read_latch = word;
 }
+
 
 // P_SPIFC_TX_BC - SPIFC TX byte count register
 //
@@ -367,9 +367,11 @@ void generalplus_gpl951xx_device::device_start()
 	save_item(NAME(m_spifc_rx_bc));
 	save_item(NAME(m_spifc_tx_bc));
 	save_item(NAME(m_spifc_timing));
-	save_item(NAME(m_words_in_spifc_rx_fifo));
+	save_item(NAME(m_bytes_in_spifc_rx_fifo));
 	save_item(NAME(m_spifc_hackident));
 	save_item(NAME(m_spi_bank));
+	save_item(NAME(m_spifc_rx_fifo));
+	save_item(NAME(m_spifc_rx_read_latch));
 }
 
 void generalplus_gpl951xx_device::device_reset()
@@ -388,9 +390,13 @@ void generalplus_gpl951xx_device::device_reset()
 	m_spifc_rx_bc = 0;
 	m_spifc_tx_bc = 0;
 	m_spifc_timing = 0;
-	m_words_in_spifc_rx_fifo = 0;
-	m_spifc_hackident = 0;
+	m_bytes_in_spifc_rx_fifo = 0;
+	m_spifc_rx_read_latch = 0;
+
 	m_spi_bank = 0;
+
+	for (int i = 0; i < 16 * 2; i++)
+		m_spifc_rx_fifo[i] = 0;
 }
 
 // Timers
