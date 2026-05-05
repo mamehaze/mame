@@ -83,10 +83,25 @@ void generic_spi_flash_device::get_command(u8 data)
 		LOGMASKED(LOG_SPI, "Set SPI to PP (Page Program)\n");
 		m_spi_state = COMMAND_02_PP;
 	}
+	else if (data == COMMAND_11_UNKNOWN)
+	{
+		LOGMASKED(LOG_SPI, "Set SPI to COMMAND_11_UNKNOWN\n");
+		m_spi_state = COMMAND_11_UNKNOWN;
+	}
+	else if (data == COMMAND_15_UNKNOWN)
+	{
+		LOGMASKED(LOG_SPI, "Set SPI to COMMAND_15_UNKNOWN\n");
+		m_spi_state = COMMAND_15_UNKNOWN;
+	}
 	else if (data == COMMAND_20_SE)
 	{
 		LOGMASKED(LOG_SPI, "Set SPI to SE (Sector Erase)\n");
 		m_spi_state = COMMAND_20_SE;
+	}
+	else if (data == COMMAND_31_UNKNOWN)
+	{
+		LOGMASKED(LOG_SPI, "Set SPI to COMMAND_31_UNKNOWN\n");
+		m_spi_state = COMMAND_31_UNKNOWN;
 	}
 	else if (data == COMMAND_35_UNKNOWN)
 	{
@@ -292,7 +307,7 @@ void generic_spi_flash_device::process_status_read_command(u8 data)
 void generic_spi_flash_device::process_status2_read_command(u8 data)
 {
 	LOGMASKED(LOG_SPI, "status2 read\n");
-	m_spilatch = machine().rand();// m_spi_statusreg;
+	m_spilatch = machine().rand();
 	m_spi_state = READY_FOR_COMMAND;
 }
 
@@ -377,8 +392,17 @@ void generic_spi_flash_device::write(u8 data)
 		process_hsread_command(data);
 		break;
 
+	case COMMAND_11_UNKNOWN:
+		break;
+
+	case COMMAND_15_UNKNOWN:
+		break;
+
 	case COMMAND_20_SE:
 		process_sector_erase_command(data);
+		break;
+
+	case COMMAND_31_UNKNOWN:
 		break;
 
 	case COMMAND_35_UNKNOWN:

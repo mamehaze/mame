@@ -229,7 +229,7 @@ u16 generalplus_gpl951xx_device::spifc_rxdat_r()
 	at 239 is compares R1 with R2
 	*/
 
-	logerror("reading %04x\n", m_spifc_rx_read_latch);
+	printf("reading %04x\n", m_spifc_rx_read_latch);
 
 	return m_spifc_rx_read_latch;
 }
