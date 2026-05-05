@@ -68,11 +68,11 @@ private:
 
 		COMMAND_35_UNKNOWN = 0x35,
 
-		COMMAND_66_UNKNOWN = 0x66,
+		COMMAND_66_ENABLE_RESET = 0x66,
 
 		COMMAND_90_REMS = 0x90,
 
-		COMMAND_99_UNKNOWN = 0x99,
+		COMMAND_99_RESET = 0x99,
 
 		COMMAND_9F_RDID = 0x9f,
 
@@ -83,7 +83,7 @@ private:
 		COMMAND_EB_4READ = 0xeb,
 
 		COMMAND_EC_UNKNOWN = 0xec,
-		COMMAND_FF_UNKNOWN = 0xff,
+		COMMAND_FF_CRMR = 0xff,
 	};
 
 	void get_command(u8 data);

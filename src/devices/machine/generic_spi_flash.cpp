@@ -71,12 +71,13 @@ void generic_spi_flash_device::get_command(u8 data)
 	{
 		LOGMASKED(LOG_SPI, "Set SPI to WREN (Write Enable)\n");
 		m_spi_state = READY_FOR_COMMAND;
-		m_spi_statusreg |= 0x01;
+		m_spi_statusreg |= 0x02;
 	}
 	else if (data == COMMAND_04_WRDI)
 	{
 		LOGMASKED(LOG_SPI, "Set SPI to WRDI (Write Disable)\n");
 		m_spi_state = READY_FOR_COMMAND;
+		m_spi_statusreg &= ~0x02;
 	}
 	else if (data == COMMAND_02_PP)
 	{
@@ -108,9 +109,9 @@ void generic_spi_flash_device::get_command(u8 data)
 		LOGMASKED(LOG_SPI, "Set SPI to COMMAND_35_UNKNOWN\n");
 		m_spi_state = COMMAND_35_UNKNOWN;
 	}
-	else if (data == COMMAND_66_UNKNOWN)
+	else if (data == COMMAND_66_ENABLE_RESET)
 	{
-		LOGMASKED(LOG_SPI, "Set SPI to COMMAND_66_UNKNOWN\n");
+		LOGMASKED(LOG_SPI, "Set SPI to ENABLE_RESET\n");
 		m_spi_state = READY_FOR_COMMAND;
 	}
 	else if (data == COMMAND_90_REMS)
@@ -118,9 +119,10 @@ void generic_spi_flash_device::get_command(u8 data)
 		LOGMASKED(LOG_SPI, "Set SPI to REMS (Read Electronic Manufacturer & Device ID)\n");
 		m_spi_state = COMMAND_90_REMS;
 	}
-	else if (data == COMMAND_99_UNKNOWN)
+	else if (data == COMMAND_99_RESET)
 	{
-		LOGMASKED(LOG_SPI, "Set SPI to COMMAND_99_UNKNOWN\n");
+		// must be issued after 66
+		LOGMASKED(LOG_SPI, "Set SPI to RESET\n");
 		m_spi_state = READY_FOR_COMMAND;
 	}
 	else if (data == COMMAND_AB_RDP)
@@ -143,9 +145,9 @@ void generic_spi_flash_device::get_command(u8 data)
 		LOGMASKED(LOG_SPI, "Set SPI to COMMAND_EC_UNKNOWN\n");
 		m_spi_state = COMMAND_EC_UNKNOWN;
 	}
-	else if (data == COMMAND_FF_UNKNOWN)
+	else if (data == COMMAND_FF_CRMR)
 	{
-		LOGMASKED(LOG_SPI, "Set SPI to COMMAND_FF_UNKNOWN\n");
+		LOGMASKED(LOG_SPI, "Set SPI to CRMR (Continuous Read Mode Reset)\n");
 		m_spi_state = READY_FOR_COMMAND;
 	}
 	else
@@ -285,10 +287,7 @@ void generic_spi_flash_device::process_status_read_command(u8 data)
 	{
 	case 0x00:
 		LOGMASKED(LOG_SPI, "status read step 1\n");
-		m_spilatch = machine().rand();// m_spi_statusreg;
-
-	//	if (m_spi_statusreg & 0x01)
-	//		m_spi_statusreg &= 0xfe;
+		m_spilatch = m_spi_statusreg;
 
 		if (m_multibyte_status_read != 0)
 			m_spi_state_step++;
@@ -307,7 +306,7 @@ void generic_spi_flash_device::process_status_read_command(u8 data)
 void generic_spi_flash_device::process_status2_read_command(u8 data)
 {
 	LOGMASKED(LOG_SPI, "status2 read\n");
-	m_spilatch = machine().rand();
+	m_spilatch = m_spi_statusreg;
 	m_spi_state = READY_FOR_COMMAND;
 }
 

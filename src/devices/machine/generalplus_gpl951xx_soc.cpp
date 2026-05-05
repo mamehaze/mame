@@ -112,7 +112,6 @@ u16 generalplus_gpl951xx_device::spifc_cmd_r()
 
 void generalplus_gpl951xx_device::spifc_cmd_w(u16 data)
 {
-	printf("%s: spifc_cmd_w %02x %02x with param %04x\n", machine().describe_context().c_str(), (data & 0xff00) >> 8, data & 0xff, m_spifc_para);
 	LOGMASKED(LOG_SPIFC, "%s: spifc_cmd_w %02x %02x with param %04x\n", machine().describe_context(), (data & 0xff00) >> 8, data & 0xff, m_spifc_para);
 
 	m_spifc_cmd = data;
@@ -229,17 +228,13 @@ u16 generalplus_gpl951xx_device::spifc_rxdat_r()
 	at 239 is compares R1 with R2
 	*/
 
-	printf("reading %04x\n", m_spifc_rx_read_latch);
-
 	return m_spifc_rx_read_latch;
 }
 	
 
 void generalplus_gpl951xx_device::spifc_rxdat_w(u16 data)
 {
-	//if (m_bytes_in_spifc_rx_fifo)
-	//	m_bytes_in_spifc_rx_fifo--;
-
+	// write here to latch a word from the fifo into the read register
 	u16 word = get_byte_from_rx_fifo();
 	word = (get_byte_from_rx_fifo() << 8) | word;
 
