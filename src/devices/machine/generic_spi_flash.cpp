@@ -89,10 +89,10 @@ void generic_spi_flash_device::get_command(u8 data)
 		LOGMASKED(LOG_SPI, "Set SPI to COMMAND_11_UNKNOWN\n");
 		m_spi_state = COMMAND_11_UNKNOWN;
 	}
-	else if (data == COMMAND_15_UNKNOWN)
+	else if (data == COMMAND_15_RDCR)
 	{
-		LOGMASKED(LOG_SPI, "Set SPI to COMMAND_15_UNKNOWN\n");
-		m_spi_state = COMMAND_15_UNKNOWN;
+		LOGMASKED(LOG_SPI, "Set SPI to COMMAND_15_RDCR (Read Configuration Register)\n");
+		m_spi_state = COMMAND_15_RDCR;
 	}
 	else if (data == COMMAND_20_SE)
 	{
@@ -104,10 +104,10 @@ void generic_spi_flash_device::get_command(u8 data)
 		LOGMASKED(LOG_SPI, "Set SPI to COMMAND_31_UNKNOWN\n");
 		m_spi_state = COMMAND_31_UNKNOWN;
 	}
-	else if (data == COMMAND_35_UNKNOWN)
+	else if (data == COMMAND_35_RDSR2)
 	{
-		LOGMASKED(LOG_SPI, "Set SPI to COMMAND_35_UNKNOWN\n");
-		m_spi_state = COMMAND_35_UNKNOWN;
+		LOGMASKED(LOG_SPI, "Set SPI to COMMAND_35_RDSR2\n");
+		m_spi_state = COMMAND_35_RDSR2;
 	}
 	else if (data == COMMAND_66_ENABLE_RESET)
 	{
@@ -394,7 +394,7 @@ void generic_spi_flash_device::write(u8 data)
 	case COMMAND_11_UNKNOWN:
 		break;
 
-	case COMMAND_15_UNKNOWN:
+	case COMMAND_15_RDCR:
 		break;
 
 	case COMMAND_20_SE:
@@ -404,7 +404,7 @@ void generic_spi_flash_device::write(u8 data)
 	case COMMAND_31_UNKNOWN:
 		break;
 
-	case COMMAND_35_UNKNOWN:
+	case COMMAND_35_RDSR2:
 		process_status2_read_command(data);
 		break;
 
