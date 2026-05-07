@@ -70,6 +70,10 @@ private:
 	u16 spi_improve_r();
 	void spi_improve_w(u16 data);
 
+	u16 tft_status_r();
+	void tft_ctrl_w(u16 data);
+	void tft_memmode_wcmd_w(u16 data);
+
 	u16 pllsel_r();
 	void pllsel_w(u16 data);
 

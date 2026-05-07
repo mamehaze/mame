@@ -6,8 +6,9 @@
 
 #define LOG_SPIFC     (1U << 1)
 #define LOG_RTC       (1U << 2)
+#define LOG_TFT       (1U << 3)
 
-#define VERBOSE     (LOG_SPIFC | LOG_RTC)
+#define VERBOSE     (LOG_SPIFC | LOG_RTC | LOG_TFT)
 
 #include "logmacro.h"
 
@@ -573,6 +574,67 @@ void generalplus_gpl951xx_device::rtc_request_w(u16 data)
 	LOGMASKED(LOG_RTC, "%s: rtc_request_w %04x\n", machine().describe_context(), data);
 }
 
+// TFT
+
+// 15
+// 14
+// 13
+// 12
+//
+// 11
+// 10
+//  9
+//  8
+//
+//  7  MEM_STATE[3] or HSTS[1] - horizontal status register
+//  6  MEM_STATE[2] or HSTS[0]
+//  5  MEM_STATE[1] or VSTS[1] - vertical status register
+//  4  MEM_STATE[0] or VSTS[0]
+//
+//  3
+//  2
+//  1  Frame Interrupt Occured
+//  0
+
+u16 generalplus_gpl951xx_device::tft_status_r()
+{
+	u16 ret = 0x0000;
+	LOGMASKED(LOG_TFT, "%s: tft_status_r\n", machine().describe_context());
+	return ret;
+}
+
+// 15  VSU
+// 14  INLA
+// 13  BEN
+// 12  HCMP
+//
+// 11  DINV
+// 10  CINV
+//  9  HINV
+//  8  VINV
+//
+//  7  MODE[3]
+//  6  MODE[2]
+//  5  MODE[1]
+//  4  MODE[0]
+//
+//  3  CLK_SEL[2]
+//  2  CLK_SEL[1]
+//  1  CLK_SEL[0]
+//  0  TFTEN
+
+void generalplus_gpl951xx_device::tft_ctrl_w(u16 data)
+{
+	LOGMASKED(LOG_TFT, "%s: tft_ctrl_w %04x\n", machine().describe_context(), data);
+}
+
+void generalplus_gpl951xx_device::tft_memmode_wcmd_w(u16 data)
+{
+	LOGMASKED(LOG_TFT, "%s: tft_memmode_wcmd_w %04x\n", machine().describe_context(), data);
+}
+
+//
+
 u16 generalplus_gpl951xx_device::spi_bank_r()
 {
 	LOGMASKED(LOG_SPIFC, "%s: spi_bank_r\n", machine().describe_context());
@@ -649,7 +711,7 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map &map)
 	//
 	map(0x007042, 0x007042).rw(m_spg_video, FUNC(gcm394_base_video_device::sprite_7042_extra_r), FUNC(gcm394_base_video_device::sprite_7042_extra_w)); // 7042 - SControl
 	//
-	// 7050 - TFT_Ctrl
+	map(0x007050, 0x007050).w(FUNC(generalplus_gpl951xx_device::tft_ctrl_w)); // 7050 - TFT_Ctrl
 	// 7051 - TFT_V_Width
 	// 7052 - TFT_VSync_Setup
 	// 7053 - TFT_V_Start
@@ -659,8 +721,8 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map &map)
 	// 7057 - TFT_H_Start
 	// 7058 - TFT_H_End
 	// 7059 - TFT_RGB_Ctrl
-	// 705a - TFT_Status
-	// 705b - TFT_MemMode_WCmd
+	map(0x00705a, 0x00705a).r(FUNC(generalplus_gpl951xx_device::tft_status_r)); // 705a - TFT_Status
+	map(0x00705b, 0x00705b).w(FUNC(generalplus_gpl951xx_device::tft_memmode_wcmd_w)); // 705b - TFT_MemMode_WCmd
 	// 705c - TFT_MemMode_RCmd
 	//
 	// 705e - STN_PIC_SEG
