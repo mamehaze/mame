@@ -14,6 +14,56 @@
 #include "logmacro.h"
 
 
+// RTC
+
+void gpl951xx_rtc_device::rtc_regs(address_map &map)
+{
+	if (!has_configured_map(0))
+	{
+		map(0x00, 0xff).ram();
+	}
+}
+
+// device type definition
+DEFINE_DEVICE_TYPE(GPL951XX_RTC, gpl951xx_rtc_device, "gpl951xx_rtc", "GPL951XX_RTC")
+
+gpl951xx_rtc_device::gpl951xx_rtc_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock) :
+	device_t(mconfig, GPL951XX_RTC, tag, owner, clock),
+	device_memory_interface(mconfig, *this),
+	m_space_config("videoram", ENDIANNESS_LITTLE, 8, 8, 0, address_map_constructor(FUNC(gpl951xx_rtc_device::rtc_regs), this))
+{
+}
+
+device_memory_interface::space_config_vector gpl951xx_rtc_device::memory_space_config() const
+{
+	return space_config_vector {
+		std::make_pair(0, &m_space_config)
+	};
+}
+
+inline uint8_t gpl951xx_rtc_device::readbyte(offs_t address)
+{
+	return space().read_byte(address);
+}
+
+inline void gpl951xx_rtc_device::writebyte(offs_t address, uint8_t data)
+{
+	space().write_byte(address, data);
+}
+
+void gpl951xx_rtc_device::device_validity_check(validity_checker &valid) const
+{
+}
+
+void gpl951xx_rtc_device::device_start()
+{
+}
+
+void gpl951xx_rtc_device::device_reset()
+{
+}
+
+
 // SPIFC - the directly mapped SPI interface
 // provides 'hardware accelerated' SPI features (composing and sending packets to the SPI device)
 // including XIP (eXecute In Place) support for flat view of SPI ROM
@@ -556,12 +606,13 @@ void generalplus_gpl951xx_device::gpl951xx_timerh_ctrl_w(u16 data)
 
 u16 generalplus_gpl951xx_device::rtc_readdata_r()
 {
-	return machine().rand(); // hangs if returning 0
+	logerror("%s: rtc_readdata_r\n", machine().describe_context());
+	return 0xffff; // hangs if returning 0
 }
 
 u16 generalplus_gpl951xx_device::rtc_ready_r()
 {
-	// status bits?
+	logerror("%s: rtc_ready_r\n", machine().describe_context());
 	return machine().rand();
 }
 
@@ -1274,6 +1325,8 @@ void generalplus_gpl951xx_device::device_add_mconfig(machine_config &config)
 
 	TIMER(config, "timer_g").configure_generic(FUNC(generalplus_gpl951xx_device::timer_g_cb));
 	TIMER(config, "timer_h").configure_generic(FUNC(generalplus_gpl951xx_device::timer_h_cb));
+
+	GPL951XX_RTC(config, m_rtc, 0);
 }
 
 DEFINE_DEVICE_TYPE(GPL951XX, generalplus_gpl951xx_device, "gpl951xx", "GeneralPlus GPL951xx")
@@ -1286,7 +1339,8 @@ generalplus_gpl951xx_device::generalplus_gpl951xx_device(const machine_config &m
 	m_i80_cmd_out(*this),
 	m_i80_data_out(*this),
 	m_timer_g(*this, "timer_g"),
-	m_timer_h(*this, "timer_h")
+	m_timer_h(*this, "timer_h"),
+	m_rtc(*this, "rtc")
 {
 }
 

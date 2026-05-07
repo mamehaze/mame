@@ -10,6 +10,30 @@
 
 #include "machine/timer.h"
 
+class gpl951xx_rtc_device :   public device_t,
+						public device_memory_interface
+{
+public:
+
+	gpl951xx_rtc_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
+
+	void rtc_regs(address_map &map) ATTR_COLD;
+
+protected:
+	virtual void device_validity_check(validity_checker &valid) const override;
+	virtual void device_start() override ATTR_COLD;
+	virtual void device_reset() override ATTR_COLD;
+	virtual space_config_vector memory_space_config() const override;
+
+private:
+	const address_space_config      m_space_config;
+
+	inline uint8_t readbyte(offs_t address);
+	inline void writebyte(offs_t address, uint8_t data);
+};
+
+DECLARE_DEVICE_TYPE(GPL951XX_RTC, gpl951xx_rtc_device)
+
 class generalplus_gpl951xx_device : public sunplus_gcm394_base_device
 {
 public:
@@ -159,6 +183,7 @@ private:
 	// devices
 	required_device<timer_device> m_timer_g;
 	required_device<timer_device> m_timer_h;
+	required_device<gpl951xx_rtc_device> m_rtc;
 };
 
 DECLARE_DEVICE_TYPE(GPL951XX, generalplus_gpl951xx_device)

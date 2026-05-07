@@ -198,7 +198,7 @@ sundance_audio_device::sundance_audio_device(const machine_config &mconfig, cons
 DEFINE_DEVICE_TYPE(TAIL_GUNNER_AUDIO, tailg_audio_device, "tailg_audio", "Tail Gunner Sound Board")
 
 tailg_audio_device::tailg_audio_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock)
-	: cinemat_audio_device_base(mconfig, TAIL_GUNNER_AUDIO, tag, owner, clock, 0x1f, NETLIST_NAME(tailg), 2.2)
+	: cinemat_audio_device_base(mconfig, TAIL_GUNNER_AUDIO, tag, owner, clock, 0x1f, NETLIST_NAME(tailg), 0.5)
 {
 }
 
