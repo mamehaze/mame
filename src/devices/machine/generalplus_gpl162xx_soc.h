@@ -136,6 +136,9 @@ protected:
 	u16 m_ioe_dir;
 	u16 m_ioe_attrib;
 
+	u16 m_iof_dir;
+	u16 m_iof_attrib;
+
 	u16 m_int_status1;
 
 	u16 m_int_priority_1;
@@ -200,8 +203,8 @@ protected:
 	u16 power_state_r();
 	u16 unkarea_78fb_status_r();
 
-	u16 unkarea_7803_r();
-	void unkarea_7803_w(u16 data);
+	u16 sys_ctrl_r();
+	void sys_ctrl_w(u16 data);
 
 	void clock_ctrl_w(u16 data);
 
@@ -212,6 +215,11 @@ protected:
 
 	void unkarea_7816_w(u16 data);
 	void pllchange_w(u16 data);
+
+	u16 pllclkwait_r();
+	void pllclkwait_w(u16 data);
+
+	void watchdog_ctrl_w(u16 data);
 
 	u16 cache_ctrl_r();
 	void cache_ctrl_w(u16 data);
@@ -267,13 +275,23 @@ protected:
 	u16 iod_mux_r();
 	void iod_mux_w(u16 data);
 
-
+	u16 ioe_buffer_r();
+	void ioe_buffer_w(u16 data);
 	u16 ioe_dir_r();
 	void ioe_dir_w(u16 data);
 	u16 ioe_attrib_r();
 	void ioe_attrib_w(u16 data);
 
+	u16 iof_buffer_r();
+	void iof_buffer_w(u16 data);
+	u16 iof_dir_r();
+	void iof_dir_w(u16 data);
+	u16 iof_attrib_r();
+	void iof_attrib_w(u16 data);
+
 	void int_status1_w(u16 data);
+	void int_status2_w(u16 data);
+	void int_status3_w(u16 data);
 
 	u16 int_status1_r();
 	u16 int_status2_r();

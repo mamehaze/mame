@@ -67,6 +67,9 @@ private:
 	u16 spifc_ctrl2_r();
 	void spifc_ctrl2_w(u16 data);
 
+	u16 spi_improve_r();
+	void spi_improve_w(u16 data);
+
 	u16 pllsel_r();
 	void pllsel_w(u16 data);
 
@@ -77,6 +80,10 @@ private:
 	// RTC
 	u16 rtc_readdata_r();
 	u16 rtc_ready_r();
+	void rtc_ctrl_w(u16 data);
+	void rtc_addr_w(u16 data);
+	void rtc_writedata_w(u16 data);
+	void rtc_request_w(u16 data);
 
 	// Timers (different compared to GPL162xx)
 	u16 gpl951xx_timerg_ctrl_r();
