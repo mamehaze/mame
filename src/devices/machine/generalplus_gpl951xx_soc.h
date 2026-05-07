@@ -37,6 +37,21 @@ private:
 
 	inline uint8_t readbyte(offs_t address);
 	inline void writebyte(offs_t address, uint8_t data);
+
+	u8 reg00_r();
+	u8 reg01_r();
+
+	void reg40_w(u8 data);
+
+	u8 reg50_r();
+	void reg50_w(u8 data);
+
+	u8 m_rtc_addr;
+	u8 m_read_dat;
+	u8 m_write_dat;
+
+	u8 m_reg40;
+	u8 m_reg50;
 };
 
 DECLARE_DEVICE_TYPE(GPL951XX_RTC, gpl951xx_rtc_device)
