@@ -180,7 +180,6 @@ void generalplus_gpl951xx_game_state::gpl951xx(machine_config &config)
 ;
 
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
-	//m_screen->set_refresh_hz(20); // 20hz update gives more correct speed (and working inputs) in fixitflx and bfdigdug, but speed should probably be limited in some other way
 	m_screen->set_refresh_hz(60);
 	m_screen->set_size(320*2, 262*2);
 	m_screen->set_visarea(0, (320*2)-1, 0, (240*2)-1);

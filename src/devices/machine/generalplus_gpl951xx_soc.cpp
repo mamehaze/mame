@@ -854,9 +854,9 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map &map)
 	// 78ad - IOE_ KCIFC
 	// 78ae - IOF_ KCIFC
 
-	map(0x0078b0, 0x0078b0).w(FUNC(generalplus_gpl951xx_device::timebasea_ctrl_w)); // 78b0 - TimeBaseA_Ctrl
-	map(0x0078b1, 0x0078b1).w(FUNC(generalplus_gpl951xx_device::timebaseb_ctrl_w)); // 78b1 - TimeBaseB_Ctrl
-	map(0x0078b2, 0x0078b2).rw(FUNC(generalplus_gpl951xx_device::timebasec_ctrl_r), FUNC(generalplus_gpl951xx_device::timebasec_ctrl_w)); // 78b2 - TimeBaseC_Ctrl
+	map(0x0078b0, 0x0078b0).rw(FUNC(generalplus_gpl951xx_device::timebasea_ctrl_r), FUNC(generalplus_gpl951xx_device::timebasea_ctrl_w));  // 78b0 TimeBase A Control Register (P_TimeBaseA_Ctrl)
+	map(0x0078b1, 0x0078b1).rw(FUNC(generalplus_gpl951xx_device::timebaseb_ctrl_r), FUNC(generalplus_gpl951xx_device::timebaseb_ctrl_w));  // 78b1 TimeBase B Control Register (P_TimeBaseB_Ctrl)
+	map(0x0078b2, 0x0078b2).rw(FUNC(generalplus_gpl951xx_device::timebasec_ctrl_r), FUNC(generalplus_gpl951xx_device::timebasec_ctrl_w));  // 78b2 TimeBase C Control Register (P_TimeBaseC_Ctrl)
 
 	map(0x0078b8, 0x0078b8).w(FUNC(generalplus_gpl951xx_device::timebase_reset_w)); // 78b8 - TimeBase_Reset
 

@@ -979,7 +979,7 @@ void sunplus_gcm394_base_device::timebasea_ctrl_w(u16 data)
 		m_timebasea_ctrl = data;
 	}
 
-	if (m_timebasea_ctrl & 0x6000)
+	if ((m_timebasea_ctrl & 0x6000) == 0x6000)
 	{
 		switch (m_timebasea_ctrl & 0x0003)
 		{
@@ -1023,7 +1023,7 @@ void sunplus_gcm394_base_device::timebaseb_ctrl_w(u16 data)
 		m_timebaseb_ctrl = data;
 	}
 
-	if (m_timebaseb_ctrl & 0x6000)
+	if ((m_timebaseb_ctrl & 0x6000) == 0x6000)
 	{
 		switch (m_timebaseb_ctrl & 0x0003)
 		{
@@ -1067,7 +1067,7 @@ void sunplus_gcm394_base_device::timebasec_ctrl_w(u16 data)
 		m_timebasec_ctrl = data;
 	}
 
-	if (m_timebasec_ctrl & 0x6000)
+	if ((m_timebasec_ctrl & 0x6000) == 0x6000)
 	{
 		switch (m_timebasec_ctrl & 0x0003)
 		{
@@ -1781,8 +1781,8 @@ void sunplus_gcm394_base_device::base_internal_map(address_map &map)
 	// 78bx - timer control?
 	// ######################################################################################################################################################################################
 
-	map(0x0078b0, 0x0078b0).w(FUNC(sunplus_gcm394_base_device::timebasea_ctrl_w));  // 78b0 TimeBase A Control Register (P_TimeBaseA_Ctrl)
-	map(0x0078b1, 0x0078b1).w(FUNC(sunplus_gcm394_base_device::timebaseb_ctrl_w));  // 78b1 TimeBase B Control Register (P_TimeBaseB_Ctrl)
+	map(0x0078b0, 0x0078b0).rw(FUNC(sunplus_gcm394_base_device::timebasea_ctrl_r), FUNC(sunplus_gcm394_base_device::timebasea_ctrl_w));  // 78b0 TimeBase A Control Register (P_TimeBaseA_Ctrl)
+	map(0x0078b1, 0x0078b1).rw(FUNC(sunplus_gcm394_base_device::timebaseb_ctrl_r), FUNC(sunplus_gcm394_base_device::timebaseb_ctrl_w));  // 78b1 TimeBase B Control Register (P_TimeBaseB_Ctrl)
 	map(0x0078b2, 0x0078b2).rw(FUNC(sunplus_gcm394_base_device::timebasec_ctrl_r), FUNC(sunplus_gcm394_base_device::timebasec_ctrl_w));  // 78b2 TimeBase C Control Register (P_TimeBaseC_Ctrl)
 
 	map(0x0078b8, 0x0078b8).w(FUNC(sunplus_gcm394_base_device::timebase_reset_w));  // 78b8 TimeBase Counter Reset Register  (P_TimeBase_Reset)
@@ -2099,8 +2099,8 @@ IRQ_CALLBACK_MEMBER(sunplus_gcm394_base_device::irq_vector_cb)
 {
 	//logerror("irq_vector_cb %d\n", irqline);
 
-	if (irqline == UNSP_IRQ6_LINE)
-		set_state_unsynced(UNSP_IRQ6_LINE, CLEAR_LINE);
+	//if (irqline == UNSP_IRQ6_LINE)
+	//	set_state_unsynced(UNSP_IRQ6_LINE, CLEAR_LINE);
 
 	if (irqline == UNSP_IRQ4_LINE)
 		set_state_unsynced(UNSP_IRQ4_LINE, CLEAR_LINE);
