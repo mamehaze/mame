@@ -12,6 +12,8 @@
 #pragma once
 
 #include "cpu/unsp/unsp.h"
+#include "machine/timer.h"
+
 #include "screen.h"
 #include "emupal.h"
 #include "generalplus_gpl162xx_soc_video.h"
@@ -180,6 +182,10 @@ protected:
 	devcb_write16 m_space_write_cb;
 	devcb_write_line m_dma_complete_cb;
 
+	TIMER_DEVICE_CALLBACK_MEMBER(timebase_a_cb);
+	TIMER_DEVICE_CALLBACK_MEMBER(timebase_b_cb);
+	TIMER_DEVICE_CALLBACK_MEMBER(timebase_c_cb);
+
 	u16 unk_r(offs_t offset);
 	void unk_w(offs_t offset, u16 data);
 
@@ -295,6 +301,7 @@ protected:
 
 	u16 int_status1_r();
 	u16 int_status2_r();
+	u16 int_status3_r();
 
 	void int_priority_1_w(u16 data);
 	void int_priority_2_w(u16 data);
@@ -302,7 +309,12 @@ protected:
 
 	void mint_ctrl_w(u16 data);
 
+	void update_interrupts();
+		
+	u16 timebasea_ctrl_r();
 	void timebasea_ctrl_w(u16 data);
+
+	u16 timebaseb_ctrl_r();
 	void timebaseb_ctrl_w(u16 data);
 
 	u16 timebasec_ctrl_r();
@@ -363,6 +375,10 @@ protected:
 	// config registers (external pins)
 	int m_boot_mode; // 2 pins determine boot mode, likely only read at power-on
 	sunplus_gcm394_cs_callback_device m_cs_callback;
+
+	required_device<timer_device> m_timebase_a;
+	required_device<timer_device> m_timebase_b;
+	required_device<timer_device> m_timebase_c;
 };
 
 
