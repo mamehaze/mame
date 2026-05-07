@@ -70,6 +70,8 @@ private:
 	u16 spi_improve_r();
 	void spi_improve_w(u16 data);
 
+	void pm_ctrl_w(u16 data);
+
 	u16 tft_status_r();
 	void tft_ctrl_w(u16 data);
 	void tft_memmode_wcmd_w(u16 data);
@@ -106,6 +108,11 @@ private:
 	u16 spi_direct_bank_r(offs_t offset);
 
 	u8 get_byte_from_rx_fifo();
+
+	u16 gp951xx_int_status3_r();
+	void gp951xx_int_status3_w(u16 data);
+
+	virtual void update_interrupts() override;
 
 	TIMER_DEVICE_CALLBACK_MEMBER(timer_g_cb);
 	TIMER_DEVICE_CALLBACK_MEMBER(timer_h_cb);

@@ -7,8 +7,9 @@
 #define LOG_SPIFC     (1U << 1)
 #define LOG_RTC       (1U << 2)
 #define LOG_TFT       (1U << 3)
+#define LOG_OTHER     (1U << 4)
 
-#define VERBOSE     (LOG_SPIFC | LOG_RTC | LOG_TFT)
+#define VERBOSE     (LOG_SPIFC | LOG_RTC | LOG_TFT | LOG_OTHER)
 
 #include "logmacro.h"
 
@@ -324,6 +325,11 @@ void generalplus_gpl951xx_device::spi_improve_w(u16 data)
 
 // Other bits
 
+void generalplus_gpl951xx_device::pm_ctrl_w(u16 data)
+{
+	LOGMASKED(LOG_SPIFC, "%s: pm_ctrl_w %04x\n", machine().describe_context(), data);
+}
+
 u16 generalplus_gpl951xx_device::pllsel_r()
 {
 	logerror("%s: pllsel_r\n", machine().describe_context());
@@ -449,13 +455,15 @@ void generalplus_gpl951xx_device::gpl951xx_timerg_ctrl_w(u16 data)
 	logerror("%s: gpl951xx_timerg_ctrl_w %04x (tmgif_clear %01x) (interrupt enabled %01x) (timer enabled %01x) (ext0sel %01x) (ext1sel %01x) (srcbsel %01x) (srcasel %01x)\n", machine().describe_context(), data, tmgif_clear, tmgie, tmgen, ext0sel, ext1sel, srcbsel, srcasel);
 
 	if (data & 0x8000)
+	{
 		m_gpl951xx_timerg_ctrl &= 0x7fff;
+	}
 
 	if ((data & 0x2000) != (m_gpl951xx_timerg_ctrl & 0x2000))
 	{
 		if (data & 0x2000)
 		{
-			m_timer_g->adjust(attotime::zero, 0, attotime::from_hz(8'000'000));
+			m_timer_g->adjust(attotime::zero, 0, attotime::from_hz(60));
 		}
 		else
 		{
@@ -464,6 +472,7 @@ void generalplus_gpl951xx_device::gpl951xx_timerg_ctrl_w(u16 data)
 	}
 
 	m_gpl951xx_timerg_ctrl = (m_gpl951xx_timerg_ctrl & 0x8000) | (data & 0x7fff);
+	update_interrupts();
 }
 
 u16 generalplus_gpl951xx_device::gpl951xx_timerh_preload_r()
@@ -531,7 +540,7 @@ void generalplus_gpl951xx_device::gpl951xx_timerh_ctrl_w(u16 data)
 		if (data & 0x2000)
 		{
 			logerror("started timerh\n");
-			m_timer_h->adjust(attotime::zero, 0, attotime::from_hz(8'000'000));
+			m_timer_h->adjust(attotime::zero, 0, attotime::from_hz(43));
 		}
 		else
 		{
@@ -541,11 +550,12 @@ void generalplus_gpl951xx_device::gpl951xx_timerh_ctrl_w(u16 data)
 	}
 
 	m_gpl951xx_timerh_ctrl = (m_gpl951xx_timerh_ctrl & 0x8000) | (data & 0x7fff);
-
+	update_interrupts();
 }
+
 u16 generalplus_gpl951xx_device::rtc_readdata_r()
 {
-	return 0xffff; // hangs if returning 0
+	return machine().rand(); // hangs if returning 0
 }
 
 u16 generalplus_gpl951xx_device::rtc_ready_r()
@@ -646,6 +656,27 @@ void generalplus_gpl951xx_device::spi_bank_w(u16 data)
 	LOGMASKED(LOG_SPIFC, "%s: spi_bank_w %04x\n", machine().describe_context(), data);
 	m_spi_bank = data;
 }
+
+u16 generalplus_gpl951xx_device::gp951xx_int_status3_r()
+{
+	u16 ret = 0;
+	LOGMASKED(LOG_OTHER, "%s: generalplus_gpl951xx_device::gp951xx_int_status3_r\n", machine().describe_context());
+
+	if (m_gpl951xx_timerh_ctrl & 0x8000)
+		ret |= 0x8000;
+
+	if (m_gpl951xx_timerg_ctrl & 0x8000)
+		ret |= 0x4000;
+
+	return ret;
+}
+
+void generalplus_gpl951xx_device::gp951xx_int_status3_w(u16 data)
+{
+	LOGMASKED(LOG_OTHER, "%s: generalplus_gpl951xx_device::gp951xx_int_status3_w %04x\n", machine().describe_context(), data);
+	// bit 2 (SPU Beat Interrupt) is listed as R/W for GPL95, but not GPL162? (verify)
+}
+
 
 
 u16 generalplus_gpl951xx_device::spi_direct_r(offs_t offset)
@@ -784,12 +815,12 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map &map)
 	// 7801 - unused
 	// 7802 - PwrKey_State
 	map(0x007803, 0x007803).rw(FUNC(generalplus_gpl951xx_device::sys_ctrl_r), FUNC(generalplus_gpl951xx_device::sys_ctrl_w)); // 7803 - SYS_CTRL (seems quite different between SoCs)
-	// 7804 - CLK_Ctrl0
+	map(0x007804, 0x007804).rw(FUNC(generalplus_gpl951xx_device::clk_ctrl0_r), FUNC(generalplus_gpl951xx_device::clk_ctrl0_w)); // 7804 - CLK_Ctrl0
 	// 7805 - CLK_Ctrl1
 	// 7806 - Reset_Flag
 	map(0x007807, 0x007807).w(FUNC(generalplus_gpl951xx_device::clock_ctrl_w)); // 7807 - Clock_Ctrl
 	// 7808 - LVR_Ctrl
-	// 7809 - PM_Ctrl
+	map(0x00780a, 0x00780a).w(FUNC(generalplus_gpl951xx_device::pm_ctrl_w)); // 7809 - PM_Ctrl
 	map(0x00780a, 0x00780a).w(FUNC(generalplus_gpl951xx_device::watchdog_ctrl_w)); // 780a - Watchdog_Ctrl
 	map(0x00780b, 0x00780b).nopw(); // Watchdog_Clear
 	// 780c - WAIT
@@ -902,7 +933,7 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map &map)
 
 	map(0x0078a0, 0x0078a0).rw(FUNC(generalplus_gpl951xx_device::int_status1_r), FUNC(generalplus_gpl951xx_device::int_status1_w)); // 78a0 - INT_Status1
 	map(0x0078a1, 0x0078a1).rw(FUNC(generalplus_gpl951xx_device::int_status2_r), FUNC(generalplus_gpl951xx_device::int_status2_w)); // 78a1 - INT_Status2
-	map(0x0078a2, 0x0078a2).rw(FUNC(generalplus_gpl951xx_device::int_status3_r), FUNC(generalplus_gpl951xx_device::int_status3_w)); // 78a2 - INT_Status3
+	map(0x0078a2, 0x0078a2).rw(FUNC(generalplus_gpl951xx_device::gp951xx_int_status3_r), FUNC(generalplus_gpl951xx_device::gp951xx_int_status3_w)); // 78a2 - INT_Status3
 	map(0x0078a3, 0x0078a3).w(FUNC(generalplus_gpl951xx_device::int_priority_1_w)); // 78a3 - INT_Priority1
 	map(0x0078a4, 0x0078a4).w(FUNC(generalplus_gpl951xx_device::int_priority_2_w)); // 78a4 - INT_Priority2
 	map(0x0078a5, 0x0078a5).w(FUNC(generalplus_gpl951xx_device::int_priority_3_w)); // 78a5 - INT_Priority3
@@ -1167,14 +1198,31 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map &map)
 	map(0x200000, 0x3fffff).r(FUNC(generalplus_gpl951xx_device::spi_direct_bank_r));
 }
 
+void generalplus_gpl951xx_device::update_interrupts()
+{
+	sunplus_gcm394_base_device::update_interrupts();
+
+	if (((m_gpl951xx_timerg_ctrl & 0x8000) && (m_gpl951xx_timerg_ctrl & 0x4000)) || 
+		((m_gpl951xx_timerh_ctrl & 0x8000) && (m_gpl951xx_timerh_ctrl & 0x4000)))
+	{
+		set_state_unsynced(UNSP_IRQ4_LINE, ASSERT_LINE);
+	}
+	else
+	{
+		set_state_unsynced(UNSP_IRQ4_LINE, CLEAR_LINE);
+	}
+}
+
 TIMER_DEVICE_CALLBACK_MEMBER( generalplus_gpl951xx_device::timer_g_cb )
 {
 	m_gpl951xx_timerg_ctrl |= 0x8000;
+	update_interrupts();
 }
 
 TIMER_DEVICE_CALLBACK_MEMBER( generalplus_gpl951xx_device::timer_h_cb )
 {
 	m_gpl951xx_timerh_ctrl |= 0x8000;
+	update_interrupts();
 }
 
 void generalplus_gpl951xx_device::device_add_mconfig(machine_config &config)

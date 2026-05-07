@@ -349,7 +349,22 @@ void sunplus_gcm394_base_device::unkarea_782d_w(u16 data) { LOGMASKED(LOG_GCM394
 u16 sunplus_gcm394_base_device::sys_ctrl_r() { LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::sys_ctrl_r\n", machine().describe_context()); return m_sys_ctrl; }
 void sunplus_gcm394_base_device::sys_ctrl_w(u16 data) { LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::sys_ctrl_w %04x\n", machine().describe_context(), data); m_sys_ctrl = data; }
 
-void sunplus_gcm394_base_device::clock_ctrl_w(u16 data) { LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::clock_ctrl_w %04x\n", machine().describe_context(), data); m_clock_ctrl = data; }
+void sunplus_gcm394_base_device::clock_ctrl_w(u16 data)
+{
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::clock_ctrl_w %04x\n", machine().describe_context(), data);
+	m_clock_ctrl = data;
+}
+
+u16 sunplus_gcm394_base_device::clk_ctrl0_r()
+{
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::clk_ctrl0_r\n", machine().describe_context());
+	return 0x0000;
+}
+
+void sunplus_gcm394_base_device::clk_ctrl0_w(u16 data)
+{
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::clk_ctrl0 %04x\n", machine().describe_context(), data);
+}
 
 void sunplus_gcm394_base_device::watchdog_ctrl_w(u16 data)
 {
@@ -1366,6 +1381,7 @@ void sunplus_gcm394_base_device::unk_w(offs_t offset, u16 data)
 // 7806 - Reset_Flag
 // 7807 - Clock_Ctrl
 // 7808 - LVR_Ctrl
+// 7809 - P_IO_Map_Ctrl
 // 780a - Watchdog_Ctrl
 // 780b - Watchdog_Clear
 // 780c - WAIT
@@ -1681,6 +1697,7 @@ void sunplus_gcm394_base_device::base_internal_map(address_map &map)
 	// ######################################################################################################################################################################################
 
 	map(0x007803, 0x007803).rw(FUNC(sunplus_gcm394_base_device::sys_ctrl_r), FUNC(sunplus_gcm394_base_device::sys_ctrl_w));
+	map(0x007804, 0x007804).rw(FUNC(sunplus_gcm394_base_device::clk_ctrl0_r), FUNC(sunplus_gcm394_base_device::clk_ctrl0_w));
 
 	map(0x007807, 0x007807).w(FUNC(sunplus_gcm394_base_device::clock_ctrl_w));
 	// 7808

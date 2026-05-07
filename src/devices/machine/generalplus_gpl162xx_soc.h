@@ -214,6 +214,9 @@ protected:
 
 	void clock_ctrl_w(u16 data);
 
+	u16 clk_ctrl0_r();
+	void clk_ctrl0_w(u16 data);
+
 	void waitmode_enter_780c_w(u16 data);
 
 	u16 membankswitch_7810_r();
@@ -309,7 +312,7 @@ protected:
 
 	void mint_ctrl_w(u16 data);
 
-	void update_interrupts();
+	virtual void update_interrupts();
 		
 	u16 timebasea_ctrl_r();
 	void timebasea_ctrl_w(u16 data);
