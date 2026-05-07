@@ -373,6 +373,7 @@ void generalplus_gpl951xx_device::device_start()
 	save_item(NAME(m_spifc_timing));
 	save_item(NAME(m_bytes_in_spifc_rx_fifo));
 	save_item(NAME(m_spi_bank));
+	save_item(NAME(m_memmode_wcmd));
 	save_item(NAME(m_spifc_rx_fifo));
 	save_item(NAME(m_spifc_rx_read_latch));
 }
@@ -395,7 +396,7 @@ void generalplus_gpl951xx_device::device_reset()
 	m_spifc_timing = 0;
 	m_bytes_in_spifc_rx_fifo = 0;
 	m_spifc_rx_read_latch = 0;
-
+	m_memmode_wcmd = 0;
 	m_spi_bank = 0;
 
 	for (int i = 0; i < 16 * 2; i++)
@@ -463,7 +464,7 @@ void generalplus_gpl951xx_device::gpl951xx_timerg_ctrl_w(u16 data)
 	{
 		if (data & 0x2000)
 		{
-			m_timer_g->adjust(attotime::zero, 0, attotime::from_hz(60));
+			m_timer_g->adjust(attotime::zero, 0, attotime::from_hz(2000));
 		}
 		else
 		{
@@ -540,7 +541,7 @@ void generalplus_gpl951xx_device::gpl951xx_timerh_ctrl_w(u16 data)
 		if (data & 0x2000)
 		{
 			logerror("started timerh\n");
-			m_timer_h->adjust(attotime::zero, 0, attotime::from_hz(43));
+			m_timer_h->adjust(attotime::zero, 0, attotime::from_hz(2000));
 		}
 		else
 		{
@@ -635,12 +636,54 @@ u16 generalplus_gpl951xx_device::tft_status_r()
 
 void generalplus_gpl951xx_device::tft_ctrl_w(u16 data)
 {
-	LOGMASKED(LOG_TFT, "%s: tft_ctrl_w %04x\n", machine().describe_context(), data);
+	u8 vsu   = (data & 0x8000) >> 15;
+	u8 inla  = (data & 0x4000) >> 14;
+	u8 ben   = (data & 0x2000) >> 13;
+	u8 hcmp  = (data & 0x1000) >> 12;
+	u8 dinv  = (data & 0x0800) >> 11;
+	u8 cinv  = (data & 0x0400) >> 10;
+	u8 hinv  = (data & 0x0200) >> 9;
+	u8 vinv  = (data & 0x0100) >> 8;
+	u8 mode  = (data & 0x00f0) >> 4;
+	u8 clk_s = (data & 0x000e) >> 1;
+	u8 tften = (data & 0x0001) >> 0;
+
+	static const char* modenames[16] =
+	{
+		"0: UPS051 mode",
+		"1: UPS052 mode",
+		"2: CCIR656 mode",
+		"3: PARALLEL mode",
+		"4: TOCN mode",
+		"5: reserved",
+		"6: reserved",
+		"7: reserved",
+		"8: I80 CMD write",
+		"9: I80 CMD read",
+		"a: I80 DATA write",
+		"b: I80 DATA read",
+		"c: I80 Continuous mode",
+		"d: I80 Single mode",
+		"e: reserved",
+		"f: reserved"
+	};
+
+	LOGMASKED(LOG_TFT, "%s: tft_ctrl_w %04x (vsa %1x inla %1x ben %1x hcmp %1x dinv %1x cinv %1x hinv %1x vinv %1x mode (%s) clck_s %1x tft_en %1x\n", machine().describe_context(), data,
+		vsu, inla, ben, hcmp, dinv, cinv, hinv, vinv, modenames[mode], clk_s, tften);
+
+	if (tften)
+	{
+		if (mode == 0x8)
+			m_i80_cmd_out(m_memmode_wcmd);
+		else if (mode == 0x0a)
+			m_i80_data_out(m_memmode_wcmd);
+	}
 }
 
 void generalplus_gpl951xx_device::tft_memmode_wcmd_w(u16 data)
 {
 	LOGMASKED(LOG_TFT, "%s: tft_memmode_wcmd_w %04x\n", machine().describe_context(), data);
+	m_memmode_wcmd = data;
 }
 
 //
@@ -1240,6 +1283,8 @@ generalplus_gpl951xx_device::generalplus_gpl951xx_device(const machine_config &m
 	m_spi_out(*this),
 	m_spi_out_cmd(*this),
 	m_spi_reset(*this),
+	m_i80_cmd_out(*this),
+	m_i80_data_out(*this),
 	m_timer_g(*this, "timer_g"),
 	m_timer_h(*this, "timer_h")
 {

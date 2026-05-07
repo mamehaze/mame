@@ -31,6 +31,10 @@ public:
 	auto spi_out_cmd() { return m_spi_out_cmd.bind(); }
 	auto spi_reset() { return m_spi_reset.bind(); }
 
+	auto i80_cmd_out() { return m_i80_cmd_out.bind(); }
+	auto i80_data_out() { return m_i80_data_out.bind(); }
+
+
 	void recieve_spi_fifo_data(u8 data);
 
 protected:
@@ -138,6 +142,8 @@ private:
 
 	u16 m_spi_bank;
 
+	u16 m_memmode_wcmd;
+
 	// config
 	u8 *m_spiregion;
 	u32 m_spisize;
@@ -145,6 +151,10 @@ private:
 	devcb_write8 m_spi_out;
 	devcb_write8 m_spi_out_cmd;
 	devcb_write8 m_spi_reset;
+
+	devcb_write16 m_i80_cmd_out;
+	devcb_write16 m_i80_data_out;
+
 
 	// devices
 	required_device<timer_device> m_timer_g;
