@@ -12,6 +12,8 @@
 #pragma once
 
 #include "cpu/unsp/unsp.h"
+#include "machine/timer.h"
+
 #include "screen.h"
 #include "emupal.h"
 #include "generalplus_gpl162xx_soc_video.h"
@@ -136,6 +138,9 @@ protected:
 	u16 m_ioe_dir;
 	u16 m_ioe_attrib;
 
+	u16 m_iof_dir;
+	u16 m_iof_attrib;
+
 	u16 m_int_status1;
 
 	u16 m_int_priority_1;
@@ -177,6 +182,10 @@ protected:
 	devcb_write16 m_space_write_cb;
 	devcb_write_line m_dma_complete_cb;
 
+	TIMER_DEVICE_CALLBACK_MEMBER(timebase_a_cb);
+	TIMER_DEVICE_CALLBACK_MEMBER(timebase_b_cb);
+	TIMER_DEVICE_CALLBACK_MEMBER(timebase_c_cb);
+
 	u16 unk_r(offs_t offset);
 	void unk_w(offs_t offset, u16 data);
 
@@ -200,10 +209,13 @@ protected:
 	u16 power_state_r();
 	u16 unkarea_78fb_status_r();
 
-	u16 unkarea_7803_r();
-	void unkarea_7803_w(u16 data);
+	u16 sys_ctrl_r();
+	void sys_ctrl_w(u16 data);
 
 	void clock_ctrl_w(u16 data);
+
+	u16 clk_ctrl0_r();
+	void clk_ctrl0_w(u16 data);
 
 	void waitmode_enter_780c_w(u16 data);
 
@@ -212,6 +224,11 @@ protected:
 
 	void unkarea_7816_w(u16 data);
 	void pllchange_w(u16 data);
+
+	u16 pllclkwait_r();
+	void pllclkwait_w(u16 data);
+
+	void watchdog_ctrl_w(u16 data);
 
 	u16 cache_ctrl_r();
 	void cache_ctrl_w(u16 data);
@@ -267,16 +284,27 @@ protected:
 	u16 iod_mux_r();
 	void iod_mux_w(u16 data);
 
-
+	u16 ioe_buffer_r();
+	void ioe_buffer_w(u16 data);
 	u16 ioe_dir_r();
 	void ioe_dir_w(u16 data);
 	u16 ioe_attrib_r();
 	void ioe_attrib_w(u16 data);
 
+	u16 iof_buffer_r();
+	void iof_buffer_w(u16 data);
+	u16 iof_dir_r();
+	void iof_dir_w(u16 data);
+	u16 iof_attrib_r();
+	void iof_attrib_w(u16 data);
+
 	void int_status1_w(u16 data);
+	void int_status2_w(u16 data);
+	void int_status3_w(u16 data);
 
 	u16 int_status1_r();
 	u16 int_status2_r();
+	u16 int_status3_r();
 
 	void int_priority_1_w(u16 data);
 	void int_priority_2_w(u16 data);
@@ -284,7 +312,12 @@ protected:
 
 	void mint_ctrl_w(u16 data);
 
+	virtual void update_interrupts();
+		
+	u16 timebasea_ctrl_r();
 	void timebasea_ctrl_w(u16 data);
+
+	u16 timebaseb_ctrl_r();
 	void timebaseb_ctrl_w(u16 data);
 
 	u16 timebasec_ctrl_r();
@@ -345,6 +378,10 @@ protected:
 	// config registers (external pins)
 	int m_boot_mode; // 2 pins determine boot mode, likely only read at power-on
 	sunplus_gcm394_cs_callback_device m_cs_callback;
+
+	required_device<timer_device> m_timebase_a;
+	required_device<timer_device> m_timebase_b;
+	required_device<timer_device> m_timebase_c;
 };
 
 
