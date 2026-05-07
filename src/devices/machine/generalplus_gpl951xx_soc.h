@@ -19,6 +19,13 @@ public:
 
 	void rtc_regs(address_map &map) ATTR_COLD;
 
+	u16 rtc_readdata_r();
+	u16 rtc_ready_r();
+	void rtc_ctrl_w(u16 data);
+	void rtc_addr_w(u16 data);
+	void rtc_writedata_w(u16 data);
+	void rtc_request_w(u16 data);
+
 protected:
 	virtual void device_validity_check(validity_checker &valid) const override;
 	virtual void device_start() override ATTR_COLD;
@@ -110,14 +117,6 @@ private:
 	// Byte swap etc.
 	u16 byte_swap_r();
 	void byte_swap_w(u16 data);
-
-	// RTC
-	u16 rtc_readdata_r();
-	u16 rtc_ready_r();
-	void rtc_ctrl_w(u16 data);
-	void rtc_addr_w(u16 data);
-	void rtc_writedata_w(u16 data);
-	void rtc_request_w(u16 data);
 
 	// Timers (different compared to GPL162xx)
 	u16 gpl951xx_timerg_ctrl_r();

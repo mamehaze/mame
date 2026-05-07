@@ -30,7 +30,7 @@ DEFINE_DEVICE_TYPE(GPL951XX_RTC, gpl951xx_rtc_device, "gpl951xx_rtc", "GPL951XX_
 gpl951xx_rtc_device::gpl951xx_rtc_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock) :
 	device_t(mconfig, GPL951XX_RTC, tag, owner, clock),
 	device_memory_interface(mconfig, *this),
-	m_space_config("videoram", ENDIANNESS_LITTLE, 8, 8, 0, address_map_constructor(FUNC(gpl951xx_rtc_device::rtc_regs), this))
+	m_space_config("rtc", ENDIANNESS_LITTLE, 8, 8, 0, address_map_constructor(FUNC(gpl951xx_rtc_device::rtc_regs), this))
 {
 }
 
@@ -63,6 +63,37 @@ void gpl951xx_rtc_device::device_reset()
 {
 }
 
+u16 gpl951xx_rtc_device::rtc_readdata_r()
+{
+	LOGMASKED(LOG_RTC, "%s: rtc_readdata_r\n", machine().describe_context());
+	return 0xffff; // hangs if returning 0
+}
+
+u16 gpl951xx_rtc_device::rtc_ready_r()
+{
+	LOGMASKED(LOG_RTC, "%s: rtc_ready_r\n", machine().describe_context());
+	return machine().rand();
+}
+
+void gpl951xx_rtc_device::rtc_ctrl_w(u16 data)
+{
+	LOGMASKED(LOG_RTC, "%s: rtc_ctrl_w %04x\n", machine().describe_context(), data);
+}
+
+void gpl951xx_rtc_device::rtc_addr_w(u16 data)
+{
+	LOGMASKED(LOG_RTC, "%s: rtc_addr_w %04x\n", machine().describe_context(), data);
+}
+
+void gpl951xx_rtc_device::rtc_writedata_w(u16 data)
+{
+	LOGMASKED(LOG_RTC, "%s: rtc_writedata_w %04x\n", machine().describe_context(), data);
+}
+
+void gpl951xx_rtc_device::rtc_request_w(u16 data)
+{
+	LOGMASKED(LOG_RTC, "%s: rtc_request_w %04x\n", machine().describe_context(), data);
+}
 
 // SPIFC - the directly mapped SPI interface
 // provides 'hardware accelerated' SPI features (composing and sending packets to the SPI device)
@@ -604,37 +635,6 @@ void generalplus_gpl951xx_device::gpl951xx_timerh_ctrl_w(u16 data)
 	update_interrupts();
 }
 
-u16 generalplus_gpl951xx_device::rtc_readdata_r()
-{
-	logerror("%s: rtc_readdata_r\n", machine().describe_context());
-	return 0xffff; // hangs if returning 0
-}
-
-u16 generalplus_gpl951xx_device::rtc_ready_r()
-{
-	logerror("%s: rtc_ready_r\n", machine().describe_context());
-	return machine().rand();
-}
-
-void generalplus_gpl951xx_device::rtc_ctrl_w(u16 data)
-{
-	LOGMASKED(LOG_RTC, "%s: rtc_ctrl_w %04x\n", machine().describe_context(), data);
-}
-
-void generalplus_gpl951xx_device::rtc_addr_w(u16 data)
-{
-	LOGMASKED(LOG_RTC, "%s: rtc_addr_w %04x\n", machine().describe_context(), data);
-}
-
-void generalplus_gpl951xx_device::rtc_writedata_w(u16 data)
-{
-	LOGMASKED(LOG_RTC, "%s: rtc_writedata_w %04x\n", machine().describe_context(), data);
-}
-
-void generalplus_gpl951xx_device::rtc_request_w(u16 data)
-{
-	LOGMASKED(LOG_RTC, "%s: rtc_request_w %04x\n", machine().describe_context(), data);
-}
 
 // TFT
 
@@ -1137,12 +1137,12 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map &map)
 	// 79be - MICAGC_Enable
 	// 79bf - MICAGC_Status
 
-	map(0x0079f0, 0x0079f0).w(FUNC(generalplus_gpl951xx_device::rtc_ctrl_w)); // 79f0 - RTC_Ctrl
-	map(0x0079f1, 0x0079f1).w(FUNC(generalplus_gpl951xx_device::rtc_addr_w)); // 79f1 - RTC_Addr
-	map(0x0079f2, 0x0079f2).w(FUNC(generalplus_gpl951xx_device::rtc_writedata_w)); // 79f2 - RTC_WriteData
-	map(0x0079f3, 0x0079f3).w(FUNC(generalplus_gpl951xx_device::rtc_request_w)); // 79f3 - RTC_Request
-	map(0x0079f4, 0x0079f4).r(FUNC(generalplus_gpl951xx_device::rtc_ready_r)); // RTC_Ready
-	map(0x0079f5, 0x0079f5).r(FUNC(generalplus_gpl951xx_device::rtc_readdata_r)); // RTC_ReadData
+	map(0x0079f0, 0x0079f0).w(m_rtc, FUNC(gpl951xx_rtc_device::rtc_ctrl_w)); // 79f0 - RTC_Ctrl
+	map(0x0079f1, 0x0079f1).w(m_rtc, FUNC(gpl951xx_rtc_device::rtc_addr_w)); // 79f1 - RTC_Addr
+	map(0x0079f2, 0x0079f2).w(m_rtc, FUNC(gpl951xx_rtc_device::rtc_writedata_w)); // 79f2 - RTC_WriteData
+	map(0x0079f3, 0x0079f3).w(m_rtc, FUNC(gpl951xx_rtc_device::rtc_request_w)); // 79f3 - RTC_Request
+	map(0x0079f4, 0x0079f4).r(m_rtc, FUNC(gpl951xx_rtc_device::rtc_ready_r)); // RTC_Ready
+	map(0x0079f5, 0x0079f5).r(m_rtc, FUNC(gpl951xx_rtc_device::rtc_readdata_r)); // RTC_ReadData
 	// 79f6
 	// 79f7
 	// 79f8
