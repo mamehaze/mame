@@ -186,6 +186,13 @@ protected:
 	TIMER_DEVICE_CALLBACK_MEMBER(timebase_b_cb);
 	TIMER_DEVICE_CALLBACK_MEMBER(timebase_c_cb);
 
+	virtual TIMER_DEVICE_CALLBACK_MEMBER(timer_a_cb);
+	virtual TIMER_DEVICE_CALLBACK_MEMBER(timer_b_cb);
+	virtual TIMER_DEVICE_CALLBACK_MEMBER(timer_c_cb);
+	virtual TIMER_DEVICE_CALLBACK_MEMBER(timer_d_cb);
+	virtual TIMER_DEVICE_CALLBACK_MEMBER(timer_e_cb);
+	virtual TIMER_DEVICE_CALLBACK_MEMBER(timer_f_cb);
+
 	u16 unk_r(offs_t offset);
 	void unk_w(offs_t offset, u16 data);
 
@@ -382,6 +389,14 @@ protected:
 	required_device<timer_device> m_timebase_a;
 	required_device<timer_device> m_timebase_b;
 	required_device<timer_device> m_timebase_c;
+
+	required_device<timer_device> m_timer_a;
+	required_device<timer_device> m_timer_b;
+	required_device<timer_device> m_timer_c;
+	required_device<timer_device> m_timer_d;
+	required_device<timer_device> m_timer_e;
+	required_device<timer_device> m_timer_f;
+
 };
 
 

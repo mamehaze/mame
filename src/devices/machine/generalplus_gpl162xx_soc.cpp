@@ -65,7 +65,13 @@ sunplus_gcm394_base_device::sunplus_gcm394_base_device(const machine_config &mco
 	m_cs_callback(*this, DEVICE_SELF, FUNC(sunplus_gcm394_base_device::default_cs_callback)),
 	m_timebase_a(*this, "timebase_a"),
 	m_timebase_b(*this, "timebase_b"),
-	m_timebase_c(*this, "timebase_c")
+	m_timebase_c(*this, "timebase_c"),
+	m_timer_a(*this, "timer_a"),
+	m_timer_b(*this, "timer_b"),
+	m_timer_c(*this, "timer_c"),
+	m_timer_d(*this, "timer_d"),
+	m_timer_e(*this, "timer_e"),
+	m_timer_f(*this, "timer_f")
 {
 }
 
@@ -1105,6 +1111,30 @@ void sunplus_gcm394_base_device::timebase_reset_w(u16 data)
 }
 
 // programmable timers
+
+TIMER_DEVICE_CALLBACK_MEMBER(sunplus_gcm394_base_device::timer_a_cb)
+{
+}
+
+TIMER_DEVICE_CALLBACK_MEMBER(sunplus_gcm394_base_device::timer_b_cb)
+{
+}
+
+TIMER_DEVICE_CALLBACK_MEMBER(sunplus_gcm394_base_device::timer_c_cb)
+{
+}
+
+TIMER_DEVICE_CALLBACK_MEMBER(sunplus_gcm394_base_device::timer_d_cb)
+{
+}
+
+TIMER_DEVICE_CALLBACK_MEMBER(sunplus_gcm394_base_device::timer_e_cb)
+{
+}
+
+TIMER_DEVICE_CALLBACK_MEMBER(sunplus_gcm394_base_device::timer_f_cb)
+{
+}
 
 u16 sunplus_gcm394_base_device::timera_ctrl_r()
 {
@@ -2239,6 +2269,13 @@ void sunplus_gcm394_base_device::device_add_mconfig(machine_config &config)
 	TIMER(config, "timebase_a").configure_generic(FUNC(sunplus_gcm394_base_device::timebase_a_cb));
 	TIMER(config, "timebase_b").configure_generic(FUNC(sunplus_gcm394_base_device::timebase_b_cb));
 	TIMER(config, "timebase_c").configure_generic(FUNC(sunplus_gcm394_base_device::timebase_c_cb));
+
+	TIMER(config, "timer_a").configure_generic(FUNC(sunplus_gcm394_base_device::timer_a_cb));
+	TIMER(config, "timer_b").configure_generic(FUNC(sunplus_gcm394_base_device::timer_b_cb));
+	TIMER(config, "timer_c").configure_generic(FUNC(sunplus_gcm394_base_device::timer_c_cb));
+	TIMER(config, "timer_d").configure_generic(FUNC(sunplus_gcm394_base_device::timer_d_cb));
+	TIMER(config, "timer_e").configure_generic(FUNC(sunplus_gcm394_base_device::timer_e_cb));
+	TIMER(config, "timer_f").configure_generic(FUNC(sunplus_gcm394_base_device::timer_f_cb));
 }
 
 

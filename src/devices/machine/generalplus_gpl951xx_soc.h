@@ -159,6 +159,13 @@ private:
 	TIMER_DEVICE_CALLBACK_MEMBER(timer_g_cb);
 	TIMER_DEVICE_CALLBACK_MEMBER(timer_h_cb);
 
+	virtual TIMER_DEVICE_CALLBACK_MEMBER(timer_a_cb) override;
+	virtual TIMER_DEVICE_CALLBACK_MEMBER(timer_b_cb) override;
+	virtual TIMER_DEVICE_CALLBACK_MEMBER(timer_c_cb) override;
+	virtual TIMER_DEVICE_CALLBACK_MEMBER(timer_d_cb) override;
+	virtual TIMER_DEVICE_CALLBACK_MEMBER(timer_e_cb) override;
+	virtual TIMER_DEVICE_CALLBACK_MEMBER(timer_f_cb) override;
+
 	u16 m_byteswap;
 
 	u16 m_gpl951xx_timerg_preload;

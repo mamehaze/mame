@@ -833,7 +833,29 @@ void generalplus_gpl951xx_device::gp951xx_int_status3_w(u16 data)
 	// bit 2 (SPU Beat Interrupt) is listed as R/W for GPL95, but not GPL162? (verify)
 }
 
+TIMER_DEVICE_CALLBACK_MEMBER(generalplus_gpl951xx_device::timer_a_cb)
+{
+}
 
+TIMER_DEVICE_CALLBACK_MEMBER(generalplus_gpl951xx_device::timer_b_cb)
+{
+}
+
+TIMER_DEVICE_CALLBACK_MEMBER(generalplus_gpl951xx_device::timer_c_cb)
+{
+}
+
+TIMER_DEVICE_CALLBACK_MEMBER(generalplus_gpl951xx_device::timer_d_cb)
+{
+}
+
+TIMER_DEVICE_CALLBACK_MEMBER(generalplus_gpl951xx_device::timer_e_cb)
+{
+}
+
+TIMER_DEVICE_CALLBACK_MEMBER(generalplus_gpl951xx_device::timer_f_cb)
+{
+}
 
 u16 generalplus_gpl951xx_device::spi_direct_r(offs_t offset)
 {
