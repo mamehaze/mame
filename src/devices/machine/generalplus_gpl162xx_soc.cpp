@@ -62,7 +62,16 @@ sunplus_gcm394_base_device::sunplus_gcm394_base_device(const machine_config &mco
 	m_dma_complete_cb(*this),
 	m_alt_periodic_irq(false),
 	m_boot_mode(0),
-	m_cs_callback(*this, DEVICE_SELF, FUNC(sunplus_gcm394_base_device::default_cs_callback))
+	m_cs_callback(*this, DEVICE_SELF, FUNC(sunplus_gcm394_base_device::default_cs_callback)),
+	m_timebase_a(*this, "timebase_a"),
+	m_timebase_b(*this, "timebase_b"),
+	m_timebase_c(*this, "timebase_c"),
+	m_timer_a(*this, "timer_a"),
+	m_timer_b(*this, "timer_b"),
+	m_timer_c(*this, "timer_c"),
+	m_timer_d(*this, "timer_d"),
+	m_timer_e(*this, "timer_e"),
+	m_timer_f(*this, "timer_f")
 {
 }
 
@@ -343,10 +352,30 @@ void sunplus_gcm394_base_device::cache_ctrl_w(u16 data) { LOGMASKED(LOG_GCM394, 
 u16 sunplus_gcm394_base_device::unkarea_782d_r() { LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::unkarea_782d_r\n", machine().describe_context()); return m_782d; }
 void sunplus_gcm394_base_device::unkarea_782d_w(u16 data) { LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::unkarea_782d_w %04x\n", machine().describe_context(), data); m_782d = data; }
 
-u16 sunplus_gcm394_base_device::unkarea_7803_r() { LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::unkarea_7803_r\n", machine().describe_context()); return m_sys_ctrl; }
-void sunplus_gcm394_base_device::unkarea_7803_w(u16 data) { LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::unkarea_7803_w %04x\n", machine().describe_context(), data); m_sys_ctrl = data; }
+u16 sunplus_gcm394_base_device::sys_ctrl_r() { LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::sys_ctrl_r\n", machine().describe_context()); return m_sys_ctrl; }
+void sunplus_gcm394_base_device::sys_ctrl_w(u16 data) { LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::sys_ctrl_w %04x\n", machine().describe_context(), data); m_sys_ctrl = data; }
 
-void sunplus_gcm394_base_device::clock_ctrl_w(u16 data) { LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::clock_ctrl_w %04x\n", machine().describe_context(), data); m_clock_ctrl = data; }
+void sunplus_gcm394_base_device::clock_ctrl_w(u16 data)
+{
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::clock_ctrl_w %04x\n", machine().describe_context(), data);
+	m_clock_ctrl = data;
+}
+
+u16 sunplus_gcm394_base_device::clk_ctrl0_r()
+{
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::clk_ctrl0_r\n", machine().describe_context());
+	return 0x0000;
+}
+
+void sunplus_gcm394_base_device::clk_ctrl0_w(u16 data)
+{
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::clk_ctrl0 %04x\n", machine().describe_context(), data);
+}
+
+void sunplus_gcm394_base_device::watchdog_ctrl_w(u16 data)
+{
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::watchdog_ctrl_w %04x\n", machine().describe_context(), data);
+}
 
 void sunplus_gcm394_base_device::waitmode_enter_780c_w(u16 data)
 {
@@ -385,6 +414,17 @@ void sunplus_gcm394_base_device::pllchange_w(u16 data)
 {
 	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::pllchange_w %04x\n", machine().describe_context(), data);
 	m_pllchange = data;
+}
+
+u16 sunplus_gcm394_base_device::pllclkwait_r()
+{
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::pllclkwait_r\n", machine().describe_context());
+	return 0x0000;
+}
+
+void sunplus_gcm394_base_device::pllclkwait_w(u16 data)
+{
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::pllclkwait_w %04x\n", machine().describe_context(), data);
 }
 
 void sunplus_gcm394_base_device::chipselect_csx_memory_device_control_w(offs_t offset, u16 data)
@@ -588,7 +628,7 @@ void sunplus_gcm394_base_device::iod_data_w(u16 data)
 u16 sunplus_gcm394_base_device::iod_buffer_r()
 {
 	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iod_buffer_r\n", machine().describe_context());
-	return 0xffff;// m_7871;
+	return 0xffff;
 }
 
 void sunplus_gcm394_base_device::iod_buffer_w(u16 data)
@@ -643,6 +683,18 @@ void sunplus_gcm394_base_device::iod_mux_w(u16 data)
 	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iod_mux_w %04x\n", machine().describe_context(), data);
 }
 
+u16 sunplus_gcm394_base_device::ioe_buffer_r()
+{
+	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioe_buffer_r\n", machine().describe_context());
+	return 0xffff;
+}
+
+void sunplus_gcm394_base_device::ioe_buffer_w(u16 data)
+{
+	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioe_buffer_w %04x\n", machine().describe_context(), data);
+	//m_porte_out(data);
+}
+
 u16 sunplus_gcm394_base_device::ioe_dir_r()
 {
 	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::ioe_dir_r\n", machine().describe_context());
@@ -667,11 +719,62 @@ void sunplus_gcm394_base_device::ioe_attrib_w(u16 data)
 	m_ioe_attrib = data;
 }
 
-void sunplus_gcm394_base_device::int_status1_w(u16 data)
+u16 sunplus_gcm394_base_device::iof_buffer_r()
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::int_status1_w %04x\n", machine().describe_context(), data);
-	m_int_status1 = data;
+	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iof_buffer_r\n", machine().describe_context());
+	return 0xffff;
 }
+
+void sunplus_gcm394_base_device::iof_buffer_w(u16 data)
+{
+	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iof_buffer_w %04x\n", machine().describe_context(), data);
+	//m_portf_out(data);
+}
+
+u16 sunplus_gcm394_base_device::iof_dir_r()
+{
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::iof_dir_r\n", machine().describe_context());
+	return m_iof_dir;
+}
+
+void sunplus_gcm394_base_device::iof_dir_w(u16 data)
+{
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::iof_dir_w %04x\n", machine().describe_context(), data);
+	m_iof_dir = data;
+}
+
+u16 sunplus_gcm394_base_device::iof_attrib_r()
+{
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::iof_attrib_r\n", machine().describe_context());
+	return m_iof_attrib;
+}
+
+void sunplus_gcm394_base_device::iof_attrib_w(u16 data)
+{
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::iof_attrib_w %04x\n", machine().describe_context(), data);
+	m_iof_attrib = data;
+}
+
+// P_INT_Status1  (different on GPL162xx vs GP95xx)
+// 15  KEYIF
+// 14  ADCRIF
+// 13  TFTUFIF
+// 12  TFTEIF
+//
+// 11  UTIRIF
+// 10  SPIIF
+//  9  FPIF
+//  8
+//
+//  7  ASIF
+//  6
+//  5  AUDBIF
+//  4  AUDAIF
+
+//  3  USB
+//  2  DMA
+//  1  EXTBIF
+//  0  EXTAIF
 
 u16 sunplus_gcm394_base_device::int_status1_r()
 {
@@ -679,10 +782,87 @@ u16 sunplus_gcm394_base_device::int_status1_r()
 	return 0x0000;// machine().rand();
 }
 
+void sunplus_gcm394_base_device::int_status1_w(u16 data)
+{
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::int_status1_w %04x\n", machine().describe_context(), data);
+	//m_int_status1 = data;
+}
+
+// P_INT_Status2  (different on GPL162xx vs GP95xx)
+// 15  TMDIF
+// 14  TMCIF
+// 13  TMBIF
+// 12  TMAIF
+//
+// 11  KSIF
+// 10  TMBCIF
+//  9  TMBBIF
+//  8  TMBAIF
+// 
+//  7  SDC2
+//  6  SDC1
+//  5
+//  4  NAND
+//
+//  3
+//  2  SCHIF
+//  1  ALMIF
+//  0  HMSIF
+
 u16 sunplus_gcm394_base_device::int_status2_r()
 {
 	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::int_status2_r\n", machine().describe_context());
-	return 0xffff;// machine().rand();
+	u16 ret = 0;
+
+	if (m_timebasea_ctrl & 0x8000)
+		ret |= 0x0100;
+
+	if (m_timebaseb_ctrl & 0x8000)
+		ret |= 0x0200;
+
+	if (m_timebasec_ctrl & 0x8000)
+		ret |= 0x0400;
+
+	return ret;
+}
+
+void sunplus_gcm394_base_device::int_status2_w(u16 data)
+{
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::int_status2_w %04x\n", machine().describe_context(), data);
+	// none of this bits are listed as wrieable for GPL95xx or GPL162xx
+}
+
+// P_INT_Status3 (different on GPL162xx vs GP95xx)
+// 15
+// 14
+// 13
+// 12
+//
+// 11
+// 10
+//  9
+//  8  UMAA
+//
+//  7
+//  6
+//  5
+//  4
+//
+//  3
+//  2  BEAT
+//  1  ENV
+//  0  CHANNEL
+
+u16 sunplus_gcm394_base_device::int_status3_r()
+{
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::int_status3_r\n", machine().describe_context());
+	return 0x0000;
+}
+
+void sunplus_gcm394_base_device::int_status3_w(u16 data)
+{
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::int_status3_w %04x\n", machine().describe_context(), data);
+	// bit 2 (SPU Beat Interrupt) is listed as R/W for GPL95, but not GPL162? (verify)
 }
 
 void sunplus_gcm394_base_device::int_priority_1_w(u16 data)
@@ -709,28 +889,219 @@ void sunplus_gcm394_base_device::mint_ctrl_w(u16 data)
 	m_misc_int_ctrl = data;
 }
 
+// Timebase ('fixed' frequency timers)
+// (each can select from 3 different frequencies, different for each timer)
+
+// FIQ
+// many sources can be set to FIQ
+//
+// IRQ0
+// Audio Channel A FIFO Empty
+// Audio Channel B FIFO Empty
+//
+// IRQ1
+// ?
+//
+// IRQ2
+// External interrupt A
+//
+// IRQ3
+// SPI interrupt
+// DMA interrupt
+// USB interrupt
+//
+// IRQ4
+// Timer A/B/C/D interrupt
+// SPU interrupt
+//
+// IRQ5
+// Key Change interrupt
+// PPU interrupt
+// NAND Overflow/Underflow interrupt
+//
+// IRQ6
+// Timebase C interrupt
+// Scheduler interrupt (RTC)
+// SDC2 Controller interrupt
+//
+// IRQ7
+// Timebase A interrupt
+// Timebase B interrupt
+// Alarm interrupt
+// Hour/Minute/Second/Half-Second interrupt (RTC)
+// Unexpected memory access interrupt
+
+void sunplus_gcm394_base_device::update_interrupts()
+{
+	if ((m_timebasea_ctrl & 0x8000) || (m_timebaseb_ctrl & 0x8000))
+	{
+		set_state_unsynced(UNSP_IRQ7_LINE, ASSERT_LINE);
+	}
+	else
+	{
+		set_state_unsynced(UNSP_IRQ7_LINE, CLEAR_LINE);
+	}
+
+	if (m_timebasec_ctrl & 0x8000)
+	{
+		set_state_unsynced(UNSP_IRQ6_LINE, ASSERT_LINE);
+	}
+	else
+	{
+		set_state_unsynced(UNSP_IRQ6_LINE, CLEAR_LINE);
+	}
+}
+
+TIMER_DEVICE_CALLBACK_MEMBER( sunplus_gcm394_base_device::timebase_a_cb )
+{
+	// sets bit 15 in m_timebasec_ctrl, also visible (as read only) in P_INT_Status2, bit 8
+	// uses IRQ7 (FIQ option not available)
+	m_timebasea_ctrl |= 0x8000;
+	update_interrupts();
+}
+
+// P_TimeBaseA_Ctrl
+//
+// 15  TMBAIF/C
+// 14  TMBAIE
+// 13  TMBAEN
+// 12
+//
+// 11
+// 10
+//  9
+//  8
+//  7
+//  6
+//  5
+//  4
+//  3
+//  2
+//  1  TMBAS[1]
+//  0  TMBAS[0]  00 = Reserved, 01 = 1Hz, 10 = 2Hz, 11 = 4Hz
+
+u16 sunplus_gcm394_base_device::timebasea_ctrl_r()
+{
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::timebasea_ctrl_r\n", machine().describe_context());
+	return m_timebasea_ctrl;
+}
+
 void sunplus_gcm394_base_device::timebasea_ctrl_w(u16 data)
 {
 	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::timebasea_ctrl_w %04x\n", machine().describe_context(), data);
-	m_timebasea_ctrl = data;
+
+	if (data & 0x8000)
+	{
+		m_timebasea_ctrl = data & 0x7fff;
+		update_interrupts();
+	}
+	else
+	{
+		m_timebasea_ctrl = data;
+	}
+
+	if ((m_timebasea_ctrl & 0x6000) == 0x6000)
+	{
+		switch (m_timebasea_ctrl & 0x0003)
+		{
+		case 0x00: m_timebase_a->adjust(attotime::never); break; // invalid
+		case 0x01: m_timebase_a->adjust(attotime::from_hz(1)); break;
+		case 0x02: m_timebase_a->adjust(attotime::from_hz(2)); break;
+		case 0x03: m_timebase_a->adjust(attotime::from_hz(4)); break;
+		}
+	}
+	else
+	{
+		m_timebase_a->adjust(attotime::never);
+	}
+}
+
+TIMER_DEVICE_CALLBACK_MEMBER( sunplus_gcm394_base_device::timebase_b_cb )
+{
+	// sets bit 15 in m_timebaseb_ctrl, also visible (as read only) in P_INT_Status2, bit 9
+	// uses IRQ7 (FIQ option not available)
+	m_timebaseb_ctrl |= 0x8000;
+	update_interrupts();
+}
+
+u16 sunplus_gcm394_base_device::timebaseb_ctrl_r()
+{
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::timebaseb_ctrl_r\n", machine().describe_context());
+	return m_timebaseb_ctrl;
 }
 
 void sunplus_gcm394_base_device::timebaseb_ctrl_w(u16 data)
 {
 	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::timebaseb_ctrl_w %04x\n", machine().describe_context(), data);
-	m_timebaseb_ctrl = data;
+
+	if (data & 0x8000)
+	{
+		m_timebaseb_ctrl = data & 0x7fff;
+		update_interrupts();
+	}
+	else
+	{
+		m_timebaseb_ctrl = data;
+	}
+
+	if ((m_timebaseb_ctrl & 0x6000) == 0x6000)
+	{
+		switch (m_timebaseb_ctrl & 0x0003)
+		{
+		case 0x00: m_timebase_b->adjust(attotime::from_hz(8)); break;
+		case 0x01: m_timebase_b->adjust(attotime::from_hz(16)); break;
+		case 0x02: m_timebase_b->adjust(attotime::from_hz(32)); break;
+		case 0x03: m_timebase_b->adjust(attotime::from_hz(64)); break;
+		}		
+	}
+	else
+	{
+		m_timebase_b->adjust(attotime::never);
+	}
+}
+
+TIMER_DEVICE_CALLBACK_MEMBER( sunplus_gcm394_base_device::timebase_c_cb )
+{
+	// sets bit 15 in m_timebasec_ctrl, also visible (as read only) in P_INT_Status2, bit 10
+	// uses IRQ6 (FIQ option not available)
+	m_timebasec_ctrl |= 0x8000;
+	update_interrupts();
 }
 
 u16 sunplus_gcm394_base_device::timebasec_ctrl_r()
 {
 	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::timebasec_ctrl_r\n", machine().describe_context());
-	return 0xffff;// m_timebasec_ctrl;
+	return m_timebasec_ctrl;
 }
 
 void sunplus_gcm394_base_device::timebasec_ctrl_w(u16 data)
 {
 	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::timebasec_ctrl_w %04x\n", machine().describe_context(), data);
-	m_timebasec_ctrl = data;
+
+	if (data & 0x8000)
+	{
+		m_timebasec_ctrl = data & 0x7fff;
+		update_interrupts();
+	}
+	else
+	{
+		m_timebasec_ctrl = data;
+	}
+
+	if ((m_timebasec_ctrl & 0x6000) == 0x6000)
+	{
+		switch (m_timebasec_ctrl & 0x0003)
+		{
+		case 0x00: m_timebase_c->adjust(attotime::from_hz(128)); break;
+		case 0x01: m_timebase_c->adjust(attotime::from_hz(256)); break;
+		case 0x02: m_timebase_c->adjust(attotime::from_hz(512)); break;
+		case 0x03: m_timebase_c->adjust(attotime::from_hz(1024)); break;
+		}		
+	}
+	else
+	{
+		m_timebase_c->adjust(attotime::never);
+	}
 }
 
 void sunplus_gcm394_base_device::timebase_reset_w(u16 data)
@@ -739,16 +1110,30 @@ void sunplus_gcm394_base_device::timebase_reset_w(u16 data)
 	m_timebase_reset = data;
 }
 
-u16 sunplus_gcm394_base_device::cha_ctrl_r()
+// programmable timers
+
+TIMER_DEVICE_CALLBACK_MEMBER(sunplus_gcm394_base_device::timer_a_cb)
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::cha_ctrl_r\n", machine().describe_context());
-	return 0xffff;
 }
 
-void sunplus_gcm394_base_device::cha_ctrl_w(u16 data)
+TIMER_DEVICE_CALLBACK_MEMBER(sunplus_gcm394_base_device::timer_b_cb)
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::cha_ctrl_w %04x\n", machine().describe_context(), data);
-	m_cha_ctrl = data;
+}
+
+TIMER_DEVICE_CALLBACK_MEMBER(sunplus_gcm394_base_device::timer_c_cb)
+{
+}
+
+TIMER_DEVICE_CALLBACK_MEMBER(sunplus_gcm394_base_device::timer_d_cb)
+{
+}
+
+TIMER_DEVICE_CALLBACK_MEMBER(sunplus_gcm394_base_device::timer_e_cb)
+{
+}
+
+TIMER_DEVICE_CALLBACK_MEMBER(sunplus_gcm394_base_device::timer_f_cb)
+{
 }
 
 u16 sunplus_gcm394_base_device::timera_ctrl_r()
@@ -774,6 +1159,21 @@ u16 sunplus_gcm394_base_device::timerd_ctrl_r()
 	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::timerd_ctrl_r\n", machine().describe_context());
 	return machine().rand();
 }
+
+// CHA (for sound output)
+
+u16 sunplus_gcm394_base_device::cha_ctrl_r()
+{
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::cha_ctrl_r\n", machine().describe_context());
+	return 0xffff;
+}
+
+void sunplus_gcm394_base_device::cha_ctrl_w(u16 data)
+{
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::cha_ctrl_w %04x\n", machine().describe_context(), data);
+	m_cha_ctrl = data;
+}
+
 
 // **************************************** 793x uknown region stubs *************************************************
 
@@ -1011,6 +1411,7 @@ void sunplus_gcm394_base_device::unk_w(offs_t offset, u16 data)
 // 7806 - Reset_Flag
 // 7807 - Clock_Ctrl
 // 7808 - LVR_Ctrl
+// 7809 - P_IO_Map_Ctrl
 // 780a - Watchdog_Ctrl
 // 780b - Watchdog_Clear
 // 780c - WAIT
@@ -1325,23 +1726,25 @@ void sunplus_gcm394_base_device::base_internal_map(address_map &map)
 	// 78xx region = system regs?
 	// ######################################################################################################################################################################################
 
-	map(0x007803, 0x007803).rw(FUNC(sunplus_gcm394_base_device::unkarea_7803_r), FUNC(sunplus_gcm394_base_device::unkarea_7803_w));
+	map(0x007803, 0x007803).rw(FUNC(sunplus_gcm394_base_device::sys_ctrl_r), FUNC(sunplus_gcm394_base_device::sys_ctrl_w));
+	map(0x007804, 0x007804).rw(FUNC(sunplus_gcm394_base_device::clk_ctrl0_r), FUNC(sunplus_gcm394_base_device::clk_ctrl0_w));
 
 	map(0x007807, 0x007807).w(FUNC(sunplus_gcm394_base_device::clock_ctrl_w));
 	// 7808
 
-	// 780a
-
+	map(0x00780a, 0x00780a).w(FUNC(sunplus_gcm394_base_device::watchdog_ctrl_w));
+	map(0x00780b, 0x00780b).nopw(); // watchdog clear
 	map(0x00780c, 0x00780c).w(FUNC(sunplus_gcm394_base_device::waitmode_enter_780c_w));
 
 	map(0x00780f, 0x00780f).r(FUNC(sunplus_gcm394_base_device::power_state_r));
 
 	map(0x007810, 0x007810).rw(FUNC(sunplus_gcm394_base_device::membankswitch_7810_r), FUNC(sunplus_gcm394_base_device::membankswitch_7810_w));  // 7810 Bank Switch Control Register  (P_BankSwitch_Ctrl) (maybe)
 
-	map(0x007819, 0x007819).rw(FUNC(sunplus_gcm394_base_device::cache_ctrl_r), FUNC(sunplus_gcm394_base_device::cache_ctrl_w));
+	map(0x007816, 0x007816).w(FUNC(sunplus_gcm394_base_device::unkarea_7816_w)); // undocumented, check what writes it
 
-	map(0x007816, 0x007816).w(FUNC(sunplus_gcm394_base_device::unkarea_7816_w));
 	map(0x007817, 0x007817).w(FUNC(sunplus_gcm394_base_device::pllchange_w));
+	map(0x007818, 0x007818).rw(FUNC(sunplus_gcm394_base_device::pllclkwait_r), FUNC(sunplus_gcm394_base_device::pllclkwait_w)); // 7818 - PLLCLKWait
+	map(0x007819, 0x007819).rw(FUNC(sunplus_gcm394_base_device::cache_ctrl_r), FUNC(sunplus_gcm394_base_device::cache_ctrl_w));
 
 	// ######################################################################################################################################################################################
 	// 782x region = memory config / control
@@ -1364,8 +1767,8 @@ void sunplus_gcm394_base_device::base_internal_map(address_map &map)
 	// 783d
 	// 783e
 
-	// 7840 - accessed by code in RAM when changing bank in tkmag220
-	// 7841 - ^^
+	// 7840 - accessed by code in RAM when changing bank in tkmag220 (P_Mem_Ctrl on GPL162xxA)
+	// 7841 - ^^ (P_Addr_Ctrl on GPL162xxA)
 
 	// ######################################################################################################################################################################################
 	// 786x - 787x - IO related?
@@ -1397,18 +1800,23 @@ void sunplus_gcm394_base_device::base_internal_map(address_map &map)
 	map(0x00787d, 0x00787d).rw(FUNC(sunplus_gcm394_base_device::iod_mux_r), FUNC(sunplus_gcm394_base_device::iod_mux_w)); // 787e (data 0x1249) (bkrankp data 0x36db)
 
 	// 7880
-
+	map(0x007881, 0x007881).rw(FUNC(sunplus_gcm394_base_device::ioe_buffer_r), FUNC(sunplus_gcm394_base_device::ioe_buffer_w));
 	map(0x007882, 0x007882).rw(FUNC(sunplus_gcm394_base_device::ioe_dir_r), FUNC(sunplus_gcm394_base_device::ioe_dir_w));
 	map(0x007883, 0x007883).rw(FUNC(sunplus_gcm394_base_device::ioe_attrib_r), FUNC(sunplus_gcm394_base_device::ioe_attrib_w));
 
 	// 0x7888 (data 0x1249) (bkrankp data 0x36db), written with 7874 / 787c / 787e above
+	map(0x007889, 0x007889).rw(FUNC(sunplus_gcm394_base_device::iof_buffer_r), FUNC(sunplus_gcm394_base_device::iof_buffer_w)); // 7889 - IOF_Buffer
+	map(0x00788a, 0x00788a).rw(FUNC(sunplus_gcm394_base_device::iof_dir_r), FUNC(sunplus_gcm394_base_device::iof_dir_w)); // 788a - IOF_Dir
+	map(0x00788b, 0x00788b).rw(FUNC(sunplus_gcm394_base_device::iof_attrib_r), FUNC(sunplus_gcm394_base_device::iof_attrib_w)); // 788b - IOF_Attrib
 
 	// ######################################################################################################################################################################################
 	// 78ax - interrupt controller?
 	// ######################################################################################################################################################################################
 
 	map(0x0078a0, 0x0078a0).rw(FUNC(sunplus_gcm394_base_device::int_status1_r), FUNC(sunplus_gcm394_base_device::int_status1_w));
-	map(0x0078a1, 0x0078a1).r(FUNC(sunplus_gcm394_base_device::int_status2_r));
+	map(0x0078a1, 0x0078a1).rw(FUNC(sunplus_gcm394_base_device::int_status2_r), FUNC(sunplus_gcm394_base_device::int_status2_w));
+	// 78a2 (is int_status3 on GPL95xx)
+	map(0x0078a3, 0x0078a3).rw(FUNC(sunplus_gcm394_base_device::int_status3_r), FUNC(sunplus_gcm394_base_device::int_status3_w));
 
 	map(0x0078a4, 0x0078a4).w(FUNC(sunplus_gcm394_base_device::int_priority_1_w));
 	map(0x0078a5, 0x0078a5).w(FUNC(sunplus_gcm394_base_device::int_priority_2_w));
@@ -1420,20 +1828,43 @@ void sunplus_gcm394_base_device::base_internal_map(address_map &map)
 	// 78bx - timer control?
 	// ######################################################################################################################################################################################
 
-	map(0x0078b0, 0x0078b0).w(FUNC(sunplus_gcm394_base_device::timebasea_ctrl_w));  // 78b0 TimeBase A Control Register (P_TimeBaseA_Ctrl)
-	map(0x0078b1, 0x0078b1).w(FUNC(sunplus_gcm394_base_device::timebaseb_ctrl_w));  // 78b1 TimeBase B Control Register (P_TimeBaseB_Ctrl)
+	map(0x0078b0, 0x0078b0).rw(FUNC(sunplus_gcm394_base_device::timebasea_ctrl_r), FUNC(sunplus_gcm394_base_device::timebasea_ctrl_w));  // 78b0 TimeBase A Control Register (P_TimeBaseA_Ctrl)
+	map(0x0078b1, 0x0078b1).rw(FUNC(sunplus_gcm394_base_device::timebaseb_ctrl_r), FUNC(sunplus_gcm394_base_device::timebaseb_ctrl_w));  // 78b1 TimeBase B Control Register (P_TimeBaseB_Ctrl)
 	map(0x0078b2, 0x0078b2).rw(FUNC(sunplus_gcm394_base_device::timebasec_ctrl_r), FUNC(sunplus_gcm394_base_device::timebasec_ctrl_w));  // 78b2 TimeBase C Control Register (P_TimeBaseC_Ctrl)
 
 	map(0x0078b8, 0x0078b8).w(FUNC(sunplus_gcm394_base_device::timebase_reset_w));  // 78b8 TimeBase Counter Reset Register  (P_TimeBase_Reset)
 
+
+
 	map(0x0078c0, 0x0078c0).r(FUNC(sunplus_gcm394_base_device::timera_ctrl_r)); // beijuehh
+	// 78c1 - TimerA_CCCtrl
+	// 78c2 - TimerA_Preload
+	// 78c3 - TimerA_CCReg
+	// 78c4 - TimerA_UpCount
 
 	map(0x0078c8, 0x0078c8).r(FUNC(sunplus_gcm394_base_device::timerb_ctrl_r)); // dressmtv
+	// 78c9 - TimerB_CCCtrl
+	// 78ca - TimerB_Preload
+	// 78cb - TimerB_CCReg
+	// 78cc - TimerB_UpCount
 
 	map(0x0078d0, 0x0078d0).r(FUNC(sunplus_gcm394_base_device::timerc_ctrl_r)); // jak_s500
+	// 78d1 - TimerC_CCCtrl
+	// 78d2 - TimerC_Preload
+	// 78d3 - TimerC_CCReg
+	// 78d4 - TimerC_UpCount
 
 	map(0x0078d8, 0x0078d8).r(FUNC(sunplus_gcm394_base_device::timerd_ctrl_r)); // jak_tsh
+	// 78da - TimerD_Preload
+	// 78dc - TimerD_UpCount
 
+	// 78e0 - TimerE_Ctrl
+	// 78e2 - TimerE_Preload
+	// 78e4 - TimerE_UpCount
+
+	// 78e8 - TimerF_Ctrl
+	// 78ea - TimerF_Preload
+	// 78ec - TimerF_UpCount
 
 	// ######################################################################################################################################################################################
 	// 78fx - unknown
@@ -1605,6 +2036,8 @@ void sunplus_gcm394_base_device::device_start()
 	save_item(NAME(m_7873_portc_attribute));
 	save_item(NAME(m_ioe_dir));
 	save_item(NAME(m_ioe_attrib));
+	save_item(NAME(m_iof_dir));
+	save_item(NAME(m_iof_attrib));
 	save_item(NAME(m_int_status1));
 	save_item(NAME(m_int_priority_1));
 	save_item(NAME(m_int_priority_2));
@@ -1713,8 +2146,8 @@ IRQ_CALLBACK_MEMBER(sunplus_gcm394_base_device::irq_vector_cb)
 {
 	//logerror("irq_vector_cb %d\n", irqline);
 
-	if (irqline == UNSP_IRQ6_LINE)
-		set_state_unsynced(UNSP_IRQ6_LINE, CLEAR_LINE);
+	//if (irqline == UNSP_IRQ6_LINE)
+	//	set_state_unsynced(UNSP_IRQ6_LINE, CLEAR_LINE);
 
 	if (irqline == UNSP_IRQ4_LINE)
 		set_state_unsynced(UNSP_IRQ4_LINE, CLEAR_LINE);
@@ -1763,9 +2196,14 @@ TIMER_CALLBACK_MEMBER(sunplus_gcm394_base_device::unknown_tick)
 	m_rtc_int_status |= 0x0100;
 
 	if (m_alt_periodic_irq)
+	{
 		set_state_unsynced(UNSP_IRQ4_LINE, ASSERT_LINE);
+	}
 	else
-		set_state_unsynced(UNSP_IRQ6_LINE, ASSERT_LINE);
+	{
+		// now handled with timebases
+		//set_state_unsynced(UNSP_IRQ6_LINE, ASSERT_LINE);
+	}
 
 	//  checkirq6();
 }
@@ -1827,6 +2265,17 @@ void sunplus_gcm394_base_device::device_add_mconfig(machine_config &config)
 	m_spg_video->write_video_irq_callback().set(FUNC(sunplus_gcm394_base_device::videoirq_w));
 	m_spg_video->space_read_callback().set(FUNC(sunplus_gcm394_base_device::read_space));
 	m_spg_video->set_video_space(DEVICE_SELF, AS_PROGRAM);
+
+	TIMER(config, "timebase_a").configure_generic(FUNC(sunplus_gcm394_base_device::timebase_a_cb));
+	TIMER(config, "timebase_b").configure_generic(FUNC(sunplus_gcm394_base_device::timebase_b_cb));
+	TIMER(config, "timebase_c").configure_generic(FUNC(sunplus_gcm394_base_device::timebase_c_cb));
+
+	TIMER(config, "timer_a").configure_generic(FUNC(sunplus_gcm394_base_device::timer_a_cb));
+	TIMER(config, "timer_b").configure_generic(FUNC(sunplus_gcm394_base_device::timer_b_cb));
+	TIMER(config, "timer_c").configure_generic(FUNC(sunplus_gcm394_base_device::timer_c_cb));
+	TIMER(config, "timer_d").configure_generic(FUNC(sunplus_gcm394_base_device::timer_d_cb));
+	TIMER(config, "timer_e").configure_generic(FUNC(sunplus_gcm394_base_device::timer_e_cb));
+	TIMER(config, "timer_f").configure_generic(FUNC(sunplus_gcm394_base_device::timer_f_cb));
 }
 
 

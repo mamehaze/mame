@@ -29864,6 +29864,9 @@ suprstar
 @source:misc/amerihok.cpp
 amerihok
 
+@source:misc/amlogic_aml7212.cpp
+popstarz
+
 @source:misc/ampoker2.cpp
 ampkr228
 ampkr2b1
@@ -36010,6 +36013,7 @@ dnce2000
 nytsudo
 papsudok
 pjoypj001
+popstar2
 pv95in1
 racechl8
 vtvppong
@@ -36107,6 +36111,8 @@ vt25in1
 vtboxing
 vtpinball
 vtsndtest
+vjtv2500
+vjtv2501
 wldsoctv
 zdog
 zudugo
@@ -36270,6 +36276,7 @@ tup240
 unk128vt
 unk198vt
 unkra200
+urban240
 vibes240
 vibes240a
 zl383
@@ -44635,6 +44642,7 @@ luckyvl
 
 @source:skeleton/tamagotchi_pix.cpp
 precur2w
+rotom800
 tamapix
 
 @source:skeleton/tavernie.cpp
@@ -47722,6 +47730,7 @@ pokegach
 prailpls
 starbuck
 vmastspi
+wildking
 
 @source:tvgames/generalplus_gpl951xx.cpp
 fixitflx
@@ -47745,6 +47754,7 @@ punij1pk
 punij1pu
 punij2pk
 punirune
+punirunea
 punistar
 segapet1
 segapet1a
@@ -47791,6 +47801,7 @@ jak_ddhp
 jak_prhp
 jak_swbstrik
 jak_tmnthp
+jpad
 jpaddp
 kidizmb
 kidizmp

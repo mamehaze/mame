@@ -120,6 +120,19 @@ private:
 	uint8_t m_rombase = 0;
 };
 
+class nes_clone_popstar_state : public nes_clone_state
+{
+public:
+	nes_clone_popstar_state(const machine_config &mconfig, device_type type, const char *tag) :
+		nes_clone_state(mconfig, type, tag)
+	{ }
+	void nes_clone_popstar(machine_config &config) ATTR_COLD;
+
+private:
+	void nes_clone_popstar_map(address_map &map) ATTR_COLD;
+
+};
+
 class nes_clone_sudoku_state : public nes_clone_state
 {
 public:
@@ -642,6 +655,22 @@ void nes_clone_dancexpt_state::nes_clone_dancexpt_map(address_map &map)
 	map(0xc000, 0xffff).rom().region("maincpu", 0x1c000);
 }
 
+/**************************************************
+ Popstar Karaoke Specifics
+**************************************************/
+
+void nes_clone_popstar_state::nes_clone_popstar(machine_config &config)
+{
+	nes_clone_pal(config);
+	m_maincpu->set_addrmap(AS_PROGRAM, &nes_clone_popstar_state::nes_clone_popstar_map);
+}
+
+void nes_clone_popstar_state::nes_clone_popstar_map(address_map &map)
+{
+	nes_clone_basemap(map);
+
+	map(0x8000, 0xffff).rom().region("maincpu", 0x18000);
+}
 
 /**************************************************
  Dance 2000 Specifics
@@ -1451,6 +1480,10 @@ ROM_START( pv95in1 )
 	ROM_LOAD( "mx29f1610atc.ic2a", 0x00000, 0x200000, CRC(ca88e21c) SHA1(559d13806c9539f983ae929a0132af8ef381bd12) )
 ROM_END
 
+ROM_START( popstar2 )
+	ROM_REGION( 0x80000, "maincpu", 0 )
+	ROM_LOAD( "popstar_karaoke_vol2.u5", 0x00000, 0x80000, CRC(38eeac5b) SHA1(6cd4f7b7f34fecd68564f9d14e773dba61607db8) )
+ROM_END
 
 void nes_clone_state::init_nes_clone()
 {
@@ -1509,3 +1542,6 @@ CONS( 2005, racechl8, 0, 0, nes_clone_afbm7800, nes_clone, nes_clone_taikee_new_
 
 // probably not VT based
 CONS( 200?, pv95in1, 0, 0, nes_clone_afbm7800, nes_clone, nes_clone_taikee_new_state, init_nes_clone, "Play Vision", "Play Vision 95 Games in 1", MACHINE_NOT_WORKING )
+
+// mapper at 500x? has custom sound rather than standard NES APU or VTxx sounds, possibly an extra MCU or sound chip in the unit (see https://www.youtube.com/watch?v=OsydFoHW3Lc )
+CONS( 200?, popstar2, 0, 0, nes_clone_popstar, nes_clone, nes_clone_popstar_state, init_nes_clone, "<unknown>", "Popstar Karaoke Vol 2", MACHINE_NOT_WORKING )
