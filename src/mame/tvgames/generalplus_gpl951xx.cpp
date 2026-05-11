@@ -362,6 +362,11 @@ ROM_START( punirune )
 	ROM_LOAD16_WORD_SWAP( "25l64.ic103", 0x0000, 0x800000, CRC(0737edc0) SHA1(fce19d91a0522a75e676197fb18645b8c6a273b8) )
 ROM_END
 
+ROM_START( punirunea )
+	ROM_REGION16_BE(0x800000, "spi", ROMREGION_ERASE00)
+	ROM_LOAD16_WORD_SWAP( "25l64.ic3", 0x0000, 0x800000, CRC(a7a9aad0) SHA1(2c81d9a831360882b79b4dab0966c828ddb5a9e3) )
+ROM_END
+
 ROM_START( punij1m )
 	ROM_REGION16_BE(0x800000, "spi", ROMREGION_ERASE00)
 	ROM_LOAD16_WORD_SWAP( "japan_v1pcb_mint_25l6433f.ic103", 0x0000, 0x800000, CRC(76f28b5b) SHA1(be04d60c88df52951dd51eab2f5bf5f1dc2405e8) )
@@ -512,7 +517,10 @@ CONS(2019, bftetris, 0, 0, bftetris, bfspyhnt, generalplus_gpl951xx_game_state, 
 
 // unclear if colour matches, but there are multiple generations of these at least
 // uses PUNIRUNZU_MAIN_V3 pcb
-CONS(2021, punirune, 0, 0, puni, bfspyhnt, generalplus_gpl951xx_game_state, empty_init, "Takara Tomy", "Punirunes (PUNIRUNZU_MAIN_V3, pastel blue, Europe)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
+CONS(2021, punirune,  0,        0, puni, bfspyhnt, generalplus_gpl951xx_game_state, empty_init, "Takara Tomy", "Punirunes (PUNIRUNZU_MAIN_V3, pastel blue, Europe)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
+
+// looks similar to above, but has HXR-1 instead of the usual markings on the PCB
+CONS(2021, punirunea, punirune, 0, puni, bfspyhnt, generalplus_gpl951xx_game_state, empty_init, "Takara Tomy", "Punirunes (HXR-1 PCB)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
 
 // the case on these looks like the European release, including English title logo.  CPU is a glob, PUNIRUNZU_MAIN_DICE_V1 on PCB
 CONS(2021, punij1m,  punirune, 0, puni, bfspyhnt, generalplus_gpl951xx_game_state, empty_init, "Takara Tomy", "Punirunes (PUNIRUNZU_MAIN_DICE_V1, mint, Japan)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)

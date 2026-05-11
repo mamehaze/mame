@@ -1635,6 +1635,7 @@ CONS( 200?, pjoyn50,    0,        0,  nes_vt_4mb,    nes_vt, nes_vt_state, empty
 CONS( 200?, pjoys30,    0,        0,  nes_vt_pjoy_4mb,    nes_vt, nes_vt_pjoy_state, empty_init, "<unknown>", "PowerJoy Supermax 30 in 1", MACHINE_IMPERFECT_GRAPHICS )
 CONS( 200?, pjoys60,    0,        0,  nes_vt_pjoy_4mb,    nes_vt, nes_vt_pjoy_state, empty_init, "<unknown>", "PowerJoy Supermax 60 in 1", MACHINE_IMPERFECT_GRAPHICS )
 
+// these have WT051-CPU on the sub-board, and WT062-MAIN on the main board
 CONS( 2004, vjtv2500,   0,        0,  nes_vt_pjoy_1mb,    nes_vt, nes_vt_pjoy_state,  empty_init, "VideoJet", "TV Joy Pro 15-in-1 (2500)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND )
 CONS( 2005, vjtv2501,   0,        0,  nes_vt_pjoy_2mb,    nes_vt, nes_vt_pjoy_state,  empty_init, "VideoJet", "TV Joy Pro 30-in-1 (2501)", MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND )
 
