@@ -70,7 +70,8 @@ sunplus_gcm394_base_device::sunplus_gcm394_base_device(const machine_config &mco
 	m_timer_c(*this, "timer_c"),
 	m_timer_d(*this, "timer_d"),
 	m_timer_e(*this, "timer_e"),
-	m_timer_f(*this, "timer_f")
+	m_timer_f(*this, "timer_f"),
+	m_disable_timebase_interrupts(false)
 {
 }
 
@@ -914,22 +915,25 @@ void sunplus_gcm394_base_device::mint_ctrl_w(u16 data)
 
 void sunplus_gcm394_base_device::update_interrupts()
 {
-	if ((m_timebasea_ctrl & 0x8000) || (m_timebaseb_ctrl & 0x8000))
+	if (!m_disable_timebase_interrupts)
 	{
-		set_state_unsynced(UNSP_IRQ7_LINE, ASSERT_LINE);
-	}
-	else
-	{
-		set_state_unsynced(UNSP_IRQ7_LINE, CLEAR_LINE);
-	}
+		if ((m_timebasea_ctrl & 0x8000) || (m_timebaseb_ctrl & 0x8000))
+		{
+			set_state_unsynced(UNSP_IRQ7_LINE, ASSERT_LINE);
+		}
+		else
+		{
+			set_state_unsynced(UNSP_IRQ7_LINE, CLEAR_LINE);
+		}
 
-	if (m_timebasec_ctrl & 0x8000)
-	{
-		set_state_unsynced(UNSP_IRQ6_LINE, ASSERT_LINE);
-	}
-	else
-	{
-		set_state_unsynced(UNSP_IRQ6_LINE, CLEAR_LINE);
+		if (m_timebasec_ctrl & 0x8000)
+		{
+			set_state_unsynced(UNSP_IRQ6_LINE, ASSERT_LINE);
+		}
+		else
+		{
+			set_state_unsynced(UNSP_IRQ6_LINE, CLEAR_LINE);
+		}
 	}
 }
 

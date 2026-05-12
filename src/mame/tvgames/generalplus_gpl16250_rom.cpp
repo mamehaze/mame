@@ -604,6 +604,11 @@ void beijuehh_game_state::beijuehh(machine_config &config)
 
 	m_maincpu->portb_out().set(FUNC(beijuehh_game_state::beijuehh_portb_w));
 	m_maincpu->portd_out().set(FUNC(beijuehh_game_state::beijuehh_portd_w));
+
+	// beijuehh and bornkidh have a protection function that runs in the timebase interrupt
+	// for beijuehh it causes freezes in xracer3, in bornkidh it runs at all times and even
+	// freezes the menus.  disable the timebase interrupts in the core until this is understood.
+	m_maincpu->disable_timebase_interrupts();
 }
 
 

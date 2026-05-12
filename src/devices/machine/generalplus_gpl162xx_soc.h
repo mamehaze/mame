@@ -45,6 +45,9 @@ public:
 
 	auto nand_read_callback() { return m_nand_read_cb.bind(); }
 
+	// hack for beijuehh / bornkidh
+	void disable_timebase_interrupts() { m_disable_timebase_interrupts = true; }
+
 	template <typename... T> void set_cs_config_callback(T &&... args) { m_cs_callback.set(std::forward<T>(args)...); }
 	template <typename T> void set_cs_space(T &&tag, int no)
 	{
@@ -386,6 +389,8 @@ protected:
 	required_device<timer_device> m_timer_e;
 	required_device<timer_device> m_timer_f;
 
+	// config/hacks
+	bool m_disable_timebase_interrupts;
 };
 
 
