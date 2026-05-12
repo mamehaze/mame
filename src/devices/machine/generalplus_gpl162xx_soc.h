@@ -57,7 +57,6 @@ public:
 	void vblank(int state) { m_spg_video->vblank(state); }
 
 	void set_bootmode(int mode) { m_boot_mode = mode; }
-	void set_alt_periodic_irq(bool alt) { m_alt_periodic_irq = alt; }
 
 	IRQ_CALLBACK_MEMBER(irq_vector_cb);
 	void default_cs_callback(u16 cs0, u16 cs1, u16 cs2, u16 cs3, u16 cs4 );
@@ -363,14 +362,8 @@ protected:
 
 	void checkirq6();
 
-	emu_timer *m_unk_timer;
-
-	TIMER_CALLBACK_MEMBER(unknown_tick);
-
 	inline u16 read_space(offs_t offset);
 	inline void write_space(offs_t offset, u16 data);
-
-	bool m_alt_periodic_irq; // might be multiple timers, might be a register to configure, currently a config option.
 
 	// config registers (external pins)
 	int m_boot_mode; // 2 pins determine boot mode, likely only read at power-on

@@ -60,7 +60,6 @@ sunplus_gcm394_base_device::sunplus_gcm394_base_device(const machine_config &mco
 	m_space_read_cb(*this, 0),
 	m_space_write_cb(*this),
 	m_dma_complete_cb(*this),
-	m_alt_periodic_irq(false),
 	m_boot_mode(0),
 	m_cs_callback(*this, DEVICE_SELF, FUNC(sunplus_gcm394_base_device::default_cs_callback)),
 	m_timebase_a(*this, "timebase_a"),
@@ -1172,7 +1171,6 @@ void sunplus_gcm394_base_device::rtc_int_status_w(u16 data)
 {
 	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::rtc_int_status_w %04x\n", machine().describe_context(), data);
 	m_rtc_int_status &= ~data;
-	//checkirq6();
 }
 
 u16 sunplus_gcm394_base_device::rtc_int_ctrl_r() { LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::rtc_int_ctrl_r\n", machine().describe_context()); return 0x0000; }
@@ -1991,9 +1989,6 @@ void sunplus_gcm394_base_device::device_start()
 
 	m_cs_callback.resolve();
 
-	m_unk_timer = timer_alloc(FUNC(sunplus_gcm394_base_device::unknown_tick), this);
-	m_unk_timer->adjust(attotime::never);
-
 	save_item(NAME(m_dma_params));
 	save_item(NAME(m_sys_ctrl));
 	save_item(NAME(m_clock_ctrl));
@@ -2114,8 +2109,6 @@ void sunplus_gcm394_base_device::device_reset()
 
 	m_system_dma_memtype = 0x0000;
 
-	m_unk_timer->adjust(attotime::from_hz(60), 0, attotime::from_hz(60));
-
 	m_spg_video->reset();
 }
 
@@ -2133,16 +2126,6 @@ IRQ_CALLBACK_MEMBER(sunplus_gcm394_base_device::irq_vector_cb)
 	return 0;
 }
 
-
-void sunplus_gcm394_base_device::checkirq6()
-{
-/*
-    if (m_rtc_int_status & 0x0100)
-        set_state_unsynced(UNSP_IRQ6_LINE, ASSERT_LINE);
-    else
-        set_state_unsynced(UNSP_IRQ6_LINE, CLEAR_LINE);
-*/
-}
 
 /* the IRQ6 interrupt on Wrlshunt
    reads 78a1, checks bit 0400
@@ -2167,25 +2150,6 @@ void sunplus_gcm394_base_device::checkirq6()
    7863 is therefore some kind of 'video irq source' ?
 
 */
-
-
-TIMER_CALLBACK_MEMBER(sunplus_gcm394_base_device::unknown_tick)
-{
-	m_rtc_int_status |= 0x0100;
-
-	if (m_alt_periodic_irq)
-	{
-		set_state_unsynced(UNSP_IRQ4_LINE, ASSERT_LINE);
-	}
-	else
-	{
-		// now handled with timebases
-		//set_state_unsynced(UNSP_IRQ6_LINE, ASSERT_LINE);
-	}
-
-	//  checkirq6();
-}
-
 
 void sunplus_gcm394_base_device::audioirq_w(int state)
 {
