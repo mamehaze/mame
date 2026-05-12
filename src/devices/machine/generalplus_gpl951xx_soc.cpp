@@ -16,8 +16,7 @@
 
 // RTC
 
-// device type definition
-DEFINE_DEVICE_TYPE(GPL951XX_RTC, gpl951xx_rtc_device, "gpl951xx_rtc", "GPL951XX_RTC")
+DEFINE_DEVICE_TYPE(GPL951XX_RTC, gpl951xx_rtc_device, "gpl951xx_rtc", "GPL951XX Real Time Clock")
 
 gpl951xx_rtc_device::gpl951xx_rtc_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock) :
 	device_t(mconfig, GPL951XX_RTC, tag, owner, clock),

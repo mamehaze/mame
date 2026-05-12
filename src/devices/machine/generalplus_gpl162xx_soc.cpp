@@ -1170,9 +1170,9 @@ void sunplus_gcm394_base_device::cha_ctrl_w(u16 data)
 
 // **************************************** 793x uknown region stubs *************************************************
 
-u16 sunplus_gcm394_base_device::unkarea_7904_r()
+u16 sunplus_gcm394_base_device::uart_status_r()
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::unkarea_7904_r\n", machine().describe_context());
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::uart_status_r\n", machine().describe_context());
 	return machine().rand(); // lazertag waits on a bit, status flag for something?
 }
 
@@ -1908,7 +1908,7 @@ void sunplus_gcm394_base_device::base_internal_map(address_map &map)
 	// 790x - UART
 	// ######################################################################################################################################################################################
 
-	map(0x007904, 0x007904).r(FUNC(sunplus_gcm394_base_device::unkarea_7904_r)); // lazertag after a while
+	map(0x007904, 0x007904).r(FUNC(sunplus_gcm394_base_device::uart_status_r)); // lazertag after a while
 
 	// ######################################################################################################################################################################################
 	// 792x -793x - RTC

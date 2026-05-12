@@ -336,7 +336,7 @@ protected:
 	u16 cha_ctrl_r();
 	void cha_ctrl_w(u16 data);
 
-	u16 unkarea_7904_r();
+	u16 uart_status_r();
 
 	u16 rtc_ctrl_r();
 	void rtc_ctrl_w(u16 data);
