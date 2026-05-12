@@ -159,7 +159,8 @@ CONS( 2020, tamapix,       0,              0,      tamapix,  tamapix, tamagotchi
 // "Muscat A 2022 01 15" on PCB
 CONS( 2022, precur2w,      0,              0,      precur2w, tamapix, precur2w_state,       empty_init, "Bandai", "Delicious Party PreCure Heart Cure Watch & Heart Fruit Pendant Cover Special Set (Japan)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
 
-CONS( 2022, rotom800,      0,              0,      precur2w, tamapix, precur2w_state,       empty_init, "Bandai", "Rotom 800 (Japan)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
+// キミもポケモン博士！ スマホロトムPad
+CONS( 2022, rotom800,      0,              0,      precur2w, tamapix, precur2w_state,       empty_init, "Bandai", "Kimi mo Pokemon Hakase! Rotom Pad (Japan)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
 
 // わんだふるぷりきゅあ！　どうぶつおせわがた～っぷり　あつめておせわしよ　キラニコトランク
 // Wonderful Precure! Dōbutsu Osewa ga Ta~ppuri Atsumete Osewa Shiyo♥ Kiraniko Trunk (c)2024 Bandai
