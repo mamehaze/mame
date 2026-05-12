@@ -1363,7 +1363,7 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map &map)
 	//
 	// 7abd - DMA_LineLength
 	map(0x007abe, 0x007abe).rw(FUNC(generalplus_gpl951xx_device::system_dma_memtype_r), FUNC(generalplus_gpl951xx_device::system_dma_memtype_w)); // 7abe - DMA_SS
-	map(0x007abf, 0x007abf).rw(FUNC(generalplus_gpl951xx_device::system_dma_status_r), FUNC(generalplus_gpl951xx_device::system_dma_7abf_unk_w)); // 7abf - DMA_INT
+	map(0x007abf, 0x007abf).rw(FUNC(generalplus_gpl951xx_device::system_dma_status_r), FUNC(generalplus_gpl951xx_device::system_dma_status_w)); // 7abf - DMA_INT
 	//
 	// 7ac0 - CTS_Ctrl1
 	// 7ac1 - CTS_CH

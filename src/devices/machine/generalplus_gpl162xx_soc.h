@@ -153,15 +153,18 @@ protected:
 
 	u16 m_cha_ctrl;
 
-	u16 m_78fb;
+	u16 m_dac_pga;
 
 	// unk 79xx
 	u16 m_rtc_ctrl;
 	u16 m_rtc_int_status;
 	u16 m_rtc_int_ctrl;
 
-	u16 m_7960;
-	u16 m_7961;
+	u16 m_adc_setup;
+	u16 m_madc_ctrl;
+
+	u16 m_timera_ctrl;
+	u16 m_timerb_ctrl;
 
 	u16 m_system_dma_memtype;
 
@@ -205,12 +208,12 @@ protected:
 	u16 system_dma_params_channel3_r(offs_t offset);
 	void system_dma_params_channel3_w(offs_t offset, u16 data);
 	u16 system_dma_status_r();
-	void system_dma_7abf_unk_w(u16 data);
+	void system_dma_status_w(u16 data);
 	u16 system_dma_memtype_r();
 	void system_dma_memtype_w(u16 data);
 
 	u16 power_state_r();
-	u16 unkarea_78fb_status_r();
+	u16 dac_pga_r();
 
 	u16 sys_ctrl_r();
 	void sys_ctrl_w(u16 data);
@@ -238,10 +241,10 @@ protected:
 
 	void chipselect_csx_memory_device_control_w(offs_t offset, u16 data);
 
-	void unkarea_7835_w(u16 data);
+	void mcs0_page_w(u16 data);
 
-	u16 unkarea_782d_r();
-	void unkarea_782d_w(u16 data);
+	u16 raw_war_r();
+	void raw_war_w(u16 data);
 
 	// Port A
 	u16 ioa_data_r();
@@ -322,7 +325,10 @@ protected:
 	void timebase_reset_w(u16 data);
 
 	u16 timera_ctrl_r();
+	void timera_ctrl_w(u16 data);
+
 	u16 timerb_ctrl_r();
+	void timerb_ctrl_w(u16 data);
 
 	u16 timerc_ctrl_r();
 	u16 timerd_ctrl_r();
@@ -345,20 +351,20 @@ protected:
 	u16 spi_7945_misc_control_reg_r();
 	void spi_7942_txdata_w(u16 data);
 
-	void unkarea_7960_w(u16 data);
-	u16 unkarea_7961_r();
-	void unkarea_7961_w(u16 data);
-	u16 unkarea_7962_r();
+	void adc_setup_w(u16 data);
+	u16 madc_ctrl_r();
+	void madc_ctrl_w(u16 data);
+	u16 madc_data_r();
 
 	void videoirq_w(int state);
 	void audioirq_w(int state);
 
-	u16 system_7a35_r();
-	u16 system_7a37_r();
-	u16 system_7a39_r();
-	u16 system_7a3a_r();
-	u16 system_7a46_r();
-	u16 system_7a54_r();
+	u16 usb_7a35_r();
+	u16 usb_7a37_r();
+	u16 usb_7a39_r();
+	u16 usb_7a3a_r();
+	u16 usb_7a46_r();
+	u16 usb_7a54_r();
 
 	void checkirq6();
 
