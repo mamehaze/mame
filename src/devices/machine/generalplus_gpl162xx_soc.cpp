@@ -1778,36 +1778,49 @@ void sunplus_gcm394_base_device::base_internal_map(address_map &map)
 	map(0x007861, 0x007861).rw(FUNC(sunplus_gcm394_base_device::ioa_buffer_r), FUNC(sunplus_gcm394_base_device::ioa_buffer_w)); // 7861  I/O PortA Buffer Register
 	map(0x007862, 0x007862).rw(FUNC(sunplus_gcm394_base_device::ioa_dir_r), FUNC(sunplus_gcm394_base_device::ioa_dir_w));  // 7862  I/O PortA Direction Register
 	map(0x007863, 0x007863).rw(FUNC(sunplus_gcm394_base_device::ioa_attrib_r), FUNC(sunplus_gcm394_base_device::ioa_attrib_w)); //    7863  I/O PortA Attribute Register
+	// 7864 P_IOA_Drv
 
 	map(0x007868, 0x007868).rw(FUNC(sunplus_gcm394_base_device::iob_data_r), FUNC(sunplus_gcm394_base_device::iob_data_w)); // on startup   // 7868  I/O PortB Data Register
 	map(0x007869, 0x007869).rw(FUNC(sunplus_gcm394_base_device::iob_buffer_r), FUNC(sunplus_gcm394_base_device::iob_buffer_w)); //  7869  I/O PortB Buffer Register   // jak_s500
 	map(0x00786a, 0x00786a).rw(FUNC(sunplus_gcm394_base_device::iob_dir_r), FUNC(sunplus_gcm394_base_device::iob_dir_w)); // 786a  I/O PortB Direction Register
 	map(0x00786b, 0x00786b).rw(FUNC(sunplus_gcm394_base_device::iob_attrib_r), FUNC(sunplus_gcm394_base_device::iob_attrib_w)); // 786b  I/O PortB Attribute Register
-	// 786c  I/O PortB Latch / Wakeup
+	// 786c  P_IOB_Latch (I/O PortB Latch / Wakeup)
+	// 786d  P_IOB_Drv
 
 	map(0x007870, 0x007870).rw(FUNC(sunplus_gcm394_base_device::ioc_data_r) ,FUNC(sunplus_gcm394_base_device::ioc_data_w)); // 7870  I/O PortC Data Register
 	map(0x007871, 0x007871).rw(FUNC(sunplus_gcm394_base_device::ioc_buffer_r), FUNC(sunplus_gcm394_base_device::ioc_buffer_w)); // 7871  I/O PortC Buffer Register
 	map(0x007872, 0x007872).rw(FUNC(sunplus_gcm394_base_device::ioc_dir_r), FUNC(sunplus_gcm394_base_device::ioc_dir_w)); // 7872  I/O PortC Direction Register
 	map(0x007873, 0x007873).rw(FUNC(sunplus_gcm394_base_device::ioc_attrib_r), FUNC(sunplus_gcm394_base_device::ioc_attrib_w)); // 7873  I/O PortC Attribute Register
-
-	// 7874 (data 0x1249) (bkrankp data 0x36db)
+	// 7874 P_SDRAM_Drv (data 0x1249) (bkrankp data 0x36db)
+	// 7875 P_IOC_Drv
+	// 7876 P_SDRAM_Dly (SDRAM Port Delay Adjustment Register)
+	// 7877 P_IOC_Latch (I/O PortC Latch Register for Wakeup)
 
 	map(0x007878, 0x007878).rw(FUNC(sunplus_gcm394_base_device::iod_data_r) ,FUNC(sunplus_gcm394_base_device::iod_data_w)); // 7878  I/O PortD Data Register
 	map(0x007879, 0x007879).rw(FUNC(sunplus_gcm394_base_device::iod_buffer_r), FUNC(sunplus_gcm394_base_device::iod_buffer_w)); // 7879  I/O PortD Buffer Register
 	map(0x00787a, 0x00787a).rw(FUNC(sunplus_gcm394_base_device::iod_dir_r), FUNC(sunplus_gcm394_base_device::iod_dir_w)); // 787a  I/O PortD Direction Register
 	map(0x00787b, 0x00787b).rw(FUNC(sunplus_gcm394_base_device::iod_attib_r), FUNC(sunplus_gcm394_base_device::iod_attib_w)); // 787b  I/O PortD Attribute Register
 	map(0x00787c, 0x00787c).rw(FUNC(sunplus_gcm394_base_device::iod_drv_r), FUNC(sunplus_gcm394_base_device::iod_drv_w)); // P_IOD_Drv - I/O PortD Driving Capability Register
-	map(0x00787d, 0x00787d).rw(FUNC(sunplus_gcm394_base_device::iod_mux_r), FUNC(sunplus_gcm394_base_device::iod_mux_w)); // 787e (data 0x1249) (bkrankp data 0x36db)
+	// 787d - P_IOD_Dly (I/O PortD Delay Adjustment Register)
+	// 787e - P_CS_Drc (CS Port Driving Capability)
+	// 787f - P_CS_Dly (CS Port Delay Adjustment Register)
 
-	// 7880
+	// 7880 - P_IOE_DATA
 	map(0x007881, 0x007881).rw(FUNC(sunplus_gcm394_base_device::ioe_buffer_r), FUNC(sunplus_gcm394_base_device::ioe_buffer_w));
 	map(0x007882, 0x007882).rw(FUNC(sunplus_gcm394_base_device::ioe_dir_r), FUNC(sunplus_gcm394_base_device::ioe_dir_w));
 	map(0x007883, 0x007883).rw(FUNC(sunplus_gcm394_base_device::ioe_attrib_r), FUNC(sunplus_gcm394_base_device::ioe_attrib_w));
+	// 7884 - P_IOE_Drv
+	
+	// 0x7888 - P_MEM_DRV
+	// 0x7889 - P_MEM_DLY0
+	// 0x788a - P_MEM_DLY1
+	// 0x788b - P_MEM_DLY2
+	// 0x788c - P_MEM_DLY3
+	// 0x788d - P_MEM_DLY4
+	// 0x788e - P_MEM_DLY5
+	// 0x788f - P_MEM_DLY6
 
-	// 0x7888 (data 0x1249) (bkrankp data 0x36db), written with 7874 / 787c / 787e above
-	map(0x007889, 0x007889).rw(FUNC(sunplus_gcm394_base_device::iof_buffer_r), FUNC(sunplus_gcm394_base_device::iof_buffer_w)); // 7889 - IOF_Buffer
-	map(0x00788a, 0x00788a).rw(FUNC(sunplus_gcm394_base_device::iof_dir_r), FUNC(sunplus_gcm394_base_device::iof_dir_w)); // 788a - IOF_Dir
-	map(0x00788b, 0x00788b).rw(FUNC(sunplus_gcm394_base_device::iof_attrib_r), FUNC(sunplus_gcm394_base_device::iof_attrib_w)); // 788b - IOF_Attrib
+
 
 	// ######################################################################################################################################################################################
 	// 78ax - interrupt controller?
