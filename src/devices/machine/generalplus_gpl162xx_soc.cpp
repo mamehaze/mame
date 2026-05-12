@@ -719,41 +719,6 @@ void sunplus_gcm394_base_device::ioe_attrib_w(u16 data)
 	m_ioe_attrib = data;
 }
 
-u16 sunplus_gcm394_base_device::iof_buffer_r()
-{
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iof_buffer_r\n", machine().describe_context());
-	return 0xffff;
-}
-
-void sunplus_gcm394_base_device::iof_buffer_w(u16 data)
-{
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iof_buffer_w %04x\n", machine().describe_context(), data);
-	//m_portf_out(data);
-}
-
-u16 sunplus_gcm394_base_device::iof_dir_r()
-{
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::iof_dir_r\n", machine().describe_context());
-	return m_iof_dir;
-}
-
-void sunplus_gcm394_base_device::iof_dir_w(u16 data)
-{
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::iof_dir_w %04x\n", machine().describe_context(), data);
-	m_iof_dir = data;
-}
-
-u16 sunplus_gcm394_base_device::iof_attrib_r()
-{
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::iof_attrib_r\n", machine().describe_context());
-	return m_iof_attrib;
-}
-
-void sunplus_gcm394_base_device::iof_attrib_w(u16 data)
-{
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::iof_attrib_w %04x\n", machine().describe_context(), data);
-	m_iof_attrib = data;
-}
 
 // P_INT_Status1  (different on GPL162xx vs GP95xx)
 // 15  KEYIF
@@ -1771,7 +1736,9 @@ void sunplus_gcm394_base_device::base_internal_map(address_map &map)
 	// 7841 - ^^ (P_Addr_Ctrl on GPL162xxA)
 
 	// ######################################################################################################################################################################################
-	// 786x - 787x - IO related?
+	// 786x - 788x - IO related
+	// on GPL162xx the ports each have different capability / features
+	// and there are a few other bits mixed in here
 	// ######################################################################################################################################################################################
 
 	map(0x007860, 0x007860).rw(FUNC(sunplus_gcm394_base_device::ioa_data_r), FUNC(sunplus_gcm394_base_device::ioa_data_w)); //    7860  I/O PortA Data Register
@@ -2049,8 +2016,6 @@ void sunplus_gcm394_base_device::device_start()
 	save_item(NAME(m_7873_portc_attribute));
 	save_item(NAME(m_ioe_dir));
 	save_item(NAME(m_ioe_attrib));
-	save_item(NAME(m_iof_dir));
-	save_item(NAME(m_iof_attrib));
 	save_item(NAME(m_int_status1));
 	save_item(NAME(m_int_priority_1));
 	save_item(NAME(m_int_priority_2));

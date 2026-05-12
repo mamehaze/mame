@@ -143,6 +143,13 @@ private:
 	u16 gpl951xx_timerh_preload_r();
 	void gpl951xx_timerh_preload_w(u16 data);
 
+	u16 iof_buffer_r();
+	void iof_buffer_w(u16 data);
+	u16 iof_dir_r();
+	void iof_dir_w(u16 data);
+	u16 iof_attrib_r();
+	void iof_attrib_w(u16 data);
+
 	u16 spi_bank_r();
 	void spi_bank_w(u16 data);
 
@@ -184,6 +191,9 @@ private:
 	u8 m_bytes_in_spifc_rx_fifo;
 	u8 m_spifc_rx_fifo[16 * 2];
 	u16 m_spifc_rx_read_latch;
+
+	u16 m_iof_dir;
+	u16 m_iof_attrib;
 
 	u16 m_spi_bank;
 

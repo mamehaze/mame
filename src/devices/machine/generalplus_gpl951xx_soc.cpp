@@ -519,6 +519,8 @@ void generalplus_gpl951xx_device::device_start()
 	save_item(NAME(m_memmode_wcmd));
 	save_item(NAME(m_spifc_rx_fifo));
 	save_item(NAME(m_spifc_rx_read_latch));
+	save_item(NAME(m_iof_dir));
+	save_item(NAME(m_iof_attrib));
 }
 
 void generalplus_gpl951xx_device::device_reset()
@@ -541,6 +543,8 @@ void generalplus_gpl951xx_device::device_reset()
 	m_spifc_rx_read_latch = 0;
 	m_memmode_wcmd = 0;
 	m_spi_bank = 0;
+	m_iof_dir = 0;
+	m_iof_attrib = 0;
 
 	for (int i = 0; i < 16 * 2; i++)
 		m_spifc_rx_fifo[i] = 0;
@@ -857,6 +861,43 @@ TIMER_DEVICE_CALLBACK_MEMBER(generalplus_gpl951xx_device::timer_f_cb)
 {
 }
 
+
+u16 generalplus_gpl951xx_device::iof_buffer_r()
+{
+	LOGMASKED(LOG_OTHER, "%s:generalplus_gpl951xx_device::iof_buffer_r\n", machine().describe_context());
+	return 0xffff;
+}
+
+void generalplus_gpl951xx_device::iof_buffer_w(u16 data)
+{
+	LOGMASKED(LOG_OTHER, "%s:generalplus_gpl951xx_device::iof_buffer_w %04x\n", machine().describe_context(), data);
+	//m_portf_out(data);
+}
+
+u16 generalplus_gpl951xx_device::iof_dir_r()
+{
+	LOGMASKED(LOG_OTHER, "%s:generalplus_gpl951xx_device::iof_dir_r\n", machine().describe_context());
+	return m_iof_dir;
+}
+
+void generalplus_gpl951xx_device::iof_dir_w(u16 data)
+{
+	LOGMASKED(LOG_OTHER, "%s:generalplus_gpl951xx_device::iof_dir_w %04x\n", machine().describe_context(), data);
+	m_iof_dir = data;
+}
+
+u16 generalplus_gpl951xx_device::iof_attrib_r()
+{
+	LOGMASKED(LOG_OTHER, "%s:generalplus_gpl951xx_device::iof_attrib_r\n", machine().describe_context());
+	return m_iof_attrib;
+}
+
+void generalplus_gpl951xx_device::iof_attrib_w(u16 data)
+{
+	LOGMASKED(LOG_OTHER, "%s:generalplus_gpl951xx_device::iof_attrib_w %04x\n", machine().describe_context(), data);
+	m_iof_attrib = data;
+}
+
 u16 generalplus_gpl951xx_device::spi_direct_r(offs_t offset)
 {
 	// The GPL951xx chips can see a bank of SPI memory as a flat space
@@ -1056,6 +1097,9 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map &map)
 	// 785d - ECC_CPCKR_LB    or BCH_Parity4
 	// 785e - ECC_ERR0_LB     or BCH_Parity5
 	// 785f - ECC_ERR1_LB     or BCH_Parity6
+
+	// Ports addresses on GPL951xx have more logical arrangement compared to GPL162xx
+	// and there is an additional 'Port F'
 
 	map(0x007860, 0x007860).rw(FUNC(generalplus_gpl951xx_device::ioa_data_r), FUNC(generalplus_gpl951xx_device::ioa_data_w));                     // 7860 - IOA_Data
 	map(0x007861, 0x007861).rw(FUNC(generalplus_gpl951xx_device::ioa_buffer_r), FUNC(generalplus_gpl951xx_device::ioa_buffer_w));       // 7861 - IOA_Buffer

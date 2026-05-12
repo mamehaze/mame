@@ -138,9 +138,6 @@ protected:
 	u16 m_ioe_dir;
 	u16 m_ioe_attrib;
 
-	u16 m_iof_dir;
-	u16 m_iof_attrib;
-
 	u16 m_int_status1;
 
 	u16 m_int_priority_1;
@@ -297,13 +294,6 @@ protected:
 	void ioe_dir_w(u16 data);
 	u16 ioe_attrib_r();
 	void ioe_attrib_w(u16 data);
-
-	u16 iof_buffer_r();
-	void iof_buffer_w(u16 data);
-	u16 iof_dir_r();
-	void iof_dir_w(u16 data);
-	u16 iof_attrib_r();
-	void iof_attrib_w(u16 data);
 
 	void int_status1_w(u16 data);
 	void int_status2_w(u16 data);
