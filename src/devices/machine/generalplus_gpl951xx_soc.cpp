@@ -952,7 +952,7 @@ u16 generalplus_gpl951xx_device::int_status1_r()
 	if (m_gpl_chx->is_chb_fifo_empty_irq())
 		ret |= 0x0020;
 
-	return 0x0000;
+	return ret;
 }
 
 void generalplus_gpl951xx_device::int_status1_w(u16 data)

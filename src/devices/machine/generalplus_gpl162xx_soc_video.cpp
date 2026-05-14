@@ -1263,7 +1263,7 @@ void gcm394_base_video_device::vblank(int state)
 		// jak_prft expects 0x800 to be set in the status register or most of the main vblank code is skipped, why?
 		// 0x800 is TV/TFT Frame End IRQ
 
-		m_video_irq_status |= ((machine().rand() & 1) ? 0x000 : 1) | ((machine().rand() & 1) ? 0x000 : 0x800);
+		m_video_irq_status |= (0x001 | 0x800);
 		LOGMASKED(LOG_GCM394_VIDEO, "Setting video IRQ status to %04x\n", m_video_irq_status);
 		check_video_irq();
 	}
