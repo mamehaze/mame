@@ -102,6 +102,7 @@ void gpl_chx_device::cha_ctrl_w(u16 data)
 	{
 		// clear flag
 		data &= 0x7fff;
+		m_updateirqs_cb(1);
 	}
 
 	m_cha_ctrl = data;
@@ -120,6 +121,20 @@ u16 gpl_chx_device::cha_data_r()
 void gpl_chx_device::cha_data_w(u16 data)
 {
 	LOGMASKED(LOG_CHX, "%s: gpl_chx_device::cha_data_w %04x\n", machine().describe_context(), data);
+
+	if (m_cha_fifo_entries < 16)
+	{
+		m_cha_fifo[m_cha_fifo_writepos] = data;
+		m_cha_fifo_writepos++;
+		m_cha_fifo_writepos &= 0xf;
+
+		m_cha_fifo_entries++;
+	}
+	else
+	{
+		// trying to overflow the FIFO
+	}
+
 }
 
 // P_CHA_FIFO
@@ -154,6 +169,13 @@ void gpl_chx_device::cha_fifo_w(u16 data)
 {
 	LOGMASKED(LOG_CHX, "%s: gpl_chx_device::cha_fifo_w %04x\n", machine().describe_context(), data);
 	m_cha_fifo_reg = (m_cha_fifo_reg & 0xff0f) | (data & 0x00f0);
+
+	if (data & 0x0100)
+	{
+		m_cha_fifo_readpos = 0;
+		m_cha_fifo_writepos = 0;
+		m_cha_fifo_entries = 0;
+	}
 }
 
 // P_CHB_Ctrl
@@ -193,6 +215,7 @@ void gpl_chx_device::chb_ctrl_w(u16 data)
 	{
 		// clear flag
 		data &= 0x7fff;
+		m_updateirqs_cb(1);
 	}
 
 	m_chb_ctrl = data;
@@ -211,6 +234,19 @@ u16 gpl_chx_device::chb_data_r()
 void gpl_chx_device::chb_data_w(u16 data)
 {
 	LOGMASKED(LOG_CHX, "%s: gpl_chx_device::chb_data_w %04x\n", machine().describe_context(), data);
+
+	if (m_chb_fifo_entries < 16)
+	{
+		m_chb_fifo[m_cha_fifo_writepos] = data;
+		m_chb_fifo_writepos++;
+		m_chb_fifo_writepos &= 0xf;
+
+		m_chb_fifo_entries++;
+	}
+	else
+	{
+		// trying to overflow the FIFO
+	}
 }
 
 // P_CHB_FIFO
@@ -227,16 +263,77 @@ void gpl_chx_device::chb_fifo_w(u16 data)
 {
 	LOGMASKED(LOG_CHX, "%s: gpl_chx_device::chb_fifo_w %04x\n", machine().describe_context(), data);
 	m_chb_fifo_reg = (m_chb_fifo_reg & 0xff0f) | (data & 0x00f0);
+
+	if (data & 0x0100)
+	{
+		m_chb_fifo_readpos = 0;
+		m_chb_fifo_writepos = 0;
+		m_chb_fifo_entries = 0;
+	}
 }
 
 void gpl_chx_device::process_cha_fifo()
 {
-	m_cha_output_cb(0x0000);
+	if (!(m_cha_ctrl & 0x2000))
+		return;
+
+	// should we be calling cha_data_r to do this?
+
+	if (m_cha_fifo_entries > 0)
+	{
+		u16 retdata = m_cha_fifo[m_cha_fifo_readpos];
+		m_cha_fifo_entries--;
+		m_cha_fifo_readpos++;
+		m_cha_fifo_readpos &= 0xf;
+		m_cha_output_cb(retdata);
+	}
+	else
+	{
+		// trying to underflow the FIFO?
+	}
+
+	u8 emptyamount = (m_cha_fifo_reg & 0x00f0) >> 4;
+
+	if (m_cha_fifo_entries <= emptyamount)
+	{
+		if (m_cha_ctrl & 0x4000)
+		{
+			m_cha_ctrl |= 0x8000;
+			m_updateirqs_cb(1);
+		}
+	}
 }
 
 void gpl_chx_device::process_chb_fifo()
 {
-	m_chb_output_cb(0x0000);
+	if (!(m_chb_ctrl & 0x2000))
+		return;
+
+	// should we be calling chb_data_r to do this?
+
+	if (m_chb_fifo_entries > 0)
+	{
+		u16 retdata = m_chb_fifo[m_chb_fifo_readpos];
+		m_chb_fifo_entries--;
+		m_chb_fifo_readpos++;
+		m_chb_fifo_readpos &= 0xf;
+		m_chb_output_cb(retdata);
+	}
+	else
+	{
+		// trying to underflow the FIFO?
+	}
+
+	u8 emptyamount = (m_chb_fifo_reg & 0x00f0) >> 4;
+
+	if (m_chb_fifo_entries <= emptyamount)
+	{
+		if (m_chb_ctrl & 0x4000)
+		{
+			m_chb_ctrl |= 0x8000;
+			m_updateirqs_cb(1);
+		}
+	}
 }
 
 void gpl_chx_device::device_add_mconfig(machine_config &config)

@@ -514,7 +514,7 @@ void generalplus_gpl951xx_device::timerg_ctrl_w(u16 data)
 	{
 		if (data & 0x2000)
 		{
-			m_timer_g->adjust(attotime::zero, 0, attotime::from_hz(2000));
+			m_timer_g->adjust(attotime::zero, 0, attotime::from_hz(8000));
 		}
 		else
 		{
@@ -591,7 +591,7 @@ void generalplus_gpl951xx_device::timerh_ctrl_w(u16 data)
 		if (data & 0x2000)
 		{
 			logerror("started timerh\n");
-			m_timer_h->adjust(attotime::zero, 0, attotime::from_hz(2000));
+			m_timer_h->adjust(attotime::zero, 0, attotime::from_hz(1000));
 		}
 		else
 		{
@@ -943,7 +943,15 @@ void generalplus_gpl951xx_device::cache_ctrl_w(u16 data)
 
 u16 generalplus_gpl951xx_device::int_status1_r()
 {
+	u16 ret = 0x0000;
 	LOGMASKED(LOG_OTHER, "%s: generalplus_gpl951xx_device::int_status1_r\n", machine().describe_context());
+
+	if (m_gpl_chx->is_cha_fifo_empty_irq())
+		ret |= 0x0010;
+
+	if (m_gpl_chx->is_chb_fifo_empty_irq())
+		ret |= 0x0020;
+
 	return 0x0000;
 }
 
@@ -1584,6 +1592,16 @@ void generalplus_gpl951xx_device::update_interrupts(int state)
 	{
 		set_state_unsynced(UNSP_IRQ4_LINE, CLEAR_LINE);
 	}
+
+	if ((m_gpl_chx->is_cha_fifo_empty_irq()) || (m_gpl_chx->is_chb_fifo_empty_irq()))
+	{
+		set_state_unsynced(UNSP_IRQ1_LINE, ASSERT_LINE);
+	}
+	else
+	{
+		set_state_unsynced(UNSP_IRQ1_LINE, CLEAR_LINE);
+	}
+
 }
 
 u16 generalplus_gpl951xx_device::read_space(offs_t offset)
@@ -1626,8 +1644,8 @@ void generalplus_gpl951xx_device::device_add_mconfig(machine_config &config)
 	m_spg_audio->add_route(1, *this, 1.0, 1);
 
 	// technically I think this gets mixed down to the same 'DAC' as the regular audio output
-	DAC_16BIT_R2R(config, m_dac0, 0).add_route(0, *this, 1.0, 0);
-	DAC_16BIT_R2R(config, m_dac1, 0).add_route(0, *this, 1.0, 1);
+	DAC_16BIT_R2R_TWOS_COMPLEMENT(config, m_dac0, 0).add_route(0, *this, 1.0, 0);
+	DAC_16BIT_R2R_TWOS_COMPLEMENT(config, m_dac1, 0).add_route(0, *this, 1.0, 1);
 
 	GPL_DMA(config, m_gpl_dma, 0);
 	m_gpl_dma->space_read_callback().set(FUNC(generalplus_gpl951xx_device::read_space));

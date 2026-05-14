@@ -287,8 +287,8 @@ private:
 	required_device<timer_device> m_timer_h;
 	required_device<gpl951xx_rtc_device> m_rtc;
 	required_device<gpl_chx_device> m_gpl_chx;
-	required_device<dac_16bit_r2r_device> m_dac0;
-	required_device<dac_16bit_r2r_device> m_dac1;
+	required_device<dac_16bit_r2r_twos_complement_device> m_dac0;
+	required_device<dac_16bit_r2r_twos_complement_device> m_dac1;
 	required_device<gpl_dma_device> m_gpl_dma;
 	required_device<gpl_timebase_device> m_gpl_timebase;
 	required_device<screen_device> m_screen;

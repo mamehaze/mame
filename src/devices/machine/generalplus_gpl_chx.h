@@ -14,6 +14,9 @@ public:
 	auto chb_write_callback() { return m_chb_output_cb.bind(); }
 	auto updateirqs_callback() { return m_updateirqs_cb.bind(); }
 
+	bool is_cha_fifo_empty_irq() { return (m_cha_ctrl & 0x8000) ? true : false; }
+	bool is_chb_fifo_empty_irq() { return (m_chb_ctrl & 0x8000) ? true : false; }
+
 	u16 cha_ctrl_r();
 	void cha_ctrl_w(u16 data);
 	u16 cha_data_r();
