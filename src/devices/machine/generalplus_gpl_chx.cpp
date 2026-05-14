@@ -4,6 +4,10 @@
 #include "emu.h"
 #include "generalplus_gpl_chx.h"
 
+// System DMA memory mode can be configured to
+// 1 (CHA) or 7 (CHB) but the software we've seen doesn't appear to do that
+// so it's unclear how that relates to any of this
+
 #define LOG_CHX (1U << 1)
 
 #define VERBOSE     (LOG_CHX)
@@ -15,7 +19,8 @@ DEFINE_DEVICE_TYPE(GPL_CHX, gpl_chx_device, "gpl_chx", "Generalplus GPL162xx / G
 gpl_chx_device::gpl_chx_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock) :
 	device_t(mconfig, GPL_CHX, tag, owner, clock),
 	m_cha_output_cb(*this),
-	m_chb_output_cb(*this)
+	m_chb_output_cb(*this),
+	m_updateirqs_cb(*this)
 {
 }
 
@@ -23,12 +28,39 @@ void gpl_chx_device::device_start()
 {
 	save_item(NAME(m_cha_ctrl));
 	save_item(NAME(m_chb_ctrl));
+	save_item(NAME(m_cha_fifo_reg));
+	save_item(NAME(m_chb_fifo_reg));
+	save_item(NAME(m_cha_fifo));
+	save_item(NAME(m_chb_fifo));
+	save_item(NAME(m_cha_fifo_readpos));
+	save_item(NAME(m_cha_fifo_writepos));
+	save_item(NAME(m_cha_fifo_entries));
+	save_item(NAME(m_chb_fifo_readpos));
+	save_item(NAME(m_chb_fifo_writepos));
+	save_item(NAME(m_chb_fifo_entries));
 }
 
 void gpl_chx_device::device_reset()
 {
 	m_cha_ctrl = 0;
 	m_chb_ctrl = 0;
+
+	for (int i = 0; i < 16; i++)
+	{
+		m_cha_fifo[i] = 0;
+		m_chb_fifo[i] = 0;
+	}
+
+	m_cha_fifo_reg = 0;
+	m_chb_fifo_reg = 0;
+
+	m_cha_fifo_readpos = 0;
+	m_cha_fifo_writepos = 0;
+	m_cha_fifo_entries = 0;
+
+	m_chb_fifo_readpos = 0;
+	m_chb_fifo_writepos = 0;
+	m_chb_fifo_entries = 0;
 }
 
 
@@ -59,12 +91,19 @@ void gpl_chx_device::device_reset()
 u16 gpl_chx_device::cha_ctrl_r()
 {
 	LOGMASKED(LOG_CHX, "%s: gpl_chx_device::cha_ctrl_r\n", machine().describe_context());
-	return 0xffff;
+	return m_cha_ctrl;
 }
 
 void gpl_chx_device::cha_ctrl_w(u16 data)
 {
 	LOGMASKED(LOG_CHX, "%s: gpl_chx_device::cha_ctrl_w %04x\n", machine().describe_context(), data);
+
+	if (data & 0x8000)
+	{
+		// clear flag
+		data &= 0x7fff;
+	}
+
 	m_cha_ctrl = data;
 }
 
@@ -108,12 +147,13 @@ void gpl_chx_device::cha_data_w(u16 data)
 u16 gpl_chx_device::cha_fifo_r()
 {
 	LOGMASKED(LOG_CHX, "%s: gpl_chx_device::cha_fifo_r\n", machine().describe_context());
-	return 0xffff;
+	return (m_cha_fifo_reg & 0xfff0) | (m_cha_fifo_entries & 0x000f);
 }
 
 void gpl_chx_device::cha_fifo_w(u16 data)
 {
 	LOGMASKED(LOG_CHX, "%s: gpl_chx_device::cha_fifo_w %04x\n", machine().describe_context(), data);
+	m_cha_fifo_reg = (m_cha_fifo_reg & 0xff0f) | (data & 0x00f0);
 }
 
 // P_CHB_Ctrl
@@ -142,12 +182,19 @@ void gpl_chx_device::cha_fifo_w(u16 data)
 u16 gpl_chx_device::chb_ctrl_r()
 {
 	LOGMASKED(LOG_CHX, "%s: gpl_chx_device::chb_ctrl_r\n", machine().describe_context());
-	return 0xffff;
+	return m_chb_ctrl;
 }
 
 void gpl_chx_device::chb_ctrl_w(u16 data)
 {
 	LOGMASKED(LOG_CHX, "%s: gpl_chx_device::chb_ctrl_w %04x\n", machine().describe_context(), data);
+
+	if (data & 0x8000)
+	{
+		// clear flag
+		data &= 0x7fff;
+	}
+
 	m_chb_ctrl = data;
 }
 
@@ -173,12 +220,13 @@ void gpl_chx_device::chb_data_w(u16 data)
 u16 gpl_chx_device::chb_fifo_r()
 {
 	LOGMASKED(LOG_CHX, "%s: gpl_chx_device::chb_fifo_r\n", machine().describe_context());
-	return 0xffff;
+	return (m_chb_fifo_reg & 0xfff0) | (m_chb_fifo_entries & 0x000f);
 }
 
 void gpl_chx_device::chb_fifo_w(u16 data)
 {
 	LOGMASKED(LOG_CHX, "%s: gpl_chx_device::chb_fifo_w %04x\n", machine().describe_context(), data);
+	m_chb_fifo_reg = (m_chb_fifo_reg & 0xff0f) | (data & 0x00f0);
 }
 
 void gpl_chx_device::process_cha_fifo()

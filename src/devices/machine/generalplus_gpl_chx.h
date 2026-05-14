@@ -12,6 +12,7 @@ public:
 
 	auto cha_write_callback() { return m_cha_output_cb.bind(); }
 	auto chb_write_callback() { return m_chb_output_cb.bind(); }
+	auto updateirqs_callback() { return m_updateirqs_cb.bind(); }
 
 	u16 cha_ctrl_r();
 	void cha_ctrl_w(u16 data);
@@ -38,8 +39,23 @@ private:
 	u16 m_cha_ctrl;
 	u16 m_chb_ctrl;
 
+	u16 m_cha_fifo[16];
+	u16 m_chb_fifo[16];
+
+	u16 m_cha_fifo_reg;
+	u16 m_chb_fifo_reg;
+
+	u8 m_cha_fifo_readpos;
+	u8 m_cha_fifo_writepos;
+	u8 m_cha_fifo_entries;
+
+	u8 m_chb_fifo_readpos;
+	u8 m_chb_fifo_writepos;
+	u8 m_chb_fifo_entries;
+
 	devcb_write16 m_cha_output_cb;
 	devcb_write16 m_chb_output_cb;
+	devcb_write_line m_updateirqs_cb;
 };
 
 DECLARE_DEVICE_TYPE(GPL_CHX, gpl_chx_device)
