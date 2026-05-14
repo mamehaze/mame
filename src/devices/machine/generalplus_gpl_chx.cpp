@@ -1,0 +1,164 @@
+// license:BSD-3-Clause
+// copyright-holders:David Haywood
+
+#include "emu.h"
+#include "generalplus_gpl_chx.h"
+
+#define LOG_CHX (1U << 1)
+
+#define VERBOSE     (LOG_CHX)
+
+#include "logmacro.h"
+
+DEFINE_DEVICE_TYPE(GPL_CHX, gpl_chx_device, "gpl_chx", "Generalplus GPL162xx / GPL951xx CHA/CHB Sound")
+
+gpl_chx_device::gpl_chx_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock) :
+	device_t(mconfig, GPL_CHX, tag, owner, clock)
+{
+}
+
+void gpl_chx_device::device_start()
+{
+	save_item(NAME(m_cha_ctrl));
+	save_item(NAME(m_chb_ctrl));
+}
+
+void gpl_chx_device::device_reset()
+{
+	m_cha_ctrl = 0;
+	m_chb_ctrl = 0;
+}
+
+
+// CHA (for sound output)
+
+// P_CHA_Ctrl
+//
+// 15  FEMI/C - FIFO Empty IRQ Flag - Write to clear
+// 14  FEMIEN - FIFO Empty Interrupt Enable
+// 13  CHAEN  - CHA Enable
+// 12  DACBEN
+// 
+// 11  SIGNEN - used signed data
+// 10  AMP_PE - Positive-side push-pull amp enable
+//  9  AMP_NE - Negative-side push-pull amp enable
+//  8
+// 
+//  7  ONE_DAC - Mix CHA and CHB data to CHA
+//  6  GAIN[3]
+//  5  GAIN[2]
+//  4  GAIN[1]
+// 
+//  3  GAIN[0]
+//  2  CASCADE1 - External signal1 (ACIN) mixing enable
+//  1  CASCADE0 - External signal0 (ACIN) mixing enable
+//  0
+
+u16 gpl_chx_device::cha_ctrl_r()
+{
+	LOGMASKED(LOG_CHX, "%s: gpl_chx_device::cha_ctrl_r\n", machine().describe_context());
+	return 0xffff;
+}
+
+void gpl_chx_device::cha_ctrl_w(u16 data)
+{
+	LOGMASKED(LOG_CHX, "%s: gpl_chx_device::cha_ctrl_w %04x\n", machine().describe_context(), data);
+	m_cha_ctrl = data;
+}
+
+// P_CHA_Data
+//
+// 15-0  CHADATA
+
+u16 gpl_chx_device::cha_data_r()
+{
+	LOGMASKED(LOG_CHX, "%s: gpl_chx_device::cha_data_r\n", machine().describe_context());
+	return 0xffff;
+}
+
+void gpl_chx_device::cha_data_w(u16 data)
+{
+	LOGMASKED(LOG_CHX, "%s: gpl_chx_device::cha_data_w %04x\n", machine().describe_context(), data);
+}
+
+// P_CHA_FIFO
+//
+// 15  FFUL - CHA FIFO full flag
+// 14  FFUNRN - CHA FIFO under run flag
+// 13
+// 12
+// 
+// 11
+// 10
+//  9
+//  8  FRST - FIFO Reset
+// 
+//  7  CHAFEILV[3] - CHA FIFO Empty Interrupt Level
+//  6  CHAFEILV[2]
+//  5  CHAFEILV[1]
+//  4  CHAFEILV[0]
+// 
+//  3  CHAFINX[3] - CHA FIFO Used
+//  2  CHAFINX[2]
+//  1  CHAFINX[1]
+//  0  CHAFINX[0]
+
+u16 gpl_chx_device::cha_fifo_r()
+{
+	LOGMASKED(LOG_CHX, "%s: gpl_chx_device::cha_fifo_r\n", machine().describe_context());
+	return 0xffff;
+}
+
+void gpl_chx_device::cha_fifo_w(u16 data)
+{
+	LOGMASKED(LOG_CHX, "%s: gpl_chx_device::cha_fifo_w %04x\n", machine().describe_context(), data);
+}
+
+
+
+u16 gpl_chx_device::chb_ctrl_r()
+{
+	LOGMASKED(LOG_CHX, "%s: gpl_chx_device::chb_ctrl_r\n", machine().describe_context());
+	return 0xffff;
+}
+
+void gpl_chx_device::chb_ctrl_w(u16 data)
+{
+	LOGMASKED(LOG_CHX, "%s: gpl_chx_device::chb_ctrl_w %04x\n", machine().describe_context(), data);
+	m_chb_ctrl = data;
+}
+
+// P_CHB_Data
+//
+// 15-0  CHBDATA
+
+u16 gpl_chx_device::chb_data_r()
+{
+	LOGMASKED(LOG_CHX, "%s: gpl_chx_device::chb_data_r\n", machine().describe_context());
+	return 0xffff;
+}
+
+void gpl_chx_device::chb_data_w(u16 data)
+{
+	LOGMASKED(LOG_CHX, "%s: gpl_chx_device::chb_data_w %04x\n", machine().describe_context(), data);
+}
+
+// P_CHB_FIFO
+//
+// same as CHA_FIFO but for CHAB
+
+u16 gpl_chx_device::chb_fifo_r()
+{
+	LOGMASKED(LOG_CHX, "%s: gpl_chx_device::chb_fifo_r\n", machine().describe_context());
+	return 0xffff;
+}
+
+void gpl_chx_device::chb_fifo_w(u16 data)
+{
+	LOGMASKED(LOG_CHX, "%s: gpl_chx_device::chb_fifo_w %04x\n", machine().describe_context(), data);
+}
+
+
+void gpl_chx_device::device_add_mconfig(machine_config &config)
+{
+}

@@ -13,6 +13,7 @@
 #include "screen.h"
 #include "emupal.h"
 
+#include "generalplus_gpl_chx.h"
 #include "generalplus_gpl_dma.h"
 #include "generalplus_gpl_timebase.h"
 #include "generalplus_gpl162xx_soc_video.h"
@@ -175,9 +176,6 @@ private:
 	void int_priority_3_w(u16 data);
 	void mint_ctrl_w(u16 data);
 
-	u16 cha_ctrl_r();
-	void cha_ctrl_w(u16 data);
-
 	void update_interrupts(int state);
 
 	void audioirq_w(int state);
@@ -228,8 +226,6 @@ private:
 
 	u16 m_misc_int_ctrl;
 
-	u16 m_cha_ctrl;
-
 	u16 m_pllchange;
 
 	u16 m_spi_bank;
@@ -254,6 +250,7 @@ private:
 	required_device<timer_device> m_timer_g;
 	required_device<timer_device> m_timer_h;
 	required_device<gpl951xx_rtc_device> m_rtc;
+	required_device<gpl_chx_device> m_gpl_chx;
 	required_device<gpl_dma_device> m_gpl_dma;
 	required_device<gpl_timebase_device> m_gpl_timebase;
 	required_device<screen_device> m_screen;
