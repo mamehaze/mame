@@ -431,6 +431,30 @@ void generalplus_gpl951xx_device::device_reset()
 
 // Timers
 
+void generalplus_gpl951xx_device::dac_0_w(uint16_t data)
+{
+	m_dac0->write(data);
+}
+
+TIMER_DEVICE_CALLBACK_MEMBER( generalplus_gpl951xx_device::timer_g_cb )
+{
+	m_timerg_ctrl |= 0x8000;
+	update_interrupts(1);
+	m_gpl_chx->process_cha_fifo(); // is cha hardwired to timerg overflow?
+}
+
+void generalplus_gpl951xx_device::dac_1_w(uint16_t data)
+{
+	m_dac1->write(data);
+}
+
+TIMER_DEVICE_CALLBACK_MEMBER( generalplus_gpl951xx_device::timer_h_cb )
+{
+	m_timerh_ctrl |= 0x8000;
+	update_interrupts(1);
+	m_gpl_chx->process_chb_fifo(); // is chb hardwired to timerh overflow?
+}
+
 u16 generalplus_gpl951xx_device::timerg_preload_r()
 {
 	logerror("%s: timerg_preload_r\n", machine().describe_context());
@@ -479,7 +503,7 @@ void generalplus_gpl951xx_device::timerg_ctrl_w(u16 data)
 	u8 srcbsel = (data & 0x0070) >> 4;
 	u8 srcasel = (data & 0x000f) >> 0;
 
-	logerror("%s: timerg_ctrl_w %04x (tmgif_clear %01x) (interrupt enabled %01x) (timer enabled %01x) (ext0sel %01x) (ext1sel %01x) (srcbsel %01x) (srcasel %01x)\n", machine().describe_context(), data, tmgif_clear, tmgie, tmgen, ext0sel, ext1sel, srcbsel, srcasel);
+	logerror("%s: timerg_ctrl_w %04x (tmgif_clear %01x) (interrupt enabled %01x) (timer enabled %01x) (ext0sel %01x) (ext1sel %01x) (srcbsel %s) (srcasel %s)\n", machine().describe_context(), data, tmgif_clear, tmgie, tmgen, ext0sel, ext1sel, m_srcb[srcbsel], m_srca[srcasel]);
 
 	if (data & 0x8000)
 	{
@@ -553,7 +577,7 @@ void generalplus_gpl951xx_device::timerh_ctrl_w(u16 data)
 	u8 srcbsel = (data & 0x0070) >> 4;
 	u8 srcasel = (data & 0x000f) >> 0;
 
-	logerror("%s: timerh_ctrl_w %04x (tmhif_clear %01x) (interrupt enabled %01x) (timer enabled %01x) (ext0sel %01x) (ext1sel %01x) (srcbsel %01x) (srcasel %01x)\n", machine().describe_context(), data, tmhif_clear, tmhie, tmhen, ext0sel, ext1sel, srcbsel, srcasel);
+	logerror("%s: timerh_ctrl_w %04x (tmhif_clear %01x) (interrupt enabled %01x) (timer enabled %01x) (ext0sel %01x) (ext1sel %01x) (srcbsel %01x) (srcasel %01x)\n", machine().describe_context(), data, tmhif_clear, tmhie, tmhen, ext0sel, ext1sel, m_srcb[srcbsel], m_srca[srcasel]);
 
 	if (data & 0x8000)
 	{
@@ -694,26 +718,6 @@ void generalplus_gpl951xx_device::spi_bank_w(u16 data)
 {
 	LOGMASKED(LOG_SPIFC, "%s: spi_bank_w %04x\n", machine().describe_context(), data);
 	m_spi_bank = data;
-}
-
-u16 generalplus_gpl951xx_device::int_status3_r()
-{
-	u16 ret = 0;
-	LOGMASKED(LOG_OTHER, "%s: generalplus_gpl951xx_device::int_status3_r\n", machine().describe_context());
-
-	if (m_timerh_ctrl & 0x8000)
-		ret |= 0x8000;
-
-	if (m_timerg_ctrl & 0x8000)
-		ret |= 0x4000;
-
-	return ret;
-}
-
-void generalplus_gpl951xx_device::int_status3_w(u16 data)
-{
-	LOGMASKED(LOG_OTHER, "%s: generalplus_gpl951xx_device::int_status3_w %04x\n", machine().describe_context(), data);
-	// bit 2 (SPU Beat Interrupt) is listed as R/W for GPL95, but not GPL162? (verify)
 }
 
 TIMER_DEVICE_CALLBACK_MEMBER(generalplus_gpl951xx_device::timer_a_cb)
@@ -915,6 +919,28 @@ void generalplus_gpl951xx_device::cache_ctrl_w(u16 data)
 	m_cache_ctrl = data;
 }
 
+// P_INT_Status1
+//
+// 15  KEYIF  - Key-change interrupt status (R/W)
+// 14  ADCRIF - Line ADC Converstion Ready interrupt status
+// 13  PwrONIF - Power on key change event status
+// 12  OTIF    - Over temperature event status
+// 
+// 11  UARTIF  - UART Interrupt status
+// 10  SPI0    - Serial Peripheral Interface 0 interrupt status
+//  9  FPIF    - FP Interrupt Status (LCD)
+//  8
+// 
+//  7  ASIF    - Line ADC Auto Sample Mode FIFO full interrupt status
+//  6
+//  5  AUDBIF  - Audio Channel B (CHB) FIFO Empty Interrupt status
+//  4  AUDAIF  - Audio Channel A (CHA) FIFO Empty Interrupt status
+// 
+//  3  USB     - USB interrupt status
+//  2  DMA     - System DMA interrupt status
+//  1  EXT1IF  - External interrupt 1 status (R/W)
+//  0  EXT0IF  - External interrupt 0 status (R/W)
+
 u16 generalplus_gpl951xx_device::int_status1_r()
 {
 	LOGMASKED(LOG_OTHER, "%s: generalplus_gpl951xx_device::int_status1_r\n", machine().describe_context());
@@ -926,6 +952,28 @@ void generalplus_gpl951xx_device::int_status1_w(u16 data)
 	LOGMASKED(LOG_OTHER, "%s: generalplus_gpl951xx_device::int_status1_w %04x\n", machine().describe_context(), data);
 	//m_int_status1 = data;
 }
+
+// P_INT_Status2
+//
+// 15
+// 14
+// 13
+// 12
+//
+// 11  KSIF - Key-Scan Interrupt status
+// 10  TMBCIF - TimebaseC interrupt status
+//  9  TMBBIF - TimebaseB interrupt status
+//  8  TMBAIF - TimebaseA interrupt status
+//
+//  7  CTSIF  - CTS Controller interrupt status
+//  6
+//  5  I2C - I2C Controller interrupt status
+//  4  NAND - NAND Flash Controller interrupt status
+//
+//  3
+//  2 SPI1    - Serial Peripheral Interface 1 interrupt status
+//  1 RTC     - RTC Controller interrupt status
+//  0 ADCFF   - MIC ADC Auto Sample Mode FIFO Full interrupt status
 
 u16 generalplus_gpl951xx_device::int_status2_r()
 {
@@ -948,6 +996,48 @@ void generalplus_gpl951xx_device::int_status2_w(u16 data)
 {
 	LOGMASKED(LOG_OTHER, "%s: generalplus_gpl951xx_device::int_status2_w %04x\n", machine().describe_context(), data);
 	// none of this bits are listed as writeable for GPL95xx or GPL162xx
+}
+
+// P_INT_Status3
+//
+// 15  TMHIF - TimerH Interrupt status
+// 14  TMGIF - TimerG Interrupt status
+// 13  TMFIF - TimerF Interrupt status
+// 12  TMEIF - TimerE Interrupt status
+// 
+// 11  TMDIF - TimerD Interrupt status
+// 10  TMCIF - TimerC Interrupt status
+//  9  TMBIF - TimerB Interrupt status
+//  8  TMAIF - TimerA Interrupt status
+// 
+//  7  UNEXP - unexpected access Interrupt status
+//  6
+//  5
+//  4
+// 
+//  3
+//  2 BEAT - SPU beat interrupt status (R/W)
+//  1
+//  0
+
+u16 generalplus_gpl951xx_device::int_status3_r()
+{
+	u16 ret = 0;
+	LOGMASKED(LOG_OTHER, "%s: generalplus_gpl951xx_device::int_status3_r\n", machine().describe_context());
+
+	if (m_timerh_ctrl & 0x8000)
+		ret |= 0x8000;
+
+	if (m_timerg_ctrl & 0x8000)
+		ret |= 0x4000;
+
+	return ret;
+}
+
+void generalplus_gpl951xx_device::int_status3_w(u16 data)
+{
+	LOGMASKED(LOG_OTHER, "%s: generalplus_gpl951xx_device::int_status3_w %04x\n", machine().describe_context(), data);
+	// bit 2 (SPU Beat Interrupt) is listed as R/W for GPL95, but not GPL162? (verify)
 }
 
 void generalplus_gpl951xx_device::int_priority_1_w(u16 data)
@@ -1496,18 +1586,6 @@ void generalplus_gpl951xx_device::update_interrupts(int state)
 	}
 }
 
-TIMER_DEVICE_CALLBACK_MEMBER( generalplus_gpl951xx_device::timer_g_cb )
-{
-	m_timerg_ctrl |= 0x8000;
-	update_interrupts(1);
-}
-
-TIMER_DEVICE_CALLBACK_MEMBER( generalplus_gpl951xx_device::timer_h_cb )
-{
-	m_timerh_ctrl |= 0x8000;
-	update_interrupts(1);
-}
-
 u16 generalplus_gpl951xx_device::read_space(offs_t offset)
 {
 	address_space &space = this->space(AS_PROGRAM);
@@ -1547,11 +1625,17 @@ void generalplus_gpl951xx_device::device_add_mconfig(machine_config &config)
 	m_spg_audio->add_route(0, *this, 1.0, 0);
 	m_spg_audio->add_route(1, *this, 1.0, 1);
 
+	// technically I think this gets mixed down to the same 'DAC' as the regular audio output
+	DAC_16BIT_R2R(config, m_dac0, 0).add_route(0, *this, 1.0, 0);
+	DAC_16BIT_R2R(config, m_dac1, 0).add_route(0, *this, 1.0, 1);
+
 	GPL_DMA(config, m_gpl_dma, 0);
 	m_gpl_dma->space_read_callback().set(FUNC(generalplus_gpl951xx_device::read_space));
 	m_gpl_dma->space_write_callback().set(FUNC(generalplus_gpl951xx_device::write_space));
 
 	GPL_CHX(config, m_gpl_chx, 0);
+	m_gpl_chx->cha_write_callback().set(FUNC(generalplus_gpl951xx_device::dac_0_w));
+	m_gpl_chx->chb_write_callback().set(FUNC(generalplus_gpl951xx_device::dac_1_w));
 
 	GPL_TIMEBASE(config, m_gpl_timebase, 0);
 	m_gpl_timebase->updateirqs_callback().set(FUNC(generalplus_gpl951xx_device::update_interrupts));
@@ -1590,6 +1674,8 @@ generalplus_gpl951xx_device::generalplus_gpl951xx_device(const machine_config &m
 	m_timer_h(*this, "timer_h"),
 	m_rtc(*this, "rtc"),
 	m_gpl_chx(*this, "gpl_chx"),
+	m_dac0(*this, "dac0"),
+	m_dac1(*this, "dac1"),
 	m_gpl_dma(*this, "gpl_dma"),
 	m_gpl_timebase(*this, "gpl_timebase"),
 	m_screen(*this, finder_base::DUMMY_TAG),

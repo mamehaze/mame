@@ -9,6 +9,7 @@
 
 #include "cpu/unsp/unsp.h"
 #include "machine/timer.h"
+#include "sound/dac.h"
 
 #include "screen.h"
 #include "emupal.h"
@@ -124,6 +125,9 @@ private:
 	u16 timerh_preload_r();
 	void timerh_preload_w(u16 data);
 
+	void dac_0_w(uint16_t data);
+	void dac_1_w(uint16_t data);
+
 	template<int Port> u16 io_data_r();
 	template<int Port> void io_data_w(u16 data);
 	template<int Port> u16 io_buffer_r();
@@ -196,6 +200,38 @@ private:
 
 	u16 m_byteswap;
 
+	const char* m_srcb[8] =
+	{
+		"2048Hz",
+		"1024Hz",
+		"256Hz",
+		"TimeBaseB",
+		"TimeBaseA",
+		"(logic low)",
+		"(logic high)",
+		"EXT1 with pre-scaler"
+	};
+
+	const char* m_srca[16] =
+	{
+		"SYSCLK/2",
+		"SYSCLK/256",
+		"32768Hz",
+		"8192Hz",
+		"4096Hz",
+		"(logic high)",
+		"Timer Overflow",
+		"EXT0 with pre-scaler",
+		"(logic low)",
+		"9: reserved",
+		"a: reserved",
+		"b: reserved",
+		"c: reserved",
+		"d: reserved",
+		"e: reserved",
+		"f: reserved"
+	};
+
 	u16 m_timerg_preload;
 	u16 m_timerg_ctrl;
 	u16 m_timerh_preload;
@@ -251,6 +287,8 @@ private:
 	required_device<timer_device> m_timer_h;
 	required_device<gpl951xx_rtc_device> m_rtc;
 	required_device<gpl_chx_device> m_gpl_chx;
+	required_device<dac_16bit_r2r_device> m_dac0;
+	required_device<dac_16bit_r2r_device> m_dac1;
 	required_device<gpl_dma_device> m_gpl_dma;
 	required_device<gpl_timebase_device> m_gpl_timebase;
 	required_device<screen_device> m_screen;

@@ -13,7 +13,9 @@
 DEFINE_DEVICE_TYPE(GPL_CHX, gpl_chx_device, "gpl_chx", "Generalplus GPL162xx / GPL951xx CHA/CHB Sound")
 
 gpl_chx_device::gpl_chx_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock) :
-	device_t(mconfig, GPL_CHX, tag, owner, clock)
+	device_t(mconfig, GPL_CHX, tag, owner, clock),
+	m_cha_output_cb(*this),
+	m_chb_output_cb(*this)
 {
 }
 
@@ -114,7 +116,28 @@ void gpl_chx_device::cha_fifo_w(u16 data)
 	LOGMASKED(LOG_CHX, "%s: gpl_chx_device::cha_fifo_w %04x\n", machine().describe_context(), data);
 }
 
-
+// P_CHB_Ctrl
+// this is different to CHA_Ctrl
+//
+// 15  FEMIF/C  - FIFO Empty Interrupt Flag - write to clear
+// 14  FEMIEN   - FIFO Empty Interrupt Enable
+// 13  CHBEN    - CHB Enable
+// 12  SSF      - CHB service Frequency (0 = different to CHAA, 1 = the same)
+// 
+// 11  CHACFG   - CHB uses CHA config (0 = CHB config, 1 = CHA config)
+// 10  MONO     - Mono mode (0 = Stereo, 1 = Mono)
+//  9
+//  8
+// 
+//  7
+//  6
+//  5
+//  4
+// 
+//  3
+//  2
+//  1
+//  0
 
 u16 gpl_chx_device::chb_ctrl_r()
 {
@@ -158,6 +181,15 @@ void gpl_chx_device::chb_fifo_w(u16 data)
 	LOGMASKED(LOG_CHX, "%s: gpl_chx_device::chb_fifo_w %04x\n", machine().describe_context(), data);
 }
 
+void gpl_chx_device::process_cha_fifo()
+{
+	m_cha_output_cb(0x0000);
+}
+
+void gpl_chx_device::process_chb_fifo()
+{
+	m_chb_output_cb(0x0000);
+}
 
 void gpl_chx_device::device_add_mconfig(machine_config &config)
 {
