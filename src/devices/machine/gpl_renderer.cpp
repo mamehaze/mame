@@ -226,7 +226,7 @@ void gpl_renderer_device::draw_tilestrip(bool read_from_csspace, uint32_t screen
 	}
 }
 
-void gpl_renderer_device::draw_linemap(const rectangle &cliprect, uint32_t scanline, int priority, uint32_t tilegfxdata_addr, uint16_t *scrollregs, uint16_t *tilemapregs, address_space &spc, uint16_t *paletteram)
+void gpl_renderer_device::draw_linemap(bool read_from_csspace, const rectangle &cliprect, uint32_t scanline, int priority, uint32_t tilegfxdata_addr, uint16_t *scrollregs, uint16_t *tilemapregs, address_space &spc, uint16_t *paletteram)
 {
 	uint32_t ctrl = tilemapregs[1];
 
@@ -266,17 +266,26 @@ void gpl_renderer_device::draw_linemap(const rectangle &cliprect, uint32_t scanl
 	// this logic works for jak_s500 and the test modes to get the correct base, doesn't seem to work for jak_car2 ingame, maybe data is copied to wrong place?
 	int gfxbase = (tilegfxdata_addr & 0x7ffffff) + (linebase & 0x7ffffff);
 
-	for (int i = 0; i < 160; i++) // will have to be 320 for jak_car2 ingame, jak_s500 lines are wider than screen, and zoomed
+	for (int i = cliprect.min_x; i < cliprect.max_x/2; i++)
 	{
 		uint16_t pix;
 		const int addr = gfxbase & 0x7ffffff;
-		if (addr < m_csbase)
+
+		if (!read_from_csspace)
 		{
-			pix = m_cpuspace->read_word(addr);
+			pix = spc.read_word(gfxbase & 0x3fffff);
 		}
 		else
 		{
-			pix = m_cs_space->read_word(addr - m_csbase);
+			if (addr < m_csbase)
+			{
+				pix = m_cpuspace->read_word(addr);
+			}
+			else
+			{
+				pix = m_cs_space->read_word(addr - m_csbase);
+
+			}
 		}
 		gfxbase++;
 
@@ -285,8 +294,8 @@ void gpl_renderer_device::draw_linemap(const rectangle &cliprect, uint32_t scanl
 
 		if ((scanline >= 0) && (scanline < 480))
 		{
+			// pixel 0
 			xx = i * 2;
-
 			pal = (pix & 0xff) | 0x100;
 
 			if (upperpalselect)
@@ -295,13 +304,13 @@ void gpl_renderer_device::draw_linemap(const rectangle &cliprect, uint32_t scanl
 			if (xx >= 0 && xx <= cliprect.max_x)
 			{
 				uint16_t rgb = paletteram[pal];
-
 				if (!(rgb & 0x8000))
 				{
 					m_linebuf[xx] = rgb;
 				}
 			}
 
+			// pixel 1
 			xx = (i * 2) + 1;
 			pal = (pix >> 8) | 0x100;
 
@@ -311,7 +320,6 @@ void gpl_renderer_device::draw_linemap(const rectangle &cliprect, uint32_t scanl
 			if (xx >= 0 && xx <= cliprect.max_x)
 			{
 				uint16_t rgb = paletteram[pal];
-
 				if (!(rgb & 0x8000))
 				{
 					m_linebuf[xx] = rgb;
@@ -543,7 +551,7 @@ void gpl_renderer_device::draw_page(bool read_from_csspace, uint32_t palbank, co
 
 	if (ctrl & 0x0001) // Bitmap / Linemap mode! (basically screen width tile mode)
 	{
-		draw_linemap(cliprect, scanline, priority, tilegfxdata_addr_full, scrollregs, tilemapregs, spc, paletteram);
+		draw_linemap(read_from_csspace, cliprect, scanline, priority, tilegfxdata_addr_full, scrollregs, tilemapregs, spc, paletteram);
 		return;
 	}
 
