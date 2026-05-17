@@ -945,9 +945,8 @@ CONS( 201?, dsgnpal, 0, 0, puni, bfmpac, generalplus_gpl951xx_game_state, empty_
 
 // for these Sega Toys pets the clones might end up being duplicates with only different user data, however they might also have different factory default data for each colour
 // もっちりペット もっちまるず
-CONS( 2018, segapet1,  0,        0, puni, bfspyhnt, generalplus_gpl951xx_game_state, empty_init, "Sega Toys", "Mocchiri Pet Mocchimaruzu (2018 version, set 1)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
-CONS( 2018, segapet1a, segapet1, 0, puni, bfspyhnt, generalplus_gpl951xx_game_state, empty_init, "Sega Toys", "Mocchiri Pet Mocchimaruzu (2018 version, set 2)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
-// a 'DX' version (dated 2020) also exists, unclear if it's different software or just different packaging with bonuses
+CONS( 2018, segapet1,  0,        0, puni, base, generalplus_gpl951xx_game_state, empty_init, "Sega Toys", "Mocchiri Pet Mocchimaruzu (2018 version, set 1)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
+CONS( 2018, segapet1a, segapet1, 0, puni, base, generalplus_gpl951xx_game_state, empty_init, "Sega Toys", "Mocchiri Pet Mocchimaruzu (2018 version, set 2)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
 
 // also もっちりペット もっちまるず
 CONS( 2019, segapet2,  0,        0, puni, segapet2, generalplus_gpl951xx_game_state, empty_init, "Sega Toys", "Mocchiri Pet Mocchimaruzu (2019 version, set 1)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
@@ -955,11 +954,11 @@ CONS( 2019, segapet2a, segapet2, 0, puni, segapet2, generalplus_gpl951xx_game_st
 
 // these ones have motors in the ears and a more fluffy cover
 // もっちふわペット もっちまるず
-CONS( 2020, segapet3,  0,        0, puni, bfspyhnt, generalplus_gpl951xx_game_state, empty_init, "Sega Toys", "Mocchifuwa Pet Mocchimaruzu (set 1)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
-CONS( 2020, segapet3a, segapet3, 0, puni, bfspyhnt, generalplus_gpl951xx_game_state, empty_init, "Sega Toys", "Mocchifuwa Pet Mocchimaruzu (set 2)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
+CONS( 2020, segapet3,  0,        0, puni, base, generalplus_gpl951xx_game_state, empty_init, "Sega Toys", "Mocchifuwa Pet Mocchimaruzu (set 1)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
+CONS( 2020, segapet3a, segapet3, 0, puni, base, generalplus_gpl951xx_game_state, empty_init, "Sega Toys", "Mocchifuwa Pet Mocchimaruzu (set 2)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
 
 // DX version of the first game, 2020 on box, updated fabric cover, still has 2018 on case, but different software?
-CONS( 2020, segaptdx,  0,        0, puni, bfspyhnt, generalplus_gpl951xx_game_state, empty_init, "Sega Toys", "Mocchiri Pet Mocchimaruzu DX", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
+CONS( 2020, segaptdx,  0,        0, puni, base, generalplus_gpl951xx_game_state, empty_init, "Sega Toys", "Mocchiri Pet Mocchimaruzu DX", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
 
 // まぜまぜミックス！ぷにタピちゃん
 CONS( 201?, bubltea,   0,        0, puni, bubltea, generalplus_gpl951xx_game_state, empty_init, "Bandai", "Mazemaze Mix! Puni Tapi-chan (Japan)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
