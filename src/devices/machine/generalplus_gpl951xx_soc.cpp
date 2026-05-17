@@ -123,6 +123,14 @@ void generalplus_gpl951xx_device::spifc_cmd_w(u16 data)
 	m_spi_reset(1);
 	m_spi_out_cmd(data & 0x00ff);
 
+	if (!(m_spifc_para & 0x1000))
+	{
+		m_spi_out((m_spifc_addr >> 16) & 0xff);
+		m_spi_out((m_spifc_addr >> 8) & 0xff);
+		m_spi_out((m_spifc_addr >> 0) & 0xff);
+
+	}
+
 	// how does byte count work? the FIFO is apparently in words
 	for (int i = 0; i < m_spifc_rx_bc; i++)
 	{
@@ -609,6 +617,15 @@ void generalplus_gpl951xx_device::timerh_ctrl_w(u16 data)
 	update_interrupts(1);
 }
 
+// Other timers are more generic?
+
+
+u16 generalplus_gpl951xx_device::timerd_ctrl_r()
+{
+	logerror("%s: timerd_ctrl_r\n", machine().describe_context());
+	return machine().rand();
+}
+
 
 // TFT
 
@@ -832,6 +849,13 @@ TIMER_DEVICE_CALLBACK_MEMBER(generalplus_gpl951xx_device::timer_f_cb)
 {
 }
 
+TIMER_DEVICE_CALLBACK_MEMBER( generalplus_gpl951xx_device::adc_timer_cb )
+{
+	m_madc_ctrl |= 0x8000;
+	m_madc_ctrl |= 0x0080; // apparently always set after the first ADC operation, no way to clear?
+}
+
+
 // P_MADC_Ctrl
 //
 // 15  ADCRIF/C  - ADC Ready Interrupt Flag/Clear
@@ -885,6 +909,7 @@ void generalplus_gpl951xx_device::madc_ctrl_w(u16 data)
 	if (data & 0x0040) // Manual start
 	{
 		data = data & ~0x0040;
+		data = data & ~0x0080;
 
 		u8 channel = data & 0x0007;
 
@@ -899,8 +924,7 @@ void generalplus_gpl951xx_device::madc_ctrl_w(u16 data)
 			m_madc_data = 0x0000;
 		}
 
-		data |= 0x8000;
-		data |= 0x0080;
+		m_adc_timer->adjust(attotime::from_usec(10));
 	}
 
 	m_madc_ctrl = data;
@@ -1624,7 +1648,7 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map &map)
 	// 7a13 - TimerC_CCPB_Reg
 	// 7a14 - TimerC_UpCount
 
-	// 7a18 - TimerD_Ctrl
+	map(0x007a18, 0x007a18).r(FUNC(generalplus_gpl951xx_device::timerd_ctrl_r)); // 7a18 - TimerD_Ctrl
 	// 7a19 - TimerD_CCPB_Ctrl
 	// 7a1a - TimerD_Preload
 	// 7a1b - TimerD_CCPB_Reg
@@ -1859,6 +1883,8 @@ void generalplus_gpl951xx_device::device_add_mconfig(machine_config &config)
 	TIMER(config, "timer_g").configure_generic(FUNC(generalplus_gpl951xx_device::timer_g_cb));
 	TIMER(config, "timer_h").configure_generic(FUNC(generalplus_gpl951xx_device::timer_h_cb));
 
+	TIMER(config, "adc_timer").configure_generic(FUNC(generalplus_gpl951xx_device::adc_timer_cb));
+
 	GPL951XX_RTC(config, m_rtc, 0);
 }
 
@@ -1877,6 +1903,7 @@ generalplus_gpl951xx_device::generalplus_gpl951xx_device(const machine_config &m
 	m_adc_in(*this, 0),
 	m_timer_g(*this, "timer_g"),
 	m_timer_h(*this, "timer_h"),
+	m_adc_timer(*this, "adc_timer"),
 	m_rtc(*this, "rtc"),
 	m_gpl_chx(*this, "gpl_chx"),
 	m_dac0(*this, "dac0"),

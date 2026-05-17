@@ -132,6 +132,8 @@ private:
 	u16 timerh_preload_r();
 	void timerh_preload_w(u16 data);
 
+	u16 timerd_ctrl_r();
+
 	void dac_0_w(uint16_t data);
 	void dac_1_w(uint16_t data);
 
@@ -230,6 +232,8 @@ private:
 	TIMER_DEVICE_CALLBACK_MEMBER(timer_d_cb);
 	TIMER_DEVICE_CALLBACK_MEMBER(timer_e_cb);
 	TIMER_DEVICE_CALLBACK_MEMBER(timer_f_cb);
+
+	TIMER_DEVICE_CALLBACK_MEMBER(adc_timer_cb);
 
 	u16 m_byteswap;
 
@@ -337,6 +341,7 @@ private:
 	// devices
 	required_device<timer_device> m_timer_g;
 	required_device<timer_device> m_timer_h;
+	required_device<timer_device> m_adc_timer;
 	required_device<gpl951xx_rtc_device> m_rtc;
 	required_device<gpl_chx_device> m_gpl_chx;
 	required_device<dac_16bit_r2r_twos_complement_device> m_dac0;
