@@ -50,6 +50,7 @@ protected:
 	u16 portd_r();
 	u16 porte_r();
 	u16 portf_r();
+	u16 adc5_r();
 
 	void porta_w(u16 data);
 
@@ -113,6 +114,11 @@ u16 generalplus_gpl951xx_game_state::portf_r()
 	u16 data = m_io[5]->read();
 	logerror("Port F Read: %04x\n", data);
 	return data;
+}
+
+u16 generalplus_gpl951xx_game_state::adc5_r()
+{
+	return 0xffff;
 }
 
 void generalplus_gpl951xx_game_state::porta_w(u16 data)
@@ -549,9 +555,10 @@ void generalplus_gpl951xx_game_state::gpl951xx(machine_config &config)
 	m_maincpu->spi_reset().set(FUNC(generalplus_gpl951xx_game_state::spi_reset));
 	m_maincpu->i80_cmd_out().set(FUNC(generalplus_gpl951xx_game_state::lcd_i80_cmd));
 	m_maincpu->i80_data_out().set(FUNC(generalplus_gpl951xx_game_state::lcd_i80_data));
+	m_maincpu->adc5_in().set(FUNC(generalplus_gpl951xx_game_state::adc5_r));
 
 	SCREEN(config, m_screen, SCREEN_TYPE_LCD);
-	m_screen->set_refresh_hz(40);
+	m_screen->set_refresh_hz(30); // is this coming from the LCDC? 60 is definitely too fast for the IRQ rate
 	m_screen->set_size(320*2, 262*2);
 	m_screen->set_visarea(0, 320-1, 0, 240-1);
 	m_screen->set_screen_update("maincpu", FUNC(generalplus_gpl951xx_device::screen_update));

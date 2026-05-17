@@ -387,6 +387,8 @@ void generalplus_gpl951xx_device::device_start()
 	save_item(NAME(m_misc_int_ctrl));
 	save_item(NAME(m_pllchange));
 	save_item(NAME(m_tft_rgb_ctrl));
+	save_item(NAME(m_madc_ctrl));
+	save_item(NAME(m_madc_data));
 }
 
 void generalplus_gpl951xx_device::device_reset()
@@ -830,21 +832,84 @@ TIMER_DEVICE_CALLBACK_MEMBER(generalplus_gpl951xx_device::timer_f_cb)
 {
 }
 
+// P_MADC_Ctrl
+//
+// 15  ADCRIF/C  - ADC Ready Interrupt Flag/Clear
+// 14  ADCRIEN   - ADC Interrupt Enable
+// 13
+// 12
+//
+// 11
+// 10
+//  9
+//  8
+//
+//  7  CNVRDY    - Conversion Ready
+//  6  STRCNV    - Manual Start Conversion
+//  5  MIASE     - ADC Conversion Error Flag 1
+//  4  ASIME     - ADC Conversion Error Flag 2
+//
+//  3  CHSEL     - ADC Channel Selection (manual mode)
+//  2
+//  1
+//  0
+
 u16 generalplus_gpl951xx_device::madc_ctrl_r()
 {
 	logerror("%s: madc_ctrl_r\n", machine().describe_context());
-	return machine().rand();
+	return m_madc_ctrl;
 }
 
 void generalplus_gpl951xx_device::madc_ctrl_w(u16 data)
 {
 	logerror("%s: madc_ctrl_w %04x\n", machine().describe_context(), data);
+
+	if (data & 0x8000)
+	{
+		// clear IRQ flag
+		data = data &~ 0x8000;
+	}
+
+	if (data & 0x0010)
+	{
+		// clear Error Flag 2
+		data = data &~ 0x0010;
+	}
+
+	if (data & 0x0020)
+	{
+		// clear Error Flag 1
+		data = data &~ 0x0020;
+	}
+
+	if (data & 0x0040) // Manual start
+	{
+		data = data & ~0x0040;
+
+		u8 channel = data & 0x0007;
+
+		logerror("manual ADC conversion on port %s\n", m_adc_channels[channel]); 
+
+		if (channel < 6)
+		{
+			m_madc_data = m_adc_in[channel]();
+		}
+		else
+		{
+			m_madc_data = 0x0000;
+		}
+
+		data |= 0x8000;
+		data |= 0x0080;
+	}
+
+	m_madc_ctrl = data;
 }
 
 u16 generalplus_gpl951xx_device::madc_data_r()
 {
 	logerror("%s: madc_data_r\n", machine().describe_context());
-	return 0xffff;
+	return m_madc_data;
 }
 
 
@@ -1809,6 +1874,7 @@ generalplus_gpl951xx_device::generalplus_gpl951xx_device(const machine_config &m
 	m_i80_data_out(*this),
 	m_port_in(*this, 0),
 	m_port_out(*this),
+	m_adc_in(*this, 0),
 	m_timer_g(*this, "timer_g"),
 	m_timer_h(*this, "timer_h"),
 	m_rtc(*this, "rtc"),

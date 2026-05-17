@@ -57,6 +57,13 @@ public:
 	auto porte_out() { return m_port_out[4].bind(); }
 	auto portf_out() { return m_port_out[5].bind(); }
 
+	auto adc0_in() { return m_adc_in[0].bind(); }
+	auto adc1_in() { return m_adc_in[1].bind(); }
+	auto adc2_in() { return m_adc_in[2].bind(); }
+	auto adc3_in() { return m_adc_in[3].bind(); }
+	auto adc4_in() { return m_adc_in[4].bind(); }
+	auto adc5_in() { return m_adc_in[5].bind(); }
+
 	void recieve_spi_fifo_data(u8 data);
 
 	IRQ_CALLBACK_MEMBER(irq_vector_cb);
@@ -258,6 +265,18 @@ private:
 		"f: reserved"
 	};
 
+	const char* m_adc_channels[8] =
+	{
+		"LINEIN 0",
+		"LINEIN 1",
+		"LINEIN 2",
+		"LINEIN 3",
+		"LINEIN 4",
+		"LINEIN 5",
+		"1.2V bandgap",
+		"LDOV50"
+	};
+
 	u16 m_timerg_preload;
 	u16 m_timerg_ctrl;
 	u16 m_timerh_preload;
@@ -296,6 +315,9 @@ private:
 
 	u16 m_tft_rgb_ctrl;
 
+	u16 m_madc_ctrl;
+	u16 m_madc_data;
+
 	// config
 	u8 *m_spiregion;
 	u32 m_spisize;
@@ -309,6 +331,8 @@ private:
 
 	devcb_read16::array<6> m_port_in;
 	devcb_write16::array<6> m_port_out;
+
+	devcb_read16::array<6> m_adc_in;
 
 	// devices
 	required_device<timer_device> m_timer_g;
