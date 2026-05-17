@@ -8,7 +8,7 @@
 #define LOG_TFT       (1U << 2)
 #define LOG_OTHER     (1U << 3)
 
-#define VERBOSE     (LOG_SPIFC | LOG_TFT | LOG_OTHER)
+#define VERBOSE     (LOG_SPIFC | LOG_OTHER)
 
 #include "logmacro.h"
 
@@ -386,12 +386,14 @@ void generalplus_gpl951xx_device::device_start()
 	save_item(NAME(m_int_priority_3));
 	save_item(NAME(m_misc_int_ctrl));
 	save_item(NAME(m_pllchange));
+	save_item(NAME(m_tft_rgb_ctrl));
 }
 
 void generalplus_gpl951xx_device::device_reset()
 {
 	unsp_20_device::device_reset();
 	m_spg_video->reset();
+	m_spg_video->set_disallow_resolution_control();
 
 	m_byteswap = 0;
 	m_timerg_ctrl = 0;
@@ -418,6 +420,7 @@ void generalplus_gpl951xx_device::device_reset()
 	m_int_priority_3 = 0;
 	m_misc_int_ctrl = 0;
 	m_pllchange = 0;
+	m_tft_rgb_ctrl = 0;
 
 	for (int i = 0; i < 6; i++)
 	{
@@ -706,6 +709,89 @@ void generalplus_gpl951xx_device::tft_memmode_wcmd_w(u16 data)
 	m_memmode_wcmd = data;
 }
 
+
+u16 generalplus_gpl951xx_device::tft_rgb_ctrl_r()
+{
+	LOGMASKED(LOG_TFT, "%s: tft_rgb_ctrl_r\n", machine().describe_context());
+	return m_tft_rgb_ctrl;
+}
+
+void generalplus_gpl951xx_device::tft_rgb_ctrl_w(u16 data)
+{
+	LOGMASKED(LOG_TFT, "%s: tft_rgb_ctrl_w %04x\n", machine().describe_context(), data);
+	m_tft_rgb_ctrl = data;
+}
+
+void generalplus_gpl951xx_device::tft_v_width_w(u16 data)
+{
+	LOGMASKED(LOG_TFT, "%s: tft_v_width_w %04x\n", machine().describe_context(), data);
+}
+
+void generalplus_gpl951xx_device::tft_vsync_setup_w(u16 data)
+{
+	LOGMASKED(LOG_TFT, "%s: tft_vsync_setup_w %04x\n", machine().describe_context(), data);
+}
+
+void generalplus_gpl951xx_device::tft_v_start_w(u16 data)
+{
+	LOGMASKED(LOG_TFT, "%s: tft_v_start_w %04x\n", machine().describe_context(), data);
+}
+
+void generalplus_gpl951xx_device::tft_v_end_w(u16 data)
+{
+	LOGMASKED(LOG_TFT, "%s: tft_v_end_w %04x\n", machine().describe_context(), data);
+}
+
+void generalplus_gpl951xx_device::tft_h_width_w(u16 data)
+{
+	LOGMASKED(LOG_TFT, "%s: tft_h_width_w %04x\n", machine().describe_context(), data);
+}
+
+void generalplus_gpl951xx_device::tft_hsync_setup_w(u16 data)
+{
+	LOGMASKED(LOG_TFT, "%s: tft_hsync_setup_w %04x\n", machine().describe_context(), data);
+}
+
+void generalplus_gpl951xx_device::tft_h_start_w(u16 data)
+{
+	LOGMASKED(LOG_TFT, "%s: tft_h_start_w %04x\n", machine().describe_context(), data);
+}
+
+void generalplus_gpl951xx_device::tft_h_end_w(u16 data)
+{
+	LOGMASKED(LOG_TFT, "%s: tft_h_end_w %04x\n", machine().describe_context(), data);
+}
+
+void generalplus_gpl951xx_device::tft_v_show_start_w(u16 data)
+{
+	LOGMASKED(LOG_TFT, "%s: tft_v_show_start_w %04x\n", machine().describe_context(), data);
+}
+
+void generalplus_gpl951xx_device::tft_v_show_end_w(u16 data)
+{
+	LOGMASKED(LOG_TFT, "%s: tft_v_show_end_w %04x\n", machine().describe_context(), data);
+}
+
+void generalplus_gpl951xx_device::tft_h_show_start_w(u16 data)
+{
+	LOGMASKED(LOG_TFT, "%s: tft_h_show_start_w %04x\n", machine().describe_context(), data);
+}
+
+void generalplus_gpl951xx_device::tft_h_show_end_w(u16 data)
+{
+	LOGMASKED(LOG_TFT, "%s: tft_h_show_end_w %04x\n", machine().describe_context(), data);
+}
+
+void generalplus_gpl951xx_device::free_height_w(u16 data)
+{
+	LOGMASKED(LOG_TFT, "%s: free_height_w %04x\n", machine().describe_context(), data);
+}
+
+void generalplus_gpl951xx_device::free_width_w(u16 data)
+{
+	LOGMASKED(LOG_TFT, "%s: free_width_w %04x\n", machine().describe_context(), data);
+}
+
 //
 
 u16 generalplus_gpl951xx_device::spi_bank_r()
@@ -742,6 +828,23 @@ TIMER_DEVICE_CALLBACK_MEMBER(generalplus_gpl951xx_device::timer_e_cb)
 
 TIMER_DEVICE_CALLBACK_MEMBER(generalplus_gpl951xx_device::timer_f_cb)
 {
+}
+
+u16 generalplus_gpl951xx_device::madc_ctrl_r()
+{
+	logerror("%s: madc_ctrl_r\n", machine().describe_context());
+	return machine().rand();
+}
+
+void generalplus_gpl951xx_device::madc_ctrl_w(u16 data)
+{
+	logerror("%s: madc_ctrl_w %04x\n", machine().describe_context(), data);
+}
+
+u16 generalplus_gpl951xx_device::madc_data_r()
+{
+	logerror("%s: madc_data_r\n", machine().describe_context());
+	return 0xffff;
 }
 
 
@@ -1048,16 +1151,34 @@ void generalplus_gpl951xx_device::int_status3_w(u16 data)
 	// bit 2 (SPU Beat Interrupt) is listed as R/W for GPL95, but not GPL162? (verify)
 }
 
+u16 generalplus_gpl951xx_device::int_priority_1_r()
+{
+	LOGMASKED(LOG_OTHER, "%s: generalplus_gpl951xx_device::int_priority_1_r\n", machine().describe_context());
+	return m_int_priority_1;
+}
+
 void generalplus_gpl951xx_device::int_priority_1_w(u16 data)
 {
 	LOGMASKED(LOG_OTHER, "%s: generalplus_gpl951xx_device::int_priority_1_w %04x\n", machine().describe_context(), data);
 	m_int_priority_1 = data;
 }
 
+u16 generalplus_gpl951xx_device::int_priority_2_r()
+{
+	LOGMASKED(LOG_OTHER, "%s: generalplus_gpl951xx_device::int_priority_2_r\n", machine().describe_context());
+	return m_int_priority_2;
+}
+
 void generalplus_gpl951xx_device::int_priority_2_w(u16 data)
 {
 	LOGMASKED(LOG_OTHER, "%s: generalplus_gpl951xx_device::int_priority_2_w %04x\n", machine().describe_context(), data);
 	m_int_priority_2 = data;
+}
+
+u16 generalplus_gpl951xx_device::int_priority_3_r()
+{
+	LOGMASKED(LOG_OTHER, "%s: generalplus_gpl951xx_device::int_priority_3_r\n", machine().describe_context());
+	return m_int_priority_3;
 }
 
 void generalplus_gpl951xx_device::int_priority_3_w(u16 data)
@@ -1150,15 +1271,15 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map &map)
 	map(0x007042, 0x007042).rw(m_spg_video, FUNC(gcm394_base_video_device::sprite_7042_extra_r), FUNC(gcm394_base_video_device::sprite_7042_extra_w)); // 7042 - SControl
 	//
 	map(0x007050, 0x007050).w(FUNC(generalplus_gpl951xx_device::tft_ctrl_w)); // 7050 - TFT_Ctrl
-	// 7051 - TFT_V_Width
-	// 7052 - TFT_VSync_Setup
-	// 7053 - TFT_V_Start
-	// 7054 - TFT_V_End
-	// 7055 - TFT_H_Width
-	// 7056 - TFT_HSync_Setup
-	// 7057 - TFT_H_Start
-	// 7058 - TFT_H_End
-	// 7059 - TFT_RGB_Ctrl
+	map(0x007051, 0x007051).w(FUNC(generalplus_gpl951xx_device::tft_v_width_w)); // 7051 - TFT_V_Width
+	map(0x007052, 0x007052).w(FUNC(generalplus_gpl951xx_device::tft_vsync_setup_w)); // 7052 - TFT_VSync_Setup
+	map(0x007053, 0x007053).w(FUNC(generalplus_gpl951xx_device::tft_v_start_w)); // 7053 - TFT_V_Start
+	map(0x007054, 0x007054).w(FUNC(generalplus_gpl951xx_device::tft_v_end_w)); // 7054 - TFT_V_End
+	map(0x007055, 0x007055).w(FUNC(generalplus_gpl951xx_device::tft_h_width_w)); // 7055 - TFT_H_Width
+	map(0x007056, 0x007056).w(FUNC(generalplus_gpl951xx_device::tft_hsync_setup_w)); // 7056 - TFT_HSync_Setup
+	map(0x007057, 0x007057).w(FUNC(generalplus_gpl951xx_device::tft_h_start_w)); // 7057 - TFT_H_Start
+	map(0x007058, 0x007058).w(FUNC(generalplus_gpl951xx_device::tft_h_end_w));  // 7058 - TFT_H_End
+	map(0x007059, 0x007059).rw(FUNC(generalplus_gpl951xx_device::tft_rgb_ctrl_r), FUNC(generalplus_gpl951xx_device::tft_rgb_ctrl_w)); // 7059 - TFT_RGB_Ctrl
 	map(0x00705a, 0x00705a).r(FUNC(generalplus_gpl951xx_device::tft_status_r)); // 705a - TFT_Status
 	map(0x00705b, 0x00705b).w(FUNC(generalplus_gpl951xx_device::tft_memmode_wcmd_w)); // 705b - TFT_MemMode_WCmd
 	// 705c - TFT_MemMode_RCmd
@@ -1176,10 +1297,10 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map &map)
 	// 7069 - US_Hoffset
 	// 706a - US_Voffset
 	//
-	// 706c - TFT_V_Show_Start
-	// 706d - TFT_V_Show_End
-	// 706e - TFT_H_Show_Start
-	// 706f - TFT_H_Show_End
+	map(0x00706c, 0x00706c).w(FUNC(generalplus_gpl951xx_device::tft_v_show_start_w)); // 706c - TFT_V_Show_Start
+	map(0x00706d, 0x00706d).w(FUNC(generalplus_gpl951xx_device::tft_v_show_end_w)); // 706d - TFT_V_Show_End
+	map(0x00706e, 0x00706e).w(FUNC(generalplus_gpl951xx_device::tft_h_show_start_w)); // 706e - TFT_H_Show_Start
+	map(0x00706f, 0x00706f).w(FUNC(generalplus_gpl951xx_device::tft_h_show_end_w)); // 706f - TFT_H_Show_End
 	//
 	map(0x007070, 0x007070).w(m_spg_video, FUNC(gcm394_base_video_device::video_dma_source_w)); // 7070 - SPDMA_Source
 	map(0x007071, 0x007071).w(m_spg_video, FUNC(gcm394_base_video_device::video_dma_dest_w));   // 7071 - SPDMA_Target
@@ -1207,8 +1328,8 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map &map)
 	// 70b8 - Tx3_N_PTRH
 	// 70b9 - Tx3_A_PTRH
 	//
-	// 70db - Free_Height
-	// 70dc - Free_Width
+	map(0x0070db, 0x0070db).w(FUNC(generalplus_gpl951xx_device::free_height_w)); // 70db - Free_Height
+	map(0x0070dc, 0x0070dc).w(FUNC(generalplus_gpl951xx_device::free_width_w)); // 70dc - Free_Width
 	//
 	map(0x0070e0, 0x0070e0).r(m_spg_video, FUNC(gcm394_base_video_device::video_70e0_prng_r)); // 70e0 - Random0 (15-bit)
 	// 70e1 - Random1 (15-bit)
@@ -1299,9 +1420,9 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map &map)
 	map(0x0078a0, 0x0078a0).rw(FUNC(generalplus_gpl951xx_device::int_status1_r), FUNC(generalplus_gpl951xx_device::int_status1_w)); // 78a0 - INT_Status1
 	map(0x0078a1, 0x0078a1).rw(FUNC(generalplus_gpl951xx_device::int_status2_r), FUNC(generalplus_gpl951xx_device::int_status2_w)); // 78a1 - INT_Status2
 	map(0x0078a2, 0x0078a2).rw(FUNC(generalplus_gpl951xx_device::int_status3_r), FUNC(generalplus_gpl951xx_device::int_status3_w)); // 78a2 - INT_Status3
-	map(0x0078a3, 0x0078a3).w(FUNC(generalplus_gpl951xx_device::int_priority_1_w)); // 78a3 - INT_Priority1
-	map(0x0078a4, 0x0078a4).w(FUNC(generalplus_gpl951xx_device::int_priority_2_w)); // 78a4 - INT_Priority2
-	map(0x0078a5, 0x0078a5).w(FUNC(generalplus_gpl951xx_device::int_priority_3_w)); // 78a5 - INT_Priority3
+	map(0x0078a3, 0x0078a3).rw(FUNC(generalplus_gpl951xx_device::int_priority_1_r), FUNC(generalplus_gpl951xx_device::int_priority_1_w)); // 78a3 - INT_Priority1
+	map(0x0078a4, 0x0078a4).rw(FUNC(generalplus_gpl951xx_device::int_priority_2_r), FUNC(generalplus_gpl951xx_device::int_priority_2_w)); // 78a4 - INT_Priority2
+	map(0x0078a5, 0x0078a5).rw(FUNC(generalplus_gpl951xx_device::int_priority_3_r), FUNC(generalplus_gpl951xx_device::int_priority_3_w)); // 78a5 - INT_Priority3
 	map(0x0078a6, 0x0078a6).w(FUNC(generalplus_gpl951xx_device::mint_ctrl_w)); // 78a6 - MINT_Ctrl
 	// 78a7 - IOAB_KCIEN
 	// 78a8 - IOC_KCIEN
@@ -1383,8 +1504,8 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map &map)
 	// 7945 - SPI0_Misc
 
 	// 79a0 - ADC_Setup
-	// 79a1 - MADC_Ctrl
-	// 79a2 - MADC_Data
+	map(0x0079a1, 0x0079a1).rw(FUNC(generalplus_gpl951xx_device::madc_ctrl_r), FUNC(generalplus_gpl951xx_device::madc_ctrl_w)); // 79a1 - MADC_Ctrl
+	map(0x0079a2, 0x0079a2).r(FUNC(generalplus_gpl951xx_device::madc_data_r)); // 79a2 - MADC_Data
 	// 79a3 - ASADC_Ctrl
 	// 79a4 - ASDAC_Data
 	// 79a5

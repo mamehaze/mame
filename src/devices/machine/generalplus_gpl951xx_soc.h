@@ -178,12 +178,38 @@ private:
 	void int_priority_1_w(u16 data);
 	void int_priority_2_w(u16 data);
 	void int_priority_3_w(u16 data);
+	u16 int_priority_1_r();
+	u16 int_priority_2_r();
+	u16 int_priority_3_r();
+
 	void mint_ctrl_w(u16 data);
 
 	void update_interrupts(int state);
 
 	void audioirq_w(int state);
 	void videoirq_w(int state);
+
+	u16 madc_ctrl_r();
+	void madc_ctrl_w(u16 data);
+	u16 madc_data_r();
+
+	u16 tft_rgb_ctrl_r();
+	void tft_rgb_ctrl_w(u16 data);
+
+	void tft_v_width_w(u16 data);
+	void tft_vsync_setup_w(u16 data);
+	void tft_v_start_w(u16 data);
+	void tft_v_end_w(u16 data);
+	void tft_h_width_w(u16 data);
+	void tft_hsync_setup_w(u16 data);
+	void tft_h_start_w(u16 data);
+	void tft_h_end_w(u16 data);
+	void tft_v_show_start_w(u16 data);
+	void tft_v_show_end_w(u16 data);
+	void tft_h_show_start_w(u16 data);
+	void tft_h_show_end_w(u16 data);
+	void free_height_w(u16 data);
+	void free_width_w(u16 data);
 
 	inline u16 read_space(offs_t offset);
 	inline void write_space(offs_t offset, u16 data);
@@ -267,6 +293,8 @@ private:
 	u16 m_spi_bank;
 
 	u16 m_memmode_wcmd;
+
+	u16 m_tft_rgb_ctrl;
 
 	// config
 	u8 *m_spiregion;

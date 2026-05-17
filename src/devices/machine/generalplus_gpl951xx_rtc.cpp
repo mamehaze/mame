@@ -60,11 +60,26 @@ void gpl951xx_rtc_device::device_reset()
 	m_reg50 = 0;
 }
 
+// Reg00
+//
+// 4  Rtcclken
+// 3  Rtcrst
+// 2  Timerdir
+// 1  SWreset
+// 0  Busy
+
 u8 gpl951xx_rtc_device::reg00_r()
 {
 	LOGMASKED(LOG_RTC, "%s: gpl951xx_rtc_device::reg00_r\n", machine().describe_context());
 	return 0x00;
 }
+
+// Reg01
+//
+// 3  Slow_clk
+// 2  Reserved
+// 1  Strong
+// 0  Reserved
 
 u8 gpl951xx_rtc_device::reg01_r()
 {
@@ -72,11 +87,41 @@ u8 gpl951xx_rtc_device::reg01_r()
 	return 0x01;
 }
 
+// Reg02
+//
+// 'reliable'
+
+u8 gpl951xx_rtc_device::reg02_r()
+{
+	LOGMASKED(LOG_RTC, "%s: gpl951xx_rtc_device::reg02_r\n", machine().describe_context());
+	return m_reg02;
+}
+
+void gpl951xx_rtc_device::reg02_w(u8 data)
+{
+	LOGMASKED(LOG_RTC, "%s: gpl951xx_rtc_device::reg02_w %02x\n", machine().describe_context(), data);
+	m_reg02 = data;
+}
+
+// Reg40
+//
+// 3  HalfSecint
+// 2  Rtcwakeup
+// 1  Alarmint
+// 0  Secint
+
 void gpl951xx_rtc_device::reg40_w(u8 data)
 {
 	LOGMASKED(LOG_RTC, "%s: gpl951xx_rtc_device::reg40_w %02x\n", machine().describe_context(), data);
 	m_reg40 = data;
 }
+
+// Reg50
+//
+// 3  HalfSecint_en
+// 2  Rtcwakeup_en
+// 1  Alarmint_en
+// 0  Secint_en
 
 u8 gpl951xx_rtc_device::reg50_r()
 {
@@ -96,6 +141,7 @@ void gpl951xx_rtc_device::rtc_regs(address_map &map)
 	{
 		map(0x00, 0x00).r(FUNC(gpl951xx_rtc_device::reg00_r));
 		map(0x01, 0x01).r(FUNC(gpl951xx_rtc_device::reg01_r));
+		map(0x02, 0x02).rw(FUNC(gpl951xx_rtc_device::reg02_r), FUNC(gpl951xx_rtc_device::reg02_w));
 		map(0x40, 0x40).w(FUNC(gpl951xx_rtc_device::reg40_w));
 		map(0x50, 0x50).rw(FUNC(gpl951xx_rtc_device::reg50_r), FUNC(gpl951xx_rtc_device::reg50_w));
 		// 0x80 - 0x8f reserved
