@@ -46,12 +46,7 @@ protected:
 
 	u32 bftetris_screen_update(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect);
 
-	u16 porta_r();
-	u16 portb_r();
-	u16 portc_r();
-	u16 portd_r();
-	u16 porte_r();
-	u16 portf_r();
+	template <u8 Port> u16 port_r();
 	u16 adc5_r();
 
 	void porta_w(u16 data);
@@ -75,52 +70,17 @@ u32 generalplus_gpl951xx_game_state::bftetris_screen_update(screen_device &scree
 	return m_lcdc->render_to_bitmap(screen, bitmap, cliprect);
 }
 
-
-u16 generalplus_gpl951xx_game_state::porta_r()
+template <u8 Port>
+u16 generalplus_gpl951xx_game_state::port_r()
 {
-	u16 data = m_io[0]->read();
-	logerror("Port A Read: %04x\n", data);
-	return data;
-}
-
-u16 generalplus_gpl951xx_game_state::portb_r()
-{
-	u16 data = m_io[1]->read();
-	logerror("Port B Read: %04x\n", data);
-	return data;
-}
-
-u16 generalplus_gpl951xx_game_state::portc_r()
-{
-	u16 data = m_io[2]->read();
-	logerror("Port C Read: %04x\n", data);
-	return data;
-}
-
-u16 generalplus_gpl951xx_game_state::portd_r()
-{
-	u16 data = m_io[3]->read();
-	logerror("Port D Read: %04x\n", data);
-	return data;
-}
-
-u16 generalplus_gpl951xx_game_state::porte_r()
-{
-	u16 data = m_io[4]->read();
-	logerror("Port E Read: %04x\n", data);
-	return data;
-}
-
-u16 generalplus_gpl951xx_game_state::portf_r()
-{
-	u16 data = m_io[5]->read();
-	logerror("Port F Read: %04x\n", data);
+	u16 data = m_io[Port]->read();
+	logerror("Port %s Read: %04x\n", 'A'+Port, data);
 	return data;
 }
 
 u16 generalplus_gpl951xx_game_state::adc5_r()
 {
-	return 0x0000;
+	return 0xffff;
 }
 
 void generalplus_gpl951xx_game_state::porta_w(u16 data)
@@ -259,6 +219,16 @@ static INPUT_PORTS_START( puni )
 	PORT_BIT( 0x8000, IP_ACTIVE_LOW, IPT_BUTTON3 )
 INPUT_PORTS_END
 
+static INPUT_PORTS_START( segapet1 )
+	PORT_INCLUDE(base)
+
+	PORT_MODIFY("IN1")
+	PORT_BIT( 0x0004, IP_ACTIVE_LOW, IPT_BUTTON1 ) // hold this and 'button 3' on startup for a test mode
+	PORT_BIT( 0x0008, IP_ACTIVE_LOW, IPT_BUTTON2 )
+	PORT_BIT( 0x0010, IP_ACTIVE_LOW, IPT_BUTTON3 )
+	PORT_BIT( 0x0020, IP_ACTIVE_LOW, IPT_BUTTON4 )
+INPUT_PORTS_END
+
 static INPUT_PORTS_START( segapet2 )
 	PORT_INCLUDE(base)
 
@@ -277,6 +247,18 @@ static INPUT_PORTS_START( bubltea ) // has 3 surface buttons and the straw
 	PORT_BIT( 0x0010, IP_ACTIVE_LOW, IPT_BUTTON2 )
 	PORT_BIT( 0x0020, IP_ACTIVE_LOW, IPT_BUTTON3 ) PORT_NAME("Increase Value")
 	PORT_BIT( 0x0040, IP_ACTIVE_LOW, IPT_BUTTON4 ) PORT_NAME("Back")
+INPUT_PORTS_END
+
+static INPUT_PORTS_START( dsgnpal )
+	PORT_INCLUDE(base)
+
+	PORT_MODIFY("IN1")
+	PORT_BIT( 0x0001, IP_ACTIVE_LOW, IPT_BUTTON1 )
+	PORT_BIT( 0x0002, IP_ACTIVE_LOW, IPT_BUTTON2 )
+	PORT_BIT( 0x0004, IP_ACTIVE_LOW, IPT_BUTTON3 )
+	PORT_BIT( 0x0008, IP_ACTIVE_LOW, IPT_BUTTON4 )
+	PORT_BIT( 0x0010, IP_ACTIVE_LOW, IPT_BUTTON5 )
+	PORT_BIT( 0x0020, IP_ACTIVE_LOW, IPT_BUTTON6 )
 INPUT_PORTS_END
 
 void generalplus_gpl951xx_game_state::spi_reset(u8 data)
@@ -313,12 +295,12 @@ void generalplus_gpl951xx_game_state::lcd_i80_data(u16 data)
 void generalplus_gpl951xx_game_state::gpl951xx(machine_config &config)
 {
 	GPL951XX(config, m_maincpu, 96000000/2, m_screen);
-	m_maincpu->porta_in().set(FUNC(generalplus_gpl951xx_game_state::porta_r));
-	m_maincpu->portb_in().set(FUNC(generalplus_gpl951xx_game_state::portb_r));
-	m_maincpu->portc_in().set(FUNC(generalplus_gpl951xx_game_state::portc_r));
-	m_maincpu->portd_in().set(FUNC(generalplus_gpl951xx_game_state::portd_r));
-	m_maincpu->porte_in().set(FUNC(generalplus_gpl951xx_game_state::porte_r));
-	m_maincpu->portf_in().set(FUNC(generalplus_gpl951xx_game_state::portf_r));
+	m_maincpu->porta_in().set(FUNC(generalplus_gpl951xx_game_state::port_r<0>));
+	m_maincpu->portb_in().set(FUNC(generalplus_gpl951xx_game_state::port_r<1>));
+	m_maincpu->portc_in().set(FUNC(generalplus_gpl951xx_game_state::port_r<2>));
+	m_maincpu->portd_in().set(FUNC(generalplus_gpl951xx_game_state::port_r<3>));
+	m_maincpu->porte_in().set(FUNC(generalplus_gpl951xx_game_state::port_r<4>));
+	m_maincpu->portf_in().set(FUNC(generalplus_gpl951xx_game_state::port_r<5>));
 	m_maincpu->porta_out().set(FUNC(generalplus_gpl951xx_game_state::porta_w));
 	m_maincpu->set_irq_acknowledge_callback(m_maincpu, FUNC(generalplus_gpl951xx_device::irq_vector_cb));
 	m_maincpu->add_route(ALL_OUTPUTS, "speaker", 0.5, 0);
@@ -703,12 +685,15 @@ CONS( 201?, smkgurasa, smkguras, 0, puni, bubltea, generalplus_gpl951xx_game_sta
 CONS( 2021, smkgacha,  0,        0, puni, bubltea, generalplus_gpl951xx_game_state, empty_init,  "San-X / Tomy", "Sumikko Gacha (Japan)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING)
 
 // there seem to be different versions of this available, is the software the same?
-CONS( 201?, dsgnpal, 0, 0, dsgnpal, base, generalplus_gpl951xx_game_state, empty_init,  "Tomy", "Kiratto Pri-Chan Design Palette (Japan)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING | ROT270 )
+CONS( 201?, dsgnpal, 0, 0, dsgnpal, dsgnpal, generalplus_gpl951xx_game_state, empty_init,  "Tomy", "Kiratto Pri-Chan Design Palette (Japan)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING | ROT270 )
 
 // for these Sega Toys pets the clones might end up being duplicates with only different user data, however they might also have different factory default data for each colour
 // もっちりペット もっちまるず
-CONS( 2018, segapet1,  0,        0, puni, base, generalplus_gpl951xx_game_state, empty_init, "Sega Toys", "Mocchiri Pet Mocchimaruzu (2018 version, set 1)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
-CONS( 2018, segapet1a, segapet1, 0, puni, base, generalplus_gpl951xx_game_state, empty_init, "Sega Toys", "Mocchiri Pet Mocchimaruzu (2018 version, set 2)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
+CONS( 2018, segapet1,  0,        0, puni, segapet1, generalplus_gpl951xx_game_state, empty_init, "Sega Toys", "Mocchiri Pet Mocchimaruzu (180615B P)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
+CONS( 2018, segapet1a, segapet1, 0, puni, segapet1, generalplus_gpl951xx_game_state, empty_init, "Sega Toys", "Mocchiri Pet Mocchimaruzu (180615B Y)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
+
+// DX version of the first game, 2020 on box, updated fabric cover, still has 2018 on case, but different software?
+CONS( 2020, segaptdx,  0,        0, puni, segapet1, generalplus_gpl951xx_game_state, empty_init, "Sega Toys", "Mocchiri Pet Mocchimaruzu DX (190313A P)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
 
 // also もっちりペット もっちまるず
 CONS( 2019, segapet2,  0,        0, puni, segapet2, generalplus_gpl951xx_game_state, empty_init, "Sega Toys", "Mocchiri Pet Mocchimaruzu (2019 version, set 1)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
@@ -719,8 +704,6 @@ CONS( 2019, segapet2a, segapet2, 0, puni, segapet2, generalplus_gpl951xx_game_st
 CONS( 2020, segapet3,  0,        0, puni, base, generalplus_gpl951xx_game_state, empty_init, "Sega Toys", "Mocchifuwa Pet Mocchimaruzu (set 1)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
 CONS( 2020, segapet3a, segapet3, 0, puni, base, generalplus_gpl951xx_game_state, empty_init, "Sega Toys", "Mocchifuwa Pet Mocchimaruzu (set 2)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
 
-// DX version of the first game, 2020 on box, updated fabric cover, still has 2018 on case, but different software?
-CONS( 2020, segaptdx,  0,        0, puni, base, generalplus_gpl951xx_game_state, empty_init, "Sega Toys", "Mocchiri Pet Mocchimaruzu DX", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
 
 // まぜまぜミックス！ぷにタピちゃん
 CONS( 201?, bubltea,   0,        0, bubltea, bubltea, generalplus_gpl951xx_game_state, empty_init, "Bandai", "Mazemaze Mix! Puni Tapi-chan (Japan)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
