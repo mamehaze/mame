@@ -378,6 +378,8 @@ void generalplus_gpl951xx_device::device_start()
 	unsp_20_device::device_start();
 
 	save_item(NAME(m_byteswap));
+	save_item(NAME(m_timera_ctrl));
+	save_item(NAME(m_timera_preload));
 	save_item(NAME(m_timerb_ctrl));
 	save_item(NAME(m_timerb_preload));
 	save_item(NAME(m_timerg_ctrl));
@@ -419,6 +421,10 @@ void generalplus_gpl951xx_device::device_reset()
 	m_spg_video->set_disallow_resolution_control();
 
 	m_byteswap = 0;
+	m_timera_ctrl = 0;
+	m_timera_preload = 0;
+	m_timerb_ctrl = 0;
+	m_timerb_preload = 0;
 	m_timerg_ctrl = 0;
 	m_timerg_preload = 0;
 	m_timerh_ctrl = 0;
@@ -629,6 +635,48 @@ void generalplus_gpl951xx_device::timerh_ctrl_w(u16 data)
 
 // Other timers are more generic
 // although timers e and f have different behavior depending on SoC
+
+
+u16 generalplus_gpl951xx_device::timera_ctrl_r()
+{
+	logerror("%s: timera_ctrl_r\n", machine().describe_context());
+	return m_timera_ctrl;
+}
+
+void generalplus_gpl951xx_device::timera_ctrl_w(u16 data)
+{
+	u8 tmbif_clear = (data & 0x8000) >> 15;
+	u8 tmbie = (data & 0x4000) >> 14;
+	u8 tmben = (data & 0x2000) >> 13;
+	u8 ext0sel = (data & 0x0c00) >> 10;
+	u8 ext1sel = (data & 0x0300) >> 8;
+	u8 srcbsel = (data & 0x0070) >> 4;
+	u8 srcasel = (data & 0x000f) >> 0;
+
+	logerror("%s: timera_ctrl_w %04x (tmbif_clear %01x) (interrupt enabled %01x) (timer enabled %01x) (ext0sel %01x) (ext1sel %01x) (srcbsel %01x) (srcasel %01x)\n", machine().describe_context(), data, tmbif_clear, tmbie, tmben, ext0sel, ext1sel, m_srcb[srcbsel], m_srca[srcasel]);
+
+	if (data & 0x8000)
+	{
+		m_timera_ctrl &= 0x7fff;
+	}
+
+	if ((data & 0x2000) != (m_timera_ctrl & 0x2000))
+	{
+		if (data & 0x2000)
+		{
+			m_timer_a->adjust(attotime::zero, 0, attotime::from_hz(1000));
+		}
+		else
+		{
+			m_timer_a->adjust(attotime::never);
+		}
+
+	}
+
+	m_timera_ctrl = (m_timera_ctrl & 0x8000) | (data & 0x7fff);
+	update_interrupts(1);
+}
+
 
 u16 generalplus_gpl951xx_device::timerb_ctrl_r()
 {
@@ -934,6 +982,8 @@ void generalplus_gpl951xx_device::spi_bank_w(u16 data)
 
 TIMER_DEVICE_CALLBACK_MEMBER(generalplus_gpl951xx_device::timer_a_cb)
 {
+	m_timera_ctrl |= 0x8000;
+	update_interrupts(1);
 }
 
 TIMER_DEVICE_CALLBACK_MEMBER(generalplus_gpl951xx_device::timer_b_cb)
@@ -1343,6 +1393,9 @@ u16 generalplus_gpl951xx_device::int_status3_r()
 	if (m_timerb_ctrl & 0x8000)
 		ret |= 0x0200;
 
+	if (m_timera_ctrl & 0x8000)
+		ret |= 0x0100;
+
 	return ret;
 }
 
@@ -1742,7 +1795,7 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map &map)
 	// 79fa
 	// 79fb - RTC_ClkDiv
 
-	// 7a00 - TimerA_Ctrl
+	map(0x007a00, 0x007a00).rw(FUNC(generalplus_gpl951xx_device::timera_ctrl_r), FUNC(generalplus_gpl951xx_device::timera_ctrl_w)); // 7a00 - TimerA_Ctrl
 	// 7a01 - TimerA_CCPB_Ctrl
 	// 7a02 - TimerA_Preload
 	// 7a03 - TimerA_CCPB_Reg
@@ -1907,7 +1960,9 @@ void generalplus_gpl951xx_device::update_interrupts(int state)
 
 	if (((m_timerg_ctrl & 0x8000) && (m_timerg_ctrl & 0x4000)) ||
 		((m_timerh_ctrl & 0x8000) && (m_timerh_ctrl & 0x4000)) ||
-		((m_timerb_ctrl & 0x8000) && (m_timerb_ctrl & 0x4000)))
+		((m_timerb_ctrl & 0x8000) && (m_timerb_ctrl & 0x4000)) ||
+		((m_timera_ctrl & 0x8000) && (m_timera_ctrl & 0x4000))
+		)
 	{
 		set_state_unsynced(UNSP_IRQ4_LINE, ASSERT_LINE);
 	}
@@ -2014,6 +2069,7 @@ generalplus_gpl951xx_device::generalplus_gpl951xx_device(const machine_config &m
 	m_port_in(*this, 0),
 	m_port_out(*this),
 	m_adc_in(*this, 0),
+	m_timer_a(*this, "timer_a"),
 	m_timer_b(*this, "timer_b"),
 	m_timer_g(*this, "timer_g"),
 	m_timer_h(*this, "timer_h"),

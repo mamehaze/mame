@@ -132,6 +132,9 @@ private:
 	u16 timerh_preload_r();
 	void timerh_preload_w(u16 data);
 
+	u16 timera_ctrl_r();
+	void timera_ctrl_w(u16 data);
+
 	u16 timerb_ctrl_r();
 	void timerb_ctrl_w(u16 data);
 	void timerb_ccpb_ctrl_w(u16 data);
@@ -290,6 +293,8 @@ private:
 		"LDOV50"
 	};
 
+	u16 m_timera_preload;
+	u16 m_timera_ctrl;
 	u16 m_timerb_preload;
 	u16 m_timerb_ctrl;
 	u16 m_timerg_preload;
@@ -350,6 +355,7 @@ private:
 	devcb_read16::array<6> m_adc_in;
 
 	// devices
+	required_device<timer_device> m_timer_a;
 	required_device<timer_device> m_timer_b;
 	required_device<timer_device> m_timer_g;
 	required_device<timer_device> m_timer_h;
