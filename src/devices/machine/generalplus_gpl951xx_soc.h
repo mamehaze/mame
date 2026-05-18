@@ -123,26 +123,13 @@ private:
 	void byte_swap_w(u16 data);
 
 	// Timers (different compared to GPL162xx)
-	u16 timerg_ctrl_r();
-	void timerg_ctrl_w(u16 data);
-	u16 timerg_preload_r();
-	void timerg_preload_w(u16 data);
-	u16 timerh_ctrl_r();
-	void timerh_ctrl_w(u16 data);
-	u16 timerh_preload_r();
-	void timerh_preload_w(u16 data);
+	template<int Timer> u16 timer_preload_r();
+	template<int Timer> void timer_preload_w(u16 data);
+	template<int Timer> u16 timer_ctrl_r();
+	template<int Timer> void timer_ctrl_w(u16 data);
+	template<int Timer> void timer_ccpb_ctrl_w(u16 data);
+	template<int Timer> u16 timer_upcount_r();
 
-	u16 timera_ctrl_r();
-	void timera_ctrl_w(u16 data);
-
-	u16 timerb_ctrl_r();
-	void timerb_ctrl_w(u16 data);
-	void timerb_ccpb_ctrl_w(u16 data);
-	void timerb_preload_w(u16 data);
-
-	u16 timera_upcount_r();
-	u16 timere_upcount_r();
-	u16 timerd_ctrl_r();
 	u16 i2c_ctrl_r();
 	u16 i2c_status_r();
 
@@ -341,10 +328,7 @@ private:
 	devcb_read16::array<6> m_adc_in;
 
 	// devices
-	required_device<timer_device> m_timer_a;
-	required_device<timer_device> m_timer_b;
-	required_device<timer_device> m_timer_g;
-	required_device<timer_device> m_timer_h;
+	required_device_array<timer_device, 8> m_timer;
 	required_device<timer_device> m_adc_timer;
 	required_device<gpl951xx_rtc_device> m_rtc;
 	required_device<gpl_chx_device> m_gpl_chx;

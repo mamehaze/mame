@@ -466,288 +466,107 @@ void generalplus_gpl951xx_device::dac_1_w(uint16_t data)
 	m_dac1->write(data);
 }
 
-u16 generalplus_gpl951xx_device::timerg_preload_r()
-{
-	logerror("%s: timerg_preload_r\n", machine().describe_context());
-	return m_timer_preload[6];
-}
-
-void generalplus_gpl951xx_device::timerg_preload_w(u16 data)
-{
-	logerror("%s: timerg_preload_w %04x\n", machine().describe_context(), data);
-	m_timer_preload[6] = data;
-}
-
-// P_TimerG_Ctrl
-
-// 15  TMGIF/C
-// 14  TMGIE
-// 13  TMGEN
-// 12
-// 11  EXT0SEL[1]
-// 10  EXT0SEL[0]
-// 9   EXT1SEL[1]
-// 8   EXT1SEL[0]
-// 7
-// 6   SRCBSEL[2]
-// 5   SRCBSEL[1]
-// 4   SRCBSEL[0]
-// 3   SRCASEL[3]
-// 2   SRCASEL[2]
-// 1   SRCASEL[1]
-// 0   SRCASEL[0]
-
-u16 generalplus_gpl951xx_device::timerg_ctrl_r()
-{
-	logerror("%s: timerg_ctrl_r\n", machine().describe_context());
-	u16 ret = m_timer_ctrl[6];
-	return ret;
-}
-
-void generalplus_gpl951xx_device::timerg_ctrl_w(u16 data)
-{
-	u8 tmgif_clear = (data & 0x8000) >> 15;
-	u8 tmgie = (data & 0x4000) >> 14;
-	u8 tmgen = (data & 0x2000) >> 13;
-	u8 ext0sel = (data & 0x0c00) >> 10;
-	u8 ext1sel = (data & 0x0300) >> 8;
-	u8 srcbsel = (data & 0x0070) >> 4;
-	u8 srcasel = (data & 0x000f) >> 0;
-
-	logerror("%s: timerg_ctrl_w %04x (tmgif_clear %01x) (interrupt enabled %01x) (timer enabled %01x) (ext0sel %01x) (ext1sel %01x) (srcbsel %s) (srcasel %s)\n", machine().describe_context(), data, tmgif_clear, tmgie, tmgen, ext0sel, ext1sel, m_srcb[srcbsel], m_srca[srcasel]);
-
-	if (data & 0x8000)
-	{
-		m_timer_ctrl[6] &= 0x7fff;
-	}
-
-	if ((data & 0x2000) != (m_timer_ctrl[6] & 0x2000))
-	{
-		if (data & 0x2000)
-		{
-			m_timer_g->adjust(attotime::zero, 0, attotime::from_hz(8000));
-		}
-		else
-		{
-			m_timer_g->adjust(attotime::never);
-		}
-	}
-
-	m_timer_ctrl[6] = (m_timer_ctrl[6] & 0x8000) | (data & 0x7fff);
-	update_interrupts(1);
-}
-
-u16 generalplus_gpl951xx_device::timerh_preload_r()
-{
-	logerror("%s: timerh_preload_r\n", machine().describe_context());
-	return m_timer_preload[7];
-}
-
-void generalplus_gpl951xx_device::timerh_preload_w(u16 data)
-{
-	logerror("%s: timerh_preload_w %04x\n", machine().describe_context(), data);
-	m_timer_preload[7] = data;
-}
-
-// P_TimerH_Ctrl
-
-// 15  TMHIF/C
-// 14  TMHIE
-// 13  TMHEN
-// 12
-//
-// 11  EXT0SEL[1]
-// 10  EXT0SEL[0]
-// 9   EXT1SEL[1]
-// 8   EXT1SEL[0]
-//
-// 7
-// 6   SRCBSEL[2]
-// 5   SRCBSEL[1]
-// 4   SRCBSEL[0]
-//
-// 3   SRCASEL[3]
-// 2   SRCASEL[2]
-// 1   SRCASEL[1]
-// 0   SRCASEL[0]
-
-u16 generalplus_gpl951xx_device::timerh_ctrl_r()
-{
-	u16 ret = m_timer_ctrl[7];
-	logerror("%s: timerh_ctrl_r (returning %04x)\n", machine().describe_context(), ret);
-	return ret;
-}
-
-void generalplus_gpl951xx_device::timerh_ctrl_w(u16 data)
-{
-	u8 tmhif_clear = (data & 0x8000) >> 15;
-	u8 tmhie = (data & 0x4000) >> 14;
-	u8 tmhen = (data & 0x2000) >> 13;
-	u8 ext0sel = (data & 0x0c00) >> 10;
-	u8 ext1sel = (data & 0x0300) >> 8;
-	u8 srcbsel = (data & 0x0070) >> 4;
-	u8 srcasel = (data & 0x000f) >> 0;
-
-	logerror("%s: timerh_ctrl_w %04x (tmhif_clear %01x) (interrupt enabled %01x) (timer enabled %01x) (ext0sel %01x) (ext1sel %01x) (srcbsel %01x) (srcasel %01x)\n", machine().describe_context(), data, tmhif_clear, tmhie, tmhen, ext0sel, ext1sel, m_srcb[srcbsel], m_srca[srcasel]);
-
-	if (data & 0x8000)
-	{
-		m_timer_ctrl[7] &= 0x7fff;
-	}
-
-	if ((data & 0x2000) != (m_timer_ctrl[7] & 0x2000))
-	{
-		if (data & 0x2000)
-		{
-			m_timer_h->adjust(attotime::zero, 0, attotime::from_hz(1000));
-		}
-		else
-		{
-			m_timer_h->adjust(attotime::never);
-		}
-
-	}
-
-	m_timer_ctrl[7] = (m_timer_ctrl[7] & 0x8000) | (data & 0x7fff);
-	update_interrupts(1);
-}
-
 // Other timers are more generic
 // although timers e and f have different behavior depending on SoC
 
-
-u16 generalplus_gpl951xx_device::timera_ctrl_r()
+template<int Timer>
+u16 generalplus_gpl951xx_device::timer_ctrl_r()
 {
-	logerror("%s: timera_ctrl_r\n", machine().describe_context());
-	return m_timer_ctrl[0];
+	logerror("%s: timer%c_ctrl_r\n", machine().describe_context(), 'a'+Timer);
+	return m_timer_ctrl[Timer];
 }
 
-void generalplus_gpl951xx_device::timera_ctrl_w(u16 data)
+template<int Timer>
+void generalplus_gpl951xx_device::timer_ctrl_w(u16 data)
 {
-	u8 tmbif_clear = (data & 0x8000) >> 15;
-	u8 tmbie = (data & 0x4000) >> 14;
-	u8 tmben = (data & 0x2000) >> 13;
+	u8 tmxif_clear = (data & 0x8000) >> 15;
+	u8 tmxie = (data & 0x4000) >> 14;
+	u8 tmxen = (data & 0x2000) >> 13;
 	u8 ext0sel = (data & 0x0c00) >> 10;
 	u8 ext1sel = (data & 0x0300) >> 8;
 	u8 srcbsel = (data & 0x0070) >> 4;
 	u8 srcasel = (data & 0x000f) >> 0;
 
-	logerror("%s: timera_ctrl_w %04x (tmbif_clear %01x) (interrupt enabled %01x) (timer enabled %01x) (ext0sel %01x) (ext1sel %01x) (srcbsel %01x) (srcasel %01x)\n", machine().describe_context(), data, tmbif_clear, tmbie, tmben, ext0sel, ext1sel, m_srcb[srcbsel], m_srca[srcasel]);
+	logerror("%s: timer%c_ctrl_w %04x (tmxif_clear %01x) (interrupt enabled %01x) (timer enabled %01x) (ext0sel %01x) (ext1sel %01x) (srcbsel %01x) (srcasel %01x)\n", machine().describe_context(), 'a'+Timer, data, tmxif_clear, tmxie, tmxen, ext0sel, ext1sel, m_srcb[srcbsel], m_srca[srcasel]);
 
 	if (data & 0x8000)
 	{
-		m_timer_ctrl[0] &= 0x7fff;
+		m_timer_ctrl[Timer] &= 0x7fff;
 	}
 
-	if ((data & 0x2000) != (m_timer_ctrl[0] & 0x2000))
+	if ((data & 0x2000) != (m_timer_ctrl[Timer] & 0x2000))
 	{
 		if (data & 0x2000)
 		{
-			m_timer_a->adjust(attotime::zero, 0, attotime::from_hz(1000));
+			// currently hardcoded, need to figure out how to use the preload and timer source registers properly!
+			if (Timer == 6)
+				m_timer[Timer]->adjust(attotime::zero, 0, attotime::from_hz(8000));
+			else
+				m_timer[Timer]->adjust(attotime::zero, 0, attotime::from_hz(1000));
 		}
 		else
 		{
-			m_timer_a->adjust(attotime::never);
+			m_timer[Timer]->adjust(attotime::never);
 		}
 
 	}
 
-	m_timer_ctrl[0] = (m_timer_ctrl[0] & 0x8000) | (data & 0x7fff);
+	m_timer_ctrl[Timer] = (m_timer_ctrl[Timer] & 0x8000) | (data & 0x7fff);
 	update_interrupts(1);
 }
 
-
-u16 generalplus_gpl951xx_device::timerb_ctrl_r()
+template<int Timer>
+u16 generalplus_gpl951xx_device::timer_preload_r()
 {
-	logerror("%s: timerb_ctrl_r\n", machine().describe_context());
-	return m_timer_ctrl[1];
+	logerror("%s: timer%c_preload_r\n", machine().describe_context(), 'a'+Timer);
+	return m_timer_preload[Timer];
 }
 
-void generalplus_gpl951xx_device::timerb_ctrl_w(u16 data)
+template<int Timer>
+void generalplus_gpl951xx_device::timer_preload_w(u16 data)
 {
-	u8 tmbif_clear = (data & 0x8000) >> 15;
-	u8 tmbie = (data & 0x4000) >> 14;
-	u8 tmben = (data & 0x2000) >> 13;
-	u8 ext0sel = (data & 0x0c00) >> 10;
-	u8 ext1sel = (data & 0x0300) >> 8;
-	u8 srcbsel = (data & 0x0070) >> 4;
-	u8 srcasel = (data & 0x000f) >> 0;
-
-	logerror("%s: timerb_ctrl_w %04x (tmbif_clear %01x) (interrupt enabled %01x) (timer enabled %01x) (ext0sel %01x) (ext1sel %01x) (srcbsel %01x) (srcasel %01x)\n", machine().describe_context(), data, tmbif_clear, tmbie, tmben, ext0sel, ext1sel, m_srcb[srcbsel], m_srca[srcasel]);
-
-	if (data & 0x8000)
-	{
-		m_timer_ctrl[1] &= 0x7fff;
-	}
-
-	if ((data & 0x2000) != (m_timer_ctrl[1] & 0x2000))
-	{
-		if (data & 0x2000)
-		{
-			m_timer_b->adjust(attotime::zero, 0, attotime::from_hz(1000));
-		}
-		else
-		{
-			m_timer_b->adjust(attotime::never);
-		}
-
-	}
-
-	m_timer_ctrl[1] = (m_timer_ctrl[1] & 0x8000) | (data & 0x7fff);
-	update_interrupts(1);
+	logerror("%s: timer%c_preload_w %04x\n", machine().describe_context(), 'a'+Timer, data);
+	m_timer_preload[Timer] = data;
 }
 
-// P_TimerB_CCPB_Ctrl
+
+
+// P_Timerx_CCPB_Ctrl
 //
-// 15  CCPBBEN[1]  - 00 = CCPB Mode Disabled, 01 = Capture Enabled, 10 = Comparison Enabled, 11 = PWM/BAM Enabled
-// 14  CCPBBEN[0]
+// 15  CCPBxEN[1]  - 00 = CCPB Mode Disabled, 01 = Capture Enabled, 10 = Comparison Enabled, 11 = PWM/BAM Enabled
+// 14  CCPBxEN[0]
 // 13
 // 12
 //
 // 11
 // 10
-//  9  CAPBSEL[1]  - 00 = every falling, 01 = every rising, 10/11 = reserved
-//  8  CAPBSEL[0]
+//  9  CAPxSEL[1]  - 00 = every falling, 01 = every rising, 10/11 = reserved
+//  8  CAPxSEL[0]
 // 
 //  7
 //  6
-//  5  CMPBSEL[1] - 00 = high pulse on CCPB, 01 = low pulse on CCPB, 10 = unaffected on CCPB, 11 = reserved
-//  4  CMPBSEL[0]
+//  5  CMPxSEL[1] - 00 = high pulse on CCPB, 01 = low pulse on CCPB, 10 = unaffected on CCPB, 11 = reserved
+//  4  CMPxSEL[0]
 // 
 //  3
 //  2
-//  1  PWMBSEL[1] - 00 = PWM mode/NRO output, 01 = PWM mode/NRZ output, 10 = BAM mode/NRO output, 11 = BAM mode/NRZ output
-//  0  PWMBSEL[0]
+//  1  PWMxSEL[1] - 00 = PWM mode/NRO output, 01 = PWM mode/NRZ output, 10 = BAM mode/NRO output, 11 = BAM mode/NRZ output
+//  0  PWMxSEL[0]
 
-void generalplus_gpl951xx_device::timerb_ccpb_ctrl_w(u16 data)
+template<int Timer>
+void generalplus_gpl951xx_device::timer_ccpb_ctrl_w(u16 data)
 {
-	logerror("%s: timerb_ccpb_ctrl_w %04x\n", machine().describe_context(), data);
+	logerror("%s: timer%c_ccpb_ctrl_w %04x\n", machine().describe_context(), 'a'+Timer, data);
 }
 
-void generalplus_gpl951xx_device::timerb_preload_w(u16 data)
+template<int Timer>
+u16 generalplus_gpl951xx_device::timer_upcount_r()
 {
-	logerror("%s: timerb_preload_w %04x\n", machine().describe_context(), data);
-	m_timer_preload[7] = data;
-}
-
-
-u16 generalplus_gpl951xx_device::timerd_ctrl_r()
-{
-	logerror("%s: timerd_ctrl_r\n", machine().describe_context());
+	logerror("%s: timera_upcount_r\n", machine().describe_context(), 'a'+Timer);
 	return machine().rand();
 }
 
-u16 generalplus_gpl951xx_device::timera_upcount_r()
-{
-	logerror("%s: timera_upcount_r\n", machine().describe_context());
-	return machine().rand();
-}
 
-u16 generalplus_gpl951xx_device::timere_upcount_r()
-{
-	logerror("%s: timere_upcount_r\n", machine().describe_context());
-	return machine().rand();
-}
 
 u16 generalplus_gpl951xx_device::i2c_ctrl_r()
 {
@@ -1665,19 +1484,22 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map &map)
 	// 78c5 - I2C_Clk
 	// 78c6 - I2C_MISC
 
-	map(0x0078e0, 0x0078e0).rw(FUNC(generalplus_gpl951xx_device::timerg_ctrl_r), FUNC(generalplus_gpl951xx_device::timerg_ctrl_w)); // 78e0 - timerg_Ctrl
+	// Timer G
+	map(0x0078e0, 0x0078e0).rw(FUNC(generalplus_gpl951xx_device::timer_ctrl_r<6>), FUNC(generalplus_gpl951xx_device::timer_ctrl_w<6>)); // 78e0 - timerg_Ctrl
 	// 78e1
-	map(0x0078e2, 0x0078e2).rw(FUNC(generalplus_gpl951xx_device::timerg_preload_r), FUNC(generalplus_gpl951xx_device::timerg_preload_w)); // 78e2 - timerg_Preload
+	map(0x0078e2, 0x0078e2).rw(FUNC(generalplus_gpl951xx_device::timer_preload_r<6>), FUNC(generalplus_gpl951xx_device::timer_preload_w<6>)); // 78e2 - timerg_Preload
 	// 78e3
-	// 78e4 - TimerG_UpCount
+	map(0x0078e4, 0x0078e4).r(FUNC(generalplus_gpl951xx_device::timer_upcount_r<6>)); // 78e4 - TimerG_UpCount
 	// 78e5
 	// 78e6
 	// 78e7
-	map(0x0078e8, 0x0078e8).rw(FUNC(generalplus_gpl951xx_device::timerh_ctrl_r), FUNC(generalplus_gpl951xx_device::timerh_ctrl_w)); // timerh_Ctrl
+
+	// Timer H
+	map(0x0078e8, 0x0078e8).rw(FUNC(generalplus_gpl951xx_device::timer_ctrl_r<7>), FUNC(generalplus_gpl951xx_device::timer_ctrl_w<7>)); // timerh_Ctrl
 	// 78e9
-	map(0x0078ea, 0x0078ea).rw(FUNC(generalplus_gpl951xx_device::timerh_preload_r), FUNC(generalplus_gpl951xx_device::timerh_preload_w)); // 78ea - timerh_Preload
+	map(0x0078ea, 0x0078ea).rw(FUNC(generalplus_gpl951xx_device::timer_preload_r<7>), FUNC(generalplus_gpl951xx_device::timer_preload_w<7>)); // 78ea - timerh_Preload
 	// 78eb
-	// 78ec - TimerH_UpCount
+	map(0x0078ec, 0x0078ec).r(FUNC(generalplus_gpl951xx_device::timer_upcount_r<7>)); // 78ec - TimerH_UpCount
 	// 78ed
 	// 78ee
 	// 78ef
@@ -1759,42 +1581,47 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map &map)
 	// 79fa
 	// 79fb - RTC_ClkDiv
 
-	map(0x007a00, 0x007a00).rw(FUNC(generalplus_gpl951xx_device::timera_ctrl_r), FUNC(generalplus_gpl951xx_device::timera_ctrl_w)); // 7a00 - TimerA_Ctrl
-	// 7a01 - TimerA_CCPB_Ctrl
-	// 7a02 - TimerA_Preload
+	// Timer A
+	map(0x007a00, 0x007a00).rw(FUNC(generalplus_gpl951xx_device::timer_ctrl_r<0>), FUNC(generalplus_gpl951xx_device::timer_ctrl_w<0>)); // 7a00 - TimerA_Ctrl
+	map(0x007a01, 0x007a01).w(FUNC(generalplus_gpl951xx_device::timer_ccpb_ctrl_w<0>)); // 7a01 - TimerA_CCPB_Ctrl
+	map(0x007a02, 0x007a02).rw(FUNC(generalplus_gpl951xx_device::timer_preload_r<0>), FUNC(generalplus_gpl951xx_device::timer_preload_w<0>)); // 7a02 - TimerA_Preload
 	// 7a03 - TimerA_CCPB_Reg
-	map(0x007a04, 0x007a04).r(FUNC(generalplus_gpl951xx_device::timera_upcount_r)); // 7a04 - TimerA_UpCount
+	map(0x007a04, 0x007a04).r(FUNC(generalplus_gpl951xx_device::timer_upcount_r<0>)); // 7a04 - TimerA_UpCount
 
-	map(0x007a08, 0x007a08).rw(FUNC(generalplus_gpl951xx_device::timerb_ctrl_r), FUNC(generalplus_gpl951xx_device::timerb_ctrl_w)); // 7a08 - TimerB_Ctrl
-	map(0x007a09, 0x007a09).w(FUNC(generalplus_gpl951xx_device::timerb_ccpb_ctrl_w)); // 7a09 - TimerB_CCPB_Ctrl
-	map(0x007a0a, 0x007a0a).w(FUNC(generalplus_gpl951xx_device::timerb_preload_w)); // 7a0a - TimerB_Preload
+	// Timer B
+	map(0x007a08, 0x007a08).rw(FUNC(generalplus_gpl951xx_device::timer_ctrl_r<1>), FUNC(generalplus_gpl951xx_device::timer_ctrl_w<1>)); // 7a08 - TimerB_Ctrl
+	map(0x007a09, 0x007a09).w(FUNC(generalplus_gpl951xx_device::timer_ccpb_ctrl_w<1>)); // 7a09 - TimerB_CCPB_Ctrl
+	map(0x007a0a, 0x007a0a).rw(FUNC(generalplus_gpl951xx_device::timer_preload_r<1>), FUNC(generalplus_gpl951xx_device::timer_preload_w<1>)); // 7a0a - TimerB_Preload
 	// 7a0b - TimerB_CCPB_Reg
-	// 7a0c - TimerB_UpCount
+	map(0x007a0c, 0x007a0c).r(FUNC(generalplus_gpl951xx_device::timer_upcount_r<1>)); // 7a0c - TimerB_UpCount
 
-	// 7a10 - TimerC_Ctrl
-	// 7a11 - TimerC_CCPB_Ctrl
-	// 7a12 - TimerC_Preload
+	// Timer C
+	map(0x007a10, 0x007a10).rw(FUNC(generalplus_gpl951xx_device::timer_ctrl_r<2>), FUNC(generalplus_gpl951xx_device::timer_ctrl_w<2>)); // 7a10 - TimerC_Ctrl
+	map(0x007a11, 0x007a11).w(FUNC(generalplus_gpl951xx_device::timer_ccpb_ctrl_w<2>)); // 7a11 - TimerC_CCPB_Ctrl
+	map(0x007a12, 0x007a12).rw(FUNC(generalplus_gpl951xx_device::timer_preload_r<2>), FUNC(generalplus_gpl951xx_device::timer_preload_w<2>)); // 7a12 - TimerC_Preload
 	// 7a13 - TimerC_CCPB_Reg
-	// 7a14 - TimerC_UpCount
+	map(0x007a14, 0x007a14).r(FUNC(generalplus_gpl951xx_device::timer_upcount_r<2>)); // 7a14 - TimerC_UpCount
 
-	map(0x007a18, 0x007a18).r(FUNC(generalplus_gpl951xx_device::timerd_ctrl_r)); // 7a18 - TimerD_Ctrl
-	// 7a19 - TimerD_CCPB_Ctrl
-	// 7a1a - TimerD_Preload
+	// Timer D
+	map(0x007a18, 0x007a18).r(FUNC(generalplus_gpl951xx_device::timer_ctrl_r<3>)); // 7a18 - TimerD_Ctrl
+	map(0x007a19, 0x007a19).w(FUNC(generalplus_gpl951xx_device::timer_ccpb_ctrl_w<3>)); // 7a19 - TimerD_CCPB_Ctrl
+	map(0x007a1a, 0x007a1a).rw(FUNC(generalplus_gpl951xx_device::timer_preload_r<3>), FUNC(generalplus_gpl951xx_device::timer_preload_w<3>)); // 7a1a - TimerD_Preload
 	// 7a1b - TimerD_CCPB_Reg
-	// 7a1c - TimerD_UpCount
+	map(0x007a1c, 0x007a1c).r(FUNC(generalplus_gpl951xx_device::timer_upcount_r<3>)); // 7a1c - TimerD_UpCount
 
-	// 7a20 - TimerE_Ctrl
-	// 7a21 - TimerF_Ctrl
-	// 7a22 - TimerE_CCPB_Ctrl
-	// 7a23 - TimerF_CCPB_Ctrl
-	// 7a24 - TimerE_Preload
-	// 7a25 - TimerF_Preload
+	// Timers E & F
+	map(0x007a20, 0x007a20).rw(FUNC(generalplus_gpl951xx_device::timer_ctrl_r<4>), FUNC(generalplus_gpl951xx_device::timer_ctrl_w<4>)); // 7a20 - TimerE_Ctrl
+	map(0x007a21, 0x007a21).rw(FUNC(generalplus_gpl951xx_device::timer_ctrl_r<5>), FUNC(generalplus_gpl951xx_device::timer_ctrl_w<5>)); // 7a21 - TimerF_Ctrl
+	map(0x007a22, 0x007a22).w(FUNC(generalplus_gpl951xx_device::timer_ccpb_ctrl_w<4>)); // 7a22 - TimerE_CCPB_Ctrl
+	map(0x007a23, 0x007a23).w(FUNC(generalplus_gpl951xx_device::timer_ccpb_ctrl_w<5>)); // 7a23 - TimerF_CCPB_Ctrl
+	map(0x007a24, 0x007a24).rw(FUNC(generalplus_gpl951xx_device::timer_preload_r<4>), FUNC(generalplus_gpl951xx_device::timer_preload_w<4>)); // 7a24 - TimerE_Preload
+	map(0x007a25, 0x007a25).rw(FUNC(generalplus_gpl951xx_device::timer_preload_r<5>), FUNC(generalplus_gpl951xx_device::timer_preload_w<5>)); // 7a25 - TimerF_Preload
 	// 7a26 - TimerEF_CCPB4_Reg (differs between GPL951xx models)
 	// 7a27 - TimerEF_CCPB5_Reg (differs between GPL951xx models)
 	// 7a28 - TimerEF_CCPB6_Reg (differs between GPL951xx models - doesn't exist on 'B')
 	// 7a29 - TimerEF_CCPB7_Reg (differs between GPL951xx models - doesn't exist on 'B')
-	map(0x007a2a, 0x007a2a).r(FUNC(generalplus_gpl951xx_device::timere_upcount_r)); // 7a2a - TimerE_UpCount
-	// 7a2b - TimerF_UpCount
+	map(0x007a2a, 0x007a2a).r(FUNC(generalplus_gpl951xx_device::timer_upcount_r<4>)); // 7a2a - TimerE_UpCount
+	map(0x007a2b, 0x007a1b).r(FUNC(generalplus_gpl951xx_device::timer_upcount_r<5>)); // 7a2b - TimerF_UpCount
 	// 7a2c - TimerEF_CCPB_Sel (differs between GPL951xx models - 2 bits on 'B', 4 bits on GPL95100UA/GPL95101UA)
 
 	// 7a40 - USBD_Config
@@ -2035,10 +1862,7 @@ generalplus_gpl951xx_device::generalplus_gpl951xx_device(const machine_config &m
 	m_port_in(*this, 0),
 	m_port_out(*this),
 	m_adc_in(*this, 0),
-	m_timer_a(*this, "timer_a"),
-	m_timer_b(*this, "timer_b"),
-	m_timer_g(*this, "timer_g"),
-	m_timer_h(*this, "timer_h"),
+	m_timer(*this, { "timer_a", "timer_b", "timer_c", "timer_d", "timer_e", "timer_f", "timer_g", "timer_h" }),
 	m_adc_timer(*this, "adc_timer"),
 	m_rtc(*this, "rtc"),
 	m_gpl_chx(*this, "gpl_chx"),
