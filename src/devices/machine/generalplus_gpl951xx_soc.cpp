@@ -1621,7 +1621,7 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map &map)
 	// 7a28 - TimerEF_CCPB6_Reg (differs between GPL951xx models - doesn't exist on 'B')
 	// 7a29 - TimerEF_CCPB7_Reg (differs between GPL951xx models - doesn't exist on 'B')
 	map(0x007a2a, 0x007a2a).r(FUNC(generalplus_gpl951xx_device::timer_upcount_r<4>)); // 7a2a - TimerE_UpCount
-	map(0x007a2b, 0x007a1b).r(FUNC(generalplus_gpl951xx_device::timer_upcount_r<5>)); // 7a2b - TimerF_UpCount
+	map(0x007a2b, 0x007a2b).r(FUNC(generalplus_gpl951xx_device::timer_upcount_r<5>)); // 7a2b - TimerF_UpCount
 	// 7a2c - TimerEF_CCPB_Sel (differs between GPL951xx models - 2 bits on 'B', 4 bits on GPL95100UA/GPL95101UA)
 
 	// 7a40 - USBD_Config
