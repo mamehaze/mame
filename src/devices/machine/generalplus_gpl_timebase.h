@@ -12,9 +12,9 @@ class gpl_timebase_device : public device_t
 public:
 	gpl_timebase_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
 
-	bool timebasea_irq_flag() { return m_timebasea_ctrl & 0x8000 ? true : false; }
-	bool timebaseb_irq_flag() { return m_timebaseb_ctrl & 0x8000 ? true : false; }
-	bool timebasec_irq_flag() { return m_timebasec_ctrl & 0x8000 ? true : false; }
+	bool timebasea_irq_flag() { return ((m_timebase_ctrl[0] & 0x8000) && (m_timebase_ctrl[0] & 0x4000)) ? true : false; }
+	bool timebaseb_irq_flag() { return ((m_timebase_ctrl[1] & 0x8000) && (m_timebase_ctrl[1] & 0x4000)) ? true : false; }
+	bool timebasec_irq_flag() { return ((m_timebase_ctrl[2] & 0x8000) && (m_timebase_ctrl[2] & 0x4000)) ? true : false; }
 
 	auto updateirqs_callback() { return m_updateirqs_cb.bind(); }
 
@@ -39,10 +39,9 @@ private:
 	TIMER_DEVICE_CALLBACK_MEMBER(timebase_b_cb);
 	TIMER_DEVICE_CALLBACK_MEMBER(timebase_c_cb);
 
-	u16 m_timebasea_ctrl;
-	u16 m_timebaseb_ctrl;
-	u16 m_timebasec_ctrl;
+	attotime get_timer_period(int timer, int ctrlval);
 
+	u16 m_timebase_ctrl[3];
 	u16 m_timebase_reset;
 
 	required_device<timer_device> m_timebase_a;

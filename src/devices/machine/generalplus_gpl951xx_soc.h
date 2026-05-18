@@ -57,6 +57,13 @@ public:
 	auto porte_out() { return m_port_out[4].bind(); }
 	auto portf_out() { return m_port_out[5].bind(); }
 
+	auto adc0_in() { return m_adc_in[0].bind(); }
+	auto adc1_in() { return m_adc_in[1].bind(); }
+	auto adc2_in() { return m_adc_in[2].bind(); }
+	auto adc3_in() { return m_adc_in[3].bind(); }
+	auto adc4_in() { return m_adc_in[4].bind(); }
+	auto adc5_in() { return m_adc_in[5].bind(); }
+
 	void recieve_spi_fifo_data(u8 data);
 
 	IRQ_CALLBACK_MEMBER(irq_vector_cb);
@@ -125,6 +132,17 @@ private:
 	u16 timerh_preload_r();
 	void timerh_preload_w(u16 data);
 
+	u16 timerb_ctrl_r();
+	void timerb_ctrl_w(u16 data);
+	void timerb_ccpb_ctrl_w(u16 data);
+	void timerb_preload_w(u16 data);
+
+	u16 timera_upcount_r();
+	u16 timere_upcount_r();
+	u16 timerd_ctrl_r();
+	u16 i2c_ctrl_r();
+	u16 i2c_status_r();
+
 	void dac_0_w(uint16_t data);
 	void dac_1_w(uint16_t data);
 
@@ -178,12 +196,38 @@ private:
 	void int_priority_1_w(u16 data);
 	void int_priority_2_w(u16 data);
 	void int_priority_3_w(u16 data);
+	u16 int_priority_1_r();
+	u16 int_priority_2_r();
+	u16 int_priority_3_r();
+
 	void mint_ctrl_w(u16 data);
 
 	void update_interrupts(int state);
 
 	void audioirq_w(int state);
 	void videoirq_w(int state);
+
+	u16 madc_ctrl_r();
+	void madc_ctrl_w(u16 data);
+	u16 madc_data_r();
+
+	u16 tft_rgb_ctrl_r();
+	void tft_rgb_ctrl_w(u16 data);
+
+	void tft_v_width_w(u16 data);
+	void tft_vsync_setup_w(u16 data);
+	void tft_v_start_w(u16 data);
+	void tft_v_end_w(u16 data);
+	void tft_h_width_w(u16 data);
+	void tft_hsync_setup_w(u16 data);
+	void tft_h_start_w(u16 data);
+	void tft_h_end_w(u16 data);
+	void tft_v_show_start_w(u16 data);
+	void tft_v_show_end_w(u16 data);
+	void tft_h_show_start_w(u16 data);
+	void tft_h_show_end_w(u16 data);
+	void free_height_w(u16 data);
+	void free_width_w(u16 data);
 
 	inline u16 read_space(offs_t offset);
 	inline void write_space(offs_t offset, u16 data);
@@ -197,6 +241,8 @@ private:
 	TIMER_DEVICE_CALLBACK_MEMBER(timer_d_cb);
 	TIMER_DEVICE_CALLBACK_MEMBER(timer_e_cb);
 	TIMER_DEVICE_CALLBACK_MEMBER(timer_f_cb);
+
+	TIMER_DEVICE_CALLBACK_MEMBER(adc_timer_cb);
 
 	u16 m_byteswap;
 
@@ -232,6 +278,20 @@ private:
 		"f: reserved"
 	};
 
+	const char* m_adc_channels[8] =
+	{
+		"LINEIN 0",
+		"LINEIN 1",
+		"LINEIN 2",
+		"LINEIN 3",
+		"LINEIN 4",
+		"LINEIN 5",
+		"1.2V bandgap",
+		"LDOV50"
+	};
+
+	u16 m_timerb_preload;
+	u16 m_timerb_ctrl;
 	u16 m_timerg_preload;
 	u16 m_timerg_ctrl;
 	u16 m_timerh_preload;
@@ -268,6 +328,11 @@ private:
 
 	u16 m_memmode_wcmd;
 
+	u16 m_tft_rgb_ctrl;
+
+	u16 m_madc_ctrl;
+	u16 m_madc_data;
+
 	// config
 	u8 *m_spiregion;
 	u32 m_spisize;
@@ -282,9 +347,13 @@ private:
 	devcb_read16::array<6> m_port_in;
 	devcb_write16::array<6> m_port_out;
 
+	devcb_read16::array<6> m_adc_in;
+
 	// devices
+	required_device<timer_device> m_timer_b;
 	required_device<timer_device> m_timer_g;
 	required_device<timer_device> m_timer_h;
+	required_device<timer_device> m_adc_timer;
 	required_device<gpl951xx_rtc_device> m_rtc;
 	required_device<gpl_chx_device> m_gpl_chx;
 	required_device<dac_16bit_r2r_twos_complement_device> m_dac0;

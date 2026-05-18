@@ -1,6 +1,17 @@
 // license:BSD-3-Clause
 // copyright-holders:David Haywood
 
+// known SoCs
+//
+// GPL95100UA
+// GPL95101UA (101 model again has fewer features)
+//
+// 'B' models have different timer e/f behavior amongst other changes
+// GPL95100UB / GPL95100UB1 (unclear what difference is between UB and UB1)
+// GPL95101UB / GPL95101UB1 (101 models have fewer features than 100)
+//
+
+ 
 #include "emu.h"
 #include "generalplus_gpl951xx_soc.h"
 
@@ -8,7 +19,7 @@
 #define LOG_TFT       (1U << 2)
 #define LOG_OTHER     (1U << 3)
 
-#define VERBOSE     (LOG_SPIFC | LOG_TFT | LOG_OTHER)
+#define VERBOSE     (LOG_SPIFC | LOG_OTHER)
 
 #include "logmacro.h"
 
@@ -122,6 +133,14 @@ void generalplus_gpl951xx_device::spifc_cmd_w(u16 data)
 
 	m_spi_reset(1);
 	m_spi_out_cmd(data & 0x00ff);
+
+	if (!(m_spifc_para & 0x1000))
+	{
+		m_spi_out((m_spifc_addr >> 16) & 0xff);
+		m_spi_out((m_spifc_addr >> 8) & 0xff);
+		m_spi_out((m_spifc_addr >> 0) & 0xff);
+
+	}
 
 	// how does byte count work? the FIFO is apparently in words
 	for (int i = 0; i < m_spifc_rx_bc; i++)
@@ -359,6 +378,8 @@ void generalplus_gpl951xx_device::device_start()
 	unsp_20_device::device_start();
 
 	save_item(NAME(m_byteswap));
+	save_item(NAME(m_timerb_ctrl));
+	save_item(NAME(m_timerb_preload));
 	save_item(NAME(m_timerg_ctrl));
 	save_item(NAME(m_timerg_preload));
 	save_item(NAME(m_timerh_ctrl));
@@ -386,12 +407,16 @@ void generalplus_gpl951xx_device::device_start()
 	save_item(NAME(m_int_priority_3));
 	save_item(NAME(m_misc_int_ctrl));
 	save_item(NAME(m_pllchange));
+	save_item(NAME(m_tft_rgb_ctrl));
+	save_item(NAME(m_madc_ctrl));
+	save_item(NAME(m_madc_data));
 }
 
 void generalplus_gpl951xx_device::device_reset()
 {
 	unsp_20_device::device_reset();
 	m_spg_video->reset();
+	m_spg_video->set_disallow_resolution_control();
 
 	m_byteswap = 0;
 	m_timerg_ctrl = 0;
@@ -418,6 +443,7 @@ void generalplus_gpl951xx_device::device_reset()
 	m_int_priority_3 = 0;
 	m_misc_int_ctrl = 0;
 	m_pllchange = 0;
+	m_tft_rgb_ctrl = 0;
 
 	for (int i = 0; i < 6; i++)
 	{
@@ -581,16 +607,13 @@ void generalplus_gpl951xx_device::timerh_ctrl_w(u16 data)
 
 	if (data & 0x8000)
 	{
-		logerror("cleared timerh flag\n");
 		m_timerh_ctrl &= 0x7fff;
 	}
 
 	if ((data & 0x2000) != (m_timerh_ctrl & 0x2000))
 	{
-		logerror("changed\n");
 		if (data & 0x2000)
 		{
-			logerror("started timerh\n");
 			m_timer_h->adjust(attotime::zero, 0, attotime::from_hz(1000));
 		}
 		else
@@ -604,6 +627,112 @@ void generalplus_gpl951xx_device::timerh_ctrl_w(u16 data)
 	update_interrupts(1);
 }
 
+// Other timers are more generic
+// although timers e and f have different behavior depending on SoC
+
+u16 generalplus_gpl951xx_device::timerb_ctrl_r()
+{
+	logerror("%s: timerb_ctrl_r\n", machine().describe_context());
+	return m_timerb_ctrl;
+}
+
+void generalplus_gpl951xx_device::timerb_ctrl_w(u16 data)
+{
+	u8 tmbif_clear = (data & 0x8000) >> 15;
+	u8 tmbie = (data & 0x4000) >> 14;
+	u8 tmben = (data & 0x2000) >> 13;
+	u8 ext0sel = (data & 0x0c00) >> 10;
+	u8 ext1sel = (data & 0x0300) >> 8;
+	u8 srcbsel = (data & 0x0070) >> 4;
+	u8 srcasel = (data & 0x000f) >> 0;
+
+	logerror("%s: timerb_ctrl_w %04x (tmbif_clear %01x) (interrupt enabled %01x) (timer enabled %01x) (ext0sel %01x) (ext1sel %01x) (srcbsel %01x) (srcasel %01x)\n", machine().describe_context(), data, tmbif_clear, tmbie, tmben, ext0sel, ext1sel, m_srcb[srcbsel], m_srca[srcasel]);
+
+	if (data & 0x8000)
+	{
+		m_timerb_ctrl &= 0x7fff;
+	}
+
+	if ((data & 0x2000) != (m_timerb_ctrl & 0x2000))
+	{
+		if (data & 0x2000)
+		{
+			m_timer_b->adjust(attotime::zero, 0, attotime::from_hz(1000));
+		}
+		else
+		{
+			m_timer_b->adjust(attotime::never);
+		}
+
+	}
+
+	m_timerb_ctrl = (m_timerb_ctrl & 0x8000) | (data & 0x7fff);
+	update_interrupts(1);
+}
+
+// P_TimerB_CCPB_Ctrl
+//
+// 15  CCPBBEN[1]  - 00 = CCPB Mode Disabled, 01 = Capture Enabled, 10 = Comparison Enabled, 11 = PWM/BAM Enabled
+// 14  CCPBBEN[0]
+// 13
+// 12
+//
+// 11
+// 10
+//  9  CAPBSEL[1]  - 00 = every falling, 01 = every rising, 10/11 = reserved
+//  8  CAPBSEL[0]
+// 
+//  7
+//  6
+//  5  CMPBSEL[1] - 00 = high pulse on CCPB, 01 = low pulse on CCPB, 10 = unaffected on CCPB, 11 = reserved
+//  4  CMPBSEL[0]
+// 
+//  3
+//  2
+//  1  PWMBSEL[1] - 00 = PWM mode/NRO output, 01 = PWM mode/NRZ output, 10 = BAM mode/NRO output, 11 = BAM mode/NRZ output
+//  0  PWMBSEL[0]
+
+void generalplus_gpl951xx_device::timerb_ccpb_ctrl_w(u16 data)
+{
+	logerror("%s: timerb_ccpb_ctrl_w %04x\n", machine().describe_context(), data);
+}
+
+void generalplus_gpl951xx_device::timerb_preload_w(u16 data)
+{
+	logerror("%s: timerb_preload_w %04x\n", machine().describe_context(), data);
+	m_timerh_preload = data;
+}
+
+
+u16 generalplus_gpl951xx_device::timerd_ctrl_r()
+{
+	logerror("%s: timerd_ctrl_r\n", machine().describe_context());
+	return machine().rand();
+}
+
+u16 generalplus_gpl951xx_device::timera_upcount_r()
+{
+	logerror("%s: timera_upcount_r\n", machine().describe_context());
+	return machine().rand();
+}
+
+u16 generalplus_gpl951xx_device::timere_upcount_r()
+{
+	logerror("%s: timere_upcount_r\n", machine().describe_context());
+	return machine().rand();
+}
+
+u16 generalplus_gpl951xx_device::i2c_ctrl_r()
+{
+	logerror("%s: i2c_ctrl_r\n", machine().describe_context());
+	return machine().rand();
+}
+
+u16 generalplus_gpl951xx_device::i2c_status_r()
+{
+	logerror("%s: i2c_status_r\n", machine().describe_context());
+	return machine().rand();
+}
 
 // TFT
 
@@ -706,6 +835,89 @@ void generalplus_gpl951xx_device::tft_memmode_wcmd_w(u16 data)
 	m_memmode_wcmd = data;
 }
 
+
+u16 generalplus_gpl951xx_device::tft_rgb_ctrl_r()
+{
+	LOGMASKED(LOG_TFT, "%s: tft_rgb_ctrl_r\n", machine().describe_context());
+	return m_tft_rgb_ctrl;
+}
+
+void generalplus_gpl951xx_device::tft_rgb_ctrl_w(u16 data)
+{
+	LOGMASKED(LOG_TFT, "%s: tft_rgb_ctrl_w %04x\n", machine().describe_context(), data);
+	m_tft_rgb_ctrl = data;
+}
+
+void generalplus_gpl951xx_device::tft_v_width_w(u16 data)
+{
+	LOGMASKED(LOG_TFT, "%s: tft_v_width_w %04x\n", machine().describe_context(), data);
+}
+
+void generalplus_gpl951xx_device::tft_vsync_setup_w(u16 data)
+{
+	LOGMASKED(LOG_TFT, "%s: tft_vsync_setup_w %04x\n", machine().describe_context(), data);
+}
+
+void generalplus_gpl951xx_device::tft_v_start_w(u16 data)
+{
+	LOGMASKED(LOG_TFT, "%s: tft_v_start_w %04x\n", machine().describe_context(), data);
+}
+
+void generalplus_gpl951xx_device::tft_v_end_w(u16 data)
+{
+	LOGMASKED(LOG_TFT, "%s: tft_v_end_w %04x\n", machine().describe_context(), data);
+}
+
+void generalplus_gpl951xx_device::tft_h_width_w(u16 data)
+{
+	LOGMASKED(LOG_TFT, "%s: tft_h_width_w %04x\n", machine().describe_context(), data);
+}
+
+void generalplus_gpl951xx_device::tft_hsync_setup_w(u16 data)
+{
+	LOGMASKED(LOG_TFT, "%s: tft_hsync_setup_w %04x\n", machine().describe_context(), data);
+}
+
+void generalplus_gpl951xx_device::tft_h_start_w(u16 data)
+{
+	LOGMASKED(LOG_TFT, "%s: tft_h_start_w %04x\n", machine().describe_context(), data);
+}
+
+void generalplus_gpl951xx_device::tft_h_end_w(u16 data)
+{
+	LOGMASKED(LOG_TFT, "%s: tft_h_end_w %04x\n", machine().describe_context(), data);
+}
+
+void generalplus_gpl951xx_device::tft_v_show_start_w(u16 data)
+{
+	LOGMASKED(LOG_TFT, "%s: tft_v_show_start_w %04x\n", machine().describe_context(), data);
+}
+
+void generalplus_gpl951xx_device::tft_v_show_end_w(u16 data)
+{
+	LOGMASKED(LOG_TFT, "%s: tft_v_show_end_w %04x\n", machine().describe_context(), data);
+}
+
+void generalplus_gpl951xx_device::tft_h_show_start_w(u16 data)
+{
+	LOGMASKED(LOG_TFT, "%s: tft_h_show_start_w %04x\n", machine().describe_context(), data);
+}
+
+void generalplus_gpl951xx_device::tft_h_show_end_w(u16 data)
+{
+	LOGMASKED(LOG_TFT, "%s: tft_h_show_end_w %04x\n", machine().describe_context(), data);
+}
+
+void generalplus_gpl951xx_device::free_height_w(u16 data)
+{
+	LOGMASKED(LOG_TFT, "%s: free_height_w %04x\n", machine().describe_context(), data);
+}
+
+void generalplus_gpl951xx_device::free_width_w(u16 data)
+{
+	LOGMASKED(LOG_TFT, "%s: free_width_w %04x\n", machine().describe_context(), data);
+}
+
 //
 
 u16 generalplus_gpl951xx_device::spi_bank_r()
@@ -726,6 +938,8 @@ TIMER_DEVICE_CALLBACK_MEMBER(generalplus_gpl951xx_device::timer_a_cb)
 
 TIMER_DEVICE_CALLBACK_MEMBER(generalplus_gpl951xx_device::timer_b_cb)
 {
+	m_timerb_ctrl |= 0x8000;
+	update_interrupts(1);
 }
 
 TIMER_DEVICE_CALLBACK_MEMBER(generalplus_gpl951xx_device::timer_c_cb)
@@ -742,6 +956,93 @@ TIMER_DEVICE_CALLBACK_MEMBER(generalplus_gpl951xx_device::timer_e_cb)
 
 TIMER_DEVICE_CALLBACK_MEMBER(generalplus_gpl951xx_device::timer_f_cb)
 {
+}
+
+TIMER_DEVICE_CALLBACK_MEMBER( generalplus_gpl951xx_device::adc_timer_cb )
+{
+	m_madc_ctrl |= 0x8000;
+	m_madc_ctrl |= 0x0080; // apparently always set after the first ADC operation, no way to clear?
+}
+
+
+// P_MADC_Ctrl
+//
+// 15  ADCRIF/C  - ADC Ready Interrupt Flag/Clear
+// 14  ADCRIEN   - ADC Interrupt Enable
+// 13
+// 12
+//
+// 11
+// 10
+//  9
+//  8
+//
+//  7  CNVRDY    - Conversion Ready
+//  6  STRCNV    - Manual Start Conversion
+//  5  MIASE     - ADC Conversion Error Flag 1
+//  4  ASIME     - ADC Conversion Error Flag 2
+//
+//  3  CHSEL     - ADC Channel Selection (manual mode)
+//  2
+//  1
+//  0
+
+u16 generalplus_gpl951xx_device::madc_ctrl_r()
+{
+	logerror("%s: madc_ctrl_r\n", machine().describe_context());
+	return m_madc_ctrl;
+}
+
+void generalplus_gpl951xx_device::madc_ctrl_w(u16 data)
+{
+	logerror("%s: madc_ctrl_w %04x\n", machine().describe_context(), data);
+
+	if (data & 0x8000)
+	{
+		// clear IRQ flag
+		data = data &~ 0x8000;
+	}
+
+	if (data & 0x0010)
+	{
+		// clear Error Flag 2
+		data = data &~ 0x0010;
+	}
+
+	if (data & 0x0020)
+	{
+		// clear Error Flag 1
+		data = data &~ 0x0020;
+	}
+
+	if (data & 0x0040) // Manual start
+	{
+		data = data & ~0x0040;
+		data = data & ~0x0080;
+
+		u8 channel = data & 0x0007;
+
+		logerror("manual ADC conversion on port %s\n", m_adc_channels[channel]); 
+
+		if (channel < 6)
+		{
+			m_madc_data = m_adc_in[channel]();
+		}
+		else
+		{
+			m_madc_data = 0x0000;
+		}
+
+		m_adc_timer->adjust(attotime::from_usec(10));
+	}
+
+	m_madc_ctrl = data;
+}
+
+u16 generalplus_gpl951xx_device::madc_data_r()
+{
+	logerror("%s: madc_data_r\n", machine().describe_context());
+	return m_madc_data;
 }
 
 
@@ -1039,6 +1340,9 @@ u16 generalplus_gpl951xx_device::int_status3_r()
 	if (m_timerg_ctrl & 0x8000)
 		ret |= 0x4000;
 
+	if (m_timerb_ctrl & 0x8000)
+		ret |= 0x0200;
+
 	return ret;
 }
 
@@ -1048,16 +1352,34 @@ void generalplus_gpl951xx_device::int_status3_w(u16 data)
 	// bit 2 (SPU Beat Interrupt) is listed as R/W for GPL95, but not GPL162? (verify)
 }
 
+u16 generalplus_gpl951xx_device::int_priority_1_r()
+{
+	LOGMASKED(LOG_OTHER, "%s: generalplus_gpl951xx_device::int_priority_1_r\n", machine().describe_context());
+	return m_int_priority_1;
+}
+
 void generalplus_gpl951xx_device::int_priority_1_w(u16 data)
 {
 	LOGMASKED(LOG_OTHER, "%s: generalplus_gpl951xx_device::int_priority_1_w %04x\n", machine().describe_context(), data);
 	m_int_priority_1 = data;
 }
 
+u16 generalplus_gpl951xx_device::int_priority_2_r()
+{
+	LOGMASKED(LOG_OTHER, "%s: generalplus_gpl951xx_device::int_priority_2_r\n", machine().describe_context());
+	return m_int_priority_2;
+}
+
 void generalplus_gpl951xx_device::int_priority_2_w(u16 data)
 {
 	LOGMASKED(LOG_OTHER, "%s: generalplus_gpl951xx_device::int_priority_2_w %04x\n", machine().describe_context(), data);
 	m_int_priority_2 = data;
+}
+
+u16 generalplus_gpl951xx_device::int_priority_3_r()
+{
+	LOGMASKED(LOG_OTHER, "%s: generalplus_gpl951xx_device::int_priority_3_r\n", machine().describe_context());
+	return m_int_priority_3;
 }
 
 void generalplus_gpl951xx_device::int_priority_3_w(u16 data)
@@ -1150,15 +1472,15 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map &map)
 	map(0x007042, 0x007042).rw(m_spg_video, FUNC(gcm394_base_video_device::sprite_7042_extra_r), FUNC(gcm394_base_video_device::sprite_7042_extra_w)); // 7042 - SControl
 	//
 	map(0x007050, 0x007050).w(FUNC(generalplus_gpl951xx_device::tft_ctrl_w)); // 7050 - TFT_Ctrl
-	// 7051 - TFT_V_Width
-	// 7052 - TFT_VSync_Setup
-	// 7053 - TFT_V_Start
-	// 7054 - TFT_V_End
-	// 7055 - TFT_H_Width
-	// 7056 - TFT_HSync_Setup
-	// 7057 - TFT_H_Start
-	// 7058 - TFT_H_End
-	// 7059 - TFT_RGB_Ctrl
+	map(0x007051, 0x007051).w(FUNC(generalplus_gpl951xx_device::tft_v_width_w)); // 7051 - TFT_V_Width
+	map(0x007052, 0x007052).w(FUNC(generalplus_gpl951xx_device::tft_vsync_setup_w)); // 7052 - TFT_VSync_Setup
+	map(0x007053, 0x007053).w(FUNC(generalplus_gpl951xx_device::tft_v_start_w)); // 7053 - TFT_V_Start
+	map(0x007054, 0x007054).w(FUNC(generalplus_gpl951xx_device::tft_v_end_w)); // 7054 - TFT_V_End
+	map(0x007055, 0x007055).w(FUNC(generalplus_gpl951xx_device::tft_h_width_w)); // 7055 - TFT_H_Width
+	map(0x007056, 0x007056).w(FUNC(generalplus_gpl951xx_device::tft_hsync_setup_w)); // 7056 - TFT_HSync_Setup
+	map(0x007057, 0x007057).w(FUNC(generalplus_gpl951xx_device::tft_h_start_w)); // 7057 - TFT_H_Start
+	map(0x007058, 0x007058).w(FUNC(generalplus_gpl951xx_device::tft_h_end_w));  // 7058 - TFT_H_End
+	map(0x007059, 0x007059).rw(FUNC(generalplus_gpl951xx_device::tft_rgb_ctrl_r), FUNC(generalplus_gpl951xx_device::tft_rgb_ctrl_w)); // 7059 - TFT_RGB_Ctrl
 	map(0x00705a, 0x00705a).r(FUNC(generalplus_gpl951xx_device::tft_status_r)); // 705a - TFT_Status
 	map(0x00705b, 0x00705b).w(FUNC(generalplus_gpl951xx_device::tft_memmode_wcmd_w)); // 705b - TFT_MemMode_WCmd
 	// 705c - TFT_MemMode_RCmd
@@ -1176,10 +1498,10 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map &map)
 	// 7069 - US_Hoffset
 	// 706a - US_Voffset
 	//
-	// 706c - TFT_V_Show_Start
-	// 706d - TFT_V_Show_End
-	// 706e - TFT_H_Show_Start
-	// 706f - TFT_H_Show_End
+	map(0x00706c, 0x00706c).w(FUNC(generalplus_gpl951xx_device::tft_v_show_start_w)); // 706c - TFT_V_Show_Start
+	map(0x00706d, 0x00706d).w(FUNC(generalplus_gpl951xx_device::tft_v_show_end_w)); // 706d - TFT_V_Show_End
+	map(0x00706e, 0x00706e).w(FUNC(generalplus_gpl951xx_device::tft_h_show_start_w)); // 706e - TFT_H_Show_Start
+	map(0x00706f, 0x00706f).w(FUNC(generalplus_gpl951xx_device::tft_h_show_end_w)); // 706f - TFT_H_Show_End
 	//
 	map(0x007070, 0x007070).w(m_spg_video, FUNC(gcm394_base_video_device::video_dma_source_w)); // 7070 - SPDMA_Source
 	map(0x007071, 0x007071).w(m_spg_video, FUNC(gcm394_base_video_device::video_dma_dest_w));   // 7071 - SPDMA_Target
@@ -1207,8 +1529,8 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map &map)
 	// 70b8 - Tx3_N_PTRH
 	// 70b9 - Tx3_A_PTRH
 	//
-	// 70db - Free_Height
-	// 70dc - Free_Width
+	map(0x0070db, 0x0070db).w(FUNC(generalplus_gpl951xx_device::free_height_w)); // 70db - Free_Height
+	map(0x0070dc, 0x0070dc).w(FUNC(generalplus_gpl951xx_device::free_width_w)); // 70dc - Free_Width
 	//
 	map(0x0070e0, 0x0070e0).r(m_spg_video, FUNC(gcm394_base_video_device::video_70e0_prng_r)); // 70e0 - Random0 (15-bit)
 	// 70e1 - Random1 (15-bit)
@@ -1299,9 +1621,9 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map &map)
 	map(0x0078a0, 0x0078a0).rw(FUNC(generalplus_gpl951xx_device::int_status1_r), FUNC(generalplus_gpl951xx_device::int_status1_w)); // 78a0 - INT_Status1
 	map(0x0078a1, 0x0078a1).rw(FUNC(generalplus_gpl951xx_device::int_status2_r), FUNC(generalplus_gpl951xx_device::int_status2_w)); // 78a1 - INT_Status2
 	map(0x0078a2, 0x0078a2).rw(FUNC(generalplus_gpl951xx_device::int_status3_r), FUNC(generalplus_gpl951xx_device::int_status3_w)); // 78a2 - INT_Status3
-	map(0x0078a3, 0x0078a3).w(FUNC(generalplus_gpl951xx_device::int_priority_1_w)); // 78a3 - INT_Priority1
-	map(0x0078a4, 0x0078a4).w(FUNC(generalplus_gpl951xx_device::int_priority_2_w)); // 78a4 - INT_Priority2
-	map(0x0078a5, 0x0078a5).w(FUNC(generalplus_gpl951xx_device::int_priority_3_w)); // 78a5 - INT_Priority3
+	map(0x0078a3, 0x0078a3).rw(FUNC(generalplus_gpl951xx_device::int_priority_1_r), FUNC(generalplus_gpl951xx_device::int_priority_1_w)); // 78a3 - INT_Priority1
+	map(0x0078a4, 0x0078a4).rw(FUNC(generalplus_gpl951xx_device::int_priority_2_r), FUNC(generalplus_gpl951xx_device::int_priority_2_w)); // 78a4 - INT_Priority2
+	map(0x0078a5, 0x0078a5).rw(FUNC(generalplus_gpl951xx_device::int_priority_3_r), FUNC(generalplus_gpl951xx_device::int_priority_3_w)); // 78a5 - INT_Priority3
 	map(0x0078a6, 0x0078a6).w(FUNC(generalplus_gpl951xx_device::mint_ctrl_w)); // 78a6 - MINT_Ctrl
 	// 78a7 - IOAB_KCIEN
 	// 78a8 - IOC_KCIEN
@@ -1318,8 +1640,8 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map &map)
 
 	map(0x0078b8, 0x0078b8).w(m_gpl_timebase, FUNC(gpl_timebase_device::timebase_reset_w)); // 78b8 - TimeBase_Reset
 
-	// 78c0 - I2C_Ctrl
-	// 78c1 - I2C_Status
+	map(0x0078c0, 0x0078c0).r(FUNC(generalplus_gpl951xx_device::i2c_ctrl_r)); // 78c0 - I2C_Ctrl
+	map(0x0078c1, 0x0078c1).r(FUNC(generalplus_gpl951xx_device::i2c_status_r)); // 78c1 - I2C_Status
 	// 78c2 - I2C_Address
 	// 78c3 - I2C_Data
 	// 78c4 - I2C_Debounce
@@ -1383,8 +1705,8 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map &map)
 	// 7945 - SPI0_Misc
 
 	// 79a0 - ADC_Setup
-	// 79a1 - MADC_Ctrl
-	// 79a2 - MADC_Data
+	map(0x0079a1, 0x0079a1).rw(FUNC(generalplus_gpl951xx_device::madc_ctrl_r), FUNC(generalplus_gpl951xx_device::madc_ctrl_w)); // 79a1 - MADC_Ctrl
+	map(0x0079a2, 0x0079a2).r(FUNC(generalplus_gpl951xx_device::madc_data_r)); // 79a2 - MADC_Data
 	// 79a3 - ASADC_Ctrl
 	// 79a4 - ASDAC_Data
 	// 79a5
@@ -1424,11 +1746,11 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map &map)
 	// 7a01 - TimerA_CCPB_Ctrl
 	// 7a02 - TimerA_Preload
 	// 7a03 - TimerA_CCPB_Reg
-	// 7a04 - TimerA_UpCount
+	map(0x007a04, 0x007a04).r(FUNC(generalplus_gpl951xx_device::timera_upcount_r)); // 7a04 - TimerA_UpCount
 
-	// 7a08 - TimerB_Ctrl
-	// 7a09 - TimerB_CCPB_Ctrl
-	// 7a0a - TimerB_Preload
+	map(0x007a08, 0x007a08).rw(FUNC(generalplus_gpl951xx_device::timerb_ctrl_r), FUNC(generalplus_gpl951xx_device::timerb_ctrl_w)); // 7a08 - TimerB_Ctrl
+	map(0x007a09, 0x007a09).w(FUNC(generalplus_gpl951xx_device::timerb_ccpb_ctrl_w)); // 7a09 - TimerB_CCPB_Ctrl
+	map(0x007a0a, 0x007a0a).w(FUNC(generalplus_gpl951xx_device::timerb_preload_w)); // 7a0a - TimerB_Preload
 	// 7a0b - TimerB_CCPB_Reg
 	// 7a0c - TimerB_UpCount
 
@@ -1438,7 +1760,7 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map &map)
 	// 7a13 - TimerC_CCPB_Reg
 	// 7a14 - TimerC_UpCount
 
-	// 7a18 - TimerD_Ctrl
+	map(0x007a18, 0x007a18).r(FUNC(generalplus_gpl951xx_device::timerd_ctrl_r)); // 7a18 - TimerD_Ctrl
 	// 7a19 - TimerD_CCPB_Ctrl
 	// 7a1a - TimerD_Preload
 	// 7a1b - TimerD_CCPB_Reg
@@ -1450,13 +1772,13 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map &map)
 	// 7a23 - TimerF_CCPB_Ctrl
 	// 7a24 - TimerE_Preload
 	// 7a25 - TimerF_Preload
-	// 7a26 - TimerEF_CCPB4_Reg
-	// 7a27 - TimerEF_CCPB5_Reg
-	// 7a28 - TimerEF_CCPB6_Reg
-	// 7a29 - TimerEF_CCPB7_Reg
-	// 7a2a - TimerE_UpCount
+	// 7a26 - TimerEF_CCPB4_Reg (differs between GPL951xx models)
+	// 7a27 - TimerEF_CCPB5_Reg (differs between GPL951xx models)
+	// 7a28 - TimerEF_CCPB6_Reg (differs between GPL951xx models - doesn't exist on 'B')
+	// 7a29 - TimerEF_CCPB7_Reg (differs between GPL951xx models - doesn't exist on 'B')
+	map(0x007a2a, 0x007a2a).r(FUNC(generalplus_gpl951xx_device::timere_upcount_r)); // 7a2a - TimerE_UpCount
 	// 7a2b - TimerF_UpCount
-	// 7a2c - TimerEF_CCPB_Se
+	// 7a2c - TimerEF_CCPB_Sel (differs between GPL951xx models - 2 bits on 'B', 4 bits on GPL95100UA/GPL95101UA)
 
 	// 7a40 - USBD_Config
 	// 7a41 - USBD_Function
@@ -1584,7 +1906,8 @@ void generalplus_gpl951xx_device::update_interrupts(int state)
 	}
 
 	if (((m_timerg_ctrl & 0x8000) && (m_timerg_ctrl & 0x4000)) ||
-		((m_timerh_ctrl & 0x8000) && (m_timerh_ctrl & 0x4000)))
+		((m_timerh_ctrl & 0x8000) && (m_timerh_ctrl & 0x4000)) ||
+		((m_timerb_ctrl & 0x8000) && (m_timerb_ctrl & 0x4000)))
 	{
 		set_state_unsynced(UNSP_IRQ4_LINE, ASSERT_LINE);
 	}
@@ -1673,6 +1996,8 @@ void generalplus_gpl951xx_device::device_add_mconfig(machine_config &config)
 	TIMER(config, "timer_g").configure_generic(FUNC(generalplus_gpl951xx_device::timer_g_cb));
 	TIMER(config, "timer_h").configure_generic(FUNC(generalplus_gpl951xx_device::timer_h_cb));
 
+	TIMER(config, "adc_timer").configure_generic(FUNC(generalplus_gpl951xx_device::adc_timer_cb));
+
 	GPL951XX_RTC(config, m_rtc, 0);
 }
 
@@ -1688,8 +2013,11 @@ generalplus_gpl951xx_device::generalplus_gpl951xx_device(const machine_config &m
 	m_i80_data_out(*this),
 	m_port_in(*this, 0),
 	m_port_out(*this),
+	m_adc_in(*this, 0),
+	m_timer_b(*this, "timer_b"),
 	m_timer_g(*this, "timer_g"),
 	m_timer_h(*this, "timer_h"),
+	m_adc_timer(*this, "adc_timer"),
 	m_rtc(*this, "rtc"),
 	m_gpl_chx(*this, "gpl_chx"),
 	m_dac0(*this, "dac0"),

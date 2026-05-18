@@ -32,6 +32,7 @@ public:
 	void poke(machine_config &config) ATTR_COLD;
 	void flufflav(machine_config &config) ATTR_COLD;
 	void puni(machine_config &config) ATTR_COLD;
+	void dsgnpal(machine_config &config) ATTR_COLD;
 	void bftetris(machine_config &config) ATTR_COLD;
 
 	void init_fif() ATTR_COLD;
@@ -47,6 +48,11 @@ protected:
 	u16 porta_r();
 	u16 portb_r();
 	u16 portc_r();
+	u16 portd_r();
+	u16 porte_r();
+	u16 portf_r();
+	u16 adc5_r();
+
 	void porta_w(u16 data);
 
 	void spi_reset(u8 data);
@@ -59,7 +65,7 @@ protected:
 	required_device<generalplus_gpl951xx_device> m_maincpu;
 	required_device<screen_device> m_screen;
 	required_device<generic_spi_flash_device> m_genspi;
-	required_ioport_array<3> m_io;
+	required_ioport_array<6> m_io;
 	required_device<bftetris_lcdc_device> m_lcdc;
 };
 
@@ -90,6 +96,32 @@ u16 generalplus_gpl951xx_game_state::portc_r()
 	return data;
 }
 
+u16 generalplus_gpl951xx_game_state::portd_r()
+{
+	u16 data = m_io[3]->read();
+	logerror("Port D Read: %04x\n", data);
+	return data;
+}
+
+u16 generalplus_gpl951xx_game_state::porte_r()
+{
+	u16 data = m_io[4]->read();
+	logerror("Port E Read: %04x\n", data);
+	return data;
+}
+
+u16 generalplus_gpl951xx_game_state::portf_r()
+{
+	u16 data = m_io[5]->read();
+	logerror("Port F Read: %04x\n", data);
+	return data;
+}
+
+u16 generalplus_gpl951xx_game_state::adc5_r()
+{
+	return 0x0000;
+}
+
 void generalplus_gpl951xx_game_state::porta_w(u16 data)
 {
 	logerror("%s: Port A:WRITE %04x\n", machine().describe_context(), data);
@@ -106,6 +138,310 @@ void generalplus_gpl951xx_game_state::machine_reset()
 {
 	m_maincpu->reset(); // reset CPU so vector gets read etc.
 }
+
+
+static INPUT_PORTS_START( base )
+	PORT_START("IN0")
+	PORT_DIPNAME( 0x0001, 0x0001, "0" )
+	PORT_DIPSETTING(      0x0001, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0002, 0x0002, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0002, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0004, 0x0004, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0004, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0008, 0x0008, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0008, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0010, 0x0010, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0010, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0020, 0x0020, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0020, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0040, 0x0040, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0040, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0080, 0x0080, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0080, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0100, 0x0100, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0100, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0200, 0x0200, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0200, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0400, 0x0400, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0400, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0800, 0x0800, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0800, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x1000, 0x1000, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x1000, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x2000, 0x2000, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x2000, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x4000, 0x4000, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x4000, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x8000, 0x8000, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x8000, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+
+	PORT_START("IN1")
+	PORT_DIPNAME( 0x0001, 0x0001, "IN1:0001" )
+	PORT_DIPSETTING(      0x0001, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0002, 0x0002, "IN1:0002" )
+	PORT_DIPSETTING(      0x0002, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0004, 0x0004, "IN1:0004" )
+	PORT_DIPSETTING(      0x0004, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0008, 0x0008, "IN1:0008" )
+	PORT_DIPSETTING(      0x0008, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0010, 0x0010, "IN1:0010" )
+	PORT_DIPSETTING(      0x0010, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0020, 0x0020, "IN1:0020" )
+	PORT_DIPSETTING(      0x0020, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0040, 0x0040, "IN1:0040" )
+	PORT_DIPSETTING(      0x0040, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0080, 0x0080, "IN1:0080" )
+	PORT_DIPSETTING(      0x0080, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0100, 0x0100, "IN1:0100" )
+	PORT_DIPSETTING(      0x0100, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0200, 0x0200, "IN1:0200" )
+	PORT_DIPSETTING(      0x0200, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0400, 0x0400, "IN1:0400" )
+	PORT_DIPSETTING(      0x0400, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0800, 0x0800, "IN1:0800" )
+	PORT_DIPSETTING(      0x0800, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x1000, 0x1000, "IN1:1000" )
+	PORT_DIPSETTING(      0x1000, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x2000, 0x2000, "IN1:2000" )
+	PORT_DIPSETTING(      0x2000, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x4000, 0x4000, "IN1:4000" )
+	PORT_DIPSETTING(      0x4000, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x8000, 0x8000, "IN1:8000" )
+	PORT_DIPSETTING(      0x8000, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+
+	PORT_START("IN2")
+	PORT_DIPNAME( 0x0001, 0x0001, "2" )
+	PORT_DIPSETTING(      0x0001, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0002, 0x0002, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0002, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0004, 0x0004, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0004, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0008, 0x0008, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0008, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0010, 0x0010, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0010, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0020, 0x0020, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0020, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0040, 0x0040, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0040, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0080, 0x0080, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0080, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0100, 0x0100, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0100, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0200, 0x0200, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0200, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0400, 0x0400, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0400, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0800, 0x0800, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0800, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x1000, 0x1000, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x1000, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x2000, 0x2000, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x2000, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x4000, 0x4000, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x4000, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x8000, 0x8000, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x8000, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+
+	PORT_START("IN3")
+	PORT_DIPNAME( 0x0001, 0x0001, "3" )
+	PORT_DIPSETTING(      0x0001, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0002, 0x0002, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0002, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0004, 0x0004, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0004, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0008, 0x0008, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0008, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0010, 0x0010, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0010, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0020, 0x0020, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0020, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0040, 0x0040, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0040, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0080, 0x0080, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0080, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0100, 0x0100, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0100, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0200, 0x0200, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0200, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0400, 0x0400, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0400, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0800, 0x0800, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0800, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x1000, 0x1000, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x1000, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x2000, 0x2000, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x2000, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x4000, 0x4000, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x4000, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x8000, 0x8000, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x8000, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+
+	PORT_START("IN4")
+	PORT_DIPNAME( 0x0001, 0x0001, "4" )
+	PORT_DIPSETTING(      0x0001, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0002, 0x0002, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0002, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0004, 0x0004, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0004, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0008, 0x0008, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0008, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0010, 0x0010, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0010, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0020, 0x0020, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0020, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0040, 0x0040, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0040, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0080, 0x0080, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0080, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0100, 0x0100, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0100, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0200, 0x0200, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0200, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0400, 0x0400, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0400, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0800, 0x0800, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0800, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x1000, 0x1000, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x1000, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x2000, 0x2000, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x2000, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x4000, 0x4000, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x4000, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x8000, 0x8000, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x8000, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+
+	PORT_START("IN5")
+	PORT_DIPNAME( 0x0001, 0x0001, "5" )
+	PORT_DIPSETTING(      0x0001, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0002, 0x0002, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0002, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0004, 0x0004, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0004, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0008, 0x0008, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0008, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0010, 0x0010, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0010, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0020, 0x0020, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0020, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0040, 0x0040, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0040, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0080, 0x0080, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0080, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0100, 0x0100, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0100, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0200, 0x0200, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0200, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0400, 0x0400, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0400, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0800, 0x0800, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x0800, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x1000, 0x1000, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x1000, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x2000, 0x2000, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x2000, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x4000, 0x4000, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x4000, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x8000, 0x8000, DEF_STR( Unknown ) )
+	PORT_DIPSETTING(      0x8000, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+INPUT_PORTS_END
+
 
 static INPUT_PORTS_START( bfmpac )
 	PORT_START("IN0")
@@ -148,6 +484,10 @@ static INPUT_PORTS_START( bfmpac )
 	PORT_DIPNAME( 0x8000, 0x0000, DEF_STR( Unknown ) )
 	PORT_DIPSETTING(      0x0000, DEF_STR( Off ) )
 	PORT_DIPSETTING(      0x8000, DEF_STR( On ) )
+
+	PORT_START("IN3")
+	PORT_START("IN4")
+	PORT_START("IN5")
 INPUT_PORTS_END
 
 static INPUT_PORTS_START( bfspyhnt )
@@ -155,6 +495,42 @@ static INPUT_PORTS_START( bfspyhnt )
 
 	PORT_MODIFY("IN2")
 	PORT_BIT( 0x4000, IP_ACTIVE_HIGH, IPT_BUTTON2 )
+INPUT_PORTS_END
+
+static INPUT_PORTS_START( puni )
+	PORT_START("IN0")
+	PORT_START("IN1")
+	PORT_START("IN2")
+	PORT_START("IN3")
+	PORT_START("IN4")
+	PORT_START("IN5")
+	PORT_BIT( 0x2000, IP_ACTIVE_LOW, IPT_BUTTON1 )
+	PORT_BIT( 0x4000, IP_ACTIVE_LOW, IPT_BUTTON2 )
+	PORT_BIT( 0x8000, IP_ACTIVE_LOW, IPT_BUTTON3 )
+INPUT_PORTS_END
+
+static INPUT_PORTS_START( segapet2 )
+	PORT_START("IN0")
+	PORT_START("IN1")
+	PORT_BIT( 0x0004, IP_ACTIVE_LOW, IPT_BUTTON1 ) PORT_NAME("<")
+	PORT_BIT( 0x0008, IP_ACTIVE_LOW, IPT_BUTTON2 ) PORT_NAME("OK")
+	PORT_BIT( 0x0010, IP_ACTIVE_LOW, IPT_BUTTON3 ) PORT_NAME(">")
+	PORT_BIT( 0x0020, IP_ACTIVE_LOW, IPT_BUTTON4 ) PORT_NAME("Cancel")
+	PORT_START("IN2")
+	PORT_START("IN3")
+	PORT_START("IN4")
+	PORT_START("IN5")
+INPUT_PORTS_END
+
+static INPUT_PORTS_START( bubltea ) // has 3 surface buttons and the straw
+	PORT_INCLUDE(base)
+
+	PORT_MODIFY("IN1")
+	PORT_BIT( 0x0008, IP_ACTIVE_LOW, IPT_BUTTON1 ) PORT_NAME("Power / Next")
+	PORT_BIT( 0x0010, IP_ACTIVE_LOW, IPT_BUTTON2 )
+	PORT_BIT( 0x0020, IP_ACTIVE_LOW, IPT_BUTTON3 ) PORT_NAME("Increase Value")
+	PORT_BIT( 0x0040, IP_ACTIVE_LOW, IPT_BUTTON4 ) PORT_NAME("Back")
+
 INPUT_PORTS_END
 
 void generalplus_gpl951xx_game_state::spi_reset(u8 data)
@@ -178,13 +554,11 @@ void generalplus_gpl951xx_game_state::spi_cmd_access_from_soc(u8 data)
 
 void generalplus_gpl951xx_game_state::lcd_i80_cmd(u16 data)
 {
-	logerror("lcd_i80_cmd %02x\n", data);
 	m_lcdc->lcdc_command_w(data);
 }
 
 void generalplus_gpl951xx_game_state::lcd_i80_data(u16 data)
 {
-	logerror("lcd_i80_data %02x\n", data);
 	m_lcdc->lcdc_data_w(data);
 }
 
@@ -196,6 +570,9 @@ void generalplus_gpl951xx_game_state::gpl951xx(machine_config &config)
 	m_maincpu->porta_in().set(FUNC(generalplus_gpl951xx_game_state::porta_r));
 	m_maincpu->portb_in().set(FUNC(generalplus_gpl951xx_game_state::portb_r));
 	m_maincpu->portc_in().set(FUNC(generalplus_gpl951xx_game_state::portc_r));
+	m_maincpu->portd_in().set(FUNC(generalplus_gpl951xx_game_state::portd_r));
+	m_maincpu->porte_in().set(FUNC(generalplus_gpl951xx_game_state::porte_r));
+	m_maincpu->portf_in().set(FUNC(generalplus_gpl951xx_game_state::portf_r));
 	m_maincpu->porta_out().set(FUNC(generalplus_gpl951xx_game_state::porta_w));
 	m_maincpu->set_irq_acknowledge_callback(m_maincpu, FUNC(generalplus_gpl951xx_device::irq_vector_cb));
 	m_maincpu->add_route(ALL_OUTPUTS, "speaker", 0.5, 0);
@@ -205,11 +582,12 @@ void generalplus_gpl951xx_game_state::gpl951xx(machine_config &config)
 	m_maincpu->spi_reset().set(FUNC(generalplus_gpl951xx_game_state::spi_reset));
 	m_maincpu->i80_cmd_out().set(FUNC(generalplus_gpl951xx_game_state::lcd_i80_cmd));
 	m_maincpu->i80_data_out().set(FUNC(generalplus_gpl951xx_game_state::lcd_i80_data));
+	m_maincpu->adc5_in().set(FUNC(generalplus_gpl951xx_game_state::adc5_r));
 
-	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
-	m_screen->set_refresh_hz(60);
+	SCREEN(config, m_screen, SCREEN_TYPE_LCD);
+	m_screen->set_refresh_hz(30); // is this coming from the LCDC? 60 is definitely too fast for the IRQ rate
 	m_screen->set_size(320*2, 262*2);
-	m_screen->set_visarea(0, (320*2)-1, 0, (240*2)-1);
+	m_screen->set_visarea(0, 320-1, 0, 240-1);
 	m_screen->set_screen_update("maincpu", FUNC(generalplus_gpl951xx_device::screen_update));
 
 	m_screen->screen_vblank().set(m_maincpu, FUNC(generalplus_gpl951xx_device::vblank));
@@ -259,14 +637,28 @@ void generalplus_gpl951xx_game_state::flufflav(machine_config &config)
 	m_genspi->set_jedec_manufacturer(0xc2);
 	m_genspi->set_jedec_memtype(0x20);
 	m_genspi->set_jedec_capacity(0x16);
+
+	m_screen->set_visarea(0, 128-1, 0, 128-1);
+	m_screen->set_physical_aspect(1, 1);
 }
 
-void generalplus_gpl951xx_game_state::puni(machine_config &config)
+void generalplus_gpl951xx_game_state::dsgnpal(machine_config &config)
 {
 	gpl951xx(config);
 	m_genspi->set_jedec_manufacturer(0xc2);
 	m_genspi->set_jedec_memtype(0x20);
 	m_genspi->set_jedec_capacity(0x17);
+}
+
+void generalplus_gpl951xx_game_state::puni(machine_config &config)
+{
+	dsgnpal(config);
+	m_genspi->set_jedec_manufacturer(0xc2);
+	m_genspi->set_jedec_memtype(0x20);
+	m_genspi->set_jedec_capacity(0x17);
+
+	m_screen->set_visarea(0, 128-1, 0, 128-1);
+	m_screen->set_physical_aspect(1, 1);
 }
 
 void generalplus_gpl951xx_game_state::bftetris(machine_config &config)
@@ -515,27 +907,27 @@ CONS(2020, bftetris, 0, 0, bftetris, bfspyhnt, generalplus_gpl951xx_game_state, 
 
 // unclear if colour matches, but there are multiple generations of these at least
 // uses PUNIRUNZU_MAIN_V3 pcb
-CONS(2021, punirune,  0,        0, puni, bfspyhnt, generalplus_gpl951xx_game_state, empty_init, "Takara Tomy", "Punirunes (PUNIRUNZU_MAIN_V3, pastel blue, Europe)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
+CONS(2021, punirune,  0,        0, puni, puni, generalplus_gpl951xx_game_state, empty_init, "Takara Tomy", "Punirunes (PUNIRUNZU_MAIN_V3, pastel blue, Europe)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
 
 // looks similar to above, but has HXR-1 instead of the usual markings on the PCB
 CONS(2021, punirunea, punirune, 0, puni, bfspyhnt, generalplus_gpl951xx_game_state, empty_init, "Takara Tomy", "Punirunes (HXR-1 PCB)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
 
 // the case on these looks like the European release, including English title logo.  CPU is a glob, PUNIRUNZU_MAIN_DICE_V1 on PCB
-CONS(2021, punij1m,  punirune, 0, puni, bfspyhnt, generalplus_gpl951xx_game_state, empty_init, "Takara Tomy", "Punirunes (PUNIRUNZU_MAIN_DICE_V1, mint, Japan)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
-CONS(2021, punij1pk, punirune, 0, puni, bfspyhnt, generalplus_gpl951xx_game_state, empty_init, "Takara Tomy", "Punirunes (PUNIRUNZU_MAIN_DICE_V1, pink, Japan)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
-CONS(2021, punij1pu, punirune, 0, puni, bfspyhnt, generalplus_gpl951xx_game_state, empty_init, "Takara Tomy", "Punirunes (PUNIRUNZU_MAIN_DICE_V1, purple, Japan)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
+CONS(2021, punij1m,  punirune, 0, puni, puni, generalplus_gpl951xx_game_state, empty_init, "Takara Tomy", "Punirunes (PUNIRUNZU_MAIN_DICE_V1, mint, Japan)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
+CONS(2021, punij1pk, punirune, 0, puni, puni, generalplus_gpl951xx_game_state, empty_init, "Takara Tomy", "Punirunes (PUNIRUNZU_MAIN_DICE_V1, pink, Japan)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
+CONS(2021, punij1pu, punirune, 0, puni, puni, generalplus_gpl951xx_game_state, empty_init, "Takara Tomy", "Punirunes (PUNIRUNZU_MAIN_DICE_V1, purple, Japan)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
 
 // the case on these is similar to the above, but the text is in Japanese, uses PUNIRUNZU_MAIN_V2 on pcb
-CONS(2021, punij2pk, punirune, 0, puni, bfspyhnt, generalplus_gpl951xx_game_state, empty_init, "Takara Tomy", "Punirunes (PUNIRUNZU_MAIN_V2, pink, Japan)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
+CONS(2021, punij2pk, punirune, 0, puni, puni, generalplus_gpl951xx_game_state, empty_init, "Takara Tomy", "Punirunes (PUNIRUNZU_MAIN_V2, pink, Japan)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
 
 // has a link feature
-CONS(2021, punifrnd, 0,        0, puni, bfspyhnt, generalplus_gpl951xx_game_state, empty_init, "Takara Tomy", "Punirunes Punitomo Tsuushin (hot pink, Japan)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
+CONS(2021, punifrnd, 0,        0, puni, puni, generalplus_gpl951xx_game_state, empty_init, "Takara Tomy", "Punirunes Punitomo Tsuushin (hot pink, Japan)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
 
-CONS(2021, punistar, 0,        0, puni, bfspyhnt, generalplus_gpl951xx_game_state, empty_init, "Takara Tomy", "Punirunes Punistarz (pink, Japan)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
+CONS(2021, punistar, 0,        0, puni, base, generalplus_gpl951xx_game_state, empty_init, "Takara Tomy", "Punirunes Punistarz (pink, Japan)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
 
 // 'Poo' emoji shaped item, comes in multiple colours, has a solder pad which might change between units
 // this was dumped from the 'Lavender' unit
-CONS(2021, flufflav, 0,        0, flufflav, bfspyhnt, generalplus_gpl951xx_game_state, empty_init, "Happinet", "Fuwatcho Uncho Fuwa Fuwa (lavender, Japan)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
+CONS(2021, flufflav, 0,        0, flufflav, bubltea, generalplus_gpl951xx_game_state, empty_init, "Happinet", "Fuwatcho Uncho Fuwa Fuwa (lavender, Japan)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
 
 // available in 2 colours, ROM confirmed to be the same on both
 CONS(2021, pockrmsr,  0,        0, puni, bfspyhnt, generalplus_gpl951xx_game_state, empty_init, "Bandai", "Pocket Room - Sanrio Characters (Japan)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
@@ -555,31 +947,30 @@ CONS( 2021, smkcatch, 0, 0, puni, bfmpac, generalplus_gpl951xx_game_state, empty
 // or Sumikko Gurashi - Sumikko Catch DX (すみっコぐらし すみっコキャッチDX) = Sumikko Catch with pouch and strap
 
 // is there a subtitle for this one? it's different to the others
-CONS( 201?, smkguras,  0,        0, puni, bfmpac, generalplus_gpl951xx_game_state, empty_init,  "San-X / Tomy", "Sumikko Gurashi DX (Japan, set 1)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING)
-CONS( 201?, smkgurasa, smkguras, 0, puni, bfmpac, generalplus_gpl951xx_game_state, empty_init,  "San-X / Tomy", "Sumikko Gurashi DX (Japan, set 2)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING)
+CONS( 201?, smkguras,  0,        0, puni, bubltea, generalplus_gpl951xx_game_state, empty_init,  "San-X / Tomy", "Sumikko Gurashi DX (Japan, set 1)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING)
+CONS( 201?, smkgurasa, smkguras, 0, puni, bubltea, generalplus_gpl951xx_game_state, empty_init,  "San-X / Tomy", "Sumikko Gurashi DX (Japan, set 2)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING)
 
-CONS( 2021, smkgacha,  0,        0, puni, bfmpac, generalplus_gpl951xx_game_state, empty_init,  "San-X / Tomy", "Sumikko Gacha (Japan)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING)
+CONS( 2021, smkgacha,  0,        0, puni, bubltea, generalplus_gpl951xx_game_state, empty_init,  "San-X / Tomy", "Sumikko Gacha (Japan)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING)
 
 // there seem to be different versions of this available, is the software the same?
-CONS( 201?, dsgnpal, 0, 0, puni, bfmpac, generalplus_gpl951xx_game_state, empty_init,  "Tomy", "Kiratto Pri-Chan Design Palette (Japan)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING)
+CONS( 201?, dsgnpal, 0, 0, dsgnpal, base, generalplus_gpl951xx_game_state, empty_init,  "Tomy", "Kiratto Pri-Chan Design Palette (Japan)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING | ROT270 )
 
 // for these Sega Toys pets the clones might end up being duplicates with only different user data, however they might also have different factory default data for each colour
 // もっちりペット もっちまるず
-CONS( 2018, segapet1,  0,        0, puni, bfspyhnt, generalplus_gpl951xx_game_state, empty_init, "Sega Toys", "Mocchiri Pet Mocchimaruzu (2018 version, set 1)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
-CONS( 2018, segapet1a, segapet1, 0, puni, bfspyhnt, generalplus_gpl951xx_game_state, empty_init, "Sega Toys", "Mocchiri Pet Mocchimaruzu (2018 version, set 2)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
-// a 'DX' version (dated 2020) also exists, unclear if it's different software or just different packaging with bonuses
+CONS( 2018, segapet1,  0,        0, puni, base, generalplus_gpl951xx_game_state, empty_init, "Sega Toys", "Mocchiri Pet Mocchimaruzu (2018 version, set 1)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
+CONS( 2018, segapet1a, segapet1, 0, puni, base, generalplus_gpl951xx_game_state, empty_init, "Sega Toys", "Mocchiri Pet Mocchimaruzu (2018 version, set 2)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
 
 // also もっちりペット もっちまるず
-CONS( 2019, segapet2,  0,        0, puni, bfspyhnt, generalplus_gpl951xx_game_state, empty_init, "Sega Toys", "Mocchiri Pet Mocchimaruzu (2019 version, set 1)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
-CONS( 2019, segapet2a, segapet2, 0, puni, bfspyhnt, generalplus_gpl951xx_game_state, empty_init, "Sega Toys", "Mocchiri Pet Mocchimaruzu (2019 version, set 2)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
+CONS( 2019, segapet2,  0,        0, puni, segapet2, generalplus_gpl951xx_game_state, empty_init, "Sega Toys", "Mocchiri Pet Mocchimaruzu (2019 version, set 1)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
+CONS( 2019, segapet2a, segapet2, 0, puni, segapet2, generalplus_gpl951xx_game_state, empty_init, "Sega Toys", "Mocchiri Pet Mocchimaruzu (2019 version, set 2)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
 
 // these ones have motors in the ears and a more fluffy cover
 // もっちふわペット もっちまるず
-CONS( 2020, segapet3,  0,        0, puni, bfspyhnt, generalplus_gpl951xx_game_state, empty_init, "Sega Toys", "Mocchifuwa Pet Mocchimaruzu (set 1)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
-CONS( 2020, segapet3a, segapet3, 0, puni, bfspyhnt, generalplus_gpl951xx_game_state, empty_init, "Sega Toys", "Mocchifuwa Pet Mocchimaruzu (set 2)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
+CONS( 2020, segapet3,  0,        0, puni, base, generalplus_gpl951xx_game_state, empty_init, "Sega Toys", "Mocchifuwa Pet Mocchimaruzu (set 1)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
+CONS( 2020, segapet3a, segapet3, 0, puni, base, generalplus_gpl951xx_game_state, empty_init, "Sega Toys", "Mocchifuwa Pet Mocchimaruzu (set 2)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
 
 // DX version of the first game, 2020 on box, updated fabric cover, still has 2018 on case, but different software?
-CONS( 2020, segaptdx,  0,        0, puni, bfspyhnt, generalplus_gpl951xx_game_state, empty_init, "Sega Toys", "Mocchiri Pet Mocchimaruzu DX", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
+CONS( 2020, segaptdx,  0,        0, puni, base, generalplus_gpl951xx_game_state, empty_init, "Sega Toys", "Mocchiri Pet Mocchimaruzu DX", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
 
 // まぜまぜミックス！ぷにタピちゃん
-CONS( 201?, bubltea,   0,        0, puni, bfspyhnt, generalplus_gpl951xx_game_state, empty_init, "Bandai", "Mazemaze Mix! Puni Tapi-chan (Japan)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
+CONS( 201?, bubltea,   0,        0, puni, bubltea, generalplus_gpl951xx_game_state, empty_init, "Bandai", "Mazemaze Mix! Puni Tapi-chan (Japan)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
