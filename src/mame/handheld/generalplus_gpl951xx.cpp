@@ -32,6 +32,7 @@ public:
 	void poke(machine_config &config) ATTR_COLD;
 	void flufflav(machine_config &config) ATTR_COLD;
 	void puni(machine_config &config) ATTR_COLD;
+	void dsgnpal(machine_config &config) ATTR_COLD;
 	void bftetris(machine_config &config) ATTR_COLD;
 
 	void init_fif() ATTR_COLD;
@@ -636,11 +637,22 @@ void generalplus_gpl951xx_game_state::flufflav(machine_config &config)
 	m_genspi->set_jedec_manufacturer(0xc2);
 	m_genspi->set_jedec_memtype(0x20);
 	m_genspi->set_jedec_capacity(0x16);
+
+	m_screen->set_visarea(0, 128-1, 0, 128-1);
+	m_screen->set_physical_aspect(1, 1);
+}
+
+void generalplus_gpl951xx_game_state::dsgnpal(machine_config &config)
+{
+	gpl951xx(config);
+	m_genspi->set_jedec_manufacturer(0xc2);
+	m_genspi->set_jedec_memtype(0x20);
+	m_genspi->set_jedec_capacity(0x17);
 }
 
 void generalplus_gpl951xx_game_state::puni(machine_config &config)
 {
-	gpl951xx(config);
+	dsgnpal(config);
 	m_genspi->set_jedec_manufacturer(0xc2);
 	m_genspi->set_jedec_memtype(0x20);
 	m_genspi->set_jedec_capacity(0x17);
@@ -906,12 +918,12 @@ CONS(2021, punij1pk, punirune, 0, puni, puni, generalplus_gpl951xx_game_state, e
 CONS(2021, punij1pu, punirune, 0, puni, puni, generalplus_gpl951xx_game_state, empty_init, "Takara Tomy", "Punirunes (PUNIRUNZU_MAIN_DICE_V1, purple, Japan)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
 
 // the case on these is similar to the above, but the text is in Japanese, uses PUNIRUNZU_MAIN_V2 on pcb
-CONS(2021, punij2pk, punirune, 0, puni, bfspyhnt, generalplus_gpl951xx_game_state, empty_init, "Takara Tomy", "Punirunes (PUNIRUNZU_MAIN_V2, pink, Japan)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
+CONS(2021, punij2pk, punirune, 0, puni, puni, generalplus_gpl951xx_game_state, empty_init, "Takara Tomy", "Punirunes (PUNIRUNZU_MAIN_V2, pink, Japan)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
 
 // has a link feature
-CONS(2021, punifrnd, 0,        0, puni, bfspyhnt, generalplus_gpl951xx_game_state, empty_init, "Takara Tomy", "Punirunes Punitomo Tsuushin (hot pink, Japan)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
+CONS(2021, punifrnd, 0,        0, puni, puni, generalplus_gpl951xx_game_state, empty_init, "Takara Tomy", "Punirunes Punitomo Tsuushin (hot pink, Japan)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
 
-CONS(2021, punistar, 0,        0, puni, bfspyhnt, generalplus_gpl951xx_game_state, empty_init, "Takara Tomy", "Punirunes Punistarz (pink, Japan)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
+CONS(2021, punistar, 0,        0, puni, base, generalplus_gpl951xx_game_state, empty_init, "Takara Tomy", "Punirunes Punistarz (pink, Japan)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
 
 // 'Poo' emoji shaped item, comes in multiple colours, has a solder pad which might change between units
 // this was dumped from the 'Lavender' unit
@@ -941,7 +953,7 @@ CONS( 201?, smkgurasa, smkguras, 0, puni, bubltea, generalplus_gpl951xx_game_sta
 CONS( 2021, smkgacha,  0,        0, puni, bubltea, generalplus_gpl951xx_game_state, empty_init,  "San-X / Tomy", "Sumikko Gacha (Japan)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING)
 
 // there seem to be different versions of this available, is the software the same?
-CONS( 201?, dsgnpal, 0, 0, puni, bfmpac, generalplus_gpl951xx_game_state, empty_init,  "Tomy", "Kiratto Pri-Chan Design Palette (Japan)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING)
+CONS( 201?, dsgnpal, 0, 0, dsgnpal, base, generalplus_gpl951xx_game_state, empty_init,  "Tomy", "Kiratto Pri-Chan Design Palette (Japan)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING | ROT270 )
 
 // for these Sega Toys pets the clones might end up being duplicates with only different user data, however they might also have different factory default data for each colour
 // もっちりペット もっちまるず

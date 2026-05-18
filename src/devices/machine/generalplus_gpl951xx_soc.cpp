@@ -626,6 +626,29 @@ u16 generalplus_gpl951xx_device::timerd_ctrl_r()
 	return machine().rand();
 }
 
+u16 generalplus_gpl951xx_device::timera_upcount_r()
+{
+	logerror("%s: timera_upcount_r\n", machine().describe_context());
+	return machine().rand();
+}
+
+u16 generalplus_gpl951xx_device::timere_upcount_r()
+{
+	logerror("%s: timere_upcount_r\n", machine().describe_context());
+	return machine().rand();
+}
+
+u16 generalplus_gpl951xx_device::i2c_ctrl_r()
+{
+	logerror("%s: i2c_ctrl_r\n", machine().describe_context());
+	return machine().rand();
+}
+
+u16 generalplus_gpl951xx_device::i2c_status_r()
+{
+	logerror("%s: i2c_status_r\n", machine().describe_context());
+	return machine().rand();
+}
 
 // TFT
 
@@ -1528,8 +1551,8 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map &map)
 
 	map(0x0078b8, 0x0078b8).w(m_gpl_timebase, FUNC(gpl_timebase_device::timebase_reset_w)); // 78b8 - TimeBase_Reset
 
-	// 78c0 - I2C_Ctrl
-	// 78c1 - I2C_Status
+	map(0x0078c0, 0x0078c0).r(FUNC(generalplus_gpl951xx_device::i2c_ctrl_r)); // 78c0 - I2C_Ctrl
+	map(0x0078c1, 0x0078c1).r(FUNC(generalplus_gpl951xx_device::i2c_status_r)); // 78c1 - I2C_Status
 	// 78c2 - I2C_Address
 	// 78c3 - I2C_Data
 	// 78c4 - I2C_Debounce
@@ -1634,7 +1657,7 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map &map)
 	// 7a01 - TimerA_CCPB_Ctrl
 	// 7a02 - TimerA_Preload
 	// 7a03 - TimerA_CCPB_Reg
-	// 7a04 - TimerA_UpCount
+	map(0x007a04, 0x007a04).r(FUNC(generalplus_gpl951xx_device::timera_upcount_r)); // 7a04 - TimerA_UpCount
 
 	// 7a08 - TimerB_Ctrl
 	// 7a09 - TimerB_CCPB_Ctrl
@@ -1664,7 +1687,7 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map &map)
 	// 7a27 - TimerEF_CCPB5_Reg
 	// 7a28 - TimerEF_CCPB6_Reg
 	// 7a29 - TimerEF_CCPB7_Reg
-	// 7a2a - TimerE_UpCount
+	map(0x007a2a, 0x007a2a).r(FUNC(generalplus_gpl951xx_device::timere_upcount_r)); // 7a2a - TimerE_UpCount
 	// 7a2b - TimerF_UpCount
 	// 7a2c - TimerEF_CCPB_Se
 

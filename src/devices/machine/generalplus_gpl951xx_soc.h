@@ -132,7 +132,11 @@ private:
 	u16 timerh_preload_r();
 	void timerh_preload_w(u16 data);
 
+	u16 timera_upcount_r();
+	u16 timere_upcount_r();
 	u16 timerd_ctrl_r();
+	u16 i2c_ctrl_r();
+	u16 i2c_status_r();
 
 	void dac_0_w(uint16_t data);
 	void dac_1_w(uint16_t data);
