@@ -1,6 +1,17 @@
 // license:BSD-3-Clause
 // copyright-holders:David Haywood
 
+// known SoCs
+//
+// GPL95100UA
+// GPL95101UA (101 model again has fewer features)
+//
+// 'B' models have different timer e/f behavior amongst other changes
+// GPL95100UB / GPL95100UB1 (unclear what difference is between UB and UB1)
+// GPL95101UB / GPL95101UB1 (101 models have fewer features than 100)
+//
+
+ 
 #include "emu.h"
 #include "generalplus_gpl951xx_soc.h"
 
@@ -367,6 +378,8 @@ void generalplus_gpl951xx_device::device_start()
 	unsp_20_device::device_start();
 
 	save_item(NAME(m_byteswap));
+	save_item(NAME(m_timerb_ctrl));
+	save_item(NAME(m_timerb_preload));
 	save_item(NAME(m_timerg_ctrl));
 	save_item(NAME(m_timerg_preload));
 	save_item(NAME(m_timerh_ctrl));
@@ -594,16 +607,13 @@ void generalplus_gpl951xx_device::timerh_ctrl_w(u16 data)
 
 	if (data & 0x8000)
 	{
-		logerror("cleared timerh flag\n");
 		m_timerh_ctrl &= 0x7fff;
 	}
 
 	if ((data & 0x2000) != (m_timerh_ctrl & 0x2000))
 	{
-		logerror("changed\n");
 		if (data & 0x2000)
 		{
-			logerror("started timerh\n");
 			m_timer_h->adjust(attotime::zero, 0, attotime::from_hz(1000));
 		}
 		else
@@ -617,7 +627,81 @@ void generalplus_gpl951xx_device::timerh_ctrl_w(u16 data)
 	update_interrupts(1);
 }
 
-// Other timers are more generic?
+// Other timers are more generic
+// although timers e and f have different behavior depending on SoC
+
+u16 generalplus_gpl951xx_device::timerb_ctrl_r()
+{
+	logerror("%s: timerb_ctrl_r\n", machine().describe_context());
+	return m_timerb_ctrl;
+}
+
+void generalplus_gpl951xx_device::timerb_ctrl_w(u16 data)
+{
+	u8 tmbif_clear = (data & 0x8000) >> 15;
+	u8 tmbie = (data & 0x4000) >> 14;
+	u8 tmben = (data & 0x2000) >> 13;
+	u8 ext0sel = (data & 0x0c00) >> 10;
+	u8 ext1sel = (data & 0x0300) >> 8;
+	u8 srcbsel = (data & 0x0070) >> 4;
+	u8 srcasel = (data & 0x000f) >> 0;
+
+	logerror("%s: timerb_ctrl_w %04x (tmbif_clear %01x) (interrupt enabled %01x) (timer enabled %01x) (ext0sel %01x) (ext1sel %01x) (srcbsel %01x) (srcasel %01x)\n", machine().describe_context(), data, tmbif_clear, tmbie, tmben, ext0sel, ext1sel, m_srcb[srcbsel], m_srca[srcasel]);
+
+	if (data & 0x8000)
+	{
+		m_timerb_ctrl &= 0x7fff;
+	}
+
+	if ((data & 0x2000) != (m_timerb_ctrl & 0x2000))
+	{
+		if (data & 0x2000)
+		{
+			m_timer_b->adjust(attotime::zero, 0, attotime::from_hz(1000));
+		}
+		else
+		{
+			m_timer_b->adjust(attotime::never);
+		}
+
+	}
+
+	m_timerb_ctrl = (m_timerb_ctrl & 0x8000) | (data & 0x7fff);
+	update_interrupts(1);
+}
+
+// P_TimerB_CCPB_Ctrl
+//
+// 15  CCPBBEN[1]  - 00 = CCPB Mode Disabled, 01 = Capture Enabled, 10 = Comparison Enabled, 11 = PWM/BAM Enabled
+// 14  CCPBBEN[0]
+// 13
+// 12
+//
+// 11
+// 10
+//  9  CAPBSEL[1]  - 00 = every falling, 01 = every rising, 10/11 = reserved
+//  8  CAPBSEL[0]
+// 
+//  7
+//  6
+//  5  CMPBSEL[1] - 00 = high pulse on CCPB, 01 = low pulse on CCPB, 10 = unaffected on CCPB, 11 = reserved
+//  4  CMPBSEL[0]
+// 
+//  3
+//  2
+//  1  PWMBSEL[1] - 00 = PWM mode/NRO output, 01 = PWM mode/NRZ output, 10 = BAM mode/NRO output, 11 = BAM mode/NRZ output
+//  0  PWMBSEL[0]
+
+void generalplus_gpl951xx_device::timerb_ccpb_ctrl_w(u16 data)
+{
+	logerror("%s: timerb_ccpb_ctrl_w %04x\n", machine().describe_context(), data);
+}
+
+void generalplus_gpl951xx_device::timerb_preload_w(u16 data)
+{
+	logerror("%s: timerb_preload_w %04x\n", machine().describe_context(), data);
+	m_timerh_preload = data;
+}
 
 
 u16 generalplus_gpl951xx_device::timerd_ctrl_r()
@@ -854,6 +938,8 @@ TIMER_DEVICE_CALLBACK_MEMBER(generalplus_gpl951xx_device::timer_a_cb)
 
 TIMER_DEVICE_CALLBACK_MEMBER(generalplus_gpl951xx_device::timer_b_cb)
 {
+	m_timerb_ctrl |= 0x8000;
+	update_interrupts(1);
 }
 
 TIMER_DEVICE_CALLBACK_MEMBER(generalplus_gpl951xx_device::timer_c_cb)
@@ -1253,6 +1339,9 @@ u16 generalplus_gpl951xx_device::int_status3_r()
 
 	if (m_timerg_ctrl & 0x8000)
 		ret |= 0x4000;
+
+	if (m_timerb_ctrl & 0x8000)
+		ret |= 0x0200;
 
 	return ret;
 }
@@ -1659,9 +1748,9 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map &map)
 	// 7a03 - TimerA_CCPB_Reg
 	map(0x007a04, 0x007a04).r(FUNC(generalplus_gpl951xx_device::timera_upcount_r)); // 7a04 - TimerA_UpCount
 
-	// 7a08 - TimerB_Ctrl
-	// 7a09 - TimerB_CCPB_Ctrl
-	// 7a0a - TimerB_Preload
+	map(0x007a08, 0x007a08).rw(FUNC(generalplus_gpl951xx_device::timerb_ctrl_r), FUNC(generalplus_gpl951xx_device::timerb_ctrl_w)); // 7a08 - TimerB_Ctrl
+	map(0x007a09, 0x007a09).w(FUNC(generalplus_gpl951xx_device::timerb_ccpb_ctrl_w)); // 7a09 - TimerB_CCPB_Ctrl
+	map(0x007a0a, 0x007a0a).w(FUNC(generalplus_gpl951xx_device::timerb_preload_w)); // 7a0a - TimerB_Preload
 	// 7a0b - TimerB_CCPB_Reg
 	// 7a0c - TimerB_UpCount
 
@@ -1683,13 +1772,13 @@ void generalplus_gpl951xx_device::gpspi_direct_internal_map(address_map &map)
 	// 7a23 - TimerF_CCPB_Ctrl
 	// 7a24 - TimerE_Preload
 	// 7a25 - TimerF_Preload
-	// 7a26 - TimerEF_CCPB4_Reg
-	// 7a27 - TimerEF_CCPB5_Reg
-	// 7a28 - TimerEF_CCPB6_Reg
-	// 7a29 - TimerEF_CCPB7_Reg
+	// 7a26 - TimerEF_CCPB4_Reg (differs between GPL951xx models)
+	// 7a27 - TimerEF_CCPB5_Reg (differs between GPL951xx models)
+	// 7a28 - TimerEF_CCPB6_Reg (differs between GPL951xx models - doesn't exist on 'B')
+	// 7a29 - TimerEF_CCPB7_Reg (differs between GPL951xx models - doesn't exist on 'B')
 	map(0x007a2a, 0x007a2a).r(FUNC(generalplus_gpl951xx_device::timere_upcount_r)); // 7a2a - TimerE_UpCount
 	// 7a2b - TimerF_UpCount
-	// 7a2c - TimerEF_CCPB_Se
+	// 7a2c - TimerEF_CCPB_Sel (differs between GPL951xx models - 2 bits on 'B', 4 bits on GPL95100UA/GPL95101UA)
 
 	// 7a40 - USBD_Config
 	// 7a41 - USBD_Function
@@ -1817,7 +1906,8 @@ void generalplus_gpl951xx_device::update_interrupts(int state)
 	}
 
 	if (((m_timerg_ctrl & 0x8000) && (m_timerg_ctrl & 0x4000)) ||
-		((m_timerh_ctrl & 0x8000) && (m_timerh_ctrl & 0x4000)))
+		((m_timerh_ctrl & 0x8000) && (m_timerh_ctrl & 0x4000)) ||
+		((m_timerb_ctrl & 0x8000) && (m_timerb_ctrl & 0x4000)))
 	{
 		set_state_unsynced(UNSP_IRQ4_LINE, ASSERT_LINE);
 	}
@@ -1924,6 +2014,7 @@ generalplus_gpl951xx_device::generalplus_gpl951xx_device(const machine_config &m
 	m_port_in(*this, 0),
 	m_port_out(*this),
 	m_adc_in(*this, 0),
+	m_timer_b(*this, "timer_b"),
 	m_timer_g(*this, "timer_g"),
 	m_timer_h(*this, "timer_h"),
 	m_adc_timer(*this, "adc_timer"),
