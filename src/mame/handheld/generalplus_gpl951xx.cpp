@@ -74,7 +74,7 @@ template <u8 Port>
 u16 generalplus_gpl951xx_game_state::port_r()
 {
 	u16 data = m_io[Port]->read();
-	logerror("Port %s Read: %04x\n", 'A'+Port, data);
+	logerror("Port %c Read: %04x\n", 'A'+Port, data);
 	return data;
 }
 

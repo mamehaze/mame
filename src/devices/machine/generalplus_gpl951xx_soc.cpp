@@ -378,14 +378,8 @@ void generalplus_gpl951xx_device::device_start()
 	unsp_20_device::device_start();
 
 	save_item(NAME(m_byteswap));
-	save_item(NAME(m_timera_ctrl));
-	save_item(NAME(m_timera_preload));
-	save_item(NAME(m_timerb_ctrl));
-	save_item(NAME(m_timerb_preload));
-	save_item(NAME(m_timerg_ctrl));
-	save_item(NAME(m_timerg_preload));
-	save_item(NAME(m_timerh_ctrl));
-	save_item(NAME(m_timerh_preload));
+	save_item(NAME(m_timer_ctrl));
+	save_item(NAME(m_timer_preload));
 	save_item(NAME(m_spifc_ctrl));
 	save_item(NAME(m_spifc_ctrl2));
 	save_item(NAME(m_spifc_addr));
@@ -421,14 +415,13 @@ void generalplus_gpl951xx_device::device_reset()
 	m_spg_video->set_disallow_resolution_control();
 
 	m_byteswap = 0;
-	m_timera_ctrl = 0;
-	m_timera_preload = 0;
-	m_timerb_ctrl = 0;
-	m_timerb_preload = 0;
-	m_timerg_ctrl = 0;
-	m_timerg_preload = 0;
-	m_timerh_ctrl = 0;
-	m_timerh_preload = 0;
+
+	for (int i = 0; i < 8; i++)
+	{
+		m_timer_ctrl[i] = 0;
+		m_timer_preload[i] = 0;
+	}
+
 	m_spifc_ctrl = 0;
 	m_spifc_ctrl2 = 0;
 	m_spifc_addr = 0;
@@ -468,35 +461,21 @@ void generalplus_gpl951xx_device::dac_0_w(uint16_t data)
 	m_dac0->write(data);
 }
 
-TIMER_DEVICE_CALLBACK_MEMBER( generalplus_gpl951xx_device::timer_g_cb )
-{
-	m_timerg_ctrl |= 0x8000;
-	update_interrupts(1);
-	m_gpl_chx->process_cha_fifo(); // is cha hardwired to timerg overflow?
-}
-
 void generalplus_gpl951xx_device::dac_1_w(uint16_t data)
 {
 	m_dac1->write(data);
 }
 
-TIMER_DEVICE_CALLBACK_MEMBER( generalplus_gpl951xx_device::timer_h_cb )
-{
-	m_timerh_ctrl |= 0x8000;
-	update_interrupts(1);
-	m_gpl_chx->process_chb_fifo(); // is chb hardwired to timerh overflow?
-}
-
 u16 generalplus_gpl951xx_device::timerg_preload_r()
 {
 	logerror("%s: timerg_preload_r\n", machine().describe_context());
-	return m_timerg_preload;
+	return m_timer_preload[6];
 }
 
 void generalplus_gpl951xx_device::timerg_preload_w(u16 data)
 {
 	logerror("%s: timerg_preload_w %04x\n", machine().describe_context(), data);
-	m_timerg_preload = data;
+	m_timer_preload[6] = data;
 }
 
 // P_TimerG_Ctrl
@@ -521,7 +500,7 @@ void generalplus_gpl951xx_device::timerg_preload_w(u16 data)
 u16 generalplus_gpl951xx_device::timerg_ctrl_r()
 {
 	logerror("%s: timerg_ctrl_r\n", machine().describe_context());
-	u16 ret = m_timerg_ctrl;
+	u16 ret = m_timer_ctrl[6];
 	return ret;
 }
 
@@ -539,10 +518,10 @@ void generalplus_gpl951xx_device::timerg_ctrl_w(u16 data)
 
 	if (data & 0x8000)
 	{
-		m_timerg_ctrl &= 0x7fff;
+		m_timer_ctrl[6] &= 0x7fff;
 	}
 
-	if ((data & 0x2000) != (m_timerg_ctrl & 0x2000))
+	if ((data & 0x2000) != (m_timer_ctrl[6] & 0x2000))
 	{
 		if (data & 0x2000)
 		{
@@ -554,20 +533,20 @@ void generalplus_gpl951xx_device::timerg_ctrl_w(u16 data)
 		}
 	}
 
-	m_timerg_ctrl = (m_timerg_ctrl & 0x8000) | (data & 0x7fff);
+	m_timer_ctrl[6] = (m_timer_ctrl[6] & 0x8000) | (data & 0x7fff);
 	update_interrupts(1);
 }
 
 u16 generalplus_gpl951xx_device::timerh_preload_r()
 {
 	logerror("%s: timerh_preload_r\n", machine().describe_context());
-	return m_timerh_preload;
+	return m_timer_preload[7];
 }
 
 void generalplus_gpl951xx_device::timerh_preload_w(u16 data)
 {
 	logerror("%s: timerh_preload_w %04x\n", machine().describe_context(), data);
-	m_timerh_preload = data;
+	m_timer_preload[7] = data;
 }
 
 // P_TimerH_Ctrl
@@ -594,7 +573,7 @@ void generalplus_gpl951xx_device::timerh_preload_w(u16 data)
 
 u16 generalplus_gpl951xx_device::timerh_ctrl_r()
 {
-	u16 ret = m_timerh_ctrl;
+	u16 ret = m_timer_ctrl[7];
 	logerror("%s: timerh_ctrl_r (returning %04x)\n", machine().describe_context(), ret);
 	return ret;
 }
@@ -613,10 +592,10 @@ void generalplus_gpl951xx_device::timerh_ctrl_w(u16 data)
 
 	if (data & 0x8000)
 	{
-		m_timerh_ctrl &= 0x7fff;
+		m_timer_ctrl[7] &= 0x7fff;
 	}
 
-	if ((data & 0x2000) != (m_timerh_ctrl & 0x2000))
+	if ((data & 0x2000) != (m_timer_ctrl[7] & 0x2000))
 	{
 		if (data & 0x2000)
 		{
@@ -629,7 +608,7 @@ void generalplus_gpl951xx_device::timerh_ctrl_w(u16 data)
 
 	}
 
-	m_timerh_ctrl = (m_timerh_ctrl & 0x8000) | (data & 0x7fff);
+	m_timer_ctrl[7] = (m_timer_ctrl[7] & 0x8000) | (data & 0x7fff);
 	update_interrupts(1);
 }
 
@@ -640,7 +619,7 @@ void generalplus_gpl951xx_device::timerh_ctrl_w(u16 data)
 u16 generalplus_gpl951xx_device::timera_ctrl_r()
 {
 	logerror("%s: timera_ctrl_r\n", machine().describe_context());
-	return m_timera_ctrl;
+	return m_timer_ctrl[0];
 }
 
 void generalplus_gpl951xx_device::timera_ctrl_w(u16 data)
@@ -657,10 +636,10 @@ void generalplus_gpl951xx_device::timera_ctrl_w(u16 data)
 
 	if (data & 0x8000)
 	{
-		m_timera_ctrl &= 0x7fff;
+		m_timer_ctrl[0] &= 0x7fff;
 	}
 
-	if ((data & 0x2000) != (m_timera_ctrl & 0x2000))
+	if ((data & 0x2000) != (m_timer_ctrl[0] & 0x2000))
 	{
 		if (data & 0x2000)
 		{
@@ -673,7 +652,7 @@ void generalplus_gpl951xx_device::timera_ctrl_w(u16 data)
 
 	}
 
-	m_timera_ctrl = (m_timera_ctrl & 0x8000) | (data & 0x7fff);
+	m_timer_ctrl[0] = (m_timer_ctrl[0] & 0x8000) | (data & 0x7fff);
 	update_interrupts(1);
 }
 
@@ -681,7 +660,7 @@ void generalplus_gpl951xx_device::timera_ctrl_w(u16 data)
 u16 generalplus_gpl951xx_device::timerb_ctrl_r()
 {
 	logerror("%s: timerb_ctrl_r\n", machine().describe_context());
-	return m_timerb_ctrl;
+	return m_timer_ctrl[1];
 }
 
 void generalplus_gpl951xx_device::timerb_ctrl_w(u16 data)
@@ -698,10 +677,10 @@ void generalplus_gpl951xx_device::timerb_ctrl_w(u16 data)
 
 	if (data & 0x8000)
 	{
-		m_timerb_ctrl &= 0x7fff;
+		m_timer_ctrl[1] &= 0x7fff;
 	}
 
-	if ((data & 0x2000) != (m_timerb_ctrl & 0x2000))
+	if ((data & 0x2000) != (m_timer_ctrl[1] & 0x2000))
 	{
 		if (data & 0x2000)
 		{
@@ -714,7 +693,7 @@ void generalplus_gpl951xx_device::timerb_ctrl_w(u16 data)
 
 	}
 
-	m_timerb_ctrl = (m_timerb_ctrl & 0x8000) | (data & 0x7fff);
+	m_timer_ctrl[1] = (m_timer_ctrl[1] & 0x8000) | (data & 0x7fff);
 	update_interrupts(1);
 }
 
@@ -748,7 +727,7 @@ void generalplus_gpl951xx_device::timerb_ccpb_ctrl_w(u16 data)
 void generalplus_gpl951xx_device::timerb_preload_w(u16 data)
 {
 	logerror("%s: timerb_preload_w %04x\n", machine().describe_context(), data);
-	m_timerh_preload = data;
+	m_timer_preload[7] = data;
 }
 
 
@@ -980,33 +959,18 @@ void generalplus_gpl951xx_device::spi_bank_w(u16 data)
 	m_spi_bank = data;
 }
 
-TIMER_DEVICE_CALLBACK_MEMBER(generalplus_gpl951xx_device::timer_a_cb)
+template<int Timer>
+TIMER_DEVICE_CALLBACK_MEMBER(generalplus_gpl951xx_device::timer_cb)
 {
-	m_timera_ctrl |= 0x8000;
+	m_timer_ctrl[Timer] |= 0x8000;
 	update_interrupts(1);
+
+	if (Timer == 6)
+		m_gpl_chx->process_cha_fifo(); // is cha hardwired to timerg overflow?
+	else if (Timer == 7)
+		m_gpl_chx->process_chb_fifo(); // is cha hardwired to timerh overflow?
 }
 
-TIMER_DEVICE_CALLBACK_MEMBER(generalplus_gpl951xx_device::timer_b_cb)
-{
-	m_timerb_ctrl |= 0x8000;
-	update_interrupts(1);
-}
-
-TIMER_DEVICE_CALLBACK_MEMBER(generalplus_gpl951xx_device::timer_c_cb)
-{
-}
-
-TIMER_DEVICE_CALLBACK_MEMBER(generalplus_gpl951xx_device::timer_d_cb)
-{
-}
-
-TIMER_DEVICE_CALLBACK_MEMBER(generalplus_gpl951xx_device::timer_e_cb)
-{
-}
-
-TIMER_DEVICE_CALLBACK_MEMBER(generalplus_gpl951xx_device::timer_f_cb)
-{
-}
 
 TIMER_DEVICE_CALLBACK_MEMBER( generalplus_gpl951xx_device::adc_timer_cb )
 {
@@ -1384,16 +1348,16 @@ u16 generalplus_gpl951xx_device::int_status3_r()
 	u16 ret = 0;
 	LOGMASKED(LOG_OTHER, "%s: generalplus_gpl951xx_device::int_status3_r\n", machine().describe_context());
 
-	if (m_timerh_ctrl & 0x8000)
+	if (m_timer_ctrl[7] & 0x8000)
 		ret |= 0x8000;
 
-	if (m_timerg_ctrl & 0x8000)
+	if (m_timer_ctrl[6] & 0x8000)
 		ret |= 0x4000;
 
-	if (m_timerb_ctrl & 0x8000)
+	if (m_timer_ctrl[1] & 0x8000)
 		ret |= 0x0200;
 
-	if (m_timera_ctrl & 0x8000)
+	if (m_timer_ctrl[0] & 0x8000)
 		ret |= 0x0100;
 
 	return ret;
@@ -1958,10 +1922,10 @@ void generalplus_gpl951xx_device::update_interrupts(int state)
 		set_state_unsynced(UNSP_IRQ6_LINE, CLEAR_LINE);
 	}
 
-	if (((m_timerg_ctrl & 0x8000) && (m_timerg_ctrl & 0x4000)) ||
-		((m_timerh_ctrl & 0x8000) && (m_timerh_ctrl & 0x4000)) ||
-		((m_timerb_ctrl & 0x8000) && (m_timerb_ctrl & 0x4000)) ||
-		((m_timera_ctrl & 0x8000) && (m_timera_ctrl & 0x4000))
+	if (((m_timer_ctrl[6] & 0x8000) && (m_timer_ctrl[6] & 0x4000)) ||
+		((m_timer_ctrl[7] & 0x8000) && (m_timer_ctrl[7] & 0x4000)) ||
+		((m_timer_ctrl[1] & 0x8000) && (m_timer_ctrl[1] & 0x4000)) ||
+		((m_timer_ctrl[0] & 0x8000) && (m_timer_ctrl[0] & 0x4000))
 		)
 	{
 		set_state_unsynced(UNSP_IRQ4_LINE, ASSERT_LINE);
@@ -2041,15 +2005,17 @@ void generalplus_gpl951xx_device::device_add_mconfig(machine_config &config)
 	m_spg_video->space_read_callback().set(FUNC(generalplus_gpl951xx_device::read_space));
 	m_spg_video->set_video_space(DEVICE_SELF, AS_PROGRAM);
 
-	TIMER(config, "timer_a").configure_generic(FUNC(generalplus_gpl951xx_device::timer_a_cb));
-	TIMER(config, "timer_b").configure_generic(FUNC(generalplus_gpl951xx_device::timer_b_cb));
-	TIMER(config, "timer_c").configure_generic(FUNC(generalplus_gpl951xx_device::timer_c_cb));
-	TIMER(config, "timer_d").configure_generic(FUNC(generalplus_gpl951xx_device::timer_d_cb));
-	TIMER(config, "timer_e").configure_generic(FUNC(generalplus_gpl951xx_device::timer_e_cb));
-	TIMER(config, "timer_f").configure_generic(FUNC(generalplus_gpl951xx_device::timer_f_cb));
+	TIMER(config, "timer_a").configure_generic(FUNC(generalplus_gpl951xx_device::timer_cb<0>));
+	TIMER(config, "timer_b").configure_generic(FUNC(generalplus_gpl951xx_device::timer_cb<1>));
+	TIMER(config, "timer_c").configure_generic(FUNC(generalplus_gpl951xx_device::timer_cb<2>));
+	TIMER(config, "timer_d").configure_generic(FUNC(generalplus_gpl951xx_device::timer_cb<3>));
+	// timers e and f are a little different
+	TIMER(config, "timer_e").configure_generic(FUNC(generalplus_gpl951xx_device::timer_cb<4>));
+	TIMER(config, "timer_f").configure_generic(FUNC(generalplus_gpl951xx_device::timer_cb<5>));
 
-	TIMER(config, "timer_g").configure_generic(FUNC(generalplus_gpl951xx_device::timer_g_cb));
-	TIMER(config, "timer_h").configure_generic(FUNC(generalplus_gpl951xx_device::timer_h_cb));
+	// timers g and h are for the cha/chb DAC (and can overflow trigger each other, not the above)
+	TIMER(config, "timer_g").configure_generic(FUNC(generalplus_gpl951xx_device::timer_cb<6>));
+	TIMER(config, "timer_h").configure_generic(FUNC(generalplus_gpl951xx_device::timer_cb<7>));
 
 	TIMER(config, "adc_timer").configure_generic(FUNC(generalplus_gpl951xx_device::adc_timer_cb));
 

@@ -235,15 +235,7 @@ private:
 	inline u16 read_space(offs_t offset);
 	inline void write_space(offs_t offset, u16 data);
 
-	TIMER_DEVICE_CALLBACK_MEMBER(timer_g_cb);
-	TIMER_DEVICE_CALLBACK_MEMBER(timer_h_cb);
-
-	TIMER_DEVICE_CALLBACK_MEMBER(timer_a_cb);
-	TIMER_DEVICE_CALLBACK_MEMBER(timer_b_cb);
-	TIMER_DEVICE_CALLBACK_MEMBER(timer_c_cb);
-	TIMER_DEVICE_CALLBACK_MEMBER(timer_d_cb);
-	TIMER_DEVICE_CALLBACK_MEMBER(timer_e_cb);
-	TIMER_DEVICE_CALLBACK_MEMBER(timer_f_cb);
+	template<int Timer>	TIMER_DEVICE_CALLBACK_MEMBER(timer_cb);
 
 	TIMER_DEVICE_CALLBACK_MEMBER(adc_timer_cb);
 
@@ -293,14 +285,8 @@ private:
 		"LDOV50"
 	};
 
-	u16 m_timera_preload;
-	u16 m_timera_ctrl;
-	u16 m_timerb_preload;
-	u16 m_timerb_ctrl;
-	u16 m_timerg_preload;
-	u16 m_timerg_ctrl;
-	u16 m_timerh_preload;
-	u16 m_timerh_ctrl;
+	u16 m_timer_preload[8];
+	u16 m_timer_ctrl[8];
 
 	u16 m_spifc_ctrl;
 	u16 m_spifc_ctrl2;
