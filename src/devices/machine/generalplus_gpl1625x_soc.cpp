@@ -222,21 +222,23 @@
 // 7854 - NF_Data
 // 7855 - NF_INT_Ctrl
 
+// 7856 - P_BCH_Control 
 // 7857 - ECC_Ctrl
-// 7858 - ECC_LPRL_LB
-// 7859 - ECC_LPRH_LB
-// 785a - ECC_CPR_LB
-// 785b - ECC_LPR_CKL_LB
-// 785c - ECC_LPR_CKH_LB
-// 785d - ECC_CPCKR_LB
-// 785e - ECC_ERR0_LB
-// 785f - ECC_ERR1_LB
+
+// 7858 - ECC_LPRL_LB or BCH Error Flag Register
+// 7859 - ECC_LPRH_LB or BCH Parity Register 0
+// 785a - ECC_CPR_LB or BCH Parity Register 1
+// 785b - ECC_LPR_CKL_LB or BCH Parity Register 2
+// 785c - ECC_LPR_CKH_LB or BCH Parity Register 3
+// 785d - ECC_CPCKR_LB or BCH Parity Register 4
+// 785e - ECC_ERR0_LB or BCH Parity Register 5
+// 785f - ECC_ERR1_LB or BCH Parity Register 6
 
 // 7860 - IOA_Data
 // 7861 - IOA_Buffer
 // 7862 - IOA_Dir
 // 7863 - IOA_Attrib
-// 7854 - IOA_Drv
+// 7864 - IOA_Drv
 //
 // 7868 - IOB_Data
 // 7869 - IOB_Buffer
@@ -566,25 +568,18 @@
 // 7c00 - 7dff Sound Attribute
 // 7e00 - 7fff Sound Phase
 
-DEFINE_DEVICE_TYPE(GPAC800,   generalplus_gpac800_device,  "gpac800",    "GeneralPlus GPL1625x System-on-a-Chip (with NAND handling)")
-DEFINE_DEVICE_TYPE(GP_SPISPI, generalplus_gpspispi_device, "gpac800spi", "GeneralPlus GPL1625x System-on-a-Chip (with SPI handling)")
+DEFINE_DEVICE_TYPE(GPAC800,   generalplus_gpac800_device,  "gpac800",    "GeneralPlus GPL1625x System-on-a-Chip")
 
 generalplus_gpac800_device::generalplus_gpac800_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock) :
 	sunplus_gcm394_base_device(mconfig, GPAC800, tag, owner, clock, address_map_constructor(FUNC(generalplus_gpac800_device::gpac800_internal_map), this))
 {
 }
 
-generalplus_gpspispi_device::generalplus_gpspispi_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock) :
-	sunplus_gcm394_base_device(mconfig, GP_SPISPI, tag, owner, clock, address_map_constructor(FUNC(generalplus_gpspispi_device::gpspispi_internal_map), this))
-{
-}
-
-
 // GPR27P512A   = C2 76
 // HY27UF081G2A = AD F1 80 1D
 // H27U518S2C   = AD 76
 
-u16 generalplus_gpac800_device::nand_7854_r()
+u16 generalplus_gpac800_device::nand_data_r()
 {
 	// TODO: use actual NAND / Smart Media devices once this is better understood.
 	// The games have extensive checks on startup to determine the flash types, but then it appears that
@@ -599,11 +594,11 @@ u16 generalplus_gpac800_device::nand_7854_r()
 	// real TSM code starts at 4c000
 
 
-	//logerror("%s:sunplus_gcm394_base_device::nand_7854_r\n", machine().describe_context());
+	//logerror("%s:sunplus_gcm394_base_device::nand_data_r\n", machine().describe_context());
 
 	if (m_nandcommand == 0x90) // read ident
 	{
-		logerror("%s:sunplus_gcm394_base_device::nand_7854_r   READ IDENT byte %d\n", machine().describe_context(), m_curblockaddr);
+		logerror("%s:sunplus_gcm394_base_device::nand_data_r   READ IDENT byte %d\n", machine().describe_context(), m_curblockaddr);
 
 		u8 data = 0x00;
 
@@ -639,7 +634,7 @@ u16 generalplus_gpac800_device::nand_7854_r()
 	}
 	else if (m_nandcommand == 0x00 || m_nandcommand == 0x01 || m_nandcommand  == 0x50)
 	{
-		//logerror("%s:sunplus_gcm394_base_device::nand_7854_r   READ DATA byte %d\n", machine().describe_context(), m_curblockaddr);
+		//logerror("%s:sunplus_gcm394_base_device::nand_data_r   READ DATA byte %d\n", machine().describe_context(), m_curblockaddr);
 
 		u8 data = m_nand_read_cb(m_effectiveaddress + m_curblockaddr);
 
@@ -649,13 +644,13 @@ u16 generalplus_gpac800_device::nand_7854_r()
 	}
 	else if (m_nandcommand == 0x70) // read status
 	{
-		logerror("%s:sunplus_gcm394_base_device::nand_7854_r   READ STATUS byte %d\n", machine().describe_context(), m_curblockaddr);
+		logerror("%s:sunplus_gcm394_base_device::nand_data_r   READ STATUS byte %d\n", machine().describe_context(), m_curblockaddr);
 
 		return 0xffff;
 	}
 	else
 	{
-		logerror("%s:sunplus_gcm394_base_device::nand_7854_r   READ UNKNOWN byte %d\n", machine().describe_context(), m_curblockaddr);
+		logerror("%s:sunplus_gcm394_base_device::nand_data_r   READ UNKNOWN byte %d\n", machine().describe_context(), m_curblockaddr);
 		return 0xffff;
 	}
 
@@ -695,10 +690,10 @@ void generalplus_gpac800_device::recalculate_calculate_effective_nand_address()
 
 	u32 nandaddress = (m_nand_addr_high << 16) | m_nand_addr_low;
 
-	if (m_nand_7850 & 0x4000)
+	if (m_nand_ctrl & 0x4000)
 		nandaddress *= 2;
 
-	u32 page = type ? nandaddress : /*(m_nand_7850 & 0x4000) ?*/ nandaddress >> 8 /*: nandaddress >> 9*/;
+	u32 page = type ? nandaddress : /*(m_nand_ctrl & 0x4000) ?*/ nandaddress >> 8 /*: nandaddress >> 9*/;
 	m_effectiveaddress = (page * 528 + page_offset) << shift;
 
 	logerror("%s: Requested address is %08x, translating to %08x\n", machine().describe_context(), nandaddress, m_effectiveaddress);
@@ -723,13 +718,13 @@ void generalplus_gpac800_device::nand_dma_ctrl_w(u16 data)
 u16 generalplus_gpac800_device::nand_7850_status_r()
 {
 	// 0x8000 = ready
-	return m_nand_7850 | 0x8000;
+	return m_nand_ctrl | 0x8000;
 }
 
 void generalplus_gpac800_device::nand_7850_w(u16 data)
 {
 	logerror("%s:sunplus_gcm394_base_device::nand_7850_w %04x\n", machine().describe_context(), data);
-	m_nand_7850 = data;
+	m_nand_ctrl = data;
 }
 
 void generalplus_gpac800_device::nand_7856_type_w(u16 data)
@@ -742,38 +737,38 @@ void generalplus_gpac800_device::nand_7856_type_w(u16 data)
 	m_curblockaddr = 0;
 }
 
-void generalplus_gpac800_device::nand_7857_w(u16 data)
+void generalplus_gpac800_device::nand_ecc_ctrl_w(u16 data)
 {
-	logerror("%s:sunplus_gcm394_base_device::nand_7857_w %04x\n", machine().describe_context(), data);
-	m_nand_7857 = data;
+	logerror("%s:sunplus_gcm394_base_device::nand_ecc_ctrl_w %04x\n", machine().describe_context(), data);
+	m_nand_ecc_ctrl = data;
 }
 
-void generalplus_gpac800_device::nand_785b_w(u16 data)
+void generalplus_gpac800_device::nand_ecc_lpr_ckl_lb_w(u16 data)
 {
-	logerror("%s:sunplus_gcm394_base_device::nand_785b_w %04x\n", machine().describe_context(), data);
-	m_nand_785b = data;
+	logerror("%s:sunplus_gcm394_base_device::nand_ecc_lpr_ckl_lb_w %04x\n", machine().describe_context(), data);
+	m_nand_ecc_lpr_ckl_lb = data;
 }
 
-void generalplus_gpac800_device::nand_785c_w(u16 data)
+void generalplus_gpac800_device::nand_ecc_lpr_ckh_lb_w(u16 data)
 {
-	logerror("%s:sunplus_gcm394_base_device::nand_785c_w %04x\n", machine().describe_context(), data);
-	m_nand_785c = data;
+	logerror("%s:sunplus_gcm394_base_device::nand_ecc_lpr_ckh_lb_w %04x\n", machine().describe_context(), data);
+	m_nand_ecc_lpr_ckh_lb = data;
 }
 
-void generalplus_gpac800_device::nand_785d_w(u16 data)
+void generalplus_gpac800_device::nand_ecc_cpckr_lb_w(u16 data)
 {
-	logerror("%s:sunplus_gcm394_base_device::nand_785d_w %04x\n", machine().describe_context(), data);
-	m_nand_785d = data;
+	logerror("%s:sunplus_gcm394_base_device::nand_ecc_cpckr_lb_w %04x\n", machine().describe_context(), data);
+	m_nand_ecc_cpckr_lb = data;
 }
 
 // [:maincpu] ':maincpu' (00146D)  jak_tsm
-u16 generalplus_gpac800_device::nand_785e_r()
+u16 generalplus_gpac800_device::nand_ecc_err0_lb_r()
 {
 	return 0x0000;
 }
 
 //[:maincpu] ':maincpu' (001490)  jak_tsm
-u16 generalplus_gpac800_device::nand_ecc_low_byte_error_flag_1_r()
+u16 generalplus_gpac800_device::nand_ecc_err1_lb_r()
 {
 	return 0x0000;
 }
@@ -864,17 +859,21 @@ void generalplus_gpac800_device::gpac800_internal_map(address_map &map)
 	map(0x007851, 0x007851).w(FUNC(generalplus_gpac800_device::nand_command_w)); // NAND Command Reg
 	map(0x007852, 0x007852).w(FUNC(generalplus_gpac800_device::nand_addr_low_w)); // NAND Low Address Reg
 	map(0x007853, 0x007853).w(FUNC(generalplus_gpac800_device::nand_addr_high_w)); // NAND High Address Reg
-	map(0x007854, 0x007854).r(FUNC(generalplus_gpac800_device::nand_7854_r)); // NAND Data Reg
+	map(0x007854, 0x007854).r(FUNC(generalplus_gpac800_device::nand_data_r)); // NAND Data Reg
 	map(0x007855, 0x007855).w(FUNC(generalplus_gpac800_device::nand_dma_ctrl_w)); // NAND DMA / INT Control
 	map(0x007856, 0x007856).w(FUNC(generalplus_gpac800_device::nand_7856_type_w)); // usually 0x0021?
-	map(0x007857, 0x007857).w(FUNC(generalplus_gpac800_device::nand_7857_w));
 
-	// most of these are likely ECC stuff for testing the ROM?
-	map(0x00785b, 0x00785b).w(FUNC(generalplus_gpac800_device::nand_785b_w));
-	map(0x00785c, 0x00785c).w(FUNC(generalplus_gpac800_device::nand_785c_w));
-	map(0x00785d, 0x00785d).w(FUNC(generalplus_gpac800_device::nand_785d_w));
-	map(0x00785e, 0x00785e).r(FUNC(generalplus_gpac800_device::nand_785e_r)); // also ECC status related?
-	map(0x00785f, 0x00785f).r(FUNC(generalplus_gpac800_device::nand_ecc_low_byte_error_flag_1_r)); // ECC Low Byte Error Flag 1 (maybe)
+	map(0x007857, 0x007857).w(FUNC(generalplus_gpac800_device::nand_ecc_ctrl_w));
+	// 7858 - ECC_LPRL_LB
+	// 7859 - ECC_LPRH_LB
+	// 785a - ECC_CPR_LB
+	map(0x00785b, 0x00785b).w(FUNC(generalplus_gpac800_device::nand_ecc_lpr_ckl_lb_w));
+	map(0x00785c, 0x00785c).w(FUNC(generalplus_gpac800_device::nand_ecc_lpr_ckh_lb_w));
+	map(0x00785d, 0x00785d).w(FUNC(generalplus_gpac800_device::nand_ecc_cpckr_lb_w));
+	map(0x00785e, 0x00785e).r(FUNC(generalplus_gpac800_device::nand_ecc_err0_lb_r)); // ECC Low Byte Error Flag 0
+	map(0x00785f, 0x00785f).r(FUNC(generalplus_gpac800_device::nand_ecc_err1_lb_r)); // ECC Low Byte Error Flag 1
+
+	map(0x007943, 0x007943).r(FUNC(generalplus_gpac800_device::spi_rxstatus_r));
 
 	// 128kwords internal ROM
 	//map(0x08000, 0x0ffff).rom().region("internal", 0); // lower 32kwords of internal ROM is visible / shadowed depending on boot pins and register
@@ -894,27 +893,15 @@ void generalplus_gpac800_device::device_reset()
 	m_nand_addr_low = 0x0000;
 	m_nand_addr_high = 0x0000;
 	m_nand_dma_ctrl = 0x0000;
-	m_nand_7850 = 0x0000;
-	m_nand_785d = 0x0000;
-	m_nand_785c = 0x0000;
-	m_nand_785b = 0x0000;
+	m_nand_ctrl = 0x0000;
+	m_nand_ecc_cpckr_lb = 0x0000;
+	m_nand_ecc_lpr_ckh_lb = 0x0000;
+	m_nand_ecc_lpr_ckl_lb = 0x0000;
 	m_nand_7856 = 0x0000;
-	m_nand_7857 = 0x0000;
+	m_nand_ecc_ctrl = 0x0000;
 }
 
-
-u16 generalplus_gpspispi_device::spi_unk_7943_r()
+u16 generalplus_gpac800_device::spi_rxstatus_r()
 {
 	return 0x0007;
 }
-
-void generalplus_gpspispi_device::gpspispi_internal_map(address_map &map)
-{
-	sunplus_gcm394_base_device::base_internal_map(map);
-
-	map(0x007943, 0x007943).r(FUNC(generalplus_gpspispi_device::spi_unk_7943_r));
-
-	map(0x008000, 0x00ffff).rom().region("internal", 0);
-}
-
-
