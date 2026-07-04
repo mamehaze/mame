@@ -806,6 +806,7 @@ void generalplus_gpac800_game_state::machine_reset()
 		internal[0x7ffd] = 0xff10;
 		internal[0x7ffe] = 0xff12;
 		internal[0x7fff] = 0xff14;
+
 	}
 
 	m_maincpu->reset(); // reset CPU so vector gets read etc.
@@ -884,13 +885,6 @@ void generalplus_gpac800_game_state::nand_beambox()
 
 // NAND dumps w/ internal bootstrap (and u'nSP 2.0 extended opcodes)  (have gpnandnand strings)
 // the JAKKS ones seem to be known as 'Generalplus GPAC800' hardware
-CONS(2010, wlsair60,   0, 0, generalplus_gpac800,       jak_car2, generalplus_gpac800_game_state,       nand_wlsair60,      "Jungle Soft / Kids Station Toys Inc",      "Wireless Air 60",   MACHINE_NO_SOUND | MACHINE_NOT_WORKING) // some of the games seem to be based on ones found in the 'Millennium Arcade' multigames (WinFun related) so might have the same external timer check
-CONS(200?, beambox,    0, 0, generalplus_gpac800,       jak_car2, generalplus_gpac800_game_state,       nand_beambox,       "Hasbro",                                   "Playskool Heroes Transformers Rescue Bots Beam Box (Spain)",   MACHINE_NO_SOUND | MACHINE_NOT_WORKING)
-CONS(200?, mgtfit,     0, 0, generalplus_gpac800,       jak_car2, generalplus_gpac800_game_state,       nand_wlsair60,      "MGT",                                      "Fitness Konsole (NC1470)",   MACHINE_NO_SOUND | MACHINE_NOT_WORKING) // probably has other names in English too? menus don't appear to be in German
-CONS(200?, vbaby,      0, 0, generalplus_gpac800_vbaby, jak_car2, generalplus_gpac800_vbaby_game_state, nand_vbaby,         "VTech",                                    "V.Baby", MACHINE_NO_SOUND | MACHINE_NOT_WORKING)
-CONS(200?, tiviboo,    0, 0, generalplus_gpac800,       jak_car2, generalplus_gpac800_game_state,       nand_vbaby,         "VTech",                                    "Tivi Boo (France)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING)
-CONS(200?, kiugames,   0, 0, generalplus_gpac800,       jak_car2, generalplus_gpac800_game_state,       nand_kiugames,      "VideoJet",                                 "Kiu Games",   MACHINE_NO_SOUND | MACHINE_NOT_WORKING) // probably has other names in English too? menus don't appear to be in German
-
 CONS(2011, jak_gtg,    0, 0, generalplus_gpac800,       jak_gtg,  generalplus_gpac800_game_state,       nand_init210,       "JAKKS Pacific Inc / HotGen Ltd",           "Golden Tee Golf (JAKKS Pacific TV Game)",   MACHINE_NO_SOUND | MACHINE_NOT_WORKING)
 CONS(200?, jak_car2,   0, 0, generalplus_gpac800,       jak_car2, generalplus_gpac800_game_state,       nand_init210,       "JAKKS Pacific Inc / HotGen Ltd",           "Cars 2 (JAKKS Pacific TV Game)",   MACHINE_NO_SOUND | MACHINE_NOT_WORKING)
 CONS(2010, jak_tsm,    0, 0, generalplus_gpac800,       jak_car2, generalplus_gpac800_game_state,       nand_tsm,           "JAKKS Pacific Inc / Schell Games",         "Toy Story Mania (JAKKS Pacific TV Game)",   MACHINE_NO_SOUND | MACHINE_NOT_WORKING)
@@ -912,3 +906,17 @@ CONS(2012, jak_wdzh,   0, 0, generalplus_gpac800,       jak_car2, generalplus_gp
 CONS(2013, jak_duck,   0, 0, generalplus_gpac800,       jak_car2, generalplus_gpac800_game_state,       nand_init210_32mb,  "JAKKS Pacific Inc / Merge Interactive",    "Duck Commander (JAKKS Pacific TV Game)",   MACHINE_NO_SOUND | MACHINE_NOT_WORKING) // no 2 Player version was released
 CONS(2013, jak_swc,    0, 0, generalplus_gpac800,       jak_car2, generalplus_gpac800_game_state,       nand_init210_32mb,  "JAKKS Pacific Inc / Merge Interactive",    "Star Wars Clone Trooper (JAKKS Pacific TV Game)",   MACHINE_NO_SOUND | MACHINE_NOT_WORKING)
 CONS(2014, jak_wdbg,   0, 0, generalplus_gpac800,       jak_car2, generalplus_gpac800_game_state,       nand_init210_32mb,  "JAKKS Pacific Inc / Super Happy Fun Fun",  "The Walking Dead: Battleground (JAKKS Pacific TV Game)",   MACHINE_NO_SOUND | MACHINE_NOT_WORKING)
+
+
+// these are probably a GPL162xxB as they expect code to be copied to a lower address, and set the stack just below 0x3000
+// B models have only 12K words of RAM, but the GPL16250 boot ROMs we've seen are hardcoded to look for vectors above that
+CONS(200?, beambox,    0, 0, generalplus_gpac800,       jak_car2, generalplus_gpac800_game_state,       nand_beambox,       "Hasbro",                                   "Playskool Heroes Transformers Rescue Bots Beam Box (Spain)",   MACHINE_NO_SOUND | MACHINE_NOT_WORKING)
+CONS(2010, wlsair60,   0, 0, generalplus_gpac800,       jak_car2, generalplus_gpac800_game_state,       nand_wlsair60,      "Jungle Soft / Kids Station Toys Inc",      "Wireless Air 60",   MACHINE_NO_SOUND | MACHINE_NOT_WORKING) // some of the games seem to be based on ones found in the 'Millennium Arcade' multigames (WinFun related) so might have the same external timer check
+
+// these might also be B models
+CONS(200?, mgtfit,     0, 0, generalplus_gpac800,       jak_car2, generalplus_gpac800_game_state,       nand_wlsair60,      "MGT",                                      "Fitness Konsole (NC1470)",   MACHINE_NO_SOUND | MACHINE_NOT_WORKING) // probably has other names in English too? menus don't appear to be in German
+CONS(200?, vbaby,      0, 0, generalplus_gpac800_vbaby, jak_car2, generalplus_gpac800_vbaby_game_state, nand_vbaby,         "VTech",                                    "V.Baby", MACHINE_NO_SOUND | MACHINE_NOT_WORKING)
+CONS(200?, tiviboo,    0, 0, generalplus_gpac800,       jak_car2, generalplus_gpac800_game_state,       nand_vbaby,         "VTech",                                    "Tivi Boo (France)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING)
+
+// this one is strange, the area specified in the header to copy the code to is an unmapped area?
+CONS(200?, kiugames,   0, 0, generalplus_gpac800,       jak_car2, generalplus_gpac800_game_state,       nand_kiugames,      "VideoJet",                                 "Kiu Games",   MACHINE_NO_SOUND | MACHINE_NOT_WORKING) // probably has other names in English too? menus don't appear to be in German

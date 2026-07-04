@@ -50,6 +50,8 @@ private:
 
 	u16 spi_rxstatus_r();
 
+	u16 efuse2_r();
+
 	u16 m_nandcommand;
 
 	u16 m_nand_addr_low;

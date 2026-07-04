@@ -897,6 +897,8 @@ void generalplus_gpac800_device::gpac800_internal_map(address_map &map)
 
 	map(0x007943, 0x007943).r(FUNC(generalplus_gpac800_device::spi_rxstatus_r));
 
+	map(0x007ae2, 0x007ae2).r(FUNC(generalplus_gpac800_device::efuse2_r));
+
 	// 128kwords internal ROM
 	//map(0x08000, 0x0ffff).rom().region("internal", 0); // lower 32kwords of internal ROM is visible / shadowed depending on boot pins and register
 	map(0x08000, 0x0ffff).r(FUNC(generalplus_gpac800_device::internalrom_lower32_r)).nopw();
@@ -929,10 +931,21 @@ u16 generalplus_gpac800_device::spi_rxstatus_r()
 	return 0x0007;
 }
 
+u16 generalplus_gpac800_device::efuse2_r()
+{
+	logerror("%s:generalplus_gpac800_device::efuse2_r\n", machine().describe_context());
+	return 0x0300;
+}
+
+
 // it is not clear if these are just different revisions of a standard internal boot ROM, assuming so for now
 ROM_START( gpl16250 )
 	ROM_REGION16_BE( 0x20000, "internal", 0 )
-	ROM_LOAD16_WORD_SWAP( "gpl16250v_bootrom_v7.bin", 0x00000, 0x20000, CRC(fc4d0e32) SHA1(4dad40aae258b54fd816590ee769a1c6059b1d4c) ) // from jewelpet music pod
+	ROM_DEFAULT_BIOS("v7")
+	ROM_SYSTEM_BIOS( 0, "v7", "GPL16250 internal ROM (v7)" )
+	ROMX_LOAD("gpl16250v_bootrom_v7.bin",              0x00000, 0x20000, CRC(fc4d0e32) SHA1(4dad40aae258b54fd816590ee769a1c6059b1d4c), ROM_GROUPWORD | ROM_REVERSE | ROM_BIOS(0) ) // from jewelpet music pod
+	ROM_SYSTEM_BIOS( 1, "unk", "GPL16250 internal ROM (unknown version)" )
+	ROMX_LOAD("gpl16250v_bootrom_unknown_version.bin", 0x00000, 0x20000, CRC(975ece00) SHA1(988e0befd33884b05aeccd6821e5cdd53f6a849f), ROM_GROUPWORD | ROM_REVERSE | ROM_BIOS(1) ) // from dragon quest adventure
 ROM_END
 
 const tiny_rom_entry *generalplus_gpac800_device::device_rom_region() const
