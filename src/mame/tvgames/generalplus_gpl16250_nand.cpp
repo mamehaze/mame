@@ -481,34 +481,22 @@ INPUT_PORTS_END
 
 
 ROM_START( wlsair60 )
-	ROM_REGION16_BE( 0x40000, "maincpu:internal", ROMREGION_ERASE00 )
-	ROM_LOAD16_WORD_SWAP( "internal.rom", 0x00000, 0x40000, NO_DUMP ) // used as bootstrap only
-
 	ROM_REGION( 0x8400000, "nandrom", ROMREGION_ERASE00 )
 	ROM_LOAD( "wlsair60.nand", 0x0000, 0x8400000, CRC(eec23b97) SHA1(1bb88290cf54579a5bb51c08a02d793cd4d79f7a) )
 ROM_END
 
 ROM_START( kiugames )
-	ROM_REGION16_BE( 0x40000, "maincpu:internal", ROMREGION_ERASE00 )
-	ROM_LOAD16_WORD_SWAP( "internal.rom", 0x00000, 0x40000, NO_DUMP ) // used as bootstrap only
-
 	ROM_REGION( 0x21000000, "nandrom", ROMREGION_ERASE00 )
 	ROM_LOAD( "hy27084g2m.u2", 0x0000, 0x21000000, CRC(65cc3864) SHA1(b759ec9816fe98a33ee7d5e12e5492f0160c5b31) )
 ROM_END
 
 
 ROM_START( jak_gtg )
-	ROM_REGION16_BE( 0x40000, "maincpu:internal", ROMREGION_ERASE00 )
-	ROM_LOAD16_WORD_SWAP( "internal.rom", 0x00000, 0x40000, NO_DUMP ) // used as bootstrap only
-
 	ROM_REGION( 0x4200000, "nandrom", ROMREGION_ERASE00 )
 	ROM_LOAD( "goldentee.bin", 0x0000, 0x4200000, CRC(87d5e815) SHA1(5dc46cd753b791449cc41d5eff4928c0dcaf35c0) )
 ROM_END
 
 ROM_START( jak_car2 )
-	ROM_REGION16_BE( 0x40000, "maincpu:internal", ROMREGION_ERASE00 )
-	ROM_LOAD16_WORD_SWAP( "internal.rom", 0x00000, 0x40000, NO_DUMP ) // used as bootstrap only
-
 	ROM_REGION( 0x4200000, "nandrom", ROMREGION_ERASE00 )
 	ROM_LOAD( "cars2.bin", 0x0000, 0x4200000, CRC(4d610e09) SHA1(bc59f5f7f676a8f2a78dfda7fb62c804bbf850b6) )
 ROM_END
@@ -543,9 +531,6 @@ One of the games has pin 2 grounded, and the other 2 have it N/C.  I'm not sure 
 */
 
 ROM_START( jak_sspop )
-	ROM_REGION16_BE( 0x40000, "maincpu:internal", ROMREGION_ERASE00 )
-	ROM_LOAD16_WORD_SWAP( "internal.rom", 0x00000, 0x40000, NO_DUMP ) // used as bootstrap only
-
 	/* TSOP32 NAND ROM
 
 	S976172-1
@@ -564,9 +549,6 @@ ROM_START( jak_sspop )
 ROM_END
 
 ROM_START( jak_hmhsm )
-	ROM_REGION16_BE( 0x40000, "maincpu:internal", ROMREGION_ERASE00 )
-	ROM_LOAD16_WORD_SWAP( "internal.rom", 0x00000, 0x40000, NO_DUMP ) // used as bootstrap only
-
 	/* TSOP32 NAND ROM
 
 	5769522.1
@@ -585,42 +567,27 @@ ROM_START( jak_hmhsm )
 ROM_END
 
 ROM_START( jak_camp )
-	ROM_REGION16_BE( 0x40000, "maincpu:internal", ROMREGION_ERASE00 )
-	ROM_LOAD16_WORD_SWAP( "internal.rom", 0x00000, 0x40000, NO_DUMP ) // used as bootstrap only
-
 	ROM_REGION( 0x10800000, "nandrom", ROMREGION_ERASE00 )
 	ROM_LOAD( "camprockguitar1_sandisk11352-256b_45da.bin", 0x0000, 0x10800000, CRC(f52a4289) SHA1(d027ae274cd4ac97924d2344df1a96456e8e7c55) )
 ROM_END
 
 ROM_START( jak_hmpt )
-	ROM_REGION16_BE( 0x40000, "maincpu:internal", ROMREGION_ERASE00 )
-	ROM_LOAD16_WORD_SWAP( "internal.rom", 0x00000, 0x40000, NO_DUMP ) // used as bootstrap only
-
 	ROM_REGION( 0x10800000, "nandrom", ROMREGION_ERASE00 )
 	ROM_LOAD( "hmsecretstar_sandisk11270_9876.bin", 0x0000, 0x10800000, CRC(fbe09633) SHA1(169a1546072f53c2da19ce97396cacd25412c5f2) )
 ROM_END
 
 ROM_START( jak_hsmg2 )
-	ROM_REGION16_BE( 0x40000, "maincpu:internal", ROMREGION_ERASE00 )
-	ROM_LOAD16_WORD_SWAP( "internal.rom", 0x00000, 0x40000, NO_DUMP ) // used as bootstrap only
-
 	ROM_REGION( 0x4200000, "nandrom", ROMREGION_ERASE00 )
 	ROM_LOAD( "hsm_as_hy27ys08121a_9876.bin", 0x0000, 0x4200000, CRC(4da61056) SHA1(d6c529a6df2703dd55b864e9d7c655203206f8b6) )
 ROM_END
 
 ROM_START( jak_hmg2 )
-	ROM_REGION16_BE( 0x40000, "maincpu:internal", ROMREGION_ERASE00 )
-	ROM_LOAD16_WORD_SWAP( "internal.rom", 0x00000, 0x40000, NO_DUMP ) // used as bootstrap only
-
 	ROM_REGION( 0x4200000, "nandrom", ROMREGION_ERASE00 )
 	ROM_LOAD( "hm_as_hy27us08121a_9876_fixed.bin", 0x0000, 0x4200000, BAD_DUMP CRC(ba97fcd6) SHA1(c02a6878910b1312009b21220d51d7c1c3adb767) ) // 4 blocks had to be fixed using data from jak_hmhsm
 ROM_END
 
 
 ROM_START( jak_umdf )
-	ROM_REGION16_BE( 0x40000, "maincpu:internal", ROMREGION_ERASE00 )
-	ROM_LOAD16_WORD_SWAP( "internal.rom", 0x00000, 0x40000, NO_DUMP ) // used as bootstrap only
-
 	/* TSOP32 NAND ROM
 
 	S744565-1
@@ -640,76 +607,49 @@ ROM_END
 
 
 ROM_START( jak_tsm )
-	ROM_REGION16_BE( 0x40000, "maincpu:internal", ROMREGION_ERASE00 )
-	ROM_LOAD16_WORD_SWAP( "internal.rom", 0x00000, 0x40000, NO_DUMP ) // used as bootstrap only
-
 	ROM_REGION( 0x4200000, "nandrom", ROMREGION_ERASE00 )
 	ROM_LOAD( "toystorymania.bin", 0x0000, 0x4200000, CRC(183b20a5) SHA1(eb4fa5ee9dfac58f5244d00d4e833b1e461cc52c) )
 ROM_END
 
 
 ROM_START( jak_duck )
-	ROM_REGION16_BE( 0x40000, "maincpu:internal", ROMREGION_ERASE00 )
-	ROM_LOAD16_WORD_SWAP( "internal.rom", 0x00000, 0x40000, NO_DUMP ) // used as bootstrap only
-
 	ROM_REGION( 0x4200000, "nandrom", ROMREGION_ERASE00 )
 	ROM_LOAD( "duckcommander_gpr27p512a_c276_as_hy27us08121a.bin", 0x0000, 0x4200000, CRC(d9356d5b) SHA1(aca05525b4a504f7ad264ae9bbc2f1f8f399c4ca) )
 ROM_END
 
 ROM_START( jak_swc )
-	ROM_REGION16_BE( 0x40000, "maincpu:internal", ROMREGION_ERASE00 )
-	ROM_LOAD16_WORD_SWAP( "internal.rom", 0x00000, 0x40000, NO_DUMP ) // used as bootstrap only
-
 	ROM_REGION( 0x4200000, "nandrom", ROMREGION_ERASE00 )
 	ROM_LOAD( "jakksstarwarspistol_gpr27p512a_c276_as_hy27us08121a.bin", 0x0000, 0x4200000, CRC(024d49b8) SHA1(9694f4c7cd083c976ffbbcfa6f626fc6b4bc8d91) )
 ROM_END
 
 ROM_START( jak_wdzh )
-	ROM_REGION16_BE( 0x40000, "maincpu:internal", ROMREGION_ERASE00 )
-	ROM_LOAD16_WORD_SWAP( "internal.rom", 0x00000, 0x40000, NO_DUMP ) // used as bootstrap only
-
 	ROM_REGION( 0x4200000, "nandrom", ROMREGION_ERASE00 )
 	ROM_LOAD( "walkingdeadrifle_gpr27p512a_c276_as_hy27us08121a.bin", 0x0000, 0x4200000, CRC(b2c762f0) SHA1(7e10df517cc24924e0ec55e2a263563023d945f8) )
 ROM_END
 
 ROM_START( jak_wdbg )
-	ROM_REGION16_BE( 0x40000, "maincpu:internal", ROMREGION_ERASE00 )
-	ROM_LOAD16_WORD_SWAP( "internal.rom", 0x00000, 0x40000, NO_DUMP ) // used as bootstrap only
-
 	ROM_REGION( 0x4200000, "nandrom", ROMREGION_ERASE00 )
 	ROM_LOAD( "amcwalkingdeadcrossbow_gpr27p512a_c276_as_hy27us08121a.bin", 0x0000, 0x4200000, CRC(66510fd4) SHA1(3ad6347c5a7758c035654cb3e96858320875b97a) )
 ROM_END
 
 
 ROM_START( vbaby )
-	ROM_REGION16_BE( 0x40000, "maincpu:internal", ROMREGION_ERASE00 )
-	ROM_LOAD16_WORD_SWAP( "internal.rom", 0x00000, 0x40000, NO_DUMP ) // used as bootstrap only
-
 	ROM_REGION( 0x8400000, "nandrom", ROMREGION_ERASE00 )
 	ROM_LOAD( "vbaby.bin", 0x0000, 0x8400000, CRC(d904441b) SHA1(3742bc4e1e403f061ce2813ecfafc6f30a44d287) )
 ROM_END
 
 ROM_START( tiviboo )
-	ROM_REGION16_BE( 0x40000, "maincpu:internal", ROMREGION_ERASE00 )
-	ROM_LOAD16_WORD_SWAP( "internal.rom", 0x00000, 0x40000, NO_DUMP ) // used as bootstrap only
-
 	ROM_REGION( 0x8400000, "nandrom", ROMREGION_ERASE00 )
 	ROM_LOAD( "hy27uf081g2a.u3", 0x0000, 0x8400000, CRC(69d08014) SHA1(d290c646c8223b3a47c0579e19d15a6717c7e4a8) )
 ROM_END
 
 
 ROM_START( mgtfit )
-	ROM_REGION16_BE( 0x40000, "maincpu:internal", ROMREGION_ERASE00 )
-	ROM_LOAD16_WORD_SWAP( "internal.rom", 0x00000, 0x40000, NO_DUMP ) // used as bootstrap only
-
 	ROM_REGION( 0x8400000, "nandrom", ROMREGION_ERASE00 ) // Samsung 937 K9F1G08U0D  Ident: 0xEC 0xF1 Full Ident: 0xECF1001540
 	ROM_LOAD( "k9f1g08u0d.bin", 0x0000, 0x8400000, CRC(1ca5ac09) SHA1(c2e123085d2198999c2c0edb1df4895361c00a99) )
 ROM_END
 
 ROM_START( beambox )
-	ROM_REGION16_BE( 0x40000, "maincpu:internal", ROMREGION_ERASE00 )
-	ROM_LOAD16_WORD_SWAP( "internal.rom", 0x00000, 0x40000, NO_DUMP ) // used as bootstrap only
-
 	ROM_REGION( 0x4200000, "nandrom", ROMREGION_ERASE00 )
 	ROM_LOAD( "beambox.bin", 0x0000, 0x4200000, CRC(a486f04e) SHA1(73c7d99d8922eba58d94e955e254b9c3baa4443e) )
 ROM_END

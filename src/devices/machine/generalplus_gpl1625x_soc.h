@@ -28,6 +28,8 @@ protected:
 	//virtual void device_start() override ATTR_COLD;
 	virtual void device_reset() override ATTR_COLD;
 
+	virtual const tiny_rom_entry *device_rom_region() const override ATTR_COLD;
+
 private:
 	void recalculate_calculate_effective_nand_address();
 
@@ -39,7 +41,7 @@ private:
 	void nand_addr_low_w(u16 data);
 	void nand_addr_high_w(u16 data);
 	u16 nand_ecc_err1_lb_r();
-	void nand_7856_type_w(u16 data);
+	void nand_bch_ctrl_w(u16 data);
 	void nand_ecc_ctrl_w(u16 data);
 	void nand_ecc_lpr_ckl_lb_w(u16 data);
 	void nand_ecc_lpr_ckh_lb_w(u16 data);
@@ -58,7 +60,7 @@ private:
 	u16 m_nand_ecc_cpckr_lb;
 	u16 m_nand_ecc_lpr_ckh_lb;
 	u16 m_nand_ecc_lpr_ckl_lb;
-	u16 m_nand_7856;
+	u16 m_nand_bch_ctrl;
 	u16 m_nand_ecc_ctrl;
 
 	int m_curblockaddr;
