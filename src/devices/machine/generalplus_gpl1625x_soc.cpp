@@ -581,6 +581,11 @@ generalplus_gpac800_device::generalplus_gpac800_device(const machine_config &mco
 
 u16 generalplus_gpac800_device::nand_data_r()
 {
+
+	u8 temp = m_nand_data_in();
+	return temp;
+
+#if 0
 	// TODO: use actual NAND / Smart Media devices once this is better understood.
 	// The games have extensive checks on startup to determine the flash types, but then it appears that
 	// certain games (eg jak_tsm) will only function correctly with specific ones, even if the code
@@ -605,7 +610,7 @@ u16 generalplus_gpac800_device::nand_data_r()
 		if (m_romtype == 0)
 		{
 			if (m_curblockaddr == 0)
-				data = 0xc2;
+				data = 0xec;
 			else
 				data = 0x76;
 		}
@@ -655,6 +660,7 @@ u16 generalplus_gpac800_device::nand_data_r()
 	}
 
 	return 0x0000;
+#endif
 }
 
 // 7998
@@ -663,6 +669,10 @@ void generalplus_gpac800_device::nand_command_w(u16 data)
 {
 	logerror("%s:sunplus_gcm394_base_device::nand_command_w %04x\n", machine().describe_context(), data);
 	m_nandcommand = data;
+
+	m_nand_command_out(data & 0xff);
+
+
 }
 
 void generalplus_gpac800_device::nand_addr_low_w(u16 data)
@@ -690,13 +700,13 @@ void generalplus_gpac800_device::recalculate_calculate_effective_nand_address()
 
 	u32 nandaddress = (m_nand_addr_high << 16) | m_nand_addr_low;
 
-	if (m_nand_ctrl & 0x4000)
-		nandaddress *= 2;
+//	if (m_nand_ctrl & 0x4000)
+//		nandaddress *= 2;
 
 	u32 page = type ? nandaddress : /*(m_nand_ctrl & 0x4000) ?*/ nandaddress >> 8 /*: nandaddress >> 9*/;
 	m_effectiveaddress = (page * 528 + page_offset) << shift;
 
-	logerror("%s: Requested address is %08x, translating to %08x\n", machine().describe_context(), nandaddress, m_effectiveaddress);
+	printf("%s: Requested address is %08x, translating to %08x\n", machine().describe_context().c_str(), nandaddress, m_effectiveaddress);
 }
 
 void generalplus_gpac800_device::nand_addr_high_w(u16 data)
@@ -707,13 +717,64 @@ void generalplus_gpac800_device::nand_addr_high_w(u16 data)
 	recalculate_calculate_effective_nand_address();
 
 	m_curblockaddr = 0;
+
+	// documentation indicates that the NAND Interface won't write the address to the NAND, even if only 2 bytes are needed
+	// unless this address is written, so presumably all 4 address bytes get sent after the write here
+	m_nand_address_out(m_nand_addr_high >> 8);
+	m_nand_address_out(m_nand_addr_high & 0xff);
+	m_nand_address_out(m_nand_addr_low >> 8);
+	m_nand_address_out(m_nand_addr_low & 0xff);
 }
+
+// 0x7855 - P_NF_INT_Ctrl ( DMA/INT Control Register )
+//
+// 15  REQF/C
+// 14  DMAEN
+// 13  INTEN
+// 12
+//
+// 11  ADR4EN  - enables 4th byte of address
+// 10  ADR3EN  - enables 3rd byte of address
+//  9  ADR2EN  - enables 2nd byte of address
+//  8
+//
+//  7
+//  6
+//  5
+//  4
+//
+//  3
+//  2
+//  1
+//  0
 
 void generalplus_gpac800_device::nand_dma_ctrl_w(u16 data)
 {
-	logerror("%s:sunplus_gcm394_base_device::nand_dma_ctrl_w(?) %04x\n", machine().describe_context(), data);
+	printf("%s:sunplus_gcm394_base_device::nand_dma_ctrl_w(?) %04x\n", machine().describe_context().c_str(), data);
 	m_nand_dma_ctrl = data;
 }
+
+// 0x7850 - P_NF_Ctrl ( NAND Flash Control Register )
+//
+// 15  NFBF - Read Back Busy Status (1 = Ready) (RO)
+// 14
+// 13  OLDTYPE - Old-Type NAND Flash Read Support 
+// 12
+//
+// 11
+// 10
+//  9
+//  8
+//
+//  7
+//  6  NFCTRL[6] - tREA[2]
+//  5  NFCTRL[5] - tREA[1]
+//  4  NFCTRL[4] - tREA[0]
+//
+//  3  NFCTRL[3] - tWH[1] / tREH[1]
+//  2  NFCTRL[2] - tWH[0] / tREH[0]
+//  1  NFCTRL[1] - tWP[1]
+//  0  NFCTRL[0] - tWP[0]
 
 u16 generalplus_gpac800_device::nand_7850_status_r()
 {
@@ -727,30 +788,30 @@ void generalplus_gpac800_device::nand_7850_w(u16 data)
 	m_nand_ctrl = data;
 }
 
+// 0x7856 - P_BCH_Control ( BCH Control Register )
+// 
+// 15
+// 14
+// 13
+// 12
+//
+// 11
+// 10  PAGE_SEL [2] - Read parity page selection (R/W)
+//  9  PAGE_SEL [1]
+//  8  PAGE_SEL [0]
+// 
+//  7
+//  6
+//  5  PARITY_CLR - Write pairy clear flag (WO)
+//  4  BCH_WR - Page read/write control (1 = write, 0 = read) (R/W)
+//
+//  3  PAGE_SIZE[1] - NAND flash page size selection. (0 = 528 bytes, 1 = 2112 bytes, 2 = 4224 bytes, 3 = reserved)
+//  2  PAGE_SIZE[0]
+//  1  BCH_8 - BCH 4/8-bit control register (0 = 4 bits, 1 = 8-bits)
+//  0  BCH_EN - BCH Controller enable register. (1 = enable)
+
 void generalplus_gpac800_device::nand_bch_ctrl_w(u16 data)
 {
-	// P_BCH_Control ( BCH Control Register )
-	// 
-	// 15
-	// 14
-	// 13
-	// 12
-	//
-	// 11
-	// 10  PAGE_SEL [2] - Read parity page selection (R/W)
-	//  9  PAGE_SEL [1]
-	//  8  PAGE_SEL [0]
-	// 
-	//  7
-	//  6
-	//  5  PARITY_CLR - Write pairy clear flag (WO)
-	//  4  BCH_WR - Page read/write control (1 = write, 0 = read) (R/W)
-	//
-	//  3  PAGE_SIZE[1] - NAND flash page size selection. (0 = 528 bytes, 1 = 2112 bytes, 2 = 4224 bytes, 3 = reserved)
-	//  2  PAGE_SIZE[0]
-	//  1  BCH_8 - BCH 4/8-bit control register (0 = 4 bits, 1 = 8-bits)
-	//  0  BCH_EN - BCH Controller enable register. (1 = enable)
-
 	logerror("%s:sunplus_gcm394_base_device::nand_bch_ctrl_w %04x\n", machine().describe_context(), data);
 	m_nand_bch_ctrl = data;
 
@@ -939,6 +1000,10 @@ u16 generalplus_gpac800_device::efuse2_r()
 
 
 // it is not clear if these are just different revisions of a standard internal boot ROM, assuming so for now
+// they appear to be for the 'A' models at least, because there are hardcoded addresses which would be above
+// the RAM area of the 'B' models
+//
+// not currently used by the emulation as we overwrite this with our own bootstrap logic
 ROM_START( gpl16250 )
 	ROM_REGION16_BE( 0x20000, "internal", 0 )
 	ROM_DEFAULT_BIOS("v7")

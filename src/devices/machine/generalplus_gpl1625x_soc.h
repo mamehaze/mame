@@ -22,6 +22,7 @@ public:
 
 	generalplus_gpac800_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock);
 
+
 protected:
 	void gpac800_internal_map(address_map &map) ATTR_COLD;
 
@@ -67,6 +68,8 @@ private:
 
 	int m_curblockaddr;
 	u32 m_effectiveaddress;
+
+
 };
 
 DECLARE_DEVICE_TYPE(GPAC800, generalplus_gpac800_device)
