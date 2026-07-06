@@ -165,10 +165,10 @@ public:
 	toshiba_tc58256aft_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock = 0);
 };
 
-class sandisk_nand_64mb_512_device : public nand_device
+class generalplus_gpr27p512a : public nand_device
 {
 public:
-	sandisk_nand_64mb_512_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock = 0);
+	generalplus_gpr27p512a(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock = 0);
 };
 
 class sandisk_nand_128mb_512_device : public nand_device
@@ -196,7 +196,7 @@ DECLARE_DEVICE_TYPE(SAMSUNG_K9LAG08U0M, samsung_k9lag08u0m_device)
 DECLARE_DEVICE_TYPE(SAMSUNG_K9F2G08U0M, samsung_k9f2g08u0m_device)
 DECLARE_DEVICE_TYPE(HYNIX_HY27UF084G2M, hynix_hy27uf084g2m_device)
 DECLARE_DEVICE_TYPE(TOSHIBA_TC58256AFT, toshiba_tc58256aft_device)
-DECLARE_DEVICE_TYPE(SANDISK_NAND_64MB_512_DEVICE, sandisk_nand_64mb_512_device)
+DECLARE_DEVICE_TYPE(GENERALPLUS_GPR27P512A, generalplus_gpr27p512a)
 DECLARE_DEVICE_TYPE(SANDISK_NAND_128MB_512_DEVICE, sandisk_nand_128mb_512_device)
 DECLARE_DEVICE_TYPE(SANDISK_NAND_256MB_512_DEVICE, sandisk_nand_256mb_512_device)
 

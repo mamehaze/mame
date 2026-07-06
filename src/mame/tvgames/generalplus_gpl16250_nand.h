@@ -29,12 +29,12 @@ public:
 	}
 
 	void generalplus_gpac800(machine_config &config) ATTR_COLD;
-	void generalplus_gpac800_nand64(machine_config &config) ATTR_COLD;
-	void generalplus_gpac800_nand128(machine_config &config) ATTR_COLD;
-	void generalplus_gpac800_nand256(machine_config &config) ATTR_COLD;
+	void generalplus_gpac800_nand64mbyte(machine_config &config) ATTR_COLD;
+	void generalplus_gpac800_nand128mbyte(machine_config &config) ATTR_COLD;
+	void generalplus_gpac800_nand256mbyte(machine_config &config) ATTR_COLD;
 
-	void generalplus_gpac800_nand128_2048(machine_config &config) ATTR_COLD;
-	void generalplus_gpac800_nand512_2048(machine_config &config) ATTR_COLD;
+	void generalplus_gpac800_nand128mbyte_2048(machine_config &config) ATTR_COLD;
+	void generalplus_gpac800_nand512mbyte_2048(machine_config &config) ATTR_COLD;
 
 	void nand_init() ATTR_COLD;
 	void nand_init_32mb() ATTR_COLD;
@@ -91,7 +91,7 @@ public:
 	{
 	}
 
-	void generalplus_gpac800_nand128_2048_vbaby(machine_config &config) ATTR_COLD;
+	void generalplus_gpac800_nand128mbyte_2048_vbaby(machine_config &config) ATTR_COLD;
 
 protected:
 	DECLARE_DEVICE_IMAGE_LOAD_MEMBER(cart_load);
