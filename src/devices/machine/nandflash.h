@@ -33,6 +33,10 @@ public:
 	void address_w(uint8_t data);
 	void data_w(uint8_t data);
 
+	// used for bootstrap HLE where it helps to know the page sizes
+	uint32_t page_data_size() { return m_page_data_size;  }
+	uint32_t page_total_size() { return m_page_total_size; }
+
 protected:
 	enum sm_mode_t : uint8_t
 	{

@@ -34,8 +34,8 @@ public:
 	void generalplus_gpac800_nand256(machine_config &config) ATTR_COLD;
 	void generalplus_gpac800_nand512(machine_config &config) ATTR_COLD;
 
-	void nand_init210() ATTR_COLD;
-	void nand_init210_32mb() ATTR_COLD;
+	void nand_init() ATTR_COLD;
+	void nand_init_32mb() ATTR_COLD;
 	void nand_init840() ATTR_COLD;
 	void nand_wlsair60() ATTR_COLD;
 	void nand_vbaby() ATTR_COLD;
@@ -69,8 +69,6 @@ private:
 	std::vector<u8> m_strippedrom;
 	int m_strippedsize = 0;
 	int m_size = 0;
-	int m_nandblocksize = 0;
-	int m_nandblocksize_stripped = 0;
 
 	int m_sdram_kwords;
 	int m_initial_copy_words;
