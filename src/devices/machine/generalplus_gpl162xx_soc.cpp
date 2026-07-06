@@ -53,7 +53,6 @@ sunplus_gcm394_base_device::sunplus_gcm394_base_device(const machine_config &mco
 	m_portb_out(*this),
 	m_portc_out(*this),
 	m_portd_out(*this),
-	m_nand_read_cb(*this, 0),
 	m_nand_command_out(*this),
 	m_nand_address_out(*this),
 	m_nand_data_out(*this),

@@ -326,8 +326,6 @@ int nand_device::is_busy()
 
 void nand_device::command_w(uint8_t data)
 {
-	printf("command write %02x\n", data);
-
 	if (!is_present())
 		return;
 
@@ -522,8 +520,6 @@ void nand_device::command_w(uint8_t data)
 
 void nand_device::address_w(uint8_t data)
 {
-	printf("address write %02x\n", data);
-
 	if (!is_present())
 		return;
 
@@ -619,8 +615,6 @@ uint8_t nand_device::data_r()
 		{
 			if (m_byte_addr < m_page_total_size)
 			{
-				//printf("reading from m_page_addr %04x num_pages %04x page_total_size %04x byte_addr %04x calc %04x\n", m_page_addr, m_num_pages, m_page_total_size, m_byte_addr, m_page_addr * m_page_total_size + m_byte_addr);
-
 				if (m_page_addr < m_num_pages)
 					reply = m_feeprom_data[m_page_addr * m_page_total_size + m_byte_addr];
 				else

@@ -32,8 +32,6 @@ protected:
 	virtual const tiny_rom_entry *device_rom_region() const override ATTR_COLD;
 
 private:
-	void recalculate_calculate_effective_nand_address();
-
 	u16 nand_7850_status_r();
 	u16 nand_data_r();
 	void nand_dma_ctrl_w(u16 data);
@@ -53,8 +51,6 @@ private:
 
 	u16 efuse2_r();
 
-	u16 m_nandcommand;
-
 	u16 m_nand_addr_low;
 	u16 m_nand_addr_high;
 
@@ -65,11 +61,6 @@ private:
 	u16 m_nand_ecc_lpr_ckl_lb;
 	u16 m_nand_bch_ctrl;
 	u16 m_nand_ecc_ctrl;
-
-	int m_curblockaddr;
-	u32 m_effectiveaddress;
-
-
 };
 
 DECLARE_DEVICE_TYPE(GPAC800, generalplus_gpac800_device)

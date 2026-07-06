@@ -21,10 +21,10 @@ class generalplus_gpac800_game_state : public gcm394_game_state
 public:
 	generalplus_gpac800_game_state(const machine_config &mconfig, device_type type, const char *tag) :
 		gcm394_game_state(mconfig, type, tag),
+		m_nand(*this, "nandrom"),
 		m_nandregion(*this, "nandrom"),
 		m_sdram_kwords(0x400000), // 0x400000 words (0x800000 bytes)
-		m_initial_copy_words(0x2000),
-		m_nand(*this, "nandrom")
+		m_initial_copy_words(0x2000)
 	{
 	}
 
@@ -54,6 +54,8 @@ protected:
 	std::vector<u16> m_sdram;
 	std::vector<u16> m_sdram2;
 
+	required_device<nand_device> m_nand;
+
 private:
 	void nand_create_stripped_region();
 
@@ -76,7 +78,6 @@ private:
 	void nand_address_out(offs_t offset, u8 data);
 	void nand_command_out(offs_t offset, u8 data);
 
-	required_device<nand_device> m_nand;
 };
 
 

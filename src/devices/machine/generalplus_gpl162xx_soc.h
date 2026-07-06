@@ -45,8 +45,6 @@ public:
 	auto space_write_callback() { return m_space_write_cb.bind(); }
 	auto dma_complete_callback() { return m_dma_complete_cb.bind(); }
 
-	auto nand_read_callback() { return m_nand_read_cb.bind(); }
-
 	// currently used by GPL16250, but GPL16230 adds NAND support too
 	auto nand_command_out() { return m_nand_command_out.bind(); }
 	auto nand_address_out() { return m_nand_address_out.bind(); }
@@ -110,14 +108,11 @@ protected:
 	devcb_write16 m_portc_out;
 	devcb_write16 m_portd_out;
 
-	devcb_read16 m_nand_read_cb;
-
 	devcb_write8 m_nand_command_out;
 	devcb_write8 m_nand_address_out;
 	devcb_write8 m_nand_data_out;
 
 	devcb_read8 m_nand_data_in;
-
 
 	optional_address_space m_cs_space;
 	u32 m_csbase;

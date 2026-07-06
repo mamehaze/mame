@@ -126,8 +126,6 @@ void mobigo2_state::mobigo2(machine_config &config)
 	m_maincpu->set_bootmode(0); // boot from internal ROM (NAND bootstrap)
 	m_maincpu->set_cs_config_callback(FUNC(mobigo2_state::cs_callback));
 
-	m_maincpu->nand_read_callback().set(FUNC(mobigo2_state::read_nand));
-
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
 	m_screen->set_refresh_hz(60);
 	m_screen->set_size(320*2, 262*2);
@@ -143,6 +141,8 @@ void mobigo2_state::mobigo2(machine_config &config)
 	//m_cart->set_must_be_loaded(true);
 
 	SOFTWARE_LIST(config, "cart_list").set_original("mobigo_cart");
+
+	SANDISK_NAND_128MB_512_DEVICE(config, m_nand);
 }
 
 void mobigo_state::init_mobigo()
@@ -168,8 +168,8 @@ ROM_END
 
 
 ROM_START( mobigo2 )
-	ROM_REGION16_BE( 0x40000, "maincpu:internal", ROMREGION_ERASE00 )
-	ROM_LOAD16_WORD_SWAP( "internal.rom", 0x00000, 0x40000, NO_DUMP ) // doesn't have GPnandnand header in NAND, so bootstrap is likely custom
+	//ROM_REGION16_BE( 0x40000, "maincpu:internal", ROMREGION_ERASE00 )
+	//ROM_LOAD16_WORD_SWAP( "internal.rom", 0x00000, 0x40000, NO_DUMP ) // doesn't have GPnandnand header in NAND, so bootstrap is likely custom
 
 	ROM_REGION( 0x8400000, "nandrom", ROMREGION_ERASE00 )
 	ROM_LOAD( "mobigo2_bios_ger.bin", 0x00000, 0x8400000, CRC(d5ab613d) SHA1(6fb104057dc3484fa958e2cb20c5dd0c19589f75) ) // SPANSION S34ML01G100TF100

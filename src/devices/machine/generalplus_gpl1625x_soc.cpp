@@ -581,141 +581,23 @@ generalplus_gpac800_device::generalplus_gpac800_device(const machine_config &mco
 
 u16 generalplus_gpac800_device::nand_data_r()
 {
-
-	u8 temp = m_nand_data_in();
-
-	u8 newtemp = 0x00;
-
-#if 1
-	// TODO: use actual NAND / Smart Media devices once this is better understood.
-	// The games have extensive checks on startup to determine the flash types, but then it appears that
-	// certain games (eg jak_tsm) will only function correctly with specific ones, even if the code
-	// continues regardless.  Others will bail early if they don't get what they want.
-
-	// I think some unSP core maths bugs are causing severe issues after the initial load for jak_tsm
-	// at the moment, possibly the same ones that are causing rendering issues in the jak_gtg bitmap
-	// test and seemingly incorrect road data for jak_car2, either that or the hookup here is very
-	// non-standard outside of the ident codes
-
-	// real TSM code starts at 4c000
-
-
-	//logerror("%s:sunplus_gcm394_base_device::nand_data_r\n", machine().describe_context());
-
-	if (m_nandcommand == 0x90) // read ident
-	{
-		logerror("%s:sunplus_gcm394_base_device::nand_data_r   READ IDENT byte %d\n", machine().describe_context(), m_curblockaddr);
-
-		u8 data = 0x00;
-
-		if (m_romtype == 0)
-		{
-			if (m_curblockaddr == 0)
-				data = 0xec;
-			else
-				data = 0x76;
-		}
-		else if (m_romtype == 1)
-		{
-			if (m_curblockaddr == 0)
-				data = 0xad;
-			else if (m_curblockaddr == 1)
-				data = 0x76;
-		}
-		else
-		{
-			if (m_curblockaddr == 0)
-				data = 0xad;
-			else if (m_curblockaddr == 1)
-				data = 0xf1;
-			else if (m_curblockaddr == 2)
-				data = 0x80;
-			else if (m_curblockaddr == 3)
-				data = 0x1d;
-		}
-
-		m_curblockaddr++;
-
-		newtemp = data;
-	}
-	else if (m_nandcommand == 0x00 || m_nandcommand == 0x01 || m_nandcommand  == 0x50)
-	{
-		//logerror("%s:sunplus_gcm394_base_device::nand_data_r   READ DATA byte %d\n", machine().describe_context(), m_curblockaddr);
-
-		u8 data = m_nand_read_cb(m_effectiveaddress + m_curblockaddr);
-
-		m_curblockaddr++;
-
-		newtemp = data;
-	}
-	else if (m_nandcommand == 0x70) // read status
-	{
-		logerror("%s:sunplus_gcm394_base_device::nand_data_r   READ STATUS byte %d\n", machine().describe_context(), m_curblockaddr);
-
-		newtemp = 0xff;
-	}
-	else
-	{
-		logerror("%s:sunplus_gcm394_base_device::nand_data_r   READ UNKNOWN byte %d\n", machine().describe_context(), m_curblockaddr);
-		newtemp = 0xff;
-	}
-
-
-	if (temp != newtemp)
-		printf("mismatch read %02x %02x\n", temp, newtemp);
-	else
-		printf("matched read %02x %02x\n", temp, newtemp);
-
-	return temp;
-
-	//return 0x0000;
-#endif
+	// straight trampoline for now, but this is talking to the NAND controller, which in turn talks to the NAND
+	return m_nand_data_in();
 }
 
 // 7998
 
 void generalplus_gpac800_device::nand_command_w(u16 data)
 {
+	// documentation indicate this is a 16-bit port, but NAND commands are 8-bit?
 	logerror("%s:sunplus_gcm394_base_device::nand_command_w %04x\n", machine().describe_context(), data);
-	m_nandcommand = data;
-
 	m_nand_command_out(data & 0xff);
-
-
 }
 
 void generalplus_gpac800_device::nand_addr_low_w(u16 data)
 {
 	logerror("%s:sunplus_gcm394_base_device::nand_addr_low_w %04x\n", machine().describe_context(), data);
 	m_nand_addr_low = data;
-	m_curblockaddr = 0;
-}
-
-void generalplus_gpac800_device::recalculate_calculate_effective_nand_address()
-{
-	u8 type = m_nand_bch_ctrl & 0xf;
-	u8 shift = 0;
-	u32 page_offset = 0;
-
-	if (type == 7)
-		shift = 4;
-	else if (type == 11)
-		shift = 5;
-
-	if (m_nandcommand == 0x01)
-		page_offset = 256;
-	else if (m_nandcommand == 0x50)
-		page_offset = 512;
-
-	u32 nandaddress = (m_nand_addr_high << 16) | m_nand_addr_low;
-
-//	if (m_nand_ctrl & 0x4000)
-//		nandaddress *= 2;
-
-	u32 page = type ? nandaddress : /*(m_nand_ctrl & 0x4000) ?*/ nandaddress >> 8 /*: nandaddress >> 9*/;
-	m_effectiveaddress = (page * 528 + page_offset) << shift;
-
-	printf("%s: Requested address is %08x, translating to %08x\n", machine().describe_context().c_str(), nandaddress, m_effectiveaddress);
 }
 
 void generalplus_gpac800_device::nand_addr_high_w(u16 data)
@@ -723,17 +605,12 @@ void generalplus_gpac800_device::nand_addr_high_w(u16 data)
 	logerror("%s:sunplus_gcm394_base_device::nand_addr_high_w %04x\n", machine().describe_context(), data);
 	m_nand_addr_high = data;
 
-	recalculate_calculate_effective_nand_address();
-
-	m_curblockaddr = 0;
-
 	// documentation indicates that the NAND Interface won't write the address to the NAND, even if only 2 bytes are needed
 	// unless this address is written, so presumably all 4 address bytes get sent after the write here
 	m_nand_address_out(m_nand_addr_low & 0xff);
 	m_nand_address_out(m_nand_addr_low >> 8);
 	m_nand_address_out(m_nand_addr_high & 0xff);
 	m_nand_address_out(m_nand_addr_high >> 8);
-
 }
 
 // 0x7855 - P_NF_INT_Ctrl ( DMA/INT Control Register )
@@ -760,7 +637,7 @@ void generalplus_gpac800_device::nand_addr_high_w(u16 data)
 
 void generalplus_gpac800_device::nand_dma_ctrl_w(u16 data)
 {
-	printf("%s:sunplus_gcm394_base_device::nand_dma_ctrl_w(?) %04x\n", machine().describe_context().c_str(), data);
+	logerror("%s:sunplus_gcm394_base_device::nand_dma_ctrl_w(?) %04x\n", machine().describe_context(), data);
 	m_nand_dma_ctrl = data;
 }
 
@@ -788,6 +665,8 @@ void generalplus_gpac800_device::nand_dma_ctrl_w(u16 data)
 
 u16 generalplus_gpac800_device::nand_7850_status_r()
 {
+	// TODO, talks to the NAND controller, which talks to the NAND
+	// so the status byte here should reflect that
 	// 0x8000 = ready
 	return m_nand_ctrl | 0x8000;
 }
@@ -824,10 +703,6 @@ void generalplus_gpac800_device::nand_bch_ctrl_w(u16 data)
 {
 	logerror("%s:sunplus_gcm394_base_device::nand_bch_ctrl_w %04x\n", machine().describe_context(), data);
 	m_nand_bch_ctrl = data;
-
-	recalculate_calculate_effective_nand_address();
-
-	m_curblockaddr = 0;
 }
 
 void generalplus_gpac800_device::nand_ecc_ctrl_w(u16 data)

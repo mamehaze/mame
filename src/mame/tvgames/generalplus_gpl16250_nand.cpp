@@ -54,48 +54,24 @@ void generalplus_gpac800_game_state::cs1_w(offs_t offset, u16 data)
 
 u8 generalplus_gpac800_game_state::nand_data_in(offs_t offset)
 {
-	u8 in = m_nand->data_r();
-
-	printf("in is %02x\n", in);
-
-	return in;
+	return m_nand->data_r();
 }
 
 void generalplus_gpac800_game_state::nand_data_out(offs_t offset, u8 data)
 {
-	printf("nand_data_out %02x\n", data);
+	logerror("nand_data_out %02x\n", data);
 }
 
 void generalplus_gpac800_game_state::nand_address_out(offs_t offset, u8 data)
 {
 	m_nand->address_w(data);
-	printf("nand_address_out %02x\n", data);
 }
 
 void generalplus_gpac800_game_state::nand_command_out(offs_t offset, u8 data)
 {
 	m_nand->command_w(data);
-	printf("nand_command_out %02x\n", data);
 }
 
-u8 generalplus_gpac800_game_state::read_nand(offs_t offset)
-{
-
-	if (!m_nandregion)
-		return 0x0000;
-
-	if (offset < m_size)
-	{
-		return m_nandregion[offset];
-	}
-	else
-	{
-		popmessage("read outside of NAND ROM space (offset %08x) (size %08x)\n", offset, m_size);
-		return 0xff;
-	}
-
-	return 0x00;
-}
 void generalplus_gpac800_game_state::dma_complete_hacks(int state)
 {
 	// HACKS to get into service mode for debugging (needed for testing as many of these require input sequences on the not yet emulated custom controls)
@@ -149,8 +125,6 @@ void generalplus_gpac800_game_state::generalplus_gpac800(machine_config &config)
 	m_maincpu->nand_address_out().set(FUNC(generalplus_gpac800_game_state::nand_address_out));
 	m_maincpu->nand_data_out().set(FUNC(generalplus_gpac800_game_state::nand_data_out));
 	m_maincpu->nand_data_in().set(FUNC(generalplus_gpac800_game_state::nand_data_in));
-
-	m_maincpu->nand_read_callback().set(FUNC(generalplus_gpac800_game_state::read_nand));
 
 	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
 	m_screen->set_refresh_hz(60);
