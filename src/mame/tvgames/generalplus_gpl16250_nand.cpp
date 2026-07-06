@@ -700,13 +700,12 @@ void generalplus_gpac800_game_state::machine_start()
 
 void generalplus_gpac800_game_state::nand_create_stripped_region()
 {
-	u8 *rom = m_nandregion;
-	int size = memregion("nandrom")->bytes();
-	m_size = size;
+	u8 *rom = m_nand->nand_data();
+	uint32_t size = m_nand->nand_size();
 
 	int numblocks = size / m_nand->page_total_size();
-	m_strippedsize = numblocks * m_nand->page_data_size();
-	m_strippedrom.resize(m_strippedsize);
+	uint32_t strippedsize = numblocks * m_nand->page_data_size();
+	m_strippedrom.resize(strippedsize);
 
 	for (int i = 0; i < numblocks; i++)
 	{
@@ -742,7 +741,7 @@ void generalplus_gpac800_game_state::machine_reset()
 	mem.write_word(0x007823, 0x0047);
 	mem.write_word(0x007824, 0x0047);
 
-	if (m_nandregion)
+	if (m_nand)
 	{
 		nand_create_stripped_region();
 
@@ -864,26 +863,21 @@ void generalplus_gpac800_game_state::nand_init_32mb()
 	nand_init();
 }
 
-void generalplus_gpac800_game_state::nand_init840()
-{
-	nand_init();
-}
-
 void generalplus_gpac800_game_state::nand_wlsair60()
 {
-	nand_init840();
+	nand_init();
 	m_initial_copy_words = 0x2800;
 }
 
 void generalplus_gpac800_game_state::nand_kiugames()
 {
-	nand_init840();
+	nand_init();
 	m_initial_copy_words = 0x10000;
 }
 
 void generalplus_gpac800_game_state::nand_vbaby()
 {
-	nand_init840();
+	nand_init();
 	m_initial_copy_words = 0x1000;
 }
 

@@ -36,6 +36,8 @@ public:
 	// used for bootstrap HLE where it helps to know the page sizes
 	uint32_t page_data_size() { return m_page_data_size;  }
 	uint32_t page_total_size() { return m_page_total_size; }
+	u8* nand_data() { return &m_feeprom_data[0]; }
+	uint32_t nand_size() { return m_page_total_size * m_num_pages; }
 
 protected:
 	enum sm_mode_t : uint8_t
