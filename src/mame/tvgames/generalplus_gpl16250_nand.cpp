@@ -56,7 +56,7 @@ u8 generalplus_gpac800_game_state::nand_data_in(offs_t offset)
 {
 	u8 in = m_nand->data_r();
 
-	printf("in is %02x\n");
+	printf("in is %02x\n", in);
 
 	return in;
 }
@@ -80,7 +80,7 @@ void generalplus_gpac800_game_state::nand_command_out(offs_t offset, u8 data)
 
 u8 generalplus_gpac800_game_state::read_nand(offs_t offset)
 {
-#if 0
+
 	if (!m_nandregion)
 		return 0x0000;
 
@@ -93,7 +93,7 @@ u8 generalplus_gpac800_game_state::read_nand(offs_t offset)
 		popmessage("read outside of NAND ROM space (offset %08x) (size %08x)\n", offset, m_size);
 		return 0xff;
 	}
-#endif
+
 	return 0x00;
 }
 void generalplus_gpac800_game_state::dma_complete_hacks(int state)

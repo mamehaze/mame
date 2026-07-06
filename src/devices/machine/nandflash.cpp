@@ -197,7 +197,7 @@ toshiba_tc58256aft_device::toshiba_tc58256aft_device(const machine_config &mconf
 	m_log2_pages_per_block = compute_log2(32);
 	m_num_pages = 32 * 2048;
 	m_col_address_cycles = 1;
-	m_row_address_cycles = 2;
+	m_row_address_cycles = 3;
 	m_sequential_row_read = 0;
 }
 
@@ -212,7 +212,7 @@ sandisk_nand_64mb_512_device::sandisk_nand_64mb_512_device(const machine_config 
 	m_log2_pages_per_block = compute_log2(32);
 	m_num_pages = 32 * 4096;
 	m_col_address_cycles = 1;
-	m_row_address_cycles = 2;
+	m_row_address_cycles = 3;
 	m_sequential_row_read = 1;
 }
 
@@ -227,7 +227,7 @@ sandisk_nand_128mb_512_device::sandisk_nand_128mb_512_device(const machine_confi
 	m_log2_pages_per_block = compute_log2(32);
 	m_num_pages = 32 * 8192;
 	m_col_address_cycles = 1;
-	m_row_address_cycles = 2;
+	m_row_address_cycles = 3;
 	m_sequential_row_read = 1;
 }
 
@@ -619,6 +619,8 @@ uint8_t nand_device::data_r()
 		{
 			if (m_byte_addr < m_page_total_size)
 			{
+				//printf("reading from m_page_addr %04x num_pages %04x page_total_size %04x byte_addr %04x calc %04x\n", m_page_addr, m_num_pages, m_page_total_size, m_byte_addr, m_page_addr * m_page_total_size + m_byte_addr);
+
 				if (m_page_addr < m_num_pages)
 					reply = m_feeprom_data[m_page_addr * m_page_total_size + m_byte_addr];
 				else

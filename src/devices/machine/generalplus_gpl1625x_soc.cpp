@@ -583,9 +583,10 @@ u16 generalplus_gpac800_device::nand_data_r()
 {
 
 	u8 temp = m_nand_data_in();
-	return temp;
 
-#if 0
+	u8 newtemp = 0x00;
+
+#if 1
 	// TODO: use actual NAND / Smart Media devices once this is better understood.
 	// The games have extensive checks on startup to determine the flash types, but then it appears that
 	// certain games (eg jak_tsm) will only function correctly with specific ones, even if the code
@@ -635,7 +636,7 @@ u16 generalplus_gpac800_device::nand_data_r()
 
 		m_curblockaddr++;
 
-		return data;
+		newtemp = data;
 	}
 	else if (m_nandcommand == 0x00 || m_nandcommand == 0x01 || m_nandcommand  == 0x50)
 	{
@@ -645,21 +646,29 @@ u16 generalplus_gpac800_device::nand_data_r()
 
 		m_curblockaddr++;
 
-		return data;
+		newtemp = data;
 	}
 	else if (m_nandcommand == 0x70) // read status
 	{
 		logerror("%s:sunplus_gcm394_base_device::nand_data_r   READ STATUS byte %d\n", machine().describe_context(), m_curblockaddr);
 
-		return 0xffff;
+		newtemp = 0xff;
 	}
 	else
 	{
 		logerror("%s:sunplus_gcm394_base_device::nand_data_r   READ UNKNOWN byte %d\n", machine().describe_context(), m_curblockaddr);
-		return 0xffff;
+		newtemp = 0xff;
 	}
 
-	return 0x0000;
+
+	if (temp != newtemp)
+		printf("mismatch read %02x %02x\n", temp, newtemp);
+	else
+		printf("matched read %02x %02x\n", temp, newtemp);
+
+	return temp;
+
+	//return 0x0000;
 #endif
 }
 
@@ -720,10 +729,11 @@ void generalplus_gpac800_device::nand_addr_high_w(u16 data)
 
 	// documentation indicates that the NAND Interface won't write the address to the NAND, even if only 2 bytes are needed
 	// unless this address is written, so presumably all 4 address bytes get sent after the write here
-	m_nand_address_out(m_nand_addr_high >> 8);
-	m_nand_address_out(m_nand_addr_high & 0xff);
-	m_nand_address_out(m_nand_addr_low >> 8);
 	m_nand_address_out(m_nand_addr_low & 0xff);
+	m_nand_address_out(m_nand_addr_low >> 8);
+	m_nand_address_out(m_nand_addr_high & 0xff);
+	m_nand_address_out(m_nand_addr_high >> 8);
+
 }
 
 // 0x7855 - P_NF_INT_Ctrl ( DMA/INT Control Register )
