@@ -35,7 +35,7 @@
 #include "logmacro.h"
 
 
-DEFINE_DEVICE_TYPE(GCM394, sunplus_gcm394_device, "gcm394", "GeneralPlus GPL16250 System-on-a-Chip")
+DEFINE_DEVICE_TYPE(GCM394, sunplus_gcm394_device, "gcm394", "GeneralPlus GPL1622x/GPL1623x/GPL1624x System-on-a-Chip")
 
 sunplus_gcm394_base_device::sunplus_gcm394_base_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, u32 clock, address_map_constructor internal) :
 	unsp_20_device(mconfig, type, tag, owner, clock, internal),
@@ -53,7 +53,10 @@ sunplus_gcm394_base_device::sunplus_gcm394_base_device(const machine_config &mco
 	m_portb_out(*this),
 	m_portc_out(*this),
 	m_portd_out(*this),
-	m_nand_read_cb(*this, 0),
+	m_nand_command_out(*this),
+	m_nand_address_out(*this),
+	m_nand_data_out(*this),
+	m_nand_data_in(*this, 0),
 	m_cs_space(*this, finder_base::DUMMY_TAG, -1),
 	m_csbase(0x20000),
 	m_romtype(0),
