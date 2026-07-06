@@ -5,7 +5,7 @@
 #include "generalplus_gpl1625x_soc.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// GPAC800A register list
+// GPL16250A register list
 //
 // 7000 - Tx3_X_Position
 // 7001 - Tx3_Y_Position
@@ -568,10 +568,10 @@
 // 7c00 - 7dff Sound Attribute
 // 7e00 - 7fff Sound Phase
 
-DEFINE_DEVICE_TYPE(GPAC800,   generalplus_gpac800_device,  "gpac800",    "GeneralPlus GPL1625x System-on-a-Chip")
+DEFINE_DEVICE_TYPE(GPL16250,   generalplus_gpac800_device,  "gpl16250",    "GeneralPlus GPL1625x / GPAC800 System-on-a-Chip")
 
 generalplus_gpac800_device::generalplus_gpac800_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock) :
-	sunplus_gcm394_base_device(mconfig, GPAC800, tag, owner, clock, address_map_constructor(FUNC(generalplus_gpac800_device::gpac800_internal_map), this))
+	sunplus_gcm394_base_device(mconfig, GPL16250, tag, owner, clock, address_map_constructor(FUNC(generalplus_gpac800_device::gpac800_internal_map), this))
 {
 }
 
@@ -745,7 +745,7 @@ u16 generalplus_gpac800_device::nand_ecc_err1_lb_r()
 UNMAPPED reads  writes
 
 jak_tsm uses these (all iniitalized near start)
-unclear if these are specific to the GPAC800 type, or present in the older types
+unclear if these are specific to the GPL16250 type, or present in the older types
 
 [:maincpu] ':maincpu' (00043F):sunplus_gcm394_base_device::unk_w @ 0x780a (data 0x0000)
 [:maincpu] ':maincpu' (000442):sunplus_gcm394_base_device::unk_w @ 0x7808 (data 0x0000)

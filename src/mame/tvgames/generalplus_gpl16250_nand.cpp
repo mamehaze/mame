@@ -107,7 +107,7 @@ void generalplus_gpac800_game_state::generalplus_gpac800(machine_config &config)
 {
 	set_addrmap(0, &generalplus_gpac800_game_state::cs_map_base);
 
-	GPAC800(config, m_maincpu, 96000000/2, m_screen);
+	GPL16250(config, m_maincpu, 96000000/2, m_screen);
 	m_maincpu->porta_in().set(FUNC(generalplus_gpac800_game_state::porta_r));
 	m_maincpu->portb_in().set(FUNC(generalplus_gpac800_game_state::portb_r));
 	m_maincpu->portc_in().set(FUNC(generalplus_gpac800_game_state::portc_r));
@@ -163,7 +163,7 @@ void generalplus_gpac800_game_state::generalplus_gpac800_nand128_2048(machine_co
 void generalplus_gpac800_game_state::generalplus_gpac800_nand512_2048(machine_config &config)
 {
 	generalplus_gpac800(config);
-	SANDISK_NAND_256MB_512_DEVICE(config, m_nand); // 512Mbyte part, with 0x800+0x40 sized pages WRONG
+	HYNIX_HY27UF084G2M(config, m_nand); // 512Mbyte part, with 0x800+0x40 sized pages
 }
 
 DEVICE_IMAGE_LOAD_MEMBER(generalplus_gpac800_vbaby_game_state::cart_load)

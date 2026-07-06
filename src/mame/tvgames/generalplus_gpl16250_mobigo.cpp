@@ -113,7 +113,7 @@ void mobigo2_state::mobigo2(machine_config &config)
 {
 	set_addrmap(0, &mobigo2_state::cs_map_base);
 
-	GPAC800(config, m_maincpu, 96000000/2, m_screen);  // Doesn't have GPnandnand header in NAND tho, so non-standard bootloader
+	GPL16250(config, m_maincpu, 96000000/2, m_screen);  // Doesn't have GPnandnand header in NAND tho, so non-standard bootloader
 	m_maincpu->porta_in().set(FUNC(mobigo2_state::porta_r));
 	m_maincpu->portb_in().set(FUNC(mobigo2_state::portb_r));
 	m_maincpu->portc_in().set(FUNC(mobigo2_state::portc_r));

@@ -63,6 +63,6 @@ private:
 	u16 m_nand_ecc_ctrl;
 };
 
-DECLARE_DEVICE_TYPE(GPAC800, generalplus_gpac800_device)
+DECLARE_DEVICE_TYPE(GPL16250, generalplus_gpac800_device)
 
 #endif // MAME_MACHINE_GENERALPLUS_GPL1625X_SOC_H
