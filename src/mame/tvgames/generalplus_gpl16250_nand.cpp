@@ -879,7 +879,6 @@ void generalplus_gpac800_game_state::nand_vbaby()
 {
 	nand_init840();
 	m_initial_copy_words = 0x1000;
-	m_maincpu->set_romtype(2);
 }
 
 void generalplus_gpac800_game_state::nand_tsm()
@@ -893,7 +892,6 @@ void generalplus_gpac800_game_state::nand_tsm()
 	// the addresses written to the NAND device don't compensate for these data repeats, however dump seems ok as no other data is being repeated?
 	// reads after startup still need checking
 	nand_init();
-	m_maincpu->set_romtype(1);
 }
 
 void generalplus_gpac800_game_state::nand_beambox()

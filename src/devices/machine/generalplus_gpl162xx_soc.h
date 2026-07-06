@@ -75,8 +75,6 @@ public:
 	void set_legacy_video_mode() { m_spg_video->set_legacy_video_mode(); }
 	void set_disallow_resolution_control() { m_spg_video->set_disallow_resolution_control(); }
 
-	void set_romtype(int romtype) { m_romtype = romtype; }
-
 	u16 get_ram_addr(u32 addr) { return m_mainram[addr]; }
 
 protected:
@@ -182,7 +180,6 @@ protected:
 	void cs_space_w(offs_t offset, u16 data);
 	u16 cs_bank_space_r(offs_t offset);
 	void cs_bank_space_w(offs_t offset, u16 data);
-	int m_romtype;
 
 protected:
 	devcb_read16 m_space_read_cb;

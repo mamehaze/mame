@@ -59,7 +59,6 @@ sunplus_gcm394_base_device::sunplus_gcm394_base_device(const machine_config &mco
 	m_nand_data_in(*this, 0),
 	m_cs_space(*this, finder_base::DUMMY_TAG, -1),
 	m_csbase(0x20000),
-	m_romtype(0),
 	m_space_read_cb(*this, 0),
 	m_space_write_cb(*this),
 	m_dma_complete_cb(*this),
@@ -1832,7 +1831,6 @@ void sunplus_gcm394_base_device::device_start()
 	save_item(NAME(m_adc_setup));
 	save_item(NAME(m_madc_ctrl));
 	save_item(NAME(m_csbase));
-	save_item(NAME(m_romtype));
 	save_item(NAME(m_timera_ctrl));
 	save_item(NAME(m_timerb_ctrl));
 }

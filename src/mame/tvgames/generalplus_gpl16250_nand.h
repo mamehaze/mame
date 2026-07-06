@@ -47,8 +47,6 @@ protected:
 	virtual void machine_start() override ATTR_COLD;
 	virtual void machine_reset() override ATTR_COLD;
 
-	u8 read_nand(offs_t offset);
-
 	virtual u16 cs0_r(offs_t offset) override;
 	virtual void cs0_w(offs_t offset, u16 data) override;
 	virtual u16 cs1_r(offs_t offset) override;
