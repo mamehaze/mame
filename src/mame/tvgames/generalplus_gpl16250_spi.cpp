@@ -147,17 +147,6 @@ ROM_START( pokegac2y )
 	ROM_LOAD16_WORD_SWAP( "yellow_ft24c16a.u9", 0x000, 0x800, CRC(b7662106) SHA1(a75366cbf3f3954a4136c89cc1db0ffb6f7d8c13) )
 ROM_END
 
-ROM_START( mobigo2 )
-	//ROM_REGION16_BE( 0x40000, "maincpu:internal", ROMREGION_ERASE00 )
-	//ROM_LOAD16_WORD_SWAP( "internal.rom", 0x00000, 0x40000, NO_DUMP )
-
-	ROM_REGION( 0x200000, "maincpu", ROMREGION_ERASE00)	// appears to be the boot ROM, has GPspispi header
-	ROM_LOAD16_WORD_SWAP( "n25s16.u3", 0x00000, 0x200000, CRC(dfbf5029) SHA1(2a079ddd8a13c5f3d8f40fa6d6c3de2dc1573449) )
-
-	ROM_REGION( 0x8400000, "nandrom", ROMREGION_ERASE00 ) // no GPnandnand header so not a boot device
-	ROM_LOAD( "mobigo2_bios_ger.bin", 0x00000, 0x8400000, CRC(d5ab613d) SHA1(6fb104057dc3484fa958e2cb20c5dd0c19589f75) ) // SPANSION S34ML01G100TF100
-ROM_END
-
 
 void generalplus_gpspispi_game_state::init_spi()
 {
@@ -235,5 +224,3 @@ CONS(2015, pokegach,  0,        0, generalplus_gpspispi_bkrankp, gcm394, general
 // the 2nd release comes in 2 colours and they can communicate?
 CONS(2015, pokegac2,  0,        0, generalplus_gpspispi_bkrankp, gcm394, generalplus_gpspispi_bkrankp_game_state, init_spi, "Tomy", "Pokegacha V2 Red (20151230, Japan)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
 CONS(2015, pokegac2y, pokegach, 0, generalplus_gpspispi_bkrankp, gcm394, generalplus_gpspispi_bkrankp_game_state, init_spi, "Tomy", "Pokegacha V2 Yellow (20151230, Japan)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
-
-CONS( 2013, mobigo2, 0,      0, generalplus_gpspispi,  gcm394, generalplus_gpspispi_game_state, init_spi, "VTech", "MobiGo 2 (Germany)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )

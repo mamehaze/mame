@@ -47566,6 +47566,9 @@ tomyeggb
 mobigo
 mobigos
 
+@source:tvgames/generalplus_gpl16250_mobigo2.cpp
+mobigo2
+
 @source:tvgames/generalplus_gpl16250_nand.cpp
 beambox
 jak_camp
@@ -47632,7 +47635,6 @@ anpaneng
 anpanm15
 bkrankp
 jspodred
-mobigo2
 pokegac2
 pokegac2y
 pokegach
