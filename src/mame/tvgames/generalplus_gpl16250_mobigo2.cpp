@@ -2,21 +2,61 @@
 // copyright-holders:David Haywood
 
 #include "emu.h"
+
 #include "generalplus_gpl16250_spi.h"
+
+#include "bus/generic/carts.h"
+#include "bus/generic/slot.h"
+
+#include "softlist_dev.h"
+
+namespace {
 
 class generalplus_mobigo2_state : public generalplus_gpspispi_game_state
 {
 public:
 	generalplus_mobigo2_state(const machine_config &mconfig, device_type type, const char *tag) :
-		generalplus_gpspispi_game_state(mconfig, type, tag)
+		generalplus_gpspispi_game_state(mconfig, type, tag),
+		m_cart(*this, "cartslot")
 	{
 	}
 
-protected:
+	void mobigo2(machine_config &config) ATTR_COLD;
+
+private:
+	DECLARE_DEVICE_IMAGE_LOAD_MEMBER(cart_load);
+
+	required_device<generic_slot_device> m_cart;
 };
 
 static INPUT_PORTS_START( mobigo2 )
+	PORT_START("IN0")
+	PORT_START("IN1")
+	PORT_START("IN2")
 INPUT_PORTS_END
+
+
+DEVICE_IMAGE_LOAD_MEMBER(generalplus_mobigo2_state::cart_load)
+{
+	u32 const size = m_cart->common_get_size("rom");
+	m_cart->rom_alloc(size, GENERIC_ROM16_WIDTH, ENDIANNESS_LITTLE);
+	m_cart->common_load_rom(m_cart->get_rom_base(), size, "rom");
+	return std::make_pair(std::error_condition(), std::string());
+}
+
+
+void generalplus_mobigo2_state::mobigo2(machine_config &config)
+{
+	generalplus_gpspispi(config);
+
+	GENERIC_CARTSLOT(config, m_cart, generic_plain_slot, "mobigo_cart");
+	m_cart->set_width(GENERIC_ROM16_WIDTH);
+	m_cart->set_device_load(FUNC(generalplus_mobigo2_state::cart_load));
+	//m_cart->set_must_be_loaded(true);
+
+	SOFTWARE_LIST(config, "cart_list").set_original("mobigo_cart");
+}
+
 
 ROM_START( mobigo2 )
 	//ROM_REGION16_BE( 0x40000, "maincpu:internal", ROMREGION_ERASE00 )
@@ -29,4 +69,6 @@ ROM_START( mobigo2 )
 	ROM_LOAD( "mobigo2_bios_ger.bin", 0x00000, 0x8400000, CRC(d5ab613d) SHA1(6fb104057dc3484fa958e2cb20c5dd0c19589f75) ) // SPANSION S34ML01G100TF100
 ROM_END
 
-CONS( 2013, mobigo2, 0,      0, generalplus_gpspispi,  mobigo2, generalplus_mobigo2_state, init_spi, "VTech", "MobiGo 2 (Germany)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
+} // anonymous namespace
+
+CONS( 2013, mobigo2, 0,      0, mobigo2,  mobigo2, generalplus_mobigo2_state, init_spi, "VTech", "MobiGo 2 (Germany)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )

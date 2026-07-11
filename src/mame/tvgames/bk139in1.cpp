@@ -1,6 +1,9 @@
 // license:BSD-3-Clause
 // copyright-holders:David Haywood
 
+// possibly SPG293 (S+Core) or ARM, but the code is encrypted (probably AES)
+// the NES emulation seems comparable to other SPG293 platforms
+
 #include "emu.h"
 
 #include "screen.h"
@@ -23,8 +26,15 @@ protected:
 	virtual void machine_reset() override ATTR_COLD;
 
 private:
+	uint32_t screen_update(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect);
+
 	required_device<screen_device> m_screen;
 };
+
+uint32_t bk139in1_state::screen_update(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect)
+{
+	return 0;
+}
 
 void bk139in1_state::machine_start()
 {
@@ -43,6 +53,7 @@ void bk139in1_state::bk139in1(machine_config &config)
 	m_screen->set_refresh_hz(60);
 	m_screen->set_size(320, 262);
 	m_screen->set_visarea(0, 320-1, 0, 240-1);
+	m_screen->set_screen_update(FUNC(bk139in1_state::screen_update));
 
 	SPEAKER(config, "speaker", 2).front();
 }
