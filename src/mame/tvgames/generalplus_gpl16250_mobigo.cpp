@@ -87,8 +87,6 @@ void mobigo_state::mobigo(machine_config &config)
 	SOFTWARE_LIST(config, "cart_list").set_original("mobigo_cart");
 }
 
-//	SAMSUNG_K9F1G08U0M(config, m_nand); // 128Mbyte part, with 0x800+0x40 sized pages
-
 void mobigo_state::init_mobigo()
 {
 	m_sdram.resize(0x400000); // 0x400000 bytes, 0x800000 words (needs verifying)

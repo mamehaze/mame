@@ -7,6 +7,7 @@
 
 #include "bus/generic/carts.h"
 #include "bus/generic/slot.h"
+#include "machine/nandflash.h"
 
 #include "softlist_dev.h"
 
@@ -17,7 +18,8 @@ class generalplus_mobigo2_state : public generalplus_gpspispi_game_state
 public:
 	generalplus_mobigo2_state(const machine_config &mconfig, device_type type, const char *tag) :
 		generalplus_gpspispi_game_state(mconfig, type, tag),
-		m_cart(*this, "cartslot")
+		m_cart(*this, "cartslot"),
+		m_nand(*this, "nandrom")
 	{
 	}
 
@@ -27,6 +29,7 @@ private:
 	DECLARE_DEVICE_IMAGE_LOAD_MEMBER(cart_load);
 
 	required_device<generic_slot_device> m_cart;
+	required_device<nand_device> m_nand;
 };
 
 static INPUT_PORTS_START( mobigo2 )
@@ -55,6 +58,8 @@ void generalplus_mobigo2_state::mobigo2(machine_config &config)
 	//m_cart->set_must_be_loaded(true);
 
 	SOFTWARE_LIST(config, "cart_list").set_original("mobigo_cart");
+
+	SAMSUNG_K9F1G08U0M(config, m_nand); // 128Mbyte part, with 0x800+0x40 sized pages
 }
 
 
