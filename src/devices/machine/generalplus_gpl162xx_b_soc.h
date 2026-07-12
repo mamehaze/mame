@@ -26,7 +26,7 @@ public:
 	generalplus_gpl16218b_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock);
 };
 
-DECLARE_DEVICE_TYPE(GPL16218A, generalplus_gpl16218b_device)
+DECLARE_DEVICE_TYPE(GPL16218B, generalplus_gpl16218b_device)
 
 
 #endif // MAME_MACHINE_GENERALPLUS_GPL162XX_B_SOC_H

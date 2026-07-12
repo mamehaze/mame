@@ -25,13 +25,13 @@
 #include "generalplus_gpl162xx_soc.h"
 
 
-#define LOG_GPL16218A_SPI            (1U << 5)
-#define LOG_GPL16218A_IO             (1U << 4)
-#define LOG_GPL16218A_SYSDMA         (1U << 3)
-#define LOG_GPL16218A                (1U << 2)
-#define LOG_GPL16218A_UNMAPPED       (1U << 1)
+#define LOG_GPL162XX_SPI            (1U << 5)
+#define LOG_GPL162XX_IO             (1U << 4)
+#define LOG_GPL162XX_SYSDMA         (1U << 3)
+#define LOG_GPL162XX                (1U << 2)
+#define LOG_GPL162XX_UNMAPPED       (1U << 1)
 
-#define VERBOSE             (LOG_GPL16218A | LOG_GPL16218A_IO | LOG_GPL16218A_UNMAPPED | LOG_GPL16218A_SYSDMA)
+#define VERBOSE             (LOG_GPL162XX | LOG_GPL162XX_IO | LOG_GPL162XX_UNMAPPED | LOG_GPL162XX_SYSDMA)
 #include "logmacro.h"
 
 
@@ -88,38 +88,38 @@ void generalplus_gpl162xx_base_device::default_cs_callback(u16 cs0, u16 cs1, u16
 
 u16 generalplus_gpl162xx_base_device::usb_7a35_r()
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::usb_7a35_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::usb_7a35_r\n", machine().describe_context());
 	return machine().rand();
 }
 
 u16 generalplus_gpl162xx_base_device::usb_7a37_r()
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::usb_7a37_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::usb_7a37_r\n", machine().describe_context());
 	return machine().rand();
 }
 
 u16 generalplus_gpl162xx_base_device::usb_7a39_r()
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::usb_7a39_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::usb_7a39_r\n", machine().describe_context());
 	return machine().rand();
 }
 
 
 u16 generalplus_gpl162xx_base_device::usb_7a3a_r()
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::usb_7a3a_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::usb_7a3a_r\n", machine().describe_context());
 	return machine().rand();
 }
 
 u16 generalplus_gpl162xx_base_device::usb_7a46_r()
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::usb_7a46_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::usb_7a46_r\n", machine().describe_context());
 	return machine().rand();
 }
 
 u16 generalplus_gpl162xx_base_device::usb_7a54_r()
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::usb_7a54_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::usb_7a54_r\n", machine().describe_context());
 	return machine().rand();
 }
 
@@ -127,54 +127,54 @@ u16 generalplus_gpl162xx_base_device::usb_7a54_r()
 
 u16 generalplus_gpl162xx_base_device::power_state_r()
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::power_state_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::power_state_r\n", machine().describe_context());
 	return 0x0002;
 }
 
 u16 generalplus_gpl162xx_base_device::dac_pga_r()
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::dac_pga_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::dac_pga_r\n", machine().describe_context());
 	m_dac_pga ^= 0x0100; // status flag for something?
 	return m_dac_pga;
 }
 
 // sets bit 0x0002 then expects it to have cleared
-u16 generalplus_gpl162xx_base_device::cache_ctrl_r() { LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::cache_ctrl_r\n", machine().describe_context()); return m_cache_ctrl & ~ 0x0002; }
-void generalplus_gpl162xx_base_device::cache_ctrl_w(u16 data) { LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::cache_ctrl_w %04x\n", machine().describe_context(), data); m_cache_ctrl = data; }
+u16 generalplus_gpl162xx_base_device::cache_ctrl_r() { LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::cache_ctrl_r\n", machine().describe_context()); return m_cache_ctrl & ~ 0x0002; }
+void generalplus_gpl162xx_base_device::cache_ctrl_w(u16 data) { LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::cache_ctrl_w %04x\n", machine().describe_context(), data); m_cache_ctrl = data; }
 
 // ****************************************  78xx region stubs *************************************************
 
-u16 generalplus_gpl162xx_base_device::raw_war_r() { LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::raw_war_r\n", machine().describe_context()); return m_782d; }
-void generalplus_gpl162xx_base_device::raw_war_w(u16 data) { LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::raw_war_w %04x\n", machine().describe_context(), data); m_782d = data; }
+u16 generalplus_gpl162xx_base_device::raw_war_r() { LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::raw_war_r\n", machine().describe_context()); return m_782d; }
+void generalplus_gpl162xx_base_device::raw_war_w(u16 data) { LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::raw_war_w %04x\n", machine().describe_context(), data); m_782d = data; }
 
-u16 generalplus_gpl162xx_base_device::sys_ctrl_r() { LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::sys_ctrl_r\n", machine().describe_context()); return m_sys_ctrl; }
-void generalplus_gpl162xx_base_device::sys_ctrl_w(u16 data) { LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::sys_ctrl_w %04x\n", machine().describe_context(), data); m_sys_ctrl = data; }
+u16 generalplus_gpl162xx_base_device::sys_ctrl_r() { LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::sys_ctrl_r\n", machine().describe_context()); return m_sys_ctrl; }
+void generalplus_gpl162xx_base_device::sys_ctrl_w(u16 data) { LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::sys_ctrl_w %04x\n", machine().describe_context(), data); m_sys_ctrl = data; }
 
 void generalplus_gpl162xx_base_device::clock_ctrl_w(u16 data)
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::clock_ctrl_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::clock_ctrl_w %04x\n", machine().describe_context(), data);
 	m_clock_ctrl = data;
 }
 
 u16 generalplus_gpl162xx_base_device::clk_ctrl0_r()
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::clk_ctrl0_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::clk_ctrl0_r\n", machine().describe_context());
 	return 0x0000;
 }
 
 void generalplus_gpl162xx_base_device::clk_ctrl0_w(u16 data)
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::clk_ctrl0 %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::clk_ctrl0 %04x\n", machine().describe_context(), data);
 }
 
 void generalplus_gpl162xx_base_device::watchdog_ctrl_w(u16 data)
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::watchdog_ctrl_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::watchdog_ctrl_w %04x\n", machine().describe_context(), data);
 }
 
 void generalplus_gpl162xx_base_device::waitmode_enter_780c_w(u16 data)
 {
-	// LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::waitmode_enter_780c_w %04x\n", machine().describe_context(), data);
+	// LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::waitmode_enter_780c_w %04x\n", machine().describe_context(), data);
 	// must be followed by 6 nops to ensure wait mode is entered
 }
 
@@ -183,14 +183,14 @@ void generalplus_gpl162xx_base_device::waitmode_enter_780c_w(u16 data)
 
 u16 generalplus_gpl162xx_base_device::membankswitch_7810_r()
 {
-//  LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::membankswitch_7810_r\n", machine().describe_context());
+//  LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::membankswitch_7810_r\n", machine().describe_context());
 	return m_membankswitch_7810;
 }
 
 void generalplus_gpl162xx_base_device::membankswitch_7810_w(u16 data)
 {
 //  if (m_membankswitch_7810 != data)
-//  LOGMASKED(LOG_GPL16218A,"%s:generalplus_gpl162xx_base_device::membankswitch_7810_w %04x\n", machine().describe_context(), data);
+//  LOGMASKED(LOG_GPL162XX,"%s:generalplus_gpl162xx_base_device::membankswitch_7810_w %04x\n", machine().describe_context(), data);
 
 //  if (m_membankswitch_7810 != data)
 //      popmessage("bankswitch %04x -> %04x", m_membankswitch_7810, data);
@@ -201,30 +201,30 @@ void generalplus_gpl162xx_base_device::membankswitch_7810_w(u16 data)
 
 void generalplus_gpl162xx_base_device::unkarea_7816_w(u16 data)
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::unkarea_7816_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::unkarea_7816_w %04x\n", machine().describe_context(), data);
 	m_7816 = data;
 }
 
 void generalplus_gpl162xx_base_device::pllchange_w(u16 data)
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::pllchange_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::pllchange_w %04x\n", machine().describe_context(), data);
 	m_pllchange = data;
 }
 
 u16 generalplus_gpl162xx_base_device::pllclkwait_r()
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::pllclkwait_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::pllclkwait_r\n", machine().describe_context());
 	return 0x0000;
 }
 
 void generalplus_gpl162xx_base_device::pllclkwait_w(u16 data)
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::pllclkwait_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::pllclkwait_w %04x\n", machine().describe_context(), data);
 }
 
 void generalplus_gpl162xx_base_device::chipselect_csx_memory_device_control_w(offs_t offset, u16 data)
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::chipselect_csx_memory_device_control_w %04x (782x registers offset %d)\n", machine().describe_context(), data, offset);
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::chipselect_csx_memory_device_control_w %04x (782x registers offset %d)\n", machine().describe_context(), data, offset);
 	m_782x[offset] = data;
 
 
@@ -252,7 +252,7 @@ void generalplus_gpl162xx_base_device::device_post_load()
 	m_cs_callback(m_782x[0], m_782x[1], m_782x[2], m_782x[3], m_782x[4]);
 }
 
-void generalplus_gpl162xx_base_device::mcs0_page_w(u16 data) { LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::mcs0_page_w %04x\n", machine().describe_context(), data); m_7835 = data; }
+void generalplus_gpl162xx_base_device::mcs0_page_w(u16 data) { LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::mcs0_page_w %04x\n", machine().describe_context(), data); m_7835 = data; }
 
 // IO here?
 
@@ -260,48 +260,48 @@ void generalplus_gpl162xx_base_device::mcs0_page_w(u16 data) { LOGMASKED(LOG_GPL
 
 u16 generalplus_gpl162xx_base_device::ioa_data_r()
 {
-	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::ioa_data_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL162XX_IO, "%s:generalplus_gpl162xx_base_device::ioa_data_r\n", machine().describe_context());
 	return m_porta_in();
 }
 
 void generalplus_gpl162xx_base_device::ioa_data_w(u16 data)
 {
-	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::ioa_data_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL162XX_IO, "%s:generalplus_gpl162xx_base_device::ioa_data_w %04x\n", machine().describe_context(), data);
 	m_porta_out(data);
 }
 
 u16 generalplus_gpl162xx_base_device::ioa_buffer_r()
 {
-	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::ioa_buffer_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL162XX_IO, "%s:generalplus_gpl162xx_base_device::ioa_buffer_r\n", machine().describe_context());
 	return 0x0000;// 0xffff;
 }
 
 void generalplus_gpl162xx_base_device::ioa_buffer_w(u16 data)
 {
-	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::ioa_buffer_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL162XX_IO, "%s:generalplus_gpl162xx_base_device::ioa_buffer_w %04x\n", machine().describe_context(), data);
 }
 
 u16 generalplus_gpl162xx_base_device::ioa_dir_r()
 {
-	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::ioa_dir_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL162XX_IO, "%s:generalplus_gpl162xx_base_device::ioa_dir_r\n", machine().describe_context());
 	return m_7862_porta_direction;
 }
 
 void generalplus_gpl162xx_base_device::ioa_dir_w(u16 data)
 {
-	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::ioa_dir_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL162XX_IO, "%s:generalplus_gpl162xx_base_device::ioa_dir_w %04x\n", machine().describe_context(), data);
 	m_7862_porta_direction = data;
 }
 
 u16 generalplus_gpl162xx_base_device::ioa_attrib_r()
 {
-	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::ioa_attrib_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL162XX_IO, "%s:generalplus_gpl162xx_base_device::ioa_attrib_r\n", machine().describe_context());
 	return m_7863_porta_attribute;
 }
 
 void generalplus_gpl162xx_base_device::ioa_attrib_w(u16 data)
 {
-	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::ioa_attrib_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL162XX_IO, "%s:generalplus_gpl162xx_base_device::ioa_attrib_w %04x\n", machine().describe_context(), data);
 	m_7863_porta_attribute = data;
 }
 
@@ -309,49 +309,49 @@ void generalplus_gpl162xx_base_device::ioa_attrib_w(u16 data)
 
 u16 generalplus_gpl162xx_base_device::iob_buffer_r()
 {
-	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::iob_buffer_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL162XX_IO, "%s:generalplus_gpl162xx_base_device::iob_buffer_r\n", machine().describe_context());
 	return machine().rand();
 }
 
 void generalplus_gpl162xx_base_device::iob_buffer_w(u16 data)
 {
-	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::iob_buffer_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL162XX_IO, "%s:generalplus_gpl162xx_base_device::iob_buffer_w %04x\n", machine().describe_context(), data);
 	m_portb_out(data); // buffer writes must update output state too, beijuehh requires it for banking
 }
 
 u16 generalplus_gpl162xx_base_device::iob_data_r()
 {
-	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::iob_data_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL162XX_IO, "%s:generalplus_gpl162xx_base_device::iob_data_r\n", machine().describe_context());
 	return m_portb_in();
 }
 
 void generalplus_gpl162xx_base_device::iob_data_w(u16 data)
 {
-	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::iob_data_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL162XX_IO, "%s:generalplus_gpl162xx_base_device::iob_data_w %04x\n", machine().describe_context(), data);
 	m_portb_out(data);
 }
 
 u16 generalplus_gpl162xx_base_device::iob_dir_r()
 {
-	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::iob_dir_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL162XX_IO, "%s:generalplus_gpl162xx_base_device::iob_dir_r\n", machine().describe_context());
 	return m_786a_portb_direction;
 }
 
 void generalplus_gpl162xx_base_device::iob_dir_w(u16 data)
 {
-	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::iob_dir_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL162XX_IO, "%s:generalplus_gpl162xx_base_device::iob_dir_w %04x\n", machine().describe_context(), data);
 	m_786a_portb_direction = data;
 }
 
 u16 generalplus_gpl162xx_base_device::iob_attrib_r()
 {
-	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::iob_attrib_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL162XX_IO, "%s:generalplus_gpl162xx_base_device::iob_attrib_r\n", machine().describe_context());
 	return m_786b_portb_attribute;
 }
 
 void generalplus_gpl162xx_base_device::iob_attrib_w(u16 data)
 {
-	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::iob_attrib_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL162XX_IO, "%s:generalplus_gpl162xx_base_device::iob_attrib_w %04x\n", machine().describe_context(), data);
 	m_786b_portb_attribute = data;
 }
 
@@ -359,49 +359,49 @@ void generalplus_gpl162xx_base_device::iob_attrib_w(u16 data)
 
 u16 generalplus_gpl162xx_base_device::ioc_data_r()
 {
-	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::ioc_data_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL162XX_IO, "%s:generalplus_gpl162xx_base_device::ioc_data_r\n", machine().describe_context());
 	return m_portc_in();
 }
 
 void generalplus_gpl162xx_base_device::ioc_data_w(u16 data)
 {
-	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::ioc_data_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL162XX_IO, "%s:generalplus_gpl162xx_base_device::ioc_data_w %04x\n", machine().describe_context(), data);
 	m_ioc_data = data;
 	m_portc_out(data);
 }
 
 u16 generalplus_gpl162xx_base_device::ioc_buffer_r()
 {
-	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::ioc_buffer_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL162XX_IO, "%s:generalplus_gpl162xx_base_device::ioc_buffer_r\n", machine().describe_context());
 	return 0xffff;// m_7871;
 }
 
 void generalplus_gpl162xx_base_device::ioc_buffer_w(u16 data)
 {
-	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::ioc_buffer_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL162XX_IO, "%s:generalplus_gpl162xx_base_device::ioc_buffer_w %04x\n", machine().describe_context(), data);
 }
 
 u16 generalplus_gpl162xx_base_device::ioc_dir_r()
 {
-	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::ioc_dir_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL162XX_IO, "%s:generalplus_gpl162xx_base_device::ioc_dir_r\n", machine().describe_context());
 	return m_7872_portc_direction;
 }
 
 void generalplus_gpl162xx_base_device::ioc_dir_w(u16 data)
 {
-	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::ioc_dir_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL162XX_IO, "%s:generalplus_gpl162xx_base_device::ioc_dir_w %04x\n", machine().describe_context(), data);
 	m_7872_portc_direction = data;
 }
 
 u16 generalplus_gpl162xx_base_device::ioc_attrib_r()
 {
-	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::ioc_attrib_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL162XX_IO, "%s:generalplus_gpl162xx_base_device::ioc_attrib_r\n", machine().describe_context());
 	return m_7873_portc_attribute;
 }
 
 void generalplus_gpl162xx_base_device::ioc_attrib_w(u16 data)
 {
-	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::ioc_attrib_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL162XX_IO, "%s:generalplus_gpl162xx_base_device::ioc_attrib_w %04x\n", machine().describe_context(), data);
 	m_7873_portc_attribute = data;
 }
 
@@ -409,108 +409,108 @@ void generalplus_gpl162xx_base_device::ioc_attrib_w(u16 data)
 
 u16 generalplus_gpl162xx_base_device::iod_data_r()
 {
-	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::iod_data_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL162XX_IO, "%s:generalplus_gpl162xx_base_device::iod_data_r\n", machine().describe_context());
 	return m_portd_in();
 }
 
 void generalplus_gpl162xx_base_device::iod_data_w(u16 data)
 {
-	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::iod_data_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL162XX_IO, "%s:generalplus_gpl162xx_base_device::iod_data_w %04x\n", machine().describe_context(), data);
 	//m_7878 = data;
 	m_portd_out(data);
 }
 
 u16 generalplus_gpl162xx_base_device::iod_buffer_r()
 {
-	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::iod_buffer_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL162XX_IO, "%s:generalplus_gpl162xx_base_device::iod_buffer_r\n", machine().describe_context());
 	return 0xffff;
 }
 
 void generalplus_gpl162xx_base_device::iod_buffer_w(u16 data)
 {
-	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::iod_buffer_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL162XX_IO, "%s:generalplus_gpl162xx_base_device::iod_buffer_w %04x\n", machine().describe_context(), data);
 	m_portd_out(data); // buffer writes must update output state too, beijuehh requires it for banking
 }
 
 u16 generalplus_gpl162xx_base_device::iod_dir_r()
 {
-	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::iod_dir_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL162XX_IO, "%s:generalplus_gpl162xx_base_device::iod_dir_r\n", machine().describe_context());
 	return m_787a_portd_direction;
 }
 
 void generalplus_gpl162xx_base_device::iod_dir_w(u16 data)
 {
-	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::iod_dir_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL162XX_IO, "%s:generalplus_gpl162xx_base_device::iod_dir_w %04x\n", machine().describe_context(), data);
 	m_787a_portd_direction = data;
 }
 
 u16 generalplus_gpl162xx_base_device::iod_attib_r()
 {
-	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::iod_attib_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL162XX_IO, "%s:generalplus_gpl162xx_base_device::iod_attib_r\n", machine().describe_context());
 	return m_787b_portd_attribute;
 }
 
 void generalplus_gpl162xx_base_device::iod_attib_w(u16 data)
 {
-	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::iod_attib_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL162XX_IO, "%s:generalplus_gpl162xx_base_device::iod_attib_w %04x\n", machine().describe_context(), data);
 	m_787b_portd_attribute = data;
 }
 
 u16 generalplus_gpl162xx_base_device::iod_drv_r()
 {
-	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::iod_drv_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL162XX_IO, "%s:generalplus_gpl162xx_base_device::iod_drv_r\n", machine().describe_context());
 	return 0xffff;
 }
 
 void generalplus_gpl162xx_base_device::iod_drv_w(u16 data)
 {
-	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::iod_drv_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL162XX_IO, "%s:generalplus_gpl162xx_base_device::iod_drv_w %04x\n", machine().describe_context(), data);
 }
 
 u16 generalplus_gpl162xx_base_device::iod_mux_r()
 {
-	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::iod_mux_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL162XX_IO, "%s:generalplus_gpl162xx_base_device::iod_mux_r\n", machine().describe_context());
 	return 0xffff;
 }
 
 void generalplus_gpl162xx_base_device::iod_mux_w(u16 data)
 {
-	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::iod_mux_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL162XX_IO, "%s:generalplus_gpl162xx_base_device::iod_mux_w %04x\n", machine().describe_context(), data);
 }
 
 u16 generalplus_gpl162xx_base_device::ioe_buffer_r()
 {
-	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::ioe_buffer_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL162XX_IO, "%s:generalplus_gpl162xx_base_device::ioe_buffer_r\n", machine().describe_context());
 	return 0xffff;
 }
 
 void generalplus_gpl162xx_base_device::ioe_buffer_w(u16 data)
 {
-	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::ioe_buffer_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL162XX_IO, "%s:generalplus_gpl162xx_base_device::ioe_buffer_w %04x\n", machine().describe_context(), data);
 	//m_porte_out(data);
 }
 
 u16 generalplus_gpl162xx_base_device::ioe_dir_r()
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::ioe_dir_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::ioe_dir_r\n", machine().describe_context());
 	return m_ioe_dir;
 }
 
 void generalplus_gpl162xx_base_device::ioe_dir_w(u16 data)
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::ioe_dir_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::ioe_dir_w %04x\n", machine().describe_context(), data);
 	m_ioe_dir = data;
 }
 
 u16 generalplus_gpl162xx_base_device::ioe_attrib_r()
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::ioe_attrib_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::ioe_attrib_r\n", machine().describe_context());
 	return m_ioe_attrib;
 }
 
 void generalplus_gpl162xx_base_device::ioe_attrib_w(u16 data)
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::ioe_attrib_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::ioe_attrib_w %04x\n", machine().describe_context(), data);
 	m_ioe_attrib = data;
 }
 
@@ -538,13 +538,13 @@ void generalplus_gpl162xx_base_device::ioe_attrib_w(u16 data)
 
 u16 generalplus_gpl162xx_base_device::int_status1_r()
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::int_status1_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::int_status1_r\n", machine().describe_context());
 	return 0x0000;// machine().rand();
 }
 
 void generalplus_gpl162xx_base_device::int_status1_w(u16 data)
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::int_status1_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::int_status1_w %04x\n", machine().describe_context(), data);
 	//m_int_status1 = data;
 }
 
@@ -571,7 +571,7 @@ void generalplus_gpl162xx_base_device::int_status1_w(u16 data)
 
 u16 generalplus_gpl162xx_base_device::int_status2_r()
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::int_status2_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::int_status2_r\n", machine().describe_context());
 	u16 ret = 0;
 
 	if (m_gpl_timebase->timebase_irq_flag<0>())
@@ -588,7 +588,7 @@ u16 generalplus_gpl162xx_base_device::int_status2_r()
 
 void generalplus_gpl162xx_base_device::int_status2_w(u16 data)
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::int_status2_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::int_status2_w %04x\n", machine().describe_context(), data);
 	// none of this bits are listed as wrieable for GPL95xx or GPL162xx
 }
 
@@ -615,37 +615,37 @@ void generalplus_gpl162xx_base_device::int_status2_w(u16 data)
 
 u16 generalplus_gpl162xx_base_device::int_status3_r()
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::int_status3_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::int_status3_r\n", machine().describe_context());
 	return 0x0000;
 }
 
 void generalplus_gpl162xx_base_device::int_status3_w(u16 data)
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::int_status3_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::int_status3_w %04x\n", machine().describe_context(), data);
 	// bit 2 (SPU Beat Interrupt) is listed as R/W for GPL95, but not GPL162? (verify)
 }
 
 void generalplus_gpl162xx_base_device::int_priority_1_w(u16 data)
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::int_priority_1_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::int_priority_1_w %04x\n", machine().describe_context(), data);
 	m_int_priority_1 = data;
 }
 
 void generalplus_gpl162xx_base_device::int_priority_2_w(u16 data)
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::int_priority_2_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::int_priority_2_w %04x\n", machine().describe_context(), data);
 	m_int_priority_2 = data;
 }
 
 void generalplus_gpl162xx_base_device::int_priority_3_w(u16 data)
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::int_priority_3_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::int_priority_3_w %04x\n", machine().describe_context(), data);
 	m_int_priority_3 = data;
 }
 
 void generalplus_gpl162xx_base_device::mint_ctrl_w(u16 data)
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::mint_ctrl_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::mint_ctrl_w %04x\n", machine().describe_context(), data);
 	m_misc_int_ctrl = data;
 }
 
@@ -761,7 +761,7 @@ TIMER_DEVICE_CALLBACK_MEMBER(generalplus_gpl162xx_base_device::timer_f_cb)
 template<int Timer>
 u16 generalplus_gpl162xx_base_device::timer_ctrl_r()
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::timer%c_ctrl_r\n", machine().describe_context(), 'a' + Timer);
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::timer%c_ctrl_r\n", machine().describe_context(), 'a' + Timer);
 
 	if (Timer > 1)
 		return machine().rand();
@@ -772,7 +772,7 @@ u16 generalplus_gpl162xx_base_device::timer_ctrl_r()
 template<int Timer>
 void generalplus_gpl162xx_base_device::timer_ctrl_w(u16 data)
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::timer%c_ctrl_w %04x\n", machine().describe_context(), 'a' + Timer, data);
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::timer%c_ctrl_w %04x\n", machine().describe_context(), 'a' + Timer, data);
 	m_timer_ctrl[Timer] = data;
 }
 
@@ -783,14 +783,14 @@ void generalplus_gpl162xx_base_device::timer_ctrl_w(u16 data)
 template<int Timer>
 u16 generalplus_gpl162xx_base_device::timer_preload_r()
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::timer%c_preload_r\n", machine().describe_context(), 'a' + Timer);
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::timer%c_preload_r\n", machine().describe_context(), 'a' + Timer);
 	return m_timer_preload[Timer];
 }
 
 template<int Timer>
 void generalplus_gpl162xx_base_device::timer_preload_w(u16 data)
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::timer%c_preload_w %04x\n", machine().describe_context(), 'a' + Timer, data);
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::timer%c_preload_w %04x\n", machine().describe_context(), 'a' + Timer, data);
 	m_timer_preload[Timer] = data;
 }
 
@@ -801,7 +801,7 @@ void generalplus_gpl162xx_base_device::timer_preload_w(u16 data)
 template<int Timer>
 u16 generalplus_gpl162xx_base_device::timer_upcount_r()
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::timer%c_upcount_r\n", machine().describe_context(), 'a' + Timer);
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::timer%c_upcount_r\n", machine().describe_context(), 'a' + Timer);
 	return machine().rand();
 }
 
@@ -831,14 +831,14 @@ u16 generalplus_gpl162xx_base_device::timer_upcount_r()
 template<int Timer>
 u16 generalplus_gpl162xx_base_device::timer_ccp_ctrl_r()
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::timer%c_ccp_ctrl_r\n", machine().describe_context(), 'a' + Timer);
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::timer%c_ccp_ctrl_r\n", machine().describe_context(), 'a' + Timer);
 	return m_timer_ccp_ctrl[Timer];
 }
 
 template<int Timer>
 void generalplus_gpl162xx_base_device::timer_ccp_ctrl_w(u16 data)
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::timer%c_ccp_ctrl_w %04x\n", machine().describe_context(), 'a' + Timer, data);
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::timer%c_ccp_ctrl_w %04x\n", machine().describe_context(), 'a' + Timer, data);
 	m_timer_ccp_ctrl[Timer] = data;
 }
 
@@ -850,14 +850,14 @@ void generalplus_gpl162xx_base_device::timer_ccp_ctrl_w(u16 data)
 template<int Timer>
 u16 generalplus_gpl162xx_base_device::timer_cc_reg_r()
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::timer%c_cc_reg_r\n", machine().describe_context(), 'a' + Timer);
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::timer%c_cc_reg_r\n", machine().describe_context(), 'a' + Timer);
 	return m_timer_cc_reg[Timer];
 }
 
 template<int Timer>
 void generalplus_gpl162xx_base_device::timer_cc_reg_w(u16 data)
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::timer%c_cc_reg_w %04x\n", machine().describe_context(), 'a' + Timer, data);
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::timer%c_cc_reg_w %04x\n", machine().describe_context(), 'a' + Timer, data);
 	m_timer_cc_reg[Timer] = data;
 }
 
@@ -867,13 +867,13 @@ void generalplus_gpl162xx_base_device::timer_cc_reg_w(u16 data)
 
 u16 generalplus_gpl162xx_base_device::cha_ctrl_r()
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::cha_ctrl_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::cha_ctrl_r\n", machine().describe_context());
 	return 0xffff;
 }
 
 void generalplus_gpl162xx_base_device::cha_ctrl_w(u16 data)
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::cha_ctrl_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::cha_ctrl_w %04x\n", machine().describe_context(), data);
 	m_cha_ctrl = data;
 }
 
@@ -882,7 +882,7 @@ void generalplus_gpl162xx_base_device::cha_ctrl_w(u16 data)
 
 u16 generalplus_gpl162xx_base_device::uart_status_r()
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::uart_status_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::uart_status_r\n", machine().describe_context());
 	return machine().rand(); // lazertag waits on a bit, status flag for something?
 }
 
@@ -934,7 +934,7 @@ TIMER_DEVICE_CALLBACK_MEMBER(generalplus_gpl162xx_base_device::scheduler_cb)
 u16 generalplus_gpl162xx_base_device::rtc_ctrl_r()
 {
 	// does this return data written, or is it a status flag?
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::rtc_ctrl_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::rtc_ctrl_r\n", machine().describe_context());
 	return m_rtc_ctrl;
 }
 
@@ -947,7 +947,7 @@ void generalplus_gpl162xx_base_device::rtc_ctrl_w(u16 data)
 	u8 schen = (data & 0x0100) >> 8;
 	u8 schsel = (data & 0x0007) >> 0;
 
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::rtc_ctrl_w %04x (unused %04x, rtc enable %d, alarm enable %d, hours/min/sec enable %d, scheduler enable %d, schselect %01x)\n", machine().describe_context(), data, no_use, rtcen, almen, hmsen, schen, schsel);
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::rtc_ctrl_w %04x (unused %04x, rtc enable %d, alarm enable %d, hours/min/sec enable %d, scheduler enable %d, schselect %01x)\n", machine().describe_context(), data, no_use, rtcen, almen, hmsen, schen, schsel);
 	m_rtc_ctrl = data;
 
 	if (rtcen)
@@ -997,13 +997,13 @@ void generalplus_gpl162xx_base_device::rtc_ctrl_w(u16 data)
 // value of 7935 is read then written in irq6, nothing happens unless bit 0x0100 was set, which could be some kind of irq source being acked?
 u16 generalplus_gpl162xx_base_device::rtc_int_status_r()
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::rtc_int_status_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::rtc_int_status_r\n", machine().describe_context());
 	return m_rtc_int_status;
 }
 
 void generalplus_gpl162xx_base_device::rtc_int_status_w(u16 data)
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::rtc_int_status_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::rtc_int_status_w %04x\n", machine().describe_context(), data);
 	m_rtc_int_status &= ~data;
 	update_interrupts(1);
 }
@@ -1032,7 +1032,7 @@ void generalplus_gpl162xx_base_device::rtc_int_status_w(u16 data)
 
 u16 generalplus_gpl162xx_base_device::rtc_int_ctrl_r()
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::rtc_int_ctrl_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::rtc_int_ctrl_r\n", machine().describe_context());
 	return m_rtc_int_ctrl;
 }
 
@@ -1046,7 +1046,7 @@ void generalplus_gpl162xx_base_device::rtc_int_ctrl_w(u16 data)
 	u8 secien = (data & 0x0002) >> 1;
 	u8 hsecien = (data & 0x0001) >> 0;
 
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::rtc_int_ctrl_w %04x (unused %04x, alarm irq enable %d, scheduler irq enable %d, hour irq enable %d, minute irq enable %d, second irq enable %d, half-second irq enable %d)\n", machine().describe_context(), data, no_use, almien, schien, hrien, minien, secien, hsecien);
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::rtc_int_ctrl_w %04x (unused %04x, alarm irq enable %d, scheduler irq enable %d, hour irq enable %d, minute irq enable %d, second irq enable %d, half-second irq enable %d)\n", machine().describe_context(), data, no_use, almien, schien, hrien, minien, secien, hsecien);
 	m_rtc_int_ctrl = data;
 }
 
@@ -1055,45 +1055,45 @@ void generalplus_gpl162xx_base_device::rtc_int_ctrl_w(u16 data)
 // these are related to the accelerometer values on jak_g500 (8-bit signed) and also the SPI reads for bkrankp
 u16 generalplus_gpl162xx_base_device::spi_7944_rxdata_r()
 {
-	LOGMASKED(LOG_GPL16218A_SPI, "%s:generalplus_gpl162xx_base_device::spi_7944_rxdata_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL162XX_SPI, "%s:generalplus_gpl162xx_base_device::spi_7944_rxdata_r\n", machine().describe_context());
 	return machine().rand();
 }
 
 u16 generalplus_gpl162xx_base_device::spi_7945_misc_control_reg_r()
 {
-	LOGMASKED(LOG_GPL16218A_SPI, "%s:generalplus_gpl162xx_base_device::spi_7945_misc_control_reg_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL162XX_SPI, "%s:generalplus_gpl162xx_base_device::spi_7945_misc_control_reg_r\n", machine().describe_context());
 	return machine().rand();// &0x0007;
 }
 
 void generalplus_gpl162xx_base_device::spi_7942_txdata_w(u16 data)
 {
-	LOGMASKED(LOG_GPL16218A_SPI, "%s:generalplus_gpl162xx_base_device::spi_7942_txdata_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL162XX_SPI, "%s:generalplus_gpl162xx_base_device::spi_7942_txdata_w %04x\n", machine().describe_context(), data);
 }
 
 // **************************************** 796x unknown *************************************************
 
 void generalplus_gpl162xx_base_device::adc_setup_w(u16 data)
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::adc_setup_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::adc_setup_w %04x\n", machine().describe_context(), data);
 	m_adc_setup = data;
 }
 
 // 7961 and 7962 are used by dressmtv when detecting battery status, adc?
 u16 generalplus_gpl162xx_base_device::madc_ctrl_r()
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::madc_ctrl_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::madc_ctrl_r\n", machine().describe_context());
 	return 0xffff; /* return m_madc_ctrl; */
 }
 
 void generalplus_gpl162xx_base_device::madc_ctrl_w(u16 data)
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::madc_ctrl_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::madc_ctrl_w %04x\n", machine().describe_context(), data);
 	m_madc_ctrl = data;
 }
 
 u16 generalplus_gpl162xx_base_device::madc_data_r()
 {
-	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::madc_data_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL162XX, "%s:generalplus_gpl162xx_base_device::madc_data_r\n", machine().describe_context());
 	return 0xffff;
 }
 
@@ -1104,7 +1104,7 @@ u16 generalplus_gpl162xx_base_device::unk_r(offs_t offset)
 	switch (offset)
 	{
 	default:
-		LOGMASKED(LOG_GPL16218A_UNMAPPED, "%s:generalplus_gpl162xx_base_device::unk_r @ 0x%04x\n", machine().describe_context(), offset + 0x7000);
+		LOGMASKED(LOG_GPL162XX_UNMAPPED, "%s:generalplus_gpl162xx_base_device::unk_r @ 0x%04x\n", machine().describe_context(), offset + 0x7000);
 		return 0x0000;
 	}
 
@@ -1117,7 +1117,7 @@ void generalplus_gpl162xx_base_device::unk_w(offs_t offset, u16 data)
 	switch (offset)
 	{
 	default:
-		LOGMASKED(LOG_GPL16218A_UNMAPPED, "%s:generalplus_gpl162xx_base_device::unk_w @ 0x%04x (data 0x%04x)\n", machine().describe_context(), offset + 0x7000, data);
+		LOGMASKED(LOG_GPL162XX_UNMAPPED, "%s:generalplus_gpl162xx_base_device::unk_w @ 0x%04x (data 0x%04x)\n", machine().describe_context(), offset + 0x7000, data);
 		break;
 	}
 }

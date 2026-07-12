@@ -13,8 +13,8 @@
 #include "generalplus_gpl162xx_b_soc.h"
 
 generalplus_gpl16218b_device::generalplus_gpl16218b_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock) :
-	generalplus_gpl162xx_base_device(mconfig, GPL16218A, tag, owner, clock)
+	generalplus_gpl162xx_base_device(mconfig, GPL16218B, tag, owner, clock)
 {
 }
 
-DEFINE_DEVICE_TYPE(GPL16218A, generalplus_gpl16218b_device, "gcm394", "GeneralPlus GPL1622x/GPL1623x/GPL1624x System-on-a-Chip")
+DEFINE_DEVICE_TYPE(GPL16218B, generalplus_gpl16218b_device, "gcm394", "GeneralPlus GPL16218B System-on-a-Chip")

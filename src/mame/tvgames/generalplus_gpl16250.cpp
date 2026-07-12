@@ -5,10 +5,10 @@
 
     JAKKS call this GPAC800, other sources (including Pac-Man Connect and Play test mode) call it GPL16250VA
 
-    die markings GPL16218A
+    die markings GCM394
      - Smart Fit Park
      - Spongebob Bikini Bottom 500
-     - Mobigo2 (sunplus_unsp20soc_mobigo.cpp)
+     - Mobigo2 (generalplus_gpl16250_mobigo2.cpp)
 
     some of the systems here might use newer dies but the video etc. appears the same.
 
@@ -30,9 +30,9 @@
         V.Baby
         Playskool Heroes Transformers Rescue Bots Beam Box
 
-    GPAC500 (based on test modes, unknown hardware, might be GPAC800 but without the higher resolution support?)
+    GPAC500 (based on test modes)
         The Price is Right
-        Bejeweled? (might be GPAC800)
+        Bejeweled
 
     Notes
         smartfp: hold button Circle, Star and Home on startup for Test Menu
@@ -128,7 +128,7 @@ void gcm394_game_state::base(machine_config &config)
 {
 	set_addrmap(0, &gcm394_game_state::cs_map_base);
 
-	GPL16218A(config, m_maincpu, 96000000, m_screen);
+	GPL16218B(config, m_maincpu, 96000000, m_screen);
 	m_maincpu->porta_in().set(FUNC(gcm394_game_state::porta_r));
 	m_maincpu->portb_in().set(FUNC(gcm394_game_state::portb_r));
 	m_maincpu->portc_in().set(FUNC(gcm394_game_state::portc_r));
