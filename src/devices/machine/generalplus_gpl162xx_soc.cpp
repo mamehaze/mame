@@ -766,7 +766,7 @@ TIMER_DEVICE_CALLBACK_MEMBER(sunplus_gcm394_base_device::timer_f_cb)
 template<int Timer>
 u16 sunplus_gcm394_base_device::timer_ctrl_r()
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::timer%c_ctrl_r\n", machine().describe_context(), 'a'+Timer);
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::timer%c_ctrl_r\n", machine().describe_context(), 'a' + Timer);
 
 	if (Timer > 1)
 		return machine().rand();
@@ -777,9 +777,96 @@ u16 sunplus_gcm394_base_device::timer_ctrl_r()
 template<int Timer>
 void sunplus_gcm394_base_device::timer_ctrl_w(u16 data)
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::timer%c_ctrl_w %04x\n", machine().describe_context(), 'a'+Timer, data);
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::timer%c_ctrl_w %04x\n", machine().describe_context(), 'a' + Timer, data);
 	m_timer_ctrl[Timer] = data;
 }
+
+// P_Timer*_Preload
+// 
+// all bits are the preload value
+
+template<int Timer>
+u16 sunplus_gcm394_base_device::timer_preload_r()
+{
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::timer%c_preload_r\n", machine().describe_context(), 'a' + Timer);
+	return m_timer_preload[Timer];
+}
+
+template<int Timer>
+void sunplus_gcm394_base_device::timer_preload_w(u16 data)
+{
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::timer%c_preload_w %04x\n", machine().describe_context(), 'a' + Timer, data);
+	m_timer_preload[Timer] = data;
+}
+
+// P_Timer*_Upcount
+// 
+// all bits are the upcount value (read only)
+
+template<int Timer>
+u16 sunplus_gcm394_base_device::timer_upcount_r()
+{
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::timer%c_upcount_r\n", machine().describe_context(), 'a' + Timer);
+	return machine().rand();
+}
+
+
+// P_Timer*_CCP_Ctrl - Timer CCP Control Register (Capture / Compare) (Timers A,B,C only)
+//
+// 15  CCP*EN[1]
+// 14  CCP*EN[0]
+// 13
+// 12
+// 
+// 11
+// 10
+//  9  CAP*SEL[1]
+//  8  CAP*SEL[0]
+// 
+//  7
+//  6
+//  5  CMP*SEL[1]
+//  4  CMP*SEL[0]
+// 
+//  3
+//  2
+//  1  PWM*SEL[1]
+//  0  PWM*SEL[0]
+
+template<int Timer>
+u16 sunplus_gcm394_base_device::timer_ccp_ctrl_r()
+{
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::timer%c_ccp_ctrl_r\n", machine().describe_context(), 'a' + Timer);
+	return m_timer_ccp_ctrl[Timer];
+}
+
+template<int Timer>
+void sunplus_gcm394_base_device::timer_ccp_ctrl_w(u16 data)
+{
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::timer%c_ccp_ctrl_w %04x\n", machine().describe_context(), 'a' + Timer, data);
+	m_timer_ccp_ctrl[Timer] = data;
+}
+
+
+// P_Timer*_CCReg  (Timers A,B,C only)
+// 
+// all bits are the comparison value
+
+template<int Timer>
+u16 sunplus_gcm394_base_device::timer_cc_reg_r()
+{
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::timer%c_cc_reg_r\n", machine().describe_context(), 'a' + Timer);
+	return m_timer_cc_reg[Timer];
+}
+
+template<int Timer>
+void sunplus_gcm394_base_device::timer_cc_reg_w(u16 data)
+{
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::timer%c_cc_reg_w %04x\n", machine().describe_context(), 'a' + Timer, data);
+	m_timer_cc_reg[Timer] = data;
+}
+
+
 
 // CHA (for sound output)
 
@@ -1619,36 +1706,42 @@ void sunplus_gcm394_base_device::base_internal_map(address_map &map)
 
 	map(0x0078b8, 0x0078b8).w(m_gpl_timebase, FUNC(gpl_timebase_device::timebase_reset_w)); // 78b8 - TimeBase_Reset
 
-
+	
 	map(0x0078c0, 0x0078c0).rw(FUNC(sunplus_gcm394_base_device::timer_ctrl_r<0>), FUNC(sunplus_gcm394_base_device::timer_ctrl_w<0>)); // beijuehh
-	// 78c1 - TimerA_CCCtrl
-	// 78c2 - TimerA_Preload
-	// 78c3 - TimerA_CCReg
-	// 78c4 - TimerA_UpCount
+	map(0x0078c1, 0x0078c1).rw(FUNC(sunplus_gcm394_base_device::timer_ccp_ctrl_r<0>), FUNC(sunplus_gcm394_base_device::timer_ccp_ctrl_w<0>)); // 78c1 - TimerA_CCCtrl
+	map(0x0078c2, 0x0078c2).rw(FUNC(sunplus_gcm394_base_device::timer_preload_r<0>), FUNC(sunplus_gcm394_base_device::timer_preload_w<0>)); // 78c2 - TimerA_Preload
+	map(0x0078c3, 0x0078c3).rw(FUNC(sunplus_gcm394_base_device::timer_cc_reg_r<0>), FUNC(sunplus_gcm394_base_device::timer_cc_reg_w<0>)); // 78c3 - TimerA_CCReg
+	map(0x0078c4, 0x0078c4).r(FUNC(sunplus_gcm394_base_device::timer_upcount_r<0>)); // 78c4 - TimerA_UpCount
 
 	map(0x0078c8, 0x0078c8).rw(FUNC(sunplus_gcm394_base_device::timer_ctrl_r<1>), FUNC(sunplus_gcm394_base_device::timer_ctrl_w<1>)); // dressmtv
-	// 78c9 - TimerB_CCCtrl
-	// 78ca - TimerB_Preload
-	// 78cb - TimerB_CCReg
-	// 78cc - TimerB_UpCount
+	map(0x0078c9, 0x0078c9).rw(FUNC(sunplus_gcm394_base_device::timer_ccp_ctrl_r<1>), FUNC(sunplus_gcm394_base_device::timer_ccp_ctrl_w<1>)); // 78c9 - TimerB_CCCtrl
+	map(0x0078ca, 0x0078ca).rw(FUNC(sunplus_gcm394_base_device::timer_preload_r<1>), FUNC(sunplus_gcm394_base_device::timer_preload_w<1>)); // 78ca - TimerB_Preload
+	map(0x0078cb, 0x0078cb).rw(FUNC(sunplus_gcm394_base_device::timer_cc_reg_r<1>), FUNC(sunplus_gcm394_base_device::timer_cc_reg_w<1>));  // 78cb - TimerB_CCReg
+	map(0x0078cc, 0x0078cc).r(FUNC(sunplus_gcm394_base_device::timer_upcount_r<1>)); // 78cc - TimerB_UpCount
 
 	map(0x0078d0, 0x0078d0).rw(FUNC(sunplus_gcm394_base_device::timer_ctrl_r<2>), FUNC(sunplus_gcm394_base_device::timer_ctrl_w<2>)); // jak_s500
-	// 78d1 - TimerC_CCCtrl
-	// 78d2 - TimerC_Preload
-	// 78d3 - TimerC_CCReg
-	// 78d4 - TimerC_UpCount
+	map(0x0078d1, 0x0078d1).rw(FUNC(sunplus_gcm394_base_device::timer_ccp_ctrl_r<2>), FUNC(sunplus_gcm394_base_device::timer_ccp_ctrl_w<2>)); // 78d1 - TimerC_CCCtrl
+	map(0x0078d2, 0x0078d2).rw(FUNC(sunplus_gcm394_base_device::timer_preload_r<2>), FUNC(sunplus_gcm394_base_device::timer_preload_w<2>)); // 78d2 - TimerC_Preload
+	map(0x0078d3, 0x0078d3).rw(FUNC(sunplus_gcm394_base_device::timer_cc_reg_r<2>), FUNC(sunplus_gcm394_base_device::timer_cc_reg_w<2>));  // 78d3 - TimerC_CCReg
+	map(0x0078d4, 0x0078d4).r(FUNC(sunplus_gcm394_base_device::timer_upcount_r<2>));  // 78d4 - TimerC_UpCount
 
 	map(0x0078d8, 0x0078d8).rw(FUNC(sunplus_gcm394_base_device::timer_ctrl_r<3>), FUNC(sunplus_gcm394_base_device::timer_ctrl_w<3>)); // jak_tsh
-	// 78da - TimerD_Preload
-	// 78dc - TimerD_UpCount
+	// no TimerD_CCCtrl
+	map(0x0078da, 0x0078da).rw(FUNC(sunplus_gcm394_base_device::timer_preload_r<3>), FUNC(sunplus_gcm394_base_device::timer_preload_w<3>)); // 78da - TimerD_Preload
+	// no TimerD_CCReg
+	map(0x0078dc, 0x0078dc).r(FUNC(sunplus_gcm394_base_device::timer_upcount_r<3>));  // 78dc - TimerD_UpCount
 
 	map(0x0078e0, 0x0078e0).rw(FUNC(sunplus_gcm394_base_device::timer_ctrl_r<4>), FUNC(sunplus_gcm394_base_device::timer_ctrl_w<4>)); // 78e0 - TimerE_Ctrl
-	// 78e2 - TimerE_Preload
-	// 78e4 - TimerE_UpCount
+	// no TimerE_CCCtrl
+	map(0x0078e2, 0x0078e2).rw(FUNC(sunplus_gcm394_base_device::timer_preload_r<4>), FUNC(sunplus_gcm394_base_device::timer_preload_w<4>)); // 78e2 - TimerE_Preload
+	// no TimerE_CCReg
+	map(0x0078e4, 0x0078e4).r(FUNC(sunplus_gcm394_base_device::timer_upcount_r<4>));  // 78e4 - TimerE_UpCount
 
 	map(0x0078e8, 0x0078e8).rw(FUNC(sunplus_gcm394_base_device::timer_ctrl_r<5>), FUNC(sunplus_gcm394_base_device::timer_ctrl_w<5>)); // 78e8 - TimerF_Ctrl
-	// 78ea - TimerF_Preload
-	// 78ec - TimerF_UpCount
+	// no TimerF_CCCtrl
+	map(0x0078ea, 0x0078ea).rw(FUNC(sunplus_gcm394_base_device::timer_preload_r<5>), FUNC(sunplus_gcm394_base_device::timer_preload_w<5>)); // 78ea - TimerF_Preload
+	// no TimerF_CCReg
+	map(0x0078ec, 0x0078ec).r(FUNC(sunplus_gcm394_base_device::timer_upcount_r<5>));  // 78ec - TimerF_UpCount
 
 	// ######################################################################################################################################################################################
 	// 78fx - DAC FIFO etc.
@@ -1836,6 +1929,9 @@ void sunplus_gcm394_base_device::device_start()
 	save_item(NAME(m_madc_ctrl));
 	save_item(NAME(m_csbase));
 	save_item(NAME(m_timer_ctrl));
+	save_item(NAME(m_timer_preload));
+	save_item(NAME(m_timer_ccp_ctrl));
+	save_item(NAME(m_timer_cc_reg));
 }
 
 void sunplus_gcm394_base_device::device_reset()
@@ -1896,7 +1992,16 @@ void sunplus_gcm394_base_device::device_reset()
 	m_madc_ctrl = 0x0000;
 
 	for (int i = 0; i < 6; i++)
+	{
 		m_timer_ctrl[i] = 0x0000;
+		m_timer_preload[i] = 0x0000;
+	}
+
+	for (int i = 0; i < 3; i++)
+	{
+		m_timer_ccp_ctrl[i] = 0x0000;
+		m_timer_cc_reg[i] = 0x0000;
+	}
 
 	m_spg_video->reset();
 }

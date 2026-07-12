@@ -171,6 +171,9 @@ protected:
 	u16 m_madc_ctrl;
 
 	u16 m_timer_ctrl[6];
+	u16 m_timer_preload[6];
+	u16 m_timer_ccp_ctrl[3];
+	u16 m_timer_cc_reg[3];
 
 	u16 internalrom_lower32_r(offs_t offset);
 
@@ -299,6 +302,13 @@ protected:
 
 	template<int Timer> u16 timer_ctrl_r();
 	template<int Timer> void timer_ctrl_w(u16 data);
+	template<int Timer> u16 timer_preload_r();
+	template<int Timer> void timer_preload_w(u16 data);
+	template<int Timer> u16 timer_ccp_ctrl_r();
+	template<int Timer> void timer_ccp_ctrl_w(u16 data);
+	template<int Timer> u16 timer_cc_reg_r();
+	template<int Timer> void timer_cc_reg_w(u16 data);
+	template<int Timer> u16 timer_upcount_r();
 
 	u16 cha_ctrl_r();
 	void cha_ctrl_w(u16 data);
