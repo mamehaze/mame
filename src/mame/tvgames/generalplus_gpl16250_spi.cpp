@@ -35,14 +35,14 @@ void generalplus_gpspispi_game_state::generalplus_gpspispi(machine_config &confi
 {
 	set_addrmap(0, &generalplus_gpspispi_game_state::cs_map_base);
 
-	GPL16250(config, m_maincpu, 96000000/2, m_screen);
+	GPL16250VA(config, m_maincpu, 96000000/2, m_screen);
 	m_maincpu->porta_in().set(FUNC(generalplus_gpspispi_game_state::porta_r));
 	m_maincpu->portb_in().set(FUNC(generalplus_gpspispi_game_state::portb_r));
 	m_maincpu->portc_in().set(FUNC(generalplus_gpspispi_game_state::portc_r));
 	m_maincpu->porta_out().set(FUNC(generalplus_gpspispi_game_state::porta_w));
 	m_maincpu->space_read_callback().set(FUNC(generalplus_gpspispi_game_state::read_external_space));
 	m_maincpu->space_write_callback().set(FUNC(generalplus_gpspispi_game_state::write_external_space));
-	m_maincpu->set_irq_acknowledge_callback(m_maincpu, FUNC(sunplus_gcm394_base_device::irq_vector_cb));
+	m_maincpu->set_irq_acknowledge_callback(m_maincpu, FUNC(generalplus_gpl162xx_base_device::irq_vector_cb));
 	m_maincpu->add_route(ALL_OUTPUTS, "speaker", 0.5, 0);
 	m_maincpu->add_route(ALL_OUTPUTS, "speaker", 0.5, 1);
 	m_maincpu->set_bootmode(0); // boot from internal ROM (SPI bootstrap)
@@ -52,8 +52,8 @@ void generalplus_gpspispi_game_state::generalplus_gpspispi(machine_config &confi
 	m_screen->set_refresh_hz(60);
 	m_screen->set_size(320*2, 262*2);
 	m_screen->set_visarea(0, (320*2)-1, 0, (240*2)-1);
-	m_screen->set_screen_update("maincpu", FUNC(sunplus_gcm394_device::screen_update));
-	m_screen->screen_vblank().set(m_maincpu, FUNC(sunplus_gcm394_device::vblank));
+	m_screen->set_screen_update("maincpu", FUNC(generalplus_gpl16218a_device::screen_update));
+	m_screen->screen_vblank().set(m_maincpu, FUNC(generalplus_gpl16218a_device::vblank));
 
 	SPEAKER(config, "speaker", 2).front();
 }

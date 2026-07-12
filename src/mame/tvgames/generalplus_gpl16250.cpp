@@ -3,9 +3,9 @@
 /*
     (unSP 2.0 based System on a Chip)
 
-    JAKKS call this GPAC800, other sources (including Pac-Man Connect and Play test mode) call it GPL16250
+    JAKKS call this GPAC800, other sources (including Pac-Man Connect and Play test mode) call it GPL16250VA
 
-    die markings GCM394
+    die markings GPL16218A
      - Smart Fit Park
      - Spongebob Bikini Bottom 500
      - Mobigo2 (sunplus_unsp20soc_mobigo.cpp)
@@ -128,14 +128,14 @@ void gcm394_game_state::base(machine_config &config)
 {
 	set_addrmap(0, &gcm394_game_state::cs_map_base);
 
-	GCM394(config, m_maincpu, 96000000, m_screen);
+	GPL16218A(config, m_maincpu, 96000000, m_screen);
 	m_maincpu->porta_in().set(FUNC(gcm394_game_state::porta_r));
 	m_maincpu->portb_in().set(FUNC(gcm394_game_state::portb_r));
 	m_maincpu->portc_in().set(FUNC(gcm394_game_state::portc_r));
 	m_maincpu->porta_out().set(FUNC(gcm394_game_state::porta_w));
 	m_maincpu->space_read_callback().set(FUNC(gcm394_game_state::read_external_space));
 	m_maincpu->space_write_callback().set(FUNC(gcm394_game_state::write_external_space));
-	m_maincpu->set_irq_acknowledge_callback(m_maincpu, FUNC(sunplus_gcm394_base_device::irq_vector_cb));
+	m_maincpu->set_irq_acknowledge_callback(m_maincpu, FUNC(generalplus_gpl162xx_base_device::irq_vector_cb));
 	m_maincpu->add_route(ALL_OUTPUTS, "speaker", 0.5, 0);
 	m_maincpu->add_route(ALL_OUTPUTS, "speaker", 0.5, 1);
 	m_maincpu->set_bootmode(1); // boot from external ROM / CS mirror
@@ -146,8 +146,8 @@ void gcm394_game_state::base(machine_config &config)
 	m_screen->set_refresh_hz(60);
 	m_screen->set_size(320*2, 262*2);
 	m_screen->set_visarea(0, (320*2)-1, 0, (240*2)-1);
-	m_screen->set_screen_update("maincpu", FUNC(sunplus_gcm394_device::screen_update));
-	m_screen->screen_vblank().set(m_maincpu, FUNC(sunplus_gcm394_device::vblank));
+	m_screen->set_screen_update("maincpu", FUNC(generalplus_gpl16218a_device::screen_update));
+	m_screen->screen_vblank().set(m_maincpu, FUNC(generalplus_gpl16218a_device::vblank));
 
 	SPEAKER(config, "speaker", 2).front();
 }

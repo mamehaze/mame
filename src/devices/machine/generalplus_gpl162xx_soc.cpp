@@ -5,7 +5,7 @@
     GPL16220A - 320x240 output, 16K words internal RAM
     GPL16230A (GPAC500A) - expands RAM to 28K words, adds SDRAM support, adds NAND Flash/ROM/OTP support, USB support
     GPL16240VA - adds 640x480 output (V = VGA support?)
-    GPL16250VA (GPAC800A) - adds '3D' sprite mode
+    GPL16250VAVA (GPAC800A) - adds '3D' sprite mode
 
     there is also the 'B' series
     these only have 12K words RAM? but have the extra maths unit at 0x79A0?
@@ -15,7 +15,7 @@
     GPL16248VB
     GPL16258VB (this could be GPAC800B)
 
-    die is marked 'GCM394' on some chips
+    die is marked 'GPL16218A' on some chips
 
     The GPAC500 / GPAC800 might be slightly customized rather than direct rebadgings
 
@@ -25,19 +25,19 @@
 #include "generalplus_gpl162xx_soc.h"
 
 
-#define LOG_GCM394_SPI            (1U << 5)
-#define LOG_GCM394_IO             (1U << 4)
-#define LOG_GCM394_SYSDMA         (1U << 3)
-#define LOG_GCM394                (1U << 2)
-#define LOG_GCM394_UNMAPPED       (1U << 1)
+#define LOG_GPL16218A_SPI            (1U << 5)
+#define LOG_GPL16218A_IO             (1U << 4)
+#define LOG_GPL16218A_SYSDMA         (1U << 3)
+#define LOG_GPL16218A                (1U << 2)
+#define LOG_GPL16218A_UNMAPPED       (1U << 1)
 
-#define VERBOSE             (LOG_GCM394 | LOG_GCM394_IO | LOG_GCM394_UNMAPPED | LOG_GCM394_SYSDMA)
+#define VERBOSE             (LOG_GPL16218A | LOG_GPL16218A_IO | LOG_GPL16218A_UNMAPPED | LOG_GPL16218A_SYSDMA)
 #include "logmacro.h"
 
 
-DEFINE_DEVICE_TYPE(GCM394, sunplus_gcm394_device, "gcm394", "GeneralPlus GPL1622x/GPL1623x/GPL1624x System-on-a-Chip")
+DEFINE_DEVICE_TYPE(GPL16218A, generalplus_gpl16218a_device, "gcm394", "GeneralPlus GPL1622x/GPL1623x/GPL1624x System-on-a-Chip")
 
-sunplus_gcm394_base_device::sunplus_gcm394_base_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, u32 clock, address_map_constructor internal) :
+generalplus_gpl162xx_base_device::generalplus_gpl162xx_base_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, u32 clock, address_map_constructor internal) :
 	unsp_20_device(mconfig, type, tag, owner, clock, internal),
 	device_mixer_interface(mconfig, *this),
 	m_screen(*this, finder_base::DUMMY_TAG),
@@ -63,7 +63,7 @@ sunplus_gcm394_base_device::sunplus_gcm394_base_device(const machine_config &mco
 	m_space_write_cb(*this),
 	m_dma_complete_cb(*this),
 	m_boot_mode(0),
-	m_cs_callback(*this, DEVICE_SELF, FUNC(sunplus_gcm394_base_device::default_cs_callback)),
+	m_cs_callback(*this, DEVICE_SELF, FUNC(generalplus_gpl162xx_base_device::default_cs_callback)),
 	m_timer_a(*this, "timer_a"),
 	m_timer_b(*this, "timer_b"),
 	m_timer_c(*this, "timer_c"),
@@ -77,125 +77,125 @@ sunplus_gcm394_base_device::sunplus_gcm394_base_device(const machine_config &mco
 {
 }
 
-sunplus_gcm394_device::sunplus_gcm394_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock) :
-	sunplus_gcm394_base_device(mconfig, GCM394, tag, owner, clock)
+generalplus_gpl16218a_device::generalplus_gpl16218a_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock) :
+	generalplus_gpl162xx_base_device(mconfig, GPL16218A, tag, owner, clock)
 {
 }
 
 
 
 
-void sunplus_gcm394_base_device::default_cs_callback(u16 cs0, u16 cs1, u16 cs2, u16 cs3, u16 cs4)
+void generalplus_gpl162xx_base_device::default_cs_callback(u16 cs0, u16 cs1, u16 cs2, u16 cs3, u16 cs4)
 {
 	logerror("callback not hooked\n");
 }
 
 
-u16 sunplus_gcm394_base_device::usb_7a35_r()
+u16 generalplus_gpl162xx_base_device::usb_7a35_r()
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::usb_7a35_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::usb_7a35_r\n", machine().describe_context());
 	return machine().rand();
 }
 
-u16 sunplus_gcm394_base_device::usb_7a37_r()
+u16 generalplus_gpl162xx_base_device::usb_7a37_r()
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::usb_7a37_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::usb_7a37_r\n", machine().describe_context());
 	return machine().rand();
 }
 
-u16 sunplus_gcm394_base_device::usb_7a39_r()
+u16 generalplus_gpl162xx_base_device::usb_7a39_r()
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::usb_7a39_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::usb_7a39_r\n", machine().describe_context());
 	return machine().rand();
 }
 
 
-u16 sunplus_gcm394_base_device::usb_7a3a_r()
+u16 generalplus_gpl162xx_base_device::usb_7a3a_r()
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::usb_7a3a_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::usb_7a3a_r\n", machine().describe_context());
 	return machine().rand();
 }
 
-u16 sunplus_gcm394_base_device::usb_7a46_r()
+u16 generalplus_gpl162xx_base_device::usb_7a46_r()
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::usb_7a46_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::usb_7a46_r\n", machine().describe_context());
 	return machine().rand();
 }
 
-u16 sunplus_gcm394_base_device::usb_7a54_r()
+u16 generalplus_gpl162xx_base_device::usb_7a54_r()
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::usb_7a54_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::usb_7a54_r\n", machine().describe_context());
 	return machine().rand();
 }
 
 // **************************************** 78xx region with some handling *************************************************
 
-u16 sunplus_gcm394_base_device::power_state_r()
+u16 generalplus_gpl162xx_base_device::power_state_r()
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::power_state_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::power_state_r\n", machine().describe_context());
 	return 0x0002;
 }
 
-u16 sunplus_gcm394_base_device::dac_pga_r()
+u16 generalplus_gpl162xx_base_device::dac_pga_r()
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::dac_pga_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::dac_pga_r\n", machine().describe_context());
 	m_dac_pga ^= 0x0100; // status flag for something?
 	return m_dac_pga;
 }
 
 // sets bit 0x0002 then expects it to have cleared
-u16 sunplus_gcm394_base_device::cache_ctrl_r() { LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::cache_ctrl_r\n", machine().describe_context()); return m_cache_ctrl & ~ 0x0002; }
-void sunplus_gcm394_base_device::cache_ctrl_w(u16 data) { LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::cache_ctrl_w %04x\n", machine().describe_context(), data); m_cache_ctrl = data; }
+u16 generalplus_gpl162xx_base_device::cache_ctrl_r() { LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::cache_ctrl_r\n", machine().describe_context()); return m_cache_ctrl & ~ 0x0002; }
+void generalplus_gpl162xx_base_device::cache_ctrl_w(u16 data) { LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::cache_ctrl_w %04x\n", machine().describe_context(), data); m_cache_ctrl = data; }
 
 // ****************************************  78xx region stubs *************************************************
 
-u16 sunplus_gcm394_base_device::raw_war_r() { LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::raw_war_r\n", machine().describe_context()); return m_782d; }
-void sunplus_gcm394_base_device::raw_war_w(u16 data) { LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::raw_war_w %04x\n", machine().describe_context(), data); m_782d = data; }
+u16 generalplus_gpl162xx_base_device::raw_war_r() { LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::raw_war_r\n", machine().describe_context()); return m_782d; }
+void generalplus_gpl162xx_base_device::raw_war_w(u16 data) { LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::raw_war_w %04x\n", machine().describe_context(), data); m_782d = data; }
 
-u16 sunplus_gcm394_base_device::sys_ctrl_r() { LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::sys_ctrl_r\n", machine().describe_context()); return m_sys_ctrl; }
-void sunplus_gcm394_base_device::sys_ctrl_w(u16 data) { LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::sys_ctrl_w %04x\n", machine().describe_context(), data); m_sys_ctrl = data; }
+u16 generalplus_gpl162xx_base_device::sys_ctrl_r() { LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::sys_ctrl_r\n", machine().describe_context()); return m_sys_ctrl; }
+void generalplus_gpl162xx_base_device::sys_ctrl_w(u16 data) { LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::sys_ctrl_w %04x\n", machine().describe_context(), data); m_sys_ctrl = data; }
 
-void sunplus_gcm394_base_device::clock_ctrl_w(u16 data)
+void generalplus_gpl162xx_base_device::clock_ctrl_w(u16 data)
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::clock_ctrl_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::clock_ctrl_w %04x\n", machine().describe_context(), data);
 	m_clock_ctrl = data;
 }
 
-u16 sunplus_gcm394_base_device::clk_ctrl0_r()
+u16 generalplus_gpl162xx_base_device::clk_ctrl0_r()
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::clk_ctrl0_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::clk_ctrl0_r\n", machine().describe_context());
 	return 0x0000;
 }
 
-void sunplus_gcm394_base_device::clk_ctrl0_w(u16 data)
+void generalplus_gpl162xx_base_device::clk_ctrl0_w(u16 data)
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::clk_ctrl0 %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::clk_ctrl0 %04x\n", machine().describe_context(), data);
 }
 
-void sunplus_gcm394_base_device::watchdog_ctrl_w(u16 data)
+void generalplus_gpl162xx_base_device::watchdog_ctrl_w(u16 data)
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::watchdog_ctrl_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::watchdog_ctrl_w %04x\n", machine().describe_context(), data);
 }
 
-void sunplus_gcm394_base_device::waitmode_enter_780c_w(u16 data)
+void generalplus_gpl162xx_base_device::waitmode_enter_780c_w(u16 data)
 {
-	// LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::waitmode_enter_780c_w %04x\n", machine().describe_context(), data);
+	// LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::waitmode_enter_780c_w %04x\n", machine().describe_context(), data);
 	// must be followed by 6 nops to ensure wait mode is entered
 }
 
 // this gets stored / modified / restored before certain memory accesses (
 // used extensively during SDRAM checks in jak_gtg and jak_car2
 
-u16 sunplus_gcm394_base_device::membankswitch_7810_r()
+u16 generalplus_gpl162xx_base_device::membankswitch_7810_r()
 {
-//  LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::membankswitch_7810_r\n", machine().describe_context());
+//  LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::membankswitch_7810_r\n", machine().describe_context());
 	return m_membankswitch_7810;
 }
 
-void sunplus_gcm394_base_device::membankswitch_7810_w(u16 data)
+void generalplus_gpl162xx_base_device::membankswitch_7810_w(u16 data)
 {
 //  if (m_membankswitch_7810 != data)
-//  LOGMASKED(LOG_GCM394,"%s:sunplus_gcm394_base_device::membankswitch_7810_w %04x\n", machine().describe_context(), data);
+//  LOGMASKED(LOG_GPL16218A,"%s:generalplus_gpl162xx_base_device::membankswitch_7810_w %04x\n", machine().describe_context(), data);
 
 //  if (m_membankswitch_7810 != data)
 //      popmessage("bankswitch %04x -> %04x", m_membankswitch_7810, data);
@@ -204,32 +204,32 @@ void sunplus_gcm394_base_device::membankswitch_7810_w(u16 data)
 }
 
 
-void sunplus_gcm394_base_device::unkarea_7816_w(u16 data)
+void generalplus_gpl162xx_base_device::unkarea_7816_w(u16 data)
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::unkarea_7816_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::unkarea_7816_w %04x\n", machine().describe_context(), data);
 	m_7816 = data;
 }
 
-void sunplus_gcm394_base_device::pllchange_w(u16 data)
+void generalplus_gpl162xx_base_device::pllchange_w(u16 data)
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::pllchange_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::pllchange_w %04x\n", machine().describe_context(), data);
 	m_pllchange = data;
 }
 
-u16 sunplus_gcm394_base_device::pllclkwait_r()
+u16 generalplus_gpl162xx_base_device::pllclkwait_r()
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::pllclkwait_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::pllclkwait_r\n", machine().describe_context());
 	return 0x0000;
 }
 
-void sunplus_gcm394_base_device::pllclkwait_w(u16 data)
+void generalplus_gpl162xx_base_device::pllclkwait_w(u16 data)
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::pllclkwait_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::pllclkwait_w %04x\n", machine().describe_context(), data);
 }
 
-void sunplus_gcm394_base_device::chipselect_csx_memory_device_control_w(offs_t offset, u16 data)
+void generalplus_gpl162xx_base_device::chipselect_csx_memory_device_control_w(offs_t offset, u16 data)
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::chipselect_csx_memory_device_control_w %04x (782x registers offset %d)\n", machine().describe_context(), data, offset);
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::chipselect_csx_memory_device_control_w %04x (782x registers offset %d)\n", machine().describe_context(), data, offset);
 	m_782x[offset] = data;
 
 
@@ -252,270 +252,270 @@ void sunplus_gcm394_base_device::chipselect_csx_memory_device_control_w(offs_t o
 
 }
 
-void sunplus_gcm394_base_device::device_post_load()
+void generalplus_gpl162xx_base_device::device_post_load()
 {
 	m_cs_callback(m_782x[0], m_782x[1], m_782x[2], m_782x[3], m_782x[4]);
 }
 
-void sunplus_gcm394_base_device::mcs0_page_w(u16 data) { LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::mcs0_page_w %04x\n", machine().describe_context(), data); m_7835 = data; }
+void generalplus_gpl162xx_base_device::mcs0_page_w(u16 data) { LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::mcs0_page_w %04x\n", machine().describe_context(), data); m_7835 = data; }
 
 // IO here?
 
 // Port A
 
-u16 sunplus_gcm394_base_device::ioa_data_r()
+u16 generalplus_gpl162xx_base_device::ioa_data_r()
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioa_data_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::ioa_data_r\n", machine().describe_context());
 	return m_porta_in();
 }
 
-void sunplus_gcm394_base_device::ioa_data_w(u16 data)
+void generalplus_gpl162xx_base_device::ioa_data_w(u16 data)
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioa_data_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::ioa_data_w %04x\n", machine().describe_context(), data);
 	m_porta_out(data);
 }
 
-u16 sunplus_gcm394_base_device::ioa_buffer_r()
+u16 generalplus_gpl162xx_base_device::ioa_buffer_r()
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioa_buffer_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::ioa_buffer_r\n", machine().describe_context());
 	return 0x0000;// 0xffff;
 }
 
-void sunplus_gcm394_base_device::ioa_buffer_w(u16 data)
+void generalplus_gpl162xx_base_device::ioa_buffer_w(u16 data)
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioa_buffer_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::ioa_buffer_w %04x\n", machine().describe_context(), data);
 }
 
-u16 sunplus_gcm394_base_device::ioa_dir_r()
+u16 generalplus_gpl162xx_base_device::ioa_dir_r()
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioa_dir_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::ioa_dir_r\n", machine().describe_context());
 	return m_7862_porta_direction;
 }
 
-void sunplus_gcm394_base_device::ioa_dir_w(u16 data)
+void generalplus_gpl162xx_base_device::ioa_dir_w(u16 data)
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioa_dir_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::ioa_dir_w %04x\n", machine().describe_context(), data);
 	m_7862_porta_direction = data;
 }
 
-u16 sunplus_gcm394_base_device::ioa_attrib_r()
+u16 generalplus_gpl162xx_base_device::ioa_attrib_r()
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioa_attrib_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::ioa_attrib_r\n", machine().describe_context());
 	return m_7863_porta_attribute;
 }
 
-void sunplus_gcm394_base_device::ioa_attrib_w(u16 data)
+void generalplus_gpl162xx_base_device::ioa_attrib_w(u16 data)
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioa_attrib_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::ioa_attrib_w %04x\n", machine().describe_context(), data);
 	m_7863_porta_attribute = data;
 }
 
 // Port B
 
-u16 sunplus_gcm394_base_device::iob_buffer_r()
+u16 generalplus_gpl162xx_base_device::iob_buffer_r()
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iob_buffer_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::iob_buffer_r\n", machine().describe_context());
 	return machine().rand();
 }
 
-void sunplus_gcm394_base_device::iob_buffer_w(u16 data)
+void generalplus_gpl162xx_base_device::iob_buffer_w(u16 data)
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iob_buffer_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::iob_buffer_w %04x\n", machine().describe_context(), data);
 	m_portb_out(data); // buffer writes must update output state too, beijuehh requires it for banking
 }
 
-u16 sunplus_gcm394_base_device::iob_data_r()
+u16 generalplus_gpl162xx_base_device::iob_data_r()
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iob_data_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::iob_data_r\n", machine().describe_context());
 	return m_portb_in();
 }
 
-void sunplus_gcm394_base_device::iob_data_w(u16 data)
+void generalplus_gpl162xx_base_device::iob_data_w(u16 data)
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iob_data_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::iob_data_w %04x\n", machine().describe_context(), data);
 	m_portb_out(data);
 }
 
-u16 sunplus_gcm394_base_device::iob_dir_r()
+u16 generalplus_gpl162xx_base_device::iob_dir_r()
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iob_dir_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::iob_dir_r\n", machine().describe_context());
 	return m_786a_portb_direction;
 }
 
-void sunplus_gcm394_base_device::iob_dir_w(u16 data)
+void generalplus_gpl162xx_base_device::iob_dir_w(u16 data)
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iob_dir_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::iob_dir_w %04x\n", machine().describe_context(), data);
 	m_786a_portb_direction = data;
 }
 
-u16 sunplus_gcm394_base_device::iob_attrib_r()
+u16 generalplus_gpl162xx_base_device::iob_attrib_r()
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iob_attrib_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::iob_attrib_r\n", machine().describe_context());
 	return m_786b_portb_attribute;
 }
 
-void sunplus_gcm394_base_device::iob_attrib_w(u16 data)
+void generalplus_gpl162xx_base_device::iob_attrib_w(u16 data)
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iob_attrib_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::iob_attrib_w %04x\n", machine().describe_context(), data);
 	m_786b_portb_attribute = data;
 }
 
 // Port C
 
-u16 sunplus_gcm394_base_device::ioc_data_r()
+u16 generalplus_gpl162xx_base_device::ioc_data_r()
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioc_data_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::ioc_data_r\n", machine().describe_context());
 	return m_portc_in();
 }
 
-void sunplus_gcm394_base_device::ioc_data_w(u16 data)
+void generalplus_gpl162xx_base_device::ioc_data_w(u16 data)
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioc_data_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::ioc_data_w %04x\n", machine().describe_context(), data);
 	m_ioc_data = data;
 	m_portc_out(data);
 }
 
-u16 sunplus_gcm394_base_device::ioc_buffer_r()
+u16 generalplus_gpl162xx_base_device::ioc_buffer_r()
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioc_buffer_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::ioc_buffer_r\n", machine().describe_context());
 	return 0xffff;// m_7871;
 }
 
-void sunplus_gcm394_base_device::ioc_buffer_w(u16 data)
+void generalplus_gpl162xx_base_device::ioc_buffer_w(u16 data)
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioc_buffer_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::ioc_buffer_w %04x\n", machine().describe_context(), data);
 }
 
-u16 sunplus_gcm394_base_device::ioc_dir_r()
+u16 generalplus_gpl162xx_base_device::ioc_dir_r()
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioc_dir_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::ioc_dir_r\n", machine().describe_context());
 	return m_7872_portc_direction;
 }
 
-void sunplus_gcm394_base_device::ioc_dir_w(u16 data)
+void generalplus_gpl162xx_base_device::ioc_dir_w(u16 data)
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioc_dir_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::ioc_dir_w %04x\n", machine().describe_context(), data);
 	m_7872_portc_direction = data;
 }
 
-u16 sunplus_gcm394_base_device::ioc_attrib_r()
+u16 generalplus_gpl162xx_base_device::ioc_attrib_r()
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioc_attrib_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::ioc_attrib_r\n", machine().describe_context());
 	return m_7873_portc_attribute;
 }
 
-void sunplus_gcm394_base_device::ioc_attrib_w(u16 data)
+void generalplus_gpl162xx_base_device::ioc_attrib_w(u16 data)
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioc_attrib_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::ioc_attrib_w %04x\n", machine().describe_context(), data);
 	m_7873_portc_attribute = data;
 }
 
 // Port D
 
-u16 sunplus_gcm394_base_device::iod_data_r()
+u16 generalplus_gpl162xx_base_device::iod_data_r()
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iod_data_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::iod_data_r\n", machine().describe_context());
 	return m_portd_in();
 }
 
-void sunplus_gcm394_base_device::iod_data_w(u16 data)
+void generalplus_gpl162xx_base_device::iod_data_w(u16 data)
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iod_data_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::iod_data_w %04x\n", machine().describe_context(), data);
 	//m_7878 = data;
 	m_portd_out(data);
 }
 
-u16 sunplus_gcm394_base_device::iod_buffer_r()
+u16 generalplus_gpl162xx_base_device::iod_buffer_r()
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iod_buffer_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::iod_buffer_r\n", machine().describe_context());
 	return 0xffff;
 }
 
-void sunplus_gcm394_base_device::iod_buffer_w(u16 data)
+void generalplus_gpl162xx_base_device::iod_buffer_w(u16 data)
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iod_buffer_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::iod_buffer_w %04x\n", machine().describe_context(), data);
 	m_portd_out(data); // buffer writes must update output state too, beijuehh requires it for banking
 }
 
-u16 sunplus_gcm394_base_device::iod_dir_r()
+u16 generalplus_gpl162xx_base_device::iod_dir_r()
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iod_dir_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::iod_dir_r\n", machine().describe_context());
 	return m_787a_portd_direction;
 }
 
-void sunplus_gcm394_base_device::iod_dir_w(u16 data)
+void generalplus_gpl162xx_base_device::iod_dir_w(u16 data)
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iod_dir_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::iod_dir_w %04x\n", machine().describe_context(), data);
 	m_787a_portd_direction = data;
 }
 
-u16 sunplus_gcm394_base_device::iod_attib_r()
+u16 generalplus_gpl162xx_base_device::iod_attib_r()
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iod_attib_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::iod_attib_r\n", machine().describe_context());
 	return m_787b_portd_attribute;
 }
 
-void sunplus_gcm394_base_device::iod_attib_w(u16 data)
+void generalplus_gpl162xx_base_device::iod_attib_w(u16 data)
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iod_attib_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::iod_attib_w %04x\n", machine().describe_context(), data);
 	m_787b_portd_attribute = data;
 }
 
-u16 sunplus_gcm394_base_device::iod_drv_r()
+u16 generalplus_gpl162xx_base_device::iod_drv_r()
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iod_drv_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::iod_drv_r\n", machine().describe_context());
 	return 0xffff;
 }
 
-void sunplus_gcm394_base_device::iod_drv_w(u16 data)
+void generalplus_gpl162xx_base_device::iod_drv_w(u16 data)
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iod_drv_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::iod_drv_w %04x\n", machine().describe_context(), data);
 }
 
-u16 sunplus_gcm394_base_device::iod_mux_r()
+u16 generalplus_gpl162xx_base_device::iod_mux_r()
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iod_mux_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::iod_mux_r\n", machine().describe_context());
 	return 0xffff;
 }
 
-void sunplus_gcm394_base_device::iod_mux_w(u16 data)
+void generalplus_gpl162xx_base_device::iod_mux_w(u16 data)
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::iod_mux_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::iod_mux_w %04x\n", machine().describe_context(), data);
 }
 
-u16 sunplus_gcm394_base_device::ioe_buffer_r()
+u16 generalplus_gpl162xx_base_device::ioe_buffer_r()
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioe_buffer_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::ioe_buffer_r\n", machine().describe_context());
 	return 0xffff;
 }
 
-void sunplus_gcm394_base_device::ioe_buffer_w(u16 data)
+void generalplus_gpl162xx_base_device::ioe_buffer_w(u16 data)
 {
-	LOGMASKED(LOG_GCM394_IO, "%s:sunplus_gcm394_base_device::ioe_buffer_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL16218A_IO, "%s:generalplus_gpl162xx_base_device::ioe_buffer_w %04x\n", machine().describe_context(), data);
 	//m_porte_out(data);
 }
 
-u16 sunplus_gcm394_base_device::ioe_dir_r()
+u16 generalplus_gpl162xx_base_device::ioe_dir_r()
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::ioe_dir_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::ioe_dir_r\n", machine().describe_context());
 	return m_ioe_dir;
 }
 
-void sunplus_gcm394_base_device::ioe_dir_w(u16 data)
+void generalplus_gpl162xx_base_device::ioe_dir_w(u16 data)
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::ioe_dir_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::ioe_dir_w %04x\n", machine().describe_context(), data);
 	m_ioe_dir = data;
 }
 
-u16 sunplus_gcm394_base_device::ioe_attrib_r()
+u16 generalplus_gpl162xx_base_device::ioe_attrib_r()
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::ioe_attrib_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::ioe_attrib_r\n", machine().describe_context());
 	return m_ioe_attrib;
 }
 
-void sunplus_gcm394_base_device::ioe_attrib_w(u16 data)
+void generalplus_gpl162xx_base_device::ioe_attrib_w(u16 data)
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::ioe_attrib_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::ioe_attrib_w %04x\n", machine().describe_context(), data);
 	m_ioe_attrib = data;
 }
 
@@ -541,15 +541,15 @@ void sunplus_gcm394_base_device::ioe_attrib_w(u16 data)
 //  1  EXTBIF
 //  0  EXTAIF
 
-u16 sunplus_gcm394_base_device::int_status1_r()
+u16 generalplus_gpl162xx_base_device::int_status1_r()
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::int_status1_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::int_status1_r\n", machine().describe_context());
 	return 0x0000;// machine().rand();
 }
 
-void sunplus_gcm394_base_device::int_status1_w(u16 data)
+void generalplus_gpl162xx_base_device::int_status1_w(u16 data)
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::int_status1_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::int_status1_w %04x\n", machine().describe_context(), data);
 	//m_int_status1 = data;
 }
 
@@ -574,9 +574,9 @@ void sunplus_gcm394_base_device::int_status1_w(u16 data)
 //  1  ALMIF
 //  0  HMSIF
 
-u16 sunplus_gcm394_base_device::int_status2_r()
+u16 generalplus_gpl162xx_base_device::int_status2_r()
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::int_status2_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::int_status2_r\n", machine().describe_context());
 	u16 ret = 0;
 
 	if (m_gpl_timebase->timebase_irq_flag<0>())
@@ -591,9 +591,9 @@ u16 sunplus_gcm394_base_device::int_status2_r()
 	return ret;
 }
 
-void sunplus_gcm394_base_device::int_status2_w(u16 data)
+void generalplus_gpl162xx_base_device::int_status2_w(u16 data)
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::int_status2_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::int_status2_w %04x\n", machine().describe_context(), data);
 	// none of this bits are listed as wrieable for GPL95xx or GPL162xx
 }
 
@@ -618,39 +618,39 @@ void sunplus_gcm394_base_device::int_status2_w(u16 data)
 //  1  ENV
 //  0  CHANNEL
 
-u16 sunplus_gcm394_base_device::int_status3_r()
+u16 generalplus_gpl162xx_base_device::int_status3_r()
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::int_status3_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::int_status3_r\n", machine().describe_context());
 	return 0x0000;
 }
 
-void sunplus_gcm394_base_device::int_status3_w(u16 data)
+void generalplus_gpl162xx_base_device::int_status3_w(u16 data)
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::int_status3_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::int_status3_w %04x\n", machine().describe_context(), data);
 	// bit 2 (SPU Beat Interrupt) is listed as R/W for GPL95, but not GPL162? (verify)
 }
 
-void sunplus_gcm394_base_device::int_priority_1_w(u16 data)
+void generalplus_gpl162xx_base_device::int_priority_1_w(u16 data)
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::int_priority_1_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::int_priority_1_w %04x\n", machine().describe_context(), data);
 	m_int_priority_1 = data;
 }
 
-void sunplus_gcm394_base_device::int_priority_2_w(u16 data)
+void generalplus_gpl162xx_base_device::int_priority_2_w(u16 data)
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::int_priority_2_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::int_priority_2_w %04x\n", machine().describe_context(), data);
 	m_int_priority_2 = data;
 }
 
-void sunplus_gcm394_base_device::int_priority_3_w(u16 data)
+void generalplus_gpl162xx_base_device::int_priority_3_w(u16 data)
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::int_priority_3_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::int_priority_3_w %04x\n", machine().describe_context(), data);
 	m_int_priority_3 = data;
 }
 
-void sunplus_gcm394_base_device::mint_ctrl_w(u16 data)
+void generalplus_gpl162xx_base_device::mint_ctrl_w(u16 data)
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::mint_ctrl_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::mint_ctrl_w %04x\n", machine().describe_context(), data);
 	m_misc_int_ctrl = data;
 }
 
@@ -693,7 +693,7 @@ void sunplus_gcm394_base_device::mint_ctrl_w(u16 data)
 // Hour/Minute/Second/Half-Second interrupt (RTC)
 // Unexpected memory access interrupt
 
-void sunplus_gcm394_base_device::update_interrupts(int state)
+void generalplus_gpl162xx_base_device::update_interrupts(int state)
 {
 	if ((m_gpl_timebase->timebase_irq_flag<0>() && !m_disable_timebase_interrupts) || (m_gpl_timebase->timebase_irq_flag<1>() && !m_disable_timebase_interrupts))
 	{
@@ -717,27 +717,27 @@ void sunplus_gcm394_base_device::update_interrupts(int state)
 
 // programmable timers
 
-TIMER_DEVICE_CALLBACK_MEMBER(sunplus_gcm394_base_device::timer_a_cb)
+TIMER_DEVICE_CALLBACK_MEMBER(generalplus_gpl162xx_base_device::timer_a_cb)
 {
 }
 
-TIMER_DEVICE_CALLBACK_MEMBER(sunplus_gcm394_base_device::timer_b_cb)
+TIMER_DEVICE_CALLBACK_MEMBER(generalplus_gpl162xx_base_device::timer_b_cb)
 {
 }
 
-TIMER_DEVICE_CALLBACK_MEMBER(sunplus_gcm394_base_device::timer_c_cb)
+TIMER_DEVICE_CALLBACK_MEMBER(generalplus_gpl162xx_base_device::timer_c_cb)
 {
 }
 
-TIMER_DEVICE_CALLBACK_MEMBER(sunplus_gcm394_base_device::timer_d_cb)
+TIMER_DEVICE_CALLBACK_MEMBER(generalplus_gpl162xx_base_device::timer_d_cb)
 {
 }
 
-TIMER_DEVICE_CALLBACK_MEMBER(sunplus_gcm394_base_device::timer_e_cb)
+TIMER_DEVICE_CALLBACK_MEMBER(generalplus_gpl162xx_base_device::timer_e_cb)
 {
 }
 
-TIMER_DEVICE_CALLBACK_MEMBER(sunplus_gcm394_base_device::timer_f_cb)
+TIMER_DEVICE_CALLBACK_MEMBER(generalplus_gpl162xx_base_device::timer_f_cb)
 {
 }
 
@@ -764,9 +764,9 @@ TIMER_DEVICE_CALLBACK_MEMBER(sunplus_gcm394_base_device::timer_f_cb)
 //  0  SRCASEL[0]
 
 template<int Timer>
-u16 sunplus_gcm394_base_device::timer_ctrl_r()
+u16 generalplus_gpl162xx_base_device::timer_ctrl_r()
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::timer%c_ctrl_r\n", machine().describe_context(), 'a' + Timer);
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::timer%c_ctrl_r\n", machine().describe_context(), 'a' + Timer);
 
 	if (Timer > 1)
 		return machine().rand();
@@ -775,9 +775,9 @@ u16 sunplus_gcm394_base_device::timer_ctrl_r()
 }
 
 template<int Timer>
-void sunplus_gcm394_base_device::timer_ctrl_w(u16 data)
+void generalplus_gpl162xx_base_device::timer_ctrl_w(u16 data)
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::timer%c_ctrl_w %04x\n", machine().describe_context(), 'a' + Timer, data);
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::timer%c_ctrl_w %04x\n", machine().describe_context(), 'a' + Timer, data);
 	m_timer_ctrl[Timer] = data;
 }
 
@@ -786,16 +786,16 @@ void sunplus_gcm394_base_device::timer_ctrl_w(u16 data)
 // all bits are the preload value
 
 template<int Timer>
-u16 sunplus_gcm394_base_device::timer_preload_r()
+u16 generalplus_gpl162xx_base_device::timer_preload_r()
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::timer%c_preload_r\n", machine().describe_context(), 'a' + Timer);
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::timer%c_preload_r\n", machine().describe_context(), 'a' + Timer);
 	return m_timer_preload[Timer];
 }
 
 template<int Timer>
-void sunplus_gcm394_base_device::timer_preload_w(u16 data)
+void generalplus_gpl162xx_base_device::timer_preload_w(u16 data)
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::timer%c_preload_w %04x\n", machine().describe_context(), 'a' + Timer, data);
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::timer%c_preload_w %04x\n", machine().describe_context(), 'a' + Timer, data);
 	m_timer_preload[Timer] = data;
 }
 
@@ -804,9 +804,9 @@ void sunplus_gcm394_base_device::timer_preload_w(u16 data)
 // all bits are the upcount value (read only)
 
 template<int Timer>
-u16 sunplus_gcm394_base_device::timer_upcount_r()
+u16 generalplus_gpl162xx_base_device::timer_upcount_r()
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::timer%c_upcount_r\n", machine().describe_context(), 'a' + Timer);
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::timer%c_upcount_r\n", machine().describe_context(), 'a' + Timer);
 	return machine().rand();
 }
 
@@ -834,16 +834,16 @@ u16 sunplus_gcm394_base_device::timer_upcount_r()
 //  0  PWM*SEL[0]
 
 template<int Timer>
-u16 sunplus_gcm394_base_device::timer_ccp_ctrl_r()
+u16 generalplus_gpl162xx_base_device::timer_ccp_ctrl_r()
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::timer%c_ccp_ctrl_r\n", machine().describe_context(), 'a' + Timer);
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::timer%c_ccp_ctrl_r\n", machine().describe_context(), 'a' + Timer);
 	return m_timer_ccp_ctrl[Timer];
 }
 
 template<int Timer>
-void sunplus_gcm394_base_device::timer_ccp_ctrl_w(u16 data)
+void generalplus_gpl162xx_base_device::timer_ccp_ctrl_w(u16 data)
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::timer%c_ccp_ctrl_w %04x\n", machine().describe_context(), 'a' + Timer, data);
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::timer%c_ccp_ctrl_w %04x\n", machine().describe_context(), 'a' + Timer, data);
 	m_timer_ccp_ctrl[Timer] = data;
 }
 
@@ -853,16 +853,16 @@ void sunplus_gcm394_base_device::timer_ccp_ctrl_w(u16 data)
 // all bits are the comparison value
 
 template<int Timer>
-u16 sunplus_gcm394_base_device::timer_cc_reg_r()
+u16 generalplus_gpl162xx_base_device::timer_cc_reg_r()
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::timer%c_cc_reg_r\n", machine().describe_context(), 'a' + Timer);
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::timer%c_cc_reg_r\n", machine().describe_context(), 'a' + Timer);
 	return m_timer_cc_reg[Timer];
 }
 
 template<int Timer>
-void sunplus_gcm394_base_device::timer_cc_reg_w(u16 data)
+void generalplus_gpl162xx_base_device::timer_cc_reg_w(u16 data)
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::timer%c_cc_reg_w %04x\n", machine().describe_context(), 'a' + Timer, data);
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::timer%c_cc_reg_w %04x\n", machine().describe_context(), 'a' + Timer, data);
 	m_timer_cc_reg[Timer] = data;
 }
 
@@ -870,30 +870,30 @@ void sunplus_gcm394_base_device::timer_cc_reg_w(u16 data)
 
 // CHA (for sound output)
 
-u16 sunplus_gcm394_base_device::cha_ctrl_r()
+u16 generalplus_gpl162xx_base_device::cha_ctrl_r()
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::cha_ctrl_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::cha_ctrl_r\n", machine().describe_context());
 	return 0xffff;
 }
 
-void sunplus_gcm394_base_device::cha_ctrl_w(u16 data)
+void generalplus_gpl162xx_base_device::cha_ctrl_w(u16 data)
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::cha_ctrl_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::cha_ctrl_w %04x\n", machine().describe_context(), data);
 	m_cha_ctrl = data;
 }
 
 
 // UART
 
-u16 sunplus_gcm394_base_device::uart_status_r()
+u16 generalplus_gpl162xx_base_device::uart_status_r()
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::uart_status_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::uart_status_r\n", machine().describe_context());
 	return machine().rand(); // lazertag waits on a bit, status flag for something?
 }
 
 // RTC
 
-TIMER_DEVICE_CALLBACK_MEMBER(sunplus_gcm394_base_device::scheduler_cb)
+TIMER_DEVICE_CALLBACK_MEMBER(generalplus_gpl162xx_base_device::scheduler_cb)
 {
 	if (m_rtc_int_ctrl & 0x0100)
 	{
@@ -936,14 +936,14 @@ TIMER_DEVICE_CALLBACK_MEMBER(sunplus_gcm394_base_device::scheduler_cb)
 // 6: 1024Hz
 // 7: 2048Hz
 
-u16 sunplus_gcm394_base_device::rtc_ctrl_r()
+u16 generalplus_gpl162xx_base_device::rtc_ctrl_r()
 {
 	// does this return data written, or is it a status flag?
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::rtc_ctrl_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::rtc_ctrl_r\n", machine().describe_context());
 	return m_rtc_ctrl;
 }
 
-void sunplus_gcm394_base_device::rtc_ctrl_w(u16 data)
+void generalplus_gpl162xx_base_device::rtc_ctrl_w(u16 data)
 {
 	u16 no_use = data & 0x78f8;
 	u8 rtcen = (data & 0x8000) >> 15;
@@ -952,7 +952,7 @@ void sunplus_gcm394_base_device::rtc_ctrl_w(u16 data)
 	u8 schen = (data & 0x0100) >> 8;
 	u8 schsel = (data & 0x0007) >> 0;
 
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::rtc_ctrl_w %04x (unused %04x, rtc enable %d, alarm enable %d, hours/min/sec enable %d, scheduler enable %d, schselect %01x)\n", machine().describe_context(), data, no_use, rtcen, almen, hmsen, schen, schsel);
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::rtc_ctrl_w %04x (unused %04x, rtc enable %d, alarm enable %d, hours/min/sec enable %d, scheduler enable %d, schselect %01x)\n", machine().describe_context(), data, no_use, rtcen, almen, hmsen, schen, schsel);
 	m_rtc_ctrl = data;
 
 	if (rtcen)
@@ -1000,15 +1000,15 @@ void sunplus_gcm394_base_device::rtc_ctrl_w(u16 data)
 //  0  HSECIF/C - Half Second Interrupt Flag/Clear
 
 // value of 7935 is read then written in irq6, nothing happens unless bit 0x0100 was set, which could be some kind of irq source being acked?
-u16 sunplus_gcm394_base_device::rtc_int_status_r()
+u16 generalplus_gpl162xx_base_device::rtc_int_status_r()
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::rtc_int_status_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::rtc_int_status_r\n", machine().describe_context());
 	return m_rtc_int_status;
 }
 
-void sunplus_gcm394_base_device::rtc_int_status_w(u16 data)
+void generalplus_gpl162xx_base_device::rtc_int_status_w(u16 data)
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::rtc_int_status_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::rtc_int_status_w %04x\n", machine().describe_context(), data);
 	m_rtc_int_status &= ~data;
 	update_interrupts(1);
 }
@@ -1035,13 +1035,13 @@ void sunplus_gcm394_base_device::rtc_int_status_w(u16 data)
 //  1  SECIEN  - Second Interrupt Enable
 //  0  HSECIEN - Half Second Interrupt Enable
 
-u16 sunplus_gcm394_base_device::rtc_int_ctrl_r()
+u16 generalplus_gpl162xx_base_device::rtc_int_ctrl_r()
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::rtc_int_ctrl_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::rtc_int_ctrl_r\n", machine().describe_context());
 	return m_rtc_int_ctrl;
 }
 
-void sunplus_gcm394_base_device::rtc_int_ctrl_w(u16 data)
+void generalplus_gpl162xx_base_device::rtc_int_ctrl_w(u16 data)
 {
 	u16 no_use = data & 0xfaf0;
 	u8 almien =  (data & 0x0400) >> 10;
@@ -1051,78 +1051,78 @@ void sunplus_gcm394_base_device::rtc_int_ctrl_w(u16 data)
 	u8 secien = (data & 0x0002) >> 1;
 	u8 hsecien = (data & 0x0001) >> 0;
 
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::rtc_int_ctrl_w %04x (unused %04x, alarm irq enable %d, scheduler irq enable %d, hour irq enable %d, minute irq enable %d, second irq enable %d, half-second irq enable %d)\n", machine().describe_context(), data, no_use, almien, schien, hrien, minien, secien, hsecien);
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::rtc_int_ctrl_w %04x (unused %04x, alarm irq enable %d, scheduler irq enable %d, hour irq enable %d, minute irq enable %d, second irq enable %d, half-second irq enable %d)\n", machine().describe_context(), data, no_use, almien, schien, hrien, minien, secien, hsecien);
 	m_rtc_int_ctrl = data;
 }
 
 // **************************************** 794x SPI *************************************************
 
 // these are related to the accelerometer values on jak_g500 (8-bit signed) and also the SPI reads for bkrankp
-u16 sunplus_gcm394_base_device::spi_7944_rxdata_r()
+u16 generalplus_gpl162xx_base_device::spi_7944_rxdata_r()
 {
-	LOGMASKED(LOG_GCM394_SPI, "%s:sunplus_gcm394_base_device::spi_7944_rxdata_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL16218A_SPI, "%s:generalplus_gpl162xx_base_device::spi_7944_rxdata_r\n", machine().describe_context());
 	return machine().rand();
 }
 
-u16 sunplus_gcm394_base_device::spi_7945_misc_control_reg_r()
+u16 generalplus_gpl162xx_base_device::spi_7945_misc_control_reg_r()
 {
-	LOGMASKED(LOG_GCM394_SPI, "%s:sunplus_gcm394_base_device::spi_7945_misc_control_reg_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL16218A_SPI, "%s:generalplus_gpl162xx_base_device::spi_7945_misc_control_reg_r\n", machine().describe_context());
 	return machine().rand();// &0x0007;
 }
 
-void sunplus_gcm394_base_device::spi_7942_txdata_w(u16 data)
+void generalplus_gpl162xx_base_device::spi_7942_txdata_w(u16 data)
 {
-	LOGMASKED(LOG_GCM394_SPI, "%s:sunplus_gcm394_base_device::spi_7942_txdata_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL16218A_SPI, "%s:generalplus_gpl162xx_base_device::spi_7942_txdata_w %04x\n", machine().describe_context(), data);
 }
 
 // **************************************** 796x unknown *************************************************
 
-void sunplus_gcm394_base_device::adc_setup_w(u16 data)
+void generalplus_gpl162xx_base_device::adc_setup_w(u16 data)
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::adc_setup_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::adc_setup_w %04x\n", machine().describe_context(), data);
 	m_adc_setup = data;
 }
 
 // 7961 and 7962 are used by dressmtv when detecting battery status, adc?
-u16 sunplus_gcm394_base_device::madc_ctrl_r()
+u16 generalplus_gpl162xx_base_device::madc_ctrl_r()
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::madc_ctrl_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::madc_ctrl_r\n", machine().describe_context());
 	return 0xffff; /* return m_madc_ctrl; */
 }
 
-void sunplus_gcm394_base_device::madc_ctrl_w(u16 data)
+void generalplus_gpl162xx_base_device::madc_ctrl_w(u16 data)
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::madc_ctrl_w %04x\n", machine().describe_context(), data);
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::madc_ctrl_w %04x\n", machine().describe_context(), data);
 	m_madc_ctrl = data;
 }
 
-u16 sunplus_gcm394_base_device::madc_data_r()
+u16 generalplus_gpl162xx_base_device::madc_data_r()
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::madc_data_r\n", machine().describe_context());
+	LOGMASKED(LOG_GPL16218A, "%s:generalplus_gpl162xx_base_device::madc_data_r\n", machine().describe_context());
 	return 0xffff;
 }
 
 // **************************************** fallthrough logger etc. *************************************************
 
-u16 sunplus_gcm394_base_device::unk_r(offs_t offset)
+u16 generalplus_gpl162xx_base_device::unk_r(offs_t offset)
 {
 	switch (offset)
 	{
 	default:
-		LOGMASKED(LOG_GCM394_UNMAPPED, "%s:sunplus_gcm394_base_device::unk_r @ 0x%04x\n", machine().describe_context(), offset + 0x7000);
+		LOGMASKED(LOG_GPL16218A_UNMAPPED, "%s:generalplus_gpl162xx_base_device::unk_r @ 0x%04x\n", machine().describe_context(), offset + 0x7000);
 		return 0x0000;
 	}
 
 	return 0x0000;
 }
 
-void sunplus_gcm394_base_device::unk_w(offs_t offset, u16 data)
+void generalplus_gpl162xx_base_device::unk_w(offs_t offset, u16 data)
 {
 
 	switch (offset)
 	{
 	default:
-		LOGMASKED(LOG_GCM394_UNMAPPED, "%s:sunplus_gcm394_base_device::unk_w @ 0x%04x (data 0x%04x)\n", machine().describe_context(), offset + 0x7000, data);
+		LOGMASKED(LOG_GPL16218A_UNMAPPED, "%s:generalplus_gpl162xx_base_device::unk_w @ 0x%04x (data 0x%04x)\n", machine().describe_context(), offset + 0x7000, data);
 		break;
 	}
 }
@@ -1493,10 +1493,10 @@ void sunplus_gcm394_base_device::unk_w(offs_t offset, u16 data)
 // 7e00 - 7eff Sound Phase
 
 
-void sunplus_gcm394_base_device::base_internal_map(address_map &map)
+void generalplus_gpl162xx_base_device::base_internal_map(address_map &map)
 {
 	map(0x000000, 0x006fff).ram().share("mainram");
-	map(0x007000, 0x007fff).rw(FUNC(sunplus_gcm394_base_device::unk_r), FUNC(sunplus_gcm394_base_device::unk_w)); // catch unhandled
+	map(0x007000, 0x007fff).rw(FUNC(generalplus_gpl162xx_base_device::unk_r), FUNC(generalplus_gpl162xx_base_device::unk_w)); // catch unhandled
 
 	// ######################################################################################################################################################################################
 	// 70xx region = video hardware
@@ -1585,40 +1585,40 @@ void sunplus_gcm394_base_device::base_internal_map(address_map &map)
 	// 78xx region = system regs?
 	// ######################################################################################################################################################################################
 
-	map(0x007803, 0x007803).rw(FUNC(sunplus_gcm394_base_device::sys_ctrl_r), FUNC(sunplus_gcm394_base_device::sys_ctrl_w));
-	map(0x007804, 0x007804).rw(FUNC(sunplus_gcm394_base_device::clk_ctrl0_r), FUNC(sunplus_gcm394_base_device::clk_ctrl0_w));
+	map(0x007803, 0x007803).rw(FUNC(generalplus_gpl162xx_base_device::sys_ctrl_r), FUNC(generalplus_gpl162xx_base_device::sys_ctrl_w));
+	map(0x007804, 0x007804).rw(FUNC(generalplus_gpl162xx_base_device::clk_ctrl0_r), FUNC(generalplus_gpl162xx_base_device::clk_ctrl0_w));
 
-	map(0x007807, 0x007807).w(FUNC(sunplus_gcm394_base_device::clock_ctrl_w));
+	map(0x007807, 0x007807).w(FUNC(generalplus_gpl162xx_base_device::clock_ctrl_w));
 	// 7808
 
-	map(0x00780a, 0x00780a).w(FUNC(sunplus_gcm394_base_device::watchdog_ctrl_w));
+	map(0x00780a, 0x00780a).w(FUNC(generalplus_gpl162xx_base_device::watchdog_ctrl_w));
 	map(0x00780b, 0x00780b).nopw(); // watchdog clear
-	map(0x00780c, 0x00780c).w(FUNC(sunplus_gcm394_base_device::waitmode_enter_780c_w));
+	map(0x00780c, 0x00780c).w(FUNC(generalplus_gpl162xx_base_device::waitmode_enter_780c_w));
 
-	map(0x00780f, 0x00780f).r(FUNC(sunplus_gcm394_base_device::power_state_r));
+	map(0x00780f, 0x00780f).r(FUNC(generalplus_gpl162xx_base_device::power_state_r));
 
-	map(0x007810, 0x007810).rw(FUNC(sunplus_gcm394_base_device::membankswitch_7810_r), FUNC(sunplus_gcm394_base_device::membankswitch_7810_w));  // 7810 Bank Switch Control Register  (P_BankSwitch_Ctrl) (maybe)
+	map(0x007810, 0x007810).rw(FUNC(generalplus_gpl162xx_base_device::membankswitch_7810_r), FUNC(generalplus_gpl162xx_base_device::membankswitch_7810_w));  // 7810 Bank Switch Control Register  (P_BankSwitch_Ctrl) (maybe)
 
-	map(0x007816, 0x007816).w(FUNC(sunplus_gcm394_base_device::unkarea_7816_w)); // undocumented, check what writes it
+	map(0x007816, 0x007816).w(FUNC(generalplus_gpl162xx_base_device::unkarea_7816_w)); // undocumented, check what writes it
 
-	map(0x007817, 0x007817).w(FUNC(sunplus_gcm394_base_device::pllchange_w));
-	map(0x007818, 0x007818).rw(FUNC(sunplus_gcm394_base_device::pllclkwait_r), FUNC(sunplus_gcm394_base_device::pllclkwait_w)); // 7818 - PLLCLKWait
-	map(0x007819, 0x007819).rw(FUNC(sunplus_gcm394_base_device::cache_ctrl_r), FUNC(sunplus_gcm394_base_device::cache_ctrl_w));
+	map(0x007817, 0x007817).w(FUNC(generalplus_gpl162xx_base_device::pllchange_w));
+	map(0x007818, 0x007818).rw(FUNC(generalplus_gpl162xx_base_device::pllclkwait_r), FUNC(generalplus_gpl162xx_base_device::pllclkwait_w)); // 7818 - PLLCLKWait
+	map(0x007819, 0x007819).rw(FUNC(generalplus_gpl162xx_base_device::cache_ctrl_r), FUNC(generalplus_gpl162xx_base_device::cache_ctrl_w));
 
 	// ######################################################################################################################################################################################
 	// 782x region = memory config / control
 	// ######################################################################################################################################################################################
 																										 // wrlshunt                                                               | smartfp
-	map(0x007820, 0x007824).w(FUNC(sunplus_gcm394_base_device::chipselect_csx_memory_device_control_w)); // 7f8a (7f8a before DMA from ROM to RAM, 008a after DMA from ROM to RAM) | 3f04      7820 Chip Select (CS0) Memory Device Control (P_MC50_Ctrl)
+	map(0x007820, 0x007824).w(FUNC(generalplus_gpl162xx_base_device::chipselect_csx_memory_device_control_w)); // 7f8a (7f8a before DMA from ROM to RAM, 008a after DMA from ROM to RAM) | 3f04      7820 Chip Select (CS0) Memory Device Control (P_MC50_Ctrl)
 																										 // 7f47                                                                   | 0044      7821 Chip Select (CS1) Memory Device Control (P_MC51_Ctrl)
 																										 // 0047                                                                   | 1f44      7822 Chip Select (CS2) Memory Device Control (P_MC52_Ctrl)
 																										 // 0047                                                                   | 0044      7823 Chip Select (CS3) Memory Device Control (P_MC53_Ctrl)
 																										 // 0047                                                                   | 0044      7824 Chip Select (CS4) Memory Device Control (P_MC54_Ctrl)
 
-	map(0x00782d, 0x00782d).rw(FUNC(sunplus_gcm394_base_device::raw_war_r), FUNC(sunplus_gcm394_base_device::raw_war_w)); // on startup
+	map(0x00782d, 0x00782d).rw(FUNC(generalplus_gpl162xx_base_device::raw_war_r), FUNC(generalplus_gpl162xx_base_device::raw_war_w)); // on startup
 	// 782f
 
-	map(0x007835, 0x007835).w(FUNC(sunplus_gcm394_base_device::mcs0_page_w));
+	map(0x007835, 0x007835).w(FUNC(generalplus_gpl162xx_base_device::mcs0_page_w));
 
 	// 783a
 	// 783b
@@ -1635,41 +1635,41 @@ void sunplus_gcm394_base_device::base_internal_map(address_map &map)
 	// and there are a few other bits mixed in here
 	// ######################################################################################################################################################################################
 
-	map(0x007860, 0x007860).rw(FUNC(sunplus_gcm394_base_device::ioa_data_r), FUNC(sunplus_gcm394_base_device::ioa_data_w)); //    7860  I/O PortA Data Register
-	map(0x007861, 0x007861).rw(FUNC(sunplus_gcm394_base_device::ioa_buffer_r), FUNC(sunplus_gcm394_base_device::ioa_buffer_w)); // 7861  I/O PortA Buffer Register
-	map(0x007862, 0x007862).rw(FUNC(sunplus_gcm394_base_device::ioa_dir_r), FUNC(sunplus_gcm394_base_device::ioa_dir_w));  // 7862  I/O PortA Direction Register
-	map(0x007863, 0x007863).rw(FUNC(sunplus_gcm394_base_device::ioa_attrib_r), FUNC(sunplus_gcm394_base_device::ioa_attrib_w)); //    7863  I/O PortA Attribute Register
+	map(0x007860, 0x007860).rw(FUNC(generalplus_gpl162xx_base_device::ioa_data_r), FUNC(generalplus_gpl162xx_base_device::ioa_data_w)); //    7860  I/O PortA Data Register
+	map(0x007861, 0x007861).rw(FUNC(generalplus_gpl162xx_base_device::ioa_buffer_r), FUNC(generalplus_gpl162xx_base_device::ioa_buffer_w)); // 7861  I/O PortA Buffer Register
+	map(0x007862, 0x007862).rw(FUNC(generalplus_gpl162xx_base_device::ioa_dir_r), FUNC(generalplus_gpl162xx_base_device::ioa_dir_w));  // 7862  I/O PortA Direction Register
+	map(0x007863, 0x007863).rw(FUNC(generalplus_gpl162xx_base_device::ioa_attrib_r), FUNC(generalplus_gpl162xx_base_device::ioa_attrib_w)); //    7863  I/O PortA Attribute Register
 	// 7864 P_IOA_Drv
 
-	map(0x007868, 0x007868).rw(FUNC(sunplus_gcm394_base_device::iob_data_r), FUNC(sunplus_gcm394_base_device::iob_data_w)); // on startup   // 7868  I/O PortB Data Register
-	map(0x007869, 0x007869).rw(FUNC(sunplus_gcm394_base_device::iob_buffer_r), FUNC(sunplus_gcm394_base_device::iob_buffer_w)); //  7869  I/O PortB Buffer Register   // jak_s500
-	map(0x00786a, 0x00786a).rw(FUNC(sunplus_gcm394_base_device::iob_dir_r), FUNC(sunplus_gcm394_base_device::iob_dir_w)); // 786a  I/O PortB Direction Register
-	map(0x00786b, 0x00786b).rw(FUNC(sunplus_gcm394_base_device::iob_attrib_r), FUNC(sunplus_gcm394_base_device::iob_attrib_w)); // 786b  I/O PortB Attribute Register
+	map(0x007868, 0x007868).rw(FUNC(generalplus_gpl162xx_base_device::iob_data_r), FUNC(generalplus_gpl162xx_base_device::iob_data_w)); // on startup   // 7868  I/O PortB Data Register
+	map(0x007869, 0x007869).rw(FUNC(generalplus_gpl162xx_base_device::iob_buffer_r), FUNC(generalplus_gpl162xx_base_device::iob_buffer_w)); //  7869  I/O PortB Buffer Register   // jak_s500
+	map(0x00786a, 0x00786a).rw(FUNC(generalplus_gpl162xx_base_device::iob_dir_r), FUNC(generalplus_gpl162xx_base_device::iob_dir_w)); // 786a  I/O PortB Direction Register
+	map(0x00786b, 0x00786b).rw(FUNC(generalplus_gpl162xx_base_device::iob_attrib_r), FUNC(generalplus_gpl162xx_base_device::iob_attrib_w)); // 786b  I/O PortB Attribute Register
 	// 786c  P_IOB_Latch (I/O PortB Latch / Wakeup)
 	// 786d  P_IOB_Drv
 
-	map(0x007870, 0x007870).rw(FUNC(sunplus_gcm394_base_device::ioc_data_r) ,FUNC(sunplus_gcm394_base_device::ioc_data_w)); // 7870  I/O PortC Data Register
-	map(0x007871, 0x007871).rw(FUNC(sunplus_gcm394_base_device::ioc_buffer_r), FUNC(sunplus_gcm394_base_device::ioc_buffer_w)); // 7871  I/O PortC Buffer Register
-	map(0x007872, 0x007872).rw(FUNC(sunplus_gcm394_base_device::ioc_dir_r), FUNC(sunplus_gcm394_base_device::ioc_dir_w)); // 7872  I/O PortC Direction Register
-	map(0x007873, 0x007873).rw(FUNC(sunplus_gcm394_base_device::ioc_attrib_r), FUNC(sunplus_gcm394_base_device::ioc_attrib_w)); // 7873  I/O PortC Attribute Register
+	map(0x007870, 0x007870).rw(FUNC(generalplus_gpl162xx_base_device::ioc_data_r) ,FUNC(generalplus_gpl162xx_base_device::ioc_data_w)); // 7870  I/O PortC Data Register
+	map(0x007871, 0x007871).rw(FUNC(generalplus_gpl162xx_base_device::ioc_buffer_r), FUNC(generalplus_gpl162xx_base_device::ioc_buffer_w)); // 7871  I/O PortC Buffer Register
+	map(0x007872, 0x007872).rw(FUNC(generalplus_gpl162xx_base_device::ioc_dir_r), FUNC(generalplus_gpl162xx_base_device::ioc_dir_w)); // 7872  I/O PortC Direction Register
+	map(0x007873, 0x007873).rw(FUNC(generalplus_gpl162xx_base_device::ioc_attrib_r), FUNC(generalplus_gpl162xx_base_device::ioc_attrib_w)); // 7873  I/O PortC Attribute Register
 	// 7874 P_SDRAM_Drv (data 0x1249) (bkrankp data 0x36db)
 	// 7875 P_IOC_Drv
 	// 7876 P_SDRAM_Dly (SDRAM Port Delay Adjustment Register)
 	// 7877 P_IOC_Latch (I/O PortC Latch Register for Wakeup)
 
-	map(0x007878, 0x007878).rw(FUNC(sunplus_gcm394_base_device::iod_data_r) ,FUNC(sunplus_gcm394_base_device::iod_data_w)); // 7878  I/O PortD Data Register
-	map(0x007879, 0x007879).rw(FUNC(sunplus_gcm394_base_device::iod_buffer_r), FUNC(sunplus_gcm394_base_device::iod_buffer_w)); // 7879  I/O PortD Buffer Register
-	map(0x00787a, 0x00787a).rw(FUNC(sunplus_gcm394_base_device::iod_dir_r), FUNC(sunplus_gcm394_base_device::iod_dir_w)); // 787a  I/O PortD Direction Register
-	map(0x00787b, 0x00787b).rw(FUNC(sunplus_gcm394_base_device::iod_attib_r), FUNC(sunplus_gcm394_base_device::iod_attib_w)); // 787b  I/O PortD Attribute Register
-	map(0x00787c, 0x00787c).rw(FUNC(sunplus_gcm394_base_device::iod_drv_r), FUNC(sunplus_gcm394_base_device::iod_drv_w)); // P_IOD_Drv - I/O PortD Driving Capability Register
+	map(0x007878, 0x007878).rw(FUNC(generalplus_gpl162xx_base_device::iod_data_r) ,FUNC(generalplus_gpl162xx_base_device::iod_data_w)); // 7878  I/O PortD Data Register
+	map(0x007879, 0x007879).rw(FUNC(generalplus_gpl162xx_base_device::iod_buffer_r), FUNC(generalplus_gpl162xx_base_device::iod_buffer_w)); // 7879  I/O PortD Buffer Register
+	map(0x00787a, 0x00787a).rw(FUNC(generalplus_gpl162xx_base_device::iod_dir_r), FUNC(generalplus_gpl162xx_base_device::iod_dir_w)); // 787a  I/O PortD Direction Register
+	map(0x00787b, 0x00787b).rw(FUNC(generalplus_gpl162xx_base_device::iod_attib_r), FUNC(generalplus_gpl162xx_base_device::iod_attib_w)); // 787b  I/O PortD Attribute Register
+	map(0x00787c, 0x00787c).rw(FUNC(generalplus_gpl162xx_base_device::iod_drv_r), FUNC(generalplus_gpl162xx_base_device::iod_drv_w)); // P_IOD_Drv - I/O PortD Driving Capability Register
 	// 787d - P_IOD_Dly (I/O PortD Delay Adjustment Register)
 	// 787e - P_CS_Drc (CS Port Driving Capability)
 	// 787f - P_CS_Dly (CS Port Delay Adjustment Register)
 
 	// 7880 - P_IOE_DATA
-	map(0x007881, 0x007881).rw(FUNC(sunplus_gcm394_base_device::ioe_buffer_r), FUNC(sunplus_gcm394_base_device::ioe_buffer_w));
-	map(0x007882, 0x007882).rw(FUNC(sunplus_gcm394_base_device::ioe_dir_r), FUNC(sunplus_gcm394_base_device::ioe_dir_w));
-	map(0x007883, 0x007883).rw(FUNC(sunplus_gcm394_base_device::ioe_attrib_r), FUNC(sunplus_gcm394_base_device::ioe_attrib_w));
+	map(0x007881, 0x007881).rw(FUNC(generalplus_gpl162xx_base_device::ioe_buffer_r), FUNC(generalplus_gpl162xx_base_device::ioe_buffer_w));
+	map(0x007882, 0x007882).rw(FUNC(generalplus_gpl162xx_base_device::ioe_dir_r), FUNC(generalplus_gpl162xx_base_device::ioe_dir_w));
+	map(0x007883, 0x007883).rw(FUNC(generalplus_gpl162xx_base_device::ioe_attrib_r), FUNC(generalplus_gpl162xx_base_device::ioe_attrib_w));
 	// 7884 - P_IOE_Drv
 
 	// 0x7888 - P_MEM_DRV
@@ -1685,16 +1685,16 @@ void sunplus_gcm394_base_device::base_internal_map(address_map &map)
 	// 78ax - interrupt controller?
 	// ######################################################################################################################################################################################
 
-	map(0x0078a0, 0x0078a0).rw(FUNC(sunplus_gcm394_base_device::int_status1_r), FUNC(sunplus_gcm394_base_device::int_status1_w));
-	map(0x0078a1, 0x0078a1).rw(FUNC(sunplus_gcm394_base_device::int_status2_r), FUNC(sunplus_gcm394_base_device::int_status2_w));
+	map(0x0078a0, 0x0078a0).rw(FUNC(generalplus_gpl162xx_base_device::int_status1_r), FUNC(generalplus_gpl162xx_base_device::int_status1_w));
+	map(0x0078a1, 0x0078a1).rw(FUNC(generalplus_gpl162xx_base_device::int_status2_r), FUNC(generalplus_gpl162xx_base_device::int_status2_w));
 	// 78a2 (is int_status3 on GPL95xx)
-	map(0x0078a3, 0x0078a3).rw(FUNC(sunplus_gcm394_base_device::int_status3_r), FUNC(sunplus_gcm394_base_device::int_status3_w));
+	map(0x0078a3, 0x0078a3).rw(FUNC(generalplus_gpl162xx_base_device::int_status3_r), FUNC(generalplus_gpl162xx_base_device::int_status3_w));
 
-	map(0x0078a4, 0x0078a4).w(FUNC(sunplus_gcm394_base_device::int_priority_1_w));
-	map(0x0078a5, 0x0078a5).w(FUNC(sunplus_gcm394_base_device::int_priority_2_w));
-	map(0x0078a6, 0x0078a6).w(FUNC(sunplus_gcm394_base_device::int_priority_3_w));
+	map(0x0078a4, 0x0078a4).w(FUNC(generalplus_gpl162xx_base_device::int_priority_1_w));
+	map(0x0078a5, 0x0078a5).w(FUNC(generalplus_gpl162xx_base_device::int_priority_2_w));
+	map(0x0078a6, 0x0078a6).w(FUNC(generalplus_gpl162xx_base_device::int_priority_3_w));
 
-	map(0x0078a8, 0x0078a8).w(FUNC(sunplus_gcm394_base_device::mint_ctrl_w));
+	map(0x0078a8, 0x0078a8).w(FUNC(generalplus_gpl162xx_base_device::mint_ctrl_w));
 
 	// ######################################################################################################################################################################################
 	// 78bx - timer control?
@@ -1707,63 +1707,63 @@ void sunplus_gcm394_base_device::base_internal_map(address_map &map)
 	map(0x0078b8, 0x0078b8).w(m_gpl_timebase, FUNC(gpl_timebase_device::timebase_reset_w)); // 78b8 - TimeBase_Reset
 
 	
-	map(0x0078c0, 0x0078c0).rw(FUNC(sunplus_gcm394_base_device::timer_ctrl_r<0>), FUNC(sunplus_gcm394_base_device::timer_ctrl_w<0>)); // beijuehh
-	map(0x0078c1, 0x0078c1).rw(FUNC(sunplus_gcm394_base_device::timer_ccp_ctrl_r<0>), FUNC(sunplus_gcm394_base_device::timer_ccp_ctrl_w<0>)); // 78c1 - TimerA_CCCtrl
-	map(0x0078c2, 0x0078c2).rw(FUNC(sunplus_gcm394_base_device::timer_preload_r<0>), FUNC(sunplus_gcm394_base_device::timer_preload_w<0>)); // 78c2 - TimerA_Preload
-	map(0x0078c3, 0x0078c3).rw(FUNC(sunplus_gcm394_base_device::timer_cc_reg_r<0>), FUNC(sunplus_gcm394_base_device::timer_cc_reg_w<0>)); // 78c3 - TimerA_CCReg
-	map(0x0078c4, 0x0078c4).r(FUNC(sunplus_gcm394_base_device::timer_upcount_r<0>)); // 78c4 - TimerA_UpCount
+	map(0x0078c0, 0x0078c0).rw(FUNC(generalplus_gpl162xx_base_device::timer_ctrl_r<0>), FUNC(generalplus_gpl162xx_base_device::timer_ctrl_w<0>)); // beijuehh
+	map(0x0078c1, 0x0078c1).rw(FUNC(generalplus_gpl162xx_base_device::timer_ccp_ctrl_r<0>), FUNC(generalplus_gpl162xx_base_device::timer_ccp_ctrl_w<0>)); // 78c1 - TimerA_CCCtrl
+	map(0x0078c2, 0x0078c2).rw(FUNC(generalplus_gpl162xx_base_device::timer_preload_r<0>), FUNC(generalplus_gpl162xx_base_device::timer_preload_w<0>)); // 78c2 - TimerA_Preload
+	map(0x0078c3, 0x0078c3).rw(FUNC(generalplus_gpl162xx_base_device::timer_cc_reg_r<0>), FUNC(generalplus_gpl162xx_base_device::timer_cc_reg_w<0>)); // 78c3 - TimerA_CCReg
+	map(0x0078c4, 0x0078c4).r(FUNC(generalplus_gpl162xx_base_device::timer_upcount_r<0>)); // 78c4 - TimerA_UpCount
 
-	map(0x0078c8, 0x0078c8).rw(FUNC(sunplus_gcm394_base_device::timer_ctrl_r<1>), FUNC(sunplus_gcm394_base_device::timer_ctrl_w<1>)); // dressmtv
-	map(0x0078c9, 0x0078c9).rw(FUNC(sunplus_gcm394_base_device::timer_ccp_ctrl_r<1>), FUNC(sunplus_gcm394_base_device::timer_ccp_ctrl_w<1>)); // 78c9 - TimerB_CCCtrl
-	map(0x0078ca, 0x0078ca).rw(FUNC(sunplus_gcm394_base_device::timer_preload_r<1>), FUNC(sunplus_gcm394_base_device::timer_preload_w<1>)); // 78ca - TimerB_Preload
-	map(0x0078cb, 0x0078cb).rw(FUNC(sunplus_gcm394_base_device::timer_cc_reg_r<1>), FUNC(sunplus_gcm394_base_device::timer_cc_reg_w<1>));  // 78cb - TimerB_CCReg
-	map(0x0078cc, 0x0078cc).r(FUNC(sunplus_gcm394_base_device::timer_upcount_r<1>)); // 78cc - TimerB_UpCount
+	map(0x0078c8, 0x0078c8).rw(FUNC(generalplus_gpl162xx_base_device::timer_ctrl_r<1>), FUNC(generalplus_gpl162xx_base_device::timer_ctrl_w<1>)); // dressmtv
+	map(0x0078c9, 0x0078c9).rw(FUNC(generalplus_gpl162xx_base_device::timer_ccp_ctrl_r<1>), FUNC(generalplus_gpl162xx_base_device::timer_ccp_ctrl_w<1>)); // 78c9 - TimerB_CCCtrl
+	map(0x0078ca, 0x0078ca).rw(FUNC(generalplus_gpl162xx_base_device::timer_preload_r<1>), FUNC(generalplus_gpl162xx_base_device::timer_preload_w<1>)); // 78ca - TimerB_Preload
+	map(0x0078cb, 0x0078cb).rw(FUNC(generalplus_gpl162xx_base_device::timer_cc_reg_r<1>), FUNC(generalplus_gpl162xx_base_device::timer_cc_reg_w<1>));  // 78cb - TimerB_CCReg
+	map(0x0078cc, 0x0078cc).r(FUNC(generalplus_gpl162xx_base_device::timer_upcount_r<1>)); // 78cc - TimerB_UpCount
 
-	map(0x0078d0, 0x0078d0).rw(FUNC(sunplus_gcm394_base_device::timer_ctrl_r<2>), FUNC(sunplus_gcm394_base_device::timer_ctrl_w<2>)); // jak_s500
-	map(0x0078d1, 0x0078d1).rw(FUNC(sunplus_gcm394_base_device::timer_ccp_ctrl_r<2>), FUNC(sunplus_gcm394_base_device::timer_ccp_ctrl_w<2>)); // 78d1 - TimerC_CCCtrl
-	map(0x0078d2, 0x0078d2).rw(FUNC(sunplus_gcm394_base_device::timer_preload_r<2>), FUNC(sunplus_gcm394_base_device::timer_preload_w<2>)); // 78d2 - TimerC_Preload
-	map(0x0078d3, 0x0078d3).rw(FUNC(sunplus_gcm394_base_device::timer_cc_reg_r<2>), FUNC(sunplus_gcm394_base_device::timer_cc_reg_w<2>));  // 78d3 - TimerC_CCReg
-	map(0x0078d4, 0x0078d4).r(FUNC(sunplus_gcm394_base_device::timer_upcount_r<2>));  // 78d4 - TimerC_UpCount
+	map(0x0078d0, 0x0078d0).rw(FUNC(generalplus_gpl162xx_base_device::timer_ctrl_r<2>), FUNC(generalplus_gpl162xx_base_device::timer_ctrl_w<2>)); // jak_s500
+	map(0x0078d1, 0x0078d1).rw(FUNC(generalplus_gpl162xx_base_device::timer_ccp_ctrl_r<2>), FUNC(generalplus_gpl162xx_base_device::timer_ccp_ctrl_w<2>)); // 78d1 - TimerC_CCCtrl
+	map(0x0078d2, 0x0078d2).rw(FUNC(generalplus_gpl162xx_base_device::timer_preload_r<2>), FUNC(generalplus_gpl162xx_base_device::timer_preload_w<2>)); // 78d2 - TimerC_Preload
+	map(0x0078d3, 0x0078d3).rw(FUNC(generalplus_gpl162xx_base_device::timer_cc_reg_r<2>), FUNC(generalplus_gpl162xx_base_device::timer_cc_reg_w<2>));  // 78d3 - TimerC_CCReg
+	map(0x0078d4, 0x0078d4).r(FUNC(generalplus_gpl162xx_base_device::timer_upcount_r<2>));  // 78d4 - TimerC_UpCount
 
-	map(0x0078d8, 0x0078d8).rw(FUNC(sunplus_gcm394_base_device::timer_ctrl_r<3>), FUNC(sunplus_gcm394_base_device::timer_ctrl_w<3>)); // jak_tsh
+	map(0x0078d8, 0x0078d8).rw(FUNC(generalplus_gpl162xx_base_device::timer_ctrl_r<3>), FUNC(generalplus_gpl162xx_base_device::timer_ctrl_w<3>)); // jak_tsh
 	// no TimerD_CCCtrl
-	map(0x0078da, 0x0078da).rw(FUNC(sunplus_gcm394_base_device::timer_preload_r<3>), FUNC(sunplus_gcm394_base_device::timer_preload_w<3>)); // 78da - TimerD_Preload
+	map(0x0078da, 0x0078da).rw(FUNC(generalplus_gpl162xx_base_device::timer_preload_r<3>), FUNC(generalplus_gpl162xx_base_device::timer_preload_w<3>)); // 78da - TimerD_Preload
 	// no TimerD_CCReg
-	map(0x0078dc, 0x0078dc).r(FUNC(sunplus_gcm394_base_device::timer_upcount_r<3>));  // 78dc - TimerD_UpCount
+	map(0x0078dc, 0x0078dc).r(FUNC(generalplus_gpl162xx_base_device::timer_upcount_r<3>));  // 78dc - TimerD_UpCount
 
-	map(0x0078e0, 0x0078e0).rw(FUNC(sunplus_gcm394_base_device::timer_ctrl_r<4>), FUNC(sunplus_gcm394_base_device::timer_ctrl_w<4>)); // 78e0 - TimerE_Ctrl
+	map(0x0078e0, 0x0078e0).rw(FUNC(generalplus_gpl162xx_base_device::timer_ctrl_r<4>), FUNC(generalplus_gpl162xx_base_device::timer_ctrl_w<4>)); // 78e0 - TimerE_Ctrl
 	// no TimerE_CCCtrl
-	map(0x0078e2, 0x0078e2).rw(FUNC(sunplus_gcm394_base_device::timer_preload_r<4>), FUNC(sunplus_gcm394_base_device::timer_preload_w<4>)); // 78e2 - TimerE_Preload
+	map(0x0078e2, 0x0078e2).rw(FUNC(generalplus_gpl162xx_base_device::timer_preload_r<4>), FUNC(generalplus_gpl162xx_base_device::timer_preload_w<4>)); // 78e2 - TimerE_Preload
 	// no TimerE_CCReg
-	map(0x0078e4, 0x0078e4).r(FUNC(sunplus_gcm394_base_device::timer_upcount_r<4>));  // 78e4 - TimerE_UpCount
+	map(0x0078e4, 0x0078e4).r(FUNC(generalplus_gpl162xx_base_device::timer_upcount_r<4>));  // 78e4 - TimerE_UpCount
 
-	map(0x0078e8, 0x0078e8).rw(FUNC(sunplus_gcm394_base_device::timer_ctrl_r<5>), FUNC(sunplus_gcm394_base_device::timer_ctrl_w<5>)); // 78e8 - TimerF_Ctrl
+	map(0x0078e8, 0x0078e8).rw(FUNC(generalplus_gpl162xx_base_device::timer_ctrl_r<5>), FUNC(generalplus_gpl162xx_base_device::timer_ctrl_w<5>)); // 78e8 - TimerF_Ctrl
 	// no TimerF_CCCtrl
-	map(0x0078ea, 0x0078ea).rw(FUNC(sunplus_gcm394_base_device::timer_preload_r<5>), FUNC(sunplus_gcm394_base_device::timer_preload_w<5>)); // 78ea - TimerF_Preload
+	map(0x0078ea, 0x0078ea).rw(FUNC(generalplus_gpl162xx_base_device::timer_preload_r<5>), FUNC(generalplus_gpl162xx_base_device::timer_preload_w<5>)); // 78ea - TimerF_Preload
 	// no TimerF_CCReg
-	map(0x0078ec, 0x0078ec).r(FUNC(sunplus_gcm394_base_device::timer_upcount_r<5>));  // 78ec - TimerF_UpCount
+	map(0x0078ec, 0x0078ec).r(FUNC(generalplus_gpl162xx_base_device::timer_upcount_r<5>));  // 78ec - TimerF_UpCount
 
 	// ######################################################################################################################################################################################
 	// 78fx - DAC FIFO etc.
 	// ######################################################################################################################################################################################
 
-	map(0x0078f0, 0x0078f0).rw(FUNC(sunplus_gcm394_base_device::cha_ctrl_r), FUNC(sunplus_gcm394_base_device::cha_ctrl_w));
+	map(0x0078f0, 0x0078f0).rw(FUNC(generalplus_gpl162xx_base_device::cha_ctrl_r), FUNC(generalplus_gpl162xx_base_device::cha_ctrl_w));
 
-	map(0x0078fb, 0x0078fb).r(FUNC(sunplus_gcm394_base_device::dac_pga_r));
+	map(0x0078fb, 0x0078fb).r(FUNC(generalplus_gpl162xx_base_device::dac_pga_r));
 
 	// ######################################################################################################################################################################################
 	// 790x - UART
 	// ######################################################################################################################################################################################
 
-	map(0x007904, 0x007904).r(FUNC(sunplus_gcm394_base_device::uart_status_r)); // lazertag after a while
+	map(0x007904, 0x007904).r(FUNC(generalplus_gpl162xx_base_device::uart_status_r)); // lazertag after a while
 
 	// ######################################################################################################################################################################################
 	// 792x -793x - RTC
 	// ######################################################################################################################################################################################
 
-	map(0x007934, 0x007934).rw(FUNC(sunplus_gcm394_base_device::rtc_ctrl_r), FUNC(sunplus_gcm394_base_device::rtc_ctrl_w));
-	map(0x007935, 0x007935).rw(FUNC(sunplus_gcm394_base_device::rtc_int_status_r), FUNC(sunplus_gcm394_base_device::rtc_int_status_w));
-	map(0x007936, 0x007936).rw(FUNC(sunplus_gcm394_base_device::rtc_int_ctrl_r), FUNC(sunplus_gcm394_base_device::rtc_int_ctrl_w));
+	map(0x007934, 0x007934).rw(FUNC(generalplus_gpl162xx_base_device::rtc_ctrl_r), FUNC(generalplus_gpl162xx_base_device::rtc_ctrl_w));
+	map(0x007935, 0x007935).rw(FUNC(generalplus_gpl162xx_base_device::rtc_int_status_r), FUNC(generalplus_gpl162xx_base_device::rtc_int_status_w));
+	map(0x007936, 0x007936).rw(FUNC(generalplus_gpl162xx_base_device::rtc_int_ctrl_r), FUNC(generalplus_gpl162xx_base_device::rtc_int_ctrl_w));
 
 	// ######################################################################################################################################################################################
 	// 794x - SPI
@@ -1771,29 +1771,29 @@ void sunplus_gcm394_base_device::base_internal_map(address_map &map)
 
 	//7940 P_SPI_Ctrl     - SPI Control Register
 	//7941 P_SPI_TXStatus - SPI Transmit Status Register
-	map(0x007942, 0x007942).w(FUNC(sunplus_gcm394_base_device::spi_7942_txdata_w)); //7942 P_SPI_TXData   - SPI Transmit FIFO Register
+	map(0x007942, 0x007942).w(FUNC(generalplus_gpl162xx_base_device::spi_7942_txdata_w)); //7942 P_SPI_TXData   - SPI Transmit FIFO Register
 	//7943 P_SPI_RXStatus - SPI Receive Status Register
-	map(0x007944, 0x007944).r(FUNC(sunplus_gcm394_base_device::spi_7944_rxdata_r));           // 7944 P_SPI_RXData - SPI Receive FIFO Register    (jak_s500 accelerometer)   (also the SPI ROM DMA input port for bkrankp?)
-	map(0x007945, 0x007945).r(FUNC(sunplus_gcm394_base_device::spi_7945_misc_control_reg_r)); // 7945 P_SPI_Misc   - SPI Misc Control Register    (jak_s500 accelerometer)
+	map(0x007944, 0x007944).r(FUNC(generalplus_gpl162xx_base_device::spi_7944_rxdata_r));           // 7944 P_SPI_RXData - SPI Receive FIFO Register    (jak_s500 accelerometer)   (also the SPI ROM DMA input port for bkrankp?)
+	map(0x007945, 0x007945).r(FUNC(generalplus_gpl162xx_base_device::spi_7945_misc_control_reg_r)); // 7945 P_SPI_Misc   - SPI Misc Control Register    (jak_s500 accelerometer)
 
 	// ######################################################################################################################################################################################
 	// 796x - ADC
 	// ######################################################################################################################################################################################
 
-	map(0x007960, 0x007960).w(FUNC(sunplus_gcm394_base_device::adc_setup_w));
-	map(0x007961, 0x007961).rw(FUNC(sunplus_gcm394_base_device::madc_ctrl_r), FUNC(sunplus_gcm394_base_device::madc_ctrl_w));
-	map(0x007962, 0x007962).r(FUNC(sunplus_gcm394_base_device::madc_data_r));
+	map(0x007960, 0x007960).w(FUNC(generalplus_gpl162xx_base_device::adc_setup_w));
+	map(0x007961, 0x007961).rw(FUNC(generalplus_gpl162xx_base_device::madc_ctrl_r), FUNC(generalplus_gpl162xx_base_device::madc_ctrl_w));
+	map(0x007962, 0x007962).r(FUNC(generalplus_gpl162xx_base_device::madc_data_r));
 
 	// ######################################################################################################################################################################################
 	// 7axx region = usb?
 	// ######################################################################################################################################################################################
 
-	map(0x007a35, 0x007a35).r(FUNC(sunplus_gcm394_base_device::usb_7a35_r)); // wlsair60
-	map(0x007a37, 0x007a37).r(FUNC(sunplus_gcm394_base_device::usb_7a37_r)); // wlsair60
-	map(0x007a39, 0x007a39).r(FUNC(sunplus_gcm394_base_device::usb_7a39_r)); // wlsair60
-	map(0x007a3a, 0x007a3a).r(FUNC(sunplus_gcm394_base_device::usb_7a3a_r)); // ?
-	map(0x007a46, 0x007a46).r(FUNC(sunplus_gcm394_base_device::usb_7a46_r)); // wlsair60
-	map(0x007a54, 0x007a54).r(FUNC(sunplus_gcm394_base_device::usb_7a54_r)); // wlsair60
+	map(0x007a35, 0x007a35).r(FUNC(generalplus_gpl162xx_base_device::usb_7a35_r)); // wlsair60
+	map(0x007a37, 0x007a37).r(FUNC(generalplus_gpl162xx_base_device::usb_7a37_r)); // wlsair60
+	map(0x007a39, 0x007a39).r(FUNC(generalplus_gpl162xx_base_device::usb_7a39_r)); // wlsair60
+	map(0x007a3a, 0x007a3a).r(FUNC(generalplus_gpl162xx_base_device::usb_7a3a_r)); // ?
+	map(0x007a46, 0x007a46).r(FUNC(generalplus_gpl162xx_base_device::usb_7a46_r)); // wlsair60
+	map(0x007a54, 0x007a54).r(FUNC(generalplus_gpl162xx_base_device::usb_7a54_r)); // wlsair60
 
 	// ######################################################################################################################################################################################
 	// 7a80 - 7abf = dma controller
@@ -1817,30 +1817,30 @@ void sunplus_gcm394_base_device::base_internal_map(address_map &map)
 
 }
 
-void sunplus_gcm394_base_device::gcm394_internal_map(address_map &map)
+void generalplus_gpl162xx_base_device::gcm394_internal_map(address_map &map)
 {
-	sunplus_gcm394_base_device::base_internal_map(map);
+	generalplus_gpl162xx_base_device::base_internal_map(map);
 
 	// no internal ROM on this model?
 
-	map(0x08000, 0x0ffff).r(FUNC(sunplus_gcm394_base_device::internalrom_lower32_r)).nopw();
+	map(0x08000, 0x0ffff).r(FUNC(generalplus_gpl162xx_base_device::internalrom_lower32_r)).nopw();
 
 	map(0x10000, 0x01ffff).nopr();
 
-	map(0x020000, 0x1fffff).rw(FUNC(sunplus_gcm394_base_device::cs_space_r), FUNC(sunplus_gcm394_base_device::cs_space_w));
-	map(0x200000, 0x3fffff).rw(FUNC(sunplus_gcm394_base_device::cs_bank_space_r), FUNC(sunplus_gcm394_base_device::cs_bank_space_w));
+	map(0x020000, 0x1fffff).rw(FUNC(generalplus_gpl162xx_base_device::cs_space_r), FUNC(generalplus_gpl162xx_base_device::cs_space_w));
+	map(0x200000, 0x3fffff).rw(FUNC(generalplus_gpl162xx_base_device::cs_bank_space_r), FUNC(generalplus_gpl162xx_base_device::cs_bank_space_w));
 }
 
-u16 sunplus_gcm394_base_device::cs_space_r(offs_t offset)
+u16 generalplus_gpl162xx_base_device::cs_space_r(offs_t offset)
 {
 	return m_cs_space->read_word(offset);
 }
 
-void sunplus_gcm394_base_device::cs_space_w(offs_t offset, u16 data)
+void generalplus_gpl162xx_base_device::cs_space_w(offs_t offset, u16 data)
 {
 	m_cs_space->write_word(offset, data);
 }
-u16 sunplus_gcm394_base_device::cs_bank_space_r(offs_t offset)
+u16 generalplus_gpl162xx_base_device::cs_bank_space_r(offs_t offset)
 {
 	int bank = m_membankswitch_7810 & 0x3f;
 	int realoffset = offset + (bank * 0x200000) - m_csbase;
@@ -1854,7 +1854,7 @@ u16 sunplus_gcm394_base_device::cs_bank_space_r(offs_t offset)
 	return m_cs_space->read_word(realoffset);
 }
 
-void sunplus_gcm394_base_device::cs_bank_space_w(offs_t offset, u16 data)
+void generalplus_gpl162xx_base_device::cs_bank_space_w(offs_t offset, u16 data)
 {
 	int bank = m_membankswitch_7810 & 0x3f;
 	int realoffset = offset + (bank * 0x200000) - m_csbase;
@@ -1870,7 +1870,7 @@ void sunplus_gcm394_base_device::cs_bank_space_w(offs_t offset, u16 data)
 
 
 
-u16 sunplus_gcm394_base_device::internalrom_lower32_r(offs_t offset)
+u16 generalplus_gpl162xx_base_device::internalrom_lower32_r(offs_t offset)
 {
 	if (m_boot_mode == 0)
 	{
@@ -1888,7 +1888,7 @@ u16 sunplus_gcm394_base_device::internalrom_lower32_r(offs_t offset)
 }
 
 
-void sunplus_gcm394_base_device::device_start()
+void generalplus_gpl162xx_base_device::device_start()
 {
 	unsp_20_device::device_start();
 
@@ -1934,7 +1934,7 @@ void sunplus_gcm394_base_device::device_start()
 	save_item(NAME(m_timer_cc_reg));
 }
 
-void sunplus_gcm394_base_device::device_reset()
+void generalplus_gpl162xx_base_device::device_reset()
 {
 	unsp_20_device::device_reset();
 
@@ -2007,7 +2007,7 @@ void sunplus_gcm394_base_device::device_reset()
 }
 
 
-IRQ_CALLBACK_MEMBER(sunplus_gcm394_base_device::irq_vector_cb)
+IRQ_CALLBACK_MEMBER(generalplus_gpl162xx_base_device::irq_vector_cb)
 {
 	//logerror("irq_vector_cb %d\n", irqline);
 
@@ -2045,17 +2045,17 @@ IRQ_CALLBACK_MEMBER(sunplus_gcm394_base_device::irq_vector_cb)
 
 */
 
-void sunplus_gcm394_base_device::audioirq_w(int state)
+void generalplus_gpl162xx_base_device::audioirq_w(int state)
 {
 	//set_state_unsynced(UNSP_IRQ5_LINE, state);
 }
 
-void sunplus_gcm394_base_device::videoirq_w(int state)
+void generalplus_gpl162xx_base_device::videoirq_w(int state)
 {
 	set_state_unsynced(UNSP_IRQ5_LINE, state);
 }
 
-u16 sunplus_gcm394_base_device::read_space(offs_t offset)
+u16 generalplus_gpl162xx_base_device::read_space(offs_t offset)
 {
 	address_space &space = this->space(AS_PROGRAM);
 	u16 val;
@@ -2073,7 +2073,7 @@ u16 sunplus_gcm394_base_device::read_space(offs_t offset)
 
 
 
-void sunplus_gcm394_base_device::write_space(offs_t offset, u16 data)
+void generalplus_gpl162xx_base_device::write_space(offs_t offset, u16 data)
 {
 	address_space &space = this->space(AS_PROGRAM);
 	if (offset < m_csbase)
@@ -2086,45 +2086,45 @@ void sunplus_gcm394_base_device::write_space(offs_t offset, u16 data)
 	}
 }
 
-void sunplus_gcm394_base_device::dma_complete(int state)
+void generalplus_gpl162xx_base_device::dma_complete(int state)
 {
 	m_dma_complete_cb(state);
 }
 
-void sunplus_gcm394_base_device::device_add_mconfig(machine_config &config)
+void generalplus_gpl162xx_base_device::device_add_mconfig(machine_config &config)
 {
 	SUNPLUS_GCM394_AUDIO(config, m_spg_audio, DERIVED_CLOCK(1, 1));
-	m_spg_audio->write_irq_callback().set(FUNC(sunplus_gcm394_base_device::audioirq_w));
-	m_spg_audio->space_read_callback().set(FUNC(sunplus_gcm394_base_device::read_space));
+	m_spg_audio->write_irq_callback().set(FUNC(generalplus_gpl162xx_base_device::audioirq_w));
+	m_spg_audio->space_read_callback().set(FUNC(generalplus_gpl162xx_base_device::read_space));
 	m_spg_audio->add_route(0, *this, 1.0, 0);
 	m_spg_audio->add_route(1, *this, 1.0, 1);
 
 	GPL_DMA(config, m_gpl_dma);
-	m_gpl_dma->space_read_callback().set(FUNC(sunplus_gcm394_base_device::read_space));
-	m_gpl_dma->space_write_callback().set(FUNC(sunplus_gcm394_base_device::write_space));
-	m_gpl_dma->dma_complete_callback().set(FUNC(sunplus_gcm394_base_device::dma_complete));
+	m_gpl_dma->space_read_callback().set(FUNC(generalplus_gpl162xx_base_device::read_space));
+	m_gpl_dma->space_write_callback().set(FUNC(generalplus_gpl162xx_base_device::write_space));
+	m_gpl_dma->dma_complete_callback().set(FUNC(generalplus_gpl162xx_base_device::dma_complete));
 
 	GPL_TIMEBASE(config, m_gpl_timebase);
-	m_gpl_timebase->updateirqs_callback().set(FUNC(sunplus_gcm394_base_device::update_interrupts));
+	m_gpl_timebase->updateirqs_callback().set(FUNC(generalplus_gpl162xx_base_device::update_interrupts));
 
 	GCM394_VIDEO(config, m_spg_video, DERIVED_CLOCK(1, 1), DEVICE_SELF, m_screen);
-	m_spg_video->write_video_irq_callback().set(FUNC(sunplus_gcm394_base_device::videoirq_w));
-	m_spg_video->space_read_callback().set(FUNC(sunplus_gcm394_base_device::read_space));
+	m_spg_video->write_video_irq_callback().set(FUNC(generalplus_gpl162xx_base_device::videoirq_w));
+	m_spg_video->space_read_callback().set(FUNC(generalplus_gpl162xx_base_device::read_space));
 	m_spg_video->set_video_space(DEVICE_SELF, AS_PROGRAM);
 
-	TIMER(config, m_timer_a).configure_generic(FUNC(sunplus_gcm394_base_device::timer_a_cb));
-	TIMER(config, m_timer_b).configure_generic(FUNC(sunplus_gcm394_base_device::timer_b_cb));
-	TIMER(config, m_timer_c).configure_generic(FUNC(sunplus_gcm394_base_device::timer_c_cb));
-	TIMER(config, m_timer_d).configure_generic(FUNC(sunplus_gcm394_base_device::timer_d_cb));
-	TIMER(config, m_timer_e).configure_generic(FUNC(sunplus_gcm394_base_device::timer_e_cb));
-	TIMER(config, m_timer_f).configure_generic(FUNC(sunplus_gcm394_base_device::timer_f_cb));
+	TIMER(config, m_timer_a).configure_generic(FUNC(generalplus_gpl162xx_base_device::timer_a_cb));
+	TIMER(config, m_timer_b).configure_generic(FUNC(generalplus_gpl162xx_base_device::timer_b_cb));
+	TIMER(config, m_timer_c).configure_generic(FUNC(generalplus_gpl162xx_base_device::timer_c_cb));
+	TIMER(config, m_timer_d).configure_generic(FUNC(generalplus_gpl162xx_base_device::timer_d_cb));
+	TIMER(config, m_timer_e).configure_generic(FUNC(generalplus_gpl162xx_base_device::timer_e_cb));
+	TIMER(config, m_timer_f).configure_generic(FUNC(generalplus_gpl162xx_base_device::timer_f_cb));
 
-	TIMER(config, m_scheduler).configure_generic(FUNC(sunplus_gcm394_base_device::scheduler_cb));
+	TIMER(config, m_scheduler).configure_generic(FUNC(generalplus_gpl162xx_base_device::scheduler_cb));
 }
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// GPL16250 register list
+// GPL16250VA register list
 //
 // 7000 - Tx3_X_Position
 // 7001 - Tx3_Y_Position
@@ -2687,10 +2687,10 @@ void sunplus_gcm394_base_device::device_add_mconfig(machine_config &config)
 // 7c00 - 7dff Sound Attribute
 // 7e00 - 7fff Sound Phase
 
-DEFINE_DEVICE_TYPE(GPL16250,   generalplus_gpac800_device,  "gpl16250",    "GeneralPlus GPL1625x / GPAC800 System-on-a-Chip")
+DEFINE_DEVICE_TYPE(GPL16250VA,   generalplus_gpl16250va_device,  "gpl16250",    "GeneralPlus GPL1625x / GPAC800 System-on-a-Chip")
 
-generalplus_gpac800_device::generalplus_gpac800_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock) :
-	sunplus_gcm394_base_device(mconfig, GPL16250, tag, owner, clock, address_map_constructor(FUNC(generalplus_gpac800_device::gpac800_internal_map), this))
+generalplus_gpl16250va_device::generalplus_gpl16250va_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock) :
+	generalplus_gpl162xx_base_device(mconfig, GPL16250VA, tag, owner, clock, address_map_constructor(FUNC(generalplus_gpl16250va_device::gpac800_internal_map), this))
 {
 }
 
@@ -2698,35 +2698,35 @@ generalplus_gpac800_device::generalplus_gpac800_device(const machine_config &mco
 // HY27UF081G2A = AD F1 80 1D
 // H27U518S2C   = AD 76
 
-u16 generalplus_gpac800_device::nand_data_r()
+u16 generalplus_gpl16250va_device::nand_data_r()
 {
 	// straight trampoline for now, but this is talking to the NAND controller, which in turn talks to the NAND
 	return m_nand_data_in();
 }
 
-void generalplus_gpac800_device::nand_data_w(u16 data)
+void generalplus_gpl16250va_device::nand_data_w(u16 data)
 {
 	m_nand_data_out(data & 0xff);
 }
 
 // 7998
 
-void generalplus_gpac800_device::nand_command_w(u16 data)
+void generalplus_gpl16250va_device::nand_command_w(u16 data)
 {
 	// documentation indicate this is a 16-bit port, but NAND commands are 8-bit?
-	logerror("%s:sunplus_gcm394_base_device::nand_command_w %04x\n", machine().describe_context(), data);
+	logerror("%s:generalplus_gpl162xx_base_device::nand_command_w %04x\n", machine().describe_context(), data);
 	m_nand_command_out(data & 0xff);
 }
 
-void generalplus_gpac800_device::nand_addr_low_w(u16 data)
+void generalplus_gpl16250va_device::nand_addr_low_w(u16 data)
 {
-	logerror("%s:sunplus_gcm394_base_device::nand_addr_low_w %04x\n", machine().describe_context(), data);
+	logerror("%s:generalplus_gpl162xx_base_device::nand_addr_low_w %04x\n", machine().describe_context(), data);
 	m_nand_addr_low = data;
 }
 
-void generalplus_gpac800_device::nand_addr_high_w(u16 data)
+void generalplus_gpl16250va_device::nand_addr_high_w(u16 data)
 {
-	logerror("%s:sunplus_gcm394_base_device::nand_addr_high_w %04x\n", machine().describe_context(), data);
+	logerror("%s:generalplus_gpl162xx_base_device::nand_addr_high_w %04x\n", machine().describe_context(), data);
 	m_nand_addr_high = data;
 
 	// documentation indicates that the NAND Interface won't write the address to the NAND, even if only 2 bytes are needed
@@ -2764,9 +2764,9 @@ void generalplus_gpac800_device::nand_addr_high_w(u16 data)
 //  1
 //  0
 
-void generalplus_gpac800_device::nand_dma_ctrl_w(u16 data)
+void generalplus_gpl16250va_device::nand_dma_ctrl_w(u16 data)
 {
-	logerror("%s:sunplus_gcm394_base_device::nand_dma_ctrl_w(?) %04x\n", machine().describe_context(), data);
+	logerror("%s:generalplus_gpl162xx_base_device::nand_dma_ctrl_w(?) %04x\n", machine().describe_context(), data);
 	m_nand_dma_ctrl = data;
 }
 
@@ -2792,7 +2792,7 @@ void generalplus_gpac800_device::nand_dma_ctrl_w(u16 data)
 //  1  NFCTRL[1] - tWP[1]
 //  0  NFCTRL[0] - tWP[0]
 
-u16 generalplus_gpac800_device::nand_7850_status_r()
+u16 generalplus_gpl16250va_device::nand_7850_status_r()
 {
 	// TODO, talks to the NAND controller, which talks to the NAND
 	// so the status byte here should reflect that
@@ -2800,9 +2800,9 @@ u16 generalplus_gpac800_device::nand_7850_status_r()
 	return m_nand_ctrl | 0x8000;
 }
 
-void generalplus_gpac800_device::nand_7850_w(u16 data)
+void generalplus_gpl16250va_device::nand_7850_w(u16 data)
 {
-	logerror("%s:sunplus_gcm394_base_device::nand_7850_w %04x\n", machine().describe_context(), data);
+	logerror("%s:generalplus_gpl162xx_base_device::nand_7850_w %04x\n", machine().describe_context(), data);
 	m_nand_ctrl = data;
 }
 
@@ -2828,44 +2828,44 @@ void generalplus_gpac800_device::nand_7850_w(u16 data)
 //  1  BCH_8 - BCH 4/8-bit control register (0 = 4 bits, 1 = 8-bits)
 //  0  BCH_EN - BCH Controller enable register. (1 = enable)
 
-void generalplus_gpac800_device::nand_bch_ctrl_w(u16 data)
+void generalplus_gpl16250va_device::nand_bch_ctrl_w(u16 data)
 {
-	logerror("%s:sunplus_gcm394_base_device::nand_bch_ctrl_w %04x\n", machine().describe_context(), data);
+	logerror("%s:generalplus_gpl162xx_base_device::nand_bch_ctrl_w %04x\n", machine().describe_context(), data);
 	m_nand_bch_ctrl = data;
 }
 
-void generalplus_gpac800_device::nand_ecc_ctrl_w(u16 data)
+void generalplus_gpl16250va_device::nand_ecc_ctrl_w(u16 data)
 {
-	logerror("%s:sunplus_gcm394_base_device::nand_ecc_ctrl_w %04x\n", machine().describe_context(), data);
+	logerror("%s:generalplus_gpl162xx_base_device::nand_ecc_ctrl_w %04x\n", machine().describe_context(), data);
 	m_nand_ecc_ctrl = data;
 }
 
-void generalplus_gpac800_device::nand_ecc_lpr_ckl_lb_w(u16 data)
+void generalplus_gpl16250va_device::nand_ecc_lpr_ckl_lb_w(u16 data)
 {
-	logerror("%s:sunplus_gcm394_base_device::nand_ecc_lpr_ckl_lb_w %04x\n", machine().describe_context(), data);
+	logerror("%s:generalplus_gpl162xx_base_device::nand_ecc_lpr_ckl_lb_w %04x\n", machine().describe_context(), data);
 	m_nand_ecc_lpr_ckl_lb = data;
 }
 
-void generalplus_gpac800_device::nand_ecc_lpr_ckh_lb_w(u16 data)
+void generalplus_gpl16250va_device::nand_ecc_lpr_ckh_lb_w(u16 data)
 {
-	logerror("%s:sunplus_gcm394_base_device::nand_ecc_lpr_ckh_lb_w %04x\n", machine().describe_context(), data);
+	logerror("%s:generalplus_gpl162xx_base_device::nand_ecc_lpr_ckh_lb_w %04x\n", machine().describe_context(), data);
 	m_nand_ecc_lpr_ckh_lb = data;
 }
 
-void generalplus_gpac800_device::nand_ecc_cpckr_lb_w(u16 data)
+void generalplus_gpl16250va_device::nand_ecc_cpckr_lb_w(u16 data)
 {
-	logerror("%s:sunplus_gcm394_base_device::nand_ecc_cpckr_lb_w %04x\n", machine().describe_context(), data);
+	logerror("%s:generalplus_gpl162xx_base_device::nand_ecc_cpckr_lb_w %04x\n", machine().describe_context(), data);
 	m_nand_ecc_cpckr_lb = data;
 }
 
 // [:maincpu] ':maincpu' (00146D)  jak_tsm
-u16 generalplus_gpac800_device::nand_ecc_err0_lb_r()
+u16 generalplus_gpl16250va_device::nand_ecc_err0_lb_r()
 {
 	return 0x0000;
 }
 
 //[:maincpu] ':maincpu' (001490)  jak_tsm
-u16 generalplus_gpac800_device::nand_ecc_err1_lb_r()
+u16 generalplus_gpl16250va_device::nand_ecc_err1_lb_r()
 {
 	return 0x0000;
 }
@@ -2874,71 +2874,71 @@ u16 generalplus_gpac800_device::nand_ecc_err1_lb_r()
 UNMAPPED reads  writes
 
 jak_tsm uses these (all iniitalized near start)
-unclear if these are specific to the GPL16250 type, or present in the older types
+unclear if these are specific to the GPL16250VA type, or present in the older types
 
-[:maincpu] ':maincpu' (00043F):sunplus_gcm394_base_device::unk_w @ 0x780a (data 0x0000)
-[:maincpu] ':maincpu' (000442):sunplus_gcm394_base_device::unk_w @ 0x7808 (data 0x0000)
-[:maincpu] ':maincpu' (000445):sunplus_gcm394_base_device::unk_w @ 0x782f (data 0x0002)
-[:maincpu] ':maincpu' (000449):sunplus_gcm394_base_device::unk_w @ 0x783d (data 0x05d9)
-[:maincpu] ':maincpu' (00044D):sunplus_gcm394_base_device::unk_w @ 0x783c (data 0x0a57)
-[:maincpu] ':maincpu' (000451):sunplus_gcm394_base_device::unk_w @ 0x783b (data 0x2400)
-[:maincpu] ':maincpu' (000454):sunplus_gcm394_base_device::unk_w @ 0x783e (data 0x0002)
-[:maincpu] ':maincpu' (000458):sunplus_gcm394_base_device::unk_w @ 0x783a (data 0x3011)
-[:maincpu] ':maincpu' (00045B):sunplus_gcm394_base_device::unk_w @ 0x7874 (data 0x0000)
-[:maincpu] ':maincpu' (00045D):sunplus_gcm394_base_device::unk_w @ 0x787c (data 0x0000)
-[:maincpu] ':maincpu' (00045F):sunplus_gcm394_base_device::unk_w @ 0x7888 (data 0x0000)
-[:maincpu] ':maincpu' (000461):sunplus_gcm394_base_device::unk_w @ 0x787e (data 0x0000)
+[:maincpu] ':maincpu' (00043F):generalplus_gpl162xx_base_device::unk_w @ 0x780a (data 0x0000)
+[:maincpu] ':maincpu' (000442):generalplus_gpl162xx_base_device::unk_w @ 0x7808 (data 0x0000)
+[:maincpu] ':maincpu' (000445):generalplus_gpl162xx_base_device::unk_w @ 0x782f (data 0x0002)
+[:maincpu] ':maincpu' (000449):generalplus_gpl162xx_base_device::unk_w @ 0x783d (data 0x05d9)
+[:maincpu] ':maincpu' (00044D):generalplus_gpl162xx_base_device::unk_w @ 0x783c (data 0x0a57)
+[:maincpu] ':maincpu' (000451):generalplus_gpl162xx_base_device::unk_w @ 0x783b (data 0x2400)
+[:maincpu] ':maincpu' (000454):generalplus_gpl162xx_base_device::unk_w @ 0x783e (data 0x0002)
+[:maincpu] ':maincpu' (000458):generalplus_gpl162xx_base_device::unk_w @ 0x783a (data 0x3011)
+[:maincpu] ':maincpu' (00045B):generalplus_gpl162xx_base_device::unk_w @ 0x7874 (data 0x0000)
+[:maincpu] ':maincpu' (00045D):generalplus_gpl162xx_base_device::unk_w @ 0x787c (data 0x0000)
+[:maincpu] ':maincpu' (00045F):generalplus_gpl162xx_base_device::unk_w @ 0x7888 (data 0x0000)
+[:maincpu] ':maincpu' (000461):generalplus_gpl162xx_base_device::unk_w @ 0x787e (data 0x0000)
 
 jak_car2 uses these
 
-[:maincpu] ':maincpu' (004056):sunplus_gcm394_base_device::unk_w @ 0x782f (data 0x0002)
-[:maincpu] ':maincpu' (004059):sunplus_gcm394_base_device::unk_w @ 0x783d (data 0x05d9)
-[:maincpu] ':maincpu' (00405C):sunplus_gcm394_base_device::unk_w @ 0x783c (data 0x0a57)
-[:maincpu] ':maincpu' (00405F):sunplus_gcm394_base_device::unk_w @ 0x783b (data 0x2400)
-[:maincpu] ':maincpu' (004062):sunplus_gcm394_base_device::unk_w @ 0x783e (data 0x0002)
-[:maincpu] ':maincpu' (004065):sunplus_gcm394_base_device::unk_w @ 0x783a (data 0x3011)
-[:maincpu] ':maincpu' (004069):sunplus_gcm394_base_device::unk_r @ 0x7880
-[:maincpu] ':maincpu' (00406F):sunplus_gcm394_base_device::unk_w @ 0x7874 (data 0x1249)
-[:maincpu] ':maincpu' (004071):sunplus_gcm394_base_device::unk_w @ 0x787c (data 0x1249)
-[:maincpu] ':maincpu' (004073):sunplus_gcm394_base_device::unk_w @ 0x7888 (data 0x1249)
-[:maincpu] ':maincpu' (004075):sunplus_gcm394_base_device::unk_w @ 0x787e (data 0x1249)
-[:maincpu] ':maincpu' (004088):sunplus_gcm394_base_device::unk_w @ 0x7841 (data 0x000f)
-[:maincpu] ':maincpu' (00408F):sunplus_gcm394_base_device::unk_w @ 0x780a (data 0x0000)
-[:maincpu] ':maincpu' (004092):sunplus_gcm394_base_device::unk_w @ 0x7808 (data 0x0002)
+[:maincpu] ':maincpu' (004056):generalplus_gpl162xx_base_device::unk_w @ 0x782f (data 0x0002)
+[:maincpu] ':maincpu' (004059):generalplus_gpl162xx_base_device::unk_w @ 0x783d (data 0x05d9)
+[:maincpu] ':maincpu' (00405C):generalplus_gpl162xx_base_device::unk_w @ 0x783c (data 0x0a57)
+[:maincpu] ':maincpu' (00405F):generalplus_gpl162xx_base_device::unk_w @ 0x783b (data 0x2400)
+[:maincpu] ':maincpu' (004062):generalplus_gpl162xx_base_device::unk_w @ 0x783e (data 0x0002)
+[:maincpu] ':maincpu' (004065):generalplus_gpl162xx_base_device::unk_w @ 0x783a (data 0x3011)
+[:maincpu] ':maincpu' (004069):generalplus_gpl162xx_base_device::unk_r @ 0x7880
+[:maincpu] ':maincpu' (00406F):generalplus_gpl162xx_base_device::unk_w @ 0x7874 (data 0x1249)
+[:maincpu] ':maincpu' (004071):generalplus_gpl162xx_base_device::unk_w @ 0x787c (data 0x1249)
+[:maincpu] ':maincpu' (004073):generalplus_gpl162xx_base_device::unk_w @ 0x7888 (data 0x1249)
+[:maincpu] ':maincpu' (004075):generalplus_gpl162xx_base_device::unk_w @ 0x787e (data 0x1249)
+[:maincpu] ':maincpu' (004088):generalplus_gpl162xx_base_device::unk_w @ 0x7841 (data 0x000f)
+[:maincpu] ':maincpu' (00408F):generalplus_gpl162xx_base_device::unk_w @ 0x780a (data 0x0000)
+[:maincpu] ':maincpu' (004092):generalplus_gpl162xx_base_device::unk_w @ 0x7808 (data 0x0002)
 
-[:maincpu] ':maincpu' (03000A):sunplus_gcm394_base_device::unk_w @ 0x7874 (data 0x36db)
-[:maincpu] ':maincpu' (03000C):sunplus_gcm394_base_device::unk_w @ 0x787c (data 0x36db)
-[:maincpu] ':maincpu' (03000E):sunplus_gcm394_base_device::unk_w @ 0x7888 (data 0x36db)
-[:maincpu] ':maincpu' (030010):sunplus_gcm394_base_device::unk_w @ 0x787e (data 0x36db)
-[:maincpu] ':maincpu' (030013):sunplus_gcm394_base_device::unk_w @ 0x787f (data 0x0010)
-[:maincpu] ':maincpu' (03001D):sunplus_gcm394_base_device::unk_w @ 0x7804 (data 0x1c7f)
-[:maincpu] ':maincpu' (030023):sunplus_gcm394_base_device::unk_w @ 0x7805 (data 0xcdf0)
-[:maincpu] ':maincpu' (03E645):sunplus_gcm394_base_device::unk_w @ 0x7861 (data 0x1f66)
-[:maincpu] ':maincpu' (03E64C):sunplus_gcm394_base_device::unk_w @ 0x786b (data 0x0000)
-[:maincpu] ':maincpu' (03E64F):sunplus_gcm394_base_device::unk_w @ 0x7869 (data 0x0000)
-[:maincpu] ':maincpu' (03E652):sunplus_gcm394_base_device::unk_w @ 0x786a (data 0x0000)
-[:maincpu] ':maincpu' (03E65B):sunplus_gcm394_base_device::unk_w @ 0x7966 (data 0x0001)
-[:maincpu] ':maincpu' (03CBD0):sunplus_gcm394_base_device::unk_w @ 0x7871 (data 0x0000)
+[:maincpu] ':maincpu' (03000A):generalplus_gpl162xx_base_device::unk_w @ 0x7874 (data 0x36db)
+[:maincpu] ':maincpu' (03000C):generalplus_gpl162xx_base_device::unk_w @ 0x787c (data 0x36db)
+[:maincpu] ':maincpu' (03000E):generalplus_gpl162xx_base_device::unk_w @ 0x7888 (data 0x36db)
+[:maincpu] ':maincpu' (030010):generalplus_gpl162xx_base_device::unk_w @ 0x787e (data 0x36db)
+[:maincpu] ':maincpu' (030013):generalplus_gpl162xx_base_device::unk_w @ 0x787f (data 0x0010)
+[:maincpu] ':maincpu' (03001D):generalplus_gpl162xx_base_device::unk_w @ 0x7804 (data 0x1c7f)
+[:maincpu] ':maincpu' (030023):generalplus_gpl162xx_base_device::unk_w @ 0x7805 (data 0xcdf0)
+[:maincpu] ':maincpu' (03E645):generalplus_gpl162xx_base_device::unk_w @ 0x7861 (data 0x1f66)
+[:maincpu] ':maincpu' (03E64C):generalplus_gpl162xx_base_device::unk_w @ 0x786b (data 0x0000)
+[:maincpu] ':maincpu' (03E64F):generalplus_gpl162xx_base_device::unk_w @ 0x7869 (data 0x0000)
+[:maincpu] ':maincpu' (03E652):generalplus_gpl162xx_base_device::unk_w @ 0x786a (data 0x0000)
+[:maincpu] ':maincpu' (03E65B):generalplus_gpl162xx_base_device::unk_w @ 0x7966 (data 0x0001)
+[:maincpu] ':maincpu' (03CBD0):generalplus_gpl162xx_base_device::unk_w @ 0x7871 (data 0x0000)
 
 -- this one seems like a common alt type of DMA, used in both hw types as it polls 707c status before doing it
-[:maincpu] ':maincpu' (03B4C7):sunplus_gcm394_base_device::unk_w @ 0x707c (data 0x0001)
+[:maincpu] ':maincpu' (03B4C7):generalplus_gpl162xx_base_device::unk_w @ 0x707c (data 0x0001)
 -- also video / alt dma?
-[:maincpu] ':maincpu' (068C15):sunplus_gcm394_base_device::unk_r @ 0x707e
+[:maincpu] ':maincpu' (068C15):generalplus_gpl162xx_base_device::unk_r @ 0x707e
 
 beambox sets things up with different values (ultimately stalls on some check, maybe seeprom?)
 
-[:maincpu] ':maincpu' (00043F):sunplus_gcm394_base_device::unk_w @ 0x780a (data 0x0000)
-[:maincpu] ':maincpu' (000442):sunplus_gcm394_base_device::unk_w @ 0x7808 (data 0x0000)
-[:maincpu] ':maincpu' (000445):sunplus_gcm394_base_device::unk_w @ 0x782f (data 0x0002)
-[:maincpu] ':maincpu' (000449):sunplus_gcm394_base_device::unk_w @ 0x783d (data 0x05d9)
-[:maincpu] ':maincpu' (00044D):sunplus_gcm394_base_device::unk_w @ 0x783c (data 0x0f58)
-[:maincpu] ':maincpu' (000451):sunplus_gcm394_base_device::unk_w @ 0x783b (data 0x2400)
-[:maincpu] ':maincpu' (000454):sunplus_gcm394_base_device::unk_w @ 0x783e (data 0x0002)
-[:maincpu] ':maincpu' (000458):sunplus_gcm394_base_device::unk_w @ 0x783a (data 0x4011)
-[:maincpu] ':maincpu' (00045C):sunplus_gcm394_base_device::unk_w @ 0x7874 (data 0x2492)   -- note pair of 4, but different values to above games
-[:maincpu] ':maincpu' (00045E):sunplus_gcm394_base_device::unk_w @ 0x787c (data 0x2492)
-[:maincpu] ':maincpu' (000460):sunplus_gcm394_base_device::unk_w @ 0x7888 (data 0x2492)
-[:maincpu] ':maincpu' (000462):sunplus_gcm394_base_device::unk_w @ 0x787e (data 0x2492)
+[:maincpu] ':maincpu' (00043F):generalplus_gpl162xx_base_device::unk_w @ 0x780a (data 0x0000)
+[:maincpu] ':maincpu' (000442):generalplus_gpl162xx_base_device::unk_w @ 0x7808 (data 0x0000)
+[:maincpu] ':maincpu' (000445):generalplus_gpl162xx_base_device::unk_w @ 0x782f (data 0x0002)
+[:maincpu] ':maincpu' (000449):generalplus_gpl162xx_base_device::unk_w @ 0x783d (data 0x05d9)
+[:maincpu] ':maincpu' (00044D):generalplus_gpl162xx_base_device::unk_w @ 0x783c (data 0x0f58)
+[:maincpu] ':maincpu' (000451):generalplus_gpl162xx_base_device::unk_w @ 0x783b (data 0x2400)
+[:maincpu] ':maincpu' (000454):generalplus_gpl162xx_base_device::unk_w @ 0x783e (data 0x0002)
+[:maincpu] ':maincpu' (000458):generalplus_gpl162xx_base_device::unk_w @ 0x783a (data 0x4011)
+[:maincpu] ':maincpu' (00045C):generalplus_gpl162xx_base_device::unk_w @ 0x7874 (data 0x2492)   -- note pair of 4, but different values to above games
+[:maincpu] ':maincpu' (00045E):generalplus_gpl162xx_base_device::unk_w @ 0x787c (data 0x2492)
+[:maincpu] ':maincpu' (000460):generalplus_gpl162xx_base_device::unk_w @ 0x7888 (data 0x2492)
+[:maincpu] ':maincpu' (000462):generalplus_gpl162xx_base_device::unk_w @ 0x787e (data 0x2492)
 
 vbaby code is very differet, attempts to load NAND block manually, not with DMA
 
@@ -2947,51 +2947,51 @@ vbaby code is very differet, attempts to load NAND block manually, not with DMA
 
 // all tilemap registers etc. appear to be in the same place as the above system, including the 'extra' ones not on the earlier models
 // so it's likely this is built on top of that just with NAND support
-void generalplus_gpac800_device::gpac800_internal_map(address_map &map)
+void generalplus_gpl16250va_device::gpac800_internal_map(address_map &map)
 {
-	sunplus_gcm394_base_device::base_internal_map(map);
+	generalplus_gpl162xx_base_device::base_internal_map(map);
 
 	// 785x = NAND device
-	map(0x007850, 0x007850).rw(FUNC(generalplus_gpac800_device::nand_7850_status_r), FUNC(generalplus_gpac800_device::nand_7850_w)); // NAND Control Reg
-	map(0x007851, 0x007851).w(FUNC(generalplus_gpac800_device::nand_command_w)); // NAND Command Reg
-	map(0x007852, 0x007852).w(FUNC(generalplus_gpac800_device::nand_addr_low_w)); // NAND Low Address Reg
-	map(0x007853, 0x007853).w(FUNC(generalplus_gpac800_device::nand_addr_high_w)); // NAND High Address Reg
-	map(0x007854, 0x007854).rw(FUNC(generalplus_gpac800_device::nand_data_r), FUNC(generalplus_gpac800_device::nand_data_w)); // NAND Data Reg
-	map(0x007855, 0x007855).w(FUNC(generalplus_gpac800_device::nand_dma_ctrl_w)); // NAND DMA / INT Control
-	map(0x007856, 0x007856).w(FUNC(generalplus_gpac800_device::nand_bch_ctrl_w)); // usually 0x0021?
+	map(0x007850, 0x007850).rw(FUNC(generalplus_gpl16250va_device::nand_7850_status_r), FUNC(generalplus_gpl16250va_device::nand_7850_w)); // NAND Control Reg
+	map(0x007851, 0x007851).w(FUNC(generalplus_gpl16250va_device::nand_command_w)); // NAND Command Reg
+	map(0x007852, 0x007852).w(FUNC(generalplus_gpl16250va_device::nand_addr_low_w)); // NAND Low Address Reg
+	map(0x007853, 0x007853).w(FUNC(generalplus_gpl16250va_device::nand_addr_high_w)); // NAND High Address Reg
+	map(0x007854, 0x007854).rw(FUNC(generalplus_gpl16250va_device::nand_data_r), FUNC(generalplus_gpl16250va_device::nand_data_w)); // NAND Data Reg
+	map(0x007855, 0x007855).w(FUNC(generalplus_gpl16250va_device::nand_dma_ctrl_w)); // NAND DMA / INT Control
+	map(0x007856, 0x007856).w(FUNC(generalplus_gpl16250va_device::nand_bch_ctrl_w)); // usually 0x0021?
 
-	map(0x007857, 0x007857).w(FUNC(generalplus_gpac800_device::nand_ecc_ctrl_w));
+	map(0x007857, 0x007857).w(FUNC(generalplus_gpl16250va_device::nand_ecc_ctrl_w));
 
 	// 7858 - 785f can have a different meaning if nand_bch_ctrl bit 0 is set!
 
 	// 7858 - ECC_LPRL_LB
 	// 7859 - ECC_LPRH_LB
 	// 785a - ECC_CPR_LB
-	map(0x00785b, 0x00785b).w(FUNC(generalplus_gpac800_device::nand_ecc_lpr_ckl_lb_w));
-	map(0x00785c, 0x00785c).w(FUNC(generalplus_gpac800_device::nand_ecc_lpr_ckh_lb_w));
-	map(0x00785d, 0x00785d).w(FUNC(generalplus_gpac800_device::nand_ecc_cpckr_lb_w));
-	map(0x00785e, 0x00785e).r(FUNC(generalplus_gpac800_device::nand_ecc_err0_lb_r)); // ECC Low Byte Error Flag 0
-	map(0x00785f, 0x00785f).r(FUNC(generalplus_gpac800_device::nand_ecc_err1_lb_r)); // ECC Low Byte Error Flag 1
+	map(0x00785b, 0x00785b).w(FUNC(generalplus_gpl16250va_device::nand_ecc_lpr_ckl_lb_w));
+	map(0x00785c, 0x00785c).w(FUNC(generalplus_gpl16250va_device::nand_ecc_lpr_ckh_lb_w));
+	map(0x00785d, 0x00785d).w(FUNC(generalplus_gpl16250va_device::nand_ecc_cpckr_lb_w));
+	map(0x00785e, 0x00785e).r(FUNC(generalplus_gpl16250va_device::nand_ecc_err0_lb_r)); // ECC Low Byte Error Flag 0
+	map(0x00785f, 0x00785f).r(FUNC(generalplus_gpl16250va_device::nand_ecc_err1_lb_r)); // ECC Low Byte Error Flag 1
 
-	map(0x007943, 0x007943).r(FUNC(generalplus_gpac800_device::spi_rxstatus_r));
+	map(0x007943, 0x007943).r(FUNC(generalplus_gpl16250va_device::spi_rxstatus_r));
 
-	map(0x007ae2, 0x007ae2).r(FUNC(generalplus_gpac800_device::efuse2_r)); // checked by the internal boot ROM
+	map(0x007ae2, 0x007ae2).r(FUNC(generalplus_gpl16250va_device::efuse2_r)); // checked by the internal boot ROM
 
 	// 128kwords internal ROM
 	//map(0x08000, 0x0ffff).rom().region("internal", 0); // lower 32kwords of internal ROM is visible / shadowed depending on boot pins and register
-	map(0x08000, 0x0ffff).r(FUNC(generalplus_gpac800_device::internalrom_lower32_r)).nopw();
+	map(0x08000, 0x0ffff).r(FUNC(generalplus_gpl16250va_device::internalrom_lower32_r)).nopw();
 	map(0x10000, 0x17fff).rom().region("internal", 0x10000); // upper words of internal ROM is always visible
 	//map(0x18000, 0x27fff).rom().region("internal", 0x20000); // ? apparently more upper words, but nothing is here?
 	map(0x28000, 0x2ffff).noprw(); // reserved
 	// 0x30000+ is CS access
 
-	map(0x030000, 0x1fffff).rw(FUNC(generalplus_gpac800_device::cs_space_r), FUNC(generalplus_gpac800_device::cs_space_w));
-	map(0x200000, 0x3fffff).rw(FUNC(generalplus_gpac800_device::cs_bank_space_r), FUNC(generalplus_gpac800_device::cs_bank_space_w));
+	map(0x030000, 0x1fffff).rw(FUNC(generalplus_gpl16250va_device::cs_space_r), FUNC(generalplus_gpl16250va_device::cs_space_w));
+	map(0x200000, 0x3fffff).rw(FUNC(generalplus_gpl16250va_device::cs_bank_space_r), FUNC(generalplus_gpl16250va_device::cs_bank_space_w));
 }
 
-void generalplus_gpac800_device::device_reset()
+void generalplus_gpl16250va_device::device_reset()
 {
-	sunplus_gcm394_base_device::device_reset();
+	generalplus_gpl162xx_base_device::device_reset();
 
 	m_nand_addr_low = 0x0000;
 	m_nand_addr_high = 0x0000;
@@ -3004,14 +3004,14 @@ void generalplus_gpac800_device::device_reset()
 	m_nand_ecc_ctrl = 0x0000;
 }
 
-u16 generalplus_gpac800_device::spi_rxstatus_r()
+u16 generalplus_gpl16250va_device::spi_rxstatus_r()
 {
 	return 0x0007;
 }
 
-u16 generalplus_gpac800_device::efuse2_r()
+u16 generalplus_gpl16250va_device::efuse2_r()
 {
-	logerror("%s:generalplus_gpac800_device::efuse2_r\n", machine().describe_context());
+	logerror("%s:generalplus_gpl16250va_device::efuse2_r\n", machine().describe_context());
 	return 0x0300;
 }
 
@@ -3024,13 +3024,13 @@ u16 generalplus_gpac800_device::efuse2_r()
 ROM_START( gpl16250 )
 	ROM_REGION16_BE( 0x20000, "internal", 0 )
 	ROM_DEFAULT_BIOS("v7")
-	ROM_SYSTEM_BIOS( 0, "v7", "GPL16250 internal ROM (v7)" )
+	ROM_SYSTEM_BIOS( 0, "v7", "GPL16250VA internal ROM (v7)" )
 	ROMX_LOAD("gpl16250v_bootrom_v7.bin",              0x00000, 0x20000, CRC(fc4d0e32) SHA1(4dad40aae258b54fd816590ee769a1c6059b1d4c), ROM_GROUPWORD | ROM_REVERSE | ROM_BIOS(0) ) // from jewelpet music pod
-	ROM_SYSTEM_BIOS( 1, "unk", "GPL16250 internal ROM (unknown version)" )
+	ROM_SYSTEM_BIOS( 1, "unk", "GPL16250VA internal ROM (unknown version)" )
 	ROMX_LOAD("gpl16250v_bootrom_unknown_version.bin", 0x00000, 0x20000, CRC(975ece00) SHA1(988e0befd33884b05aeccd6821e5cdd53f6a849f), ROM_GROUPWORD | ROM_REVERSE | ROM_BIOS(1) ) // from dragon quest adventure
 ROM_END
 
-const tiny_rom_entry *generalplus_gpac800_device::device_rom_region() const
+const tiny_rom_entry *generalplus_gpl16250va_device::device_rom_region() const
 {
 	return ROM_NAME( gpl16250 );
 }

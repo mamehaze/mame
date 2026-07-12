@@ -23,11 +23,11 @@
 #include "screen.h"
 
 
-class sunplus_gcm394_base_device : public unsp_20_device, public device_mixer_interface
+class generalplus_gpl162xx_base_device : public unsp_20_device, public device_mixer_interface
 {
 public:
-	sunplus_gcm394_base_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, u32 clock) :
-		sunplus_gcm394_base_device(mconfig, type, tag, owner, clock, address_map_constructor(FUNC(sunplus_gcm394_base_device::gcm394_internal_map), this))
+	generalplus_gpl162xx_base_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, u32 clock) :
+		generalplus_gpl162xx_base_device(mconfig, type, tag, owner, clock, address_map_constructor(FUNC(generalplus_gpl162xx_base_device::gcm394_internal_map), this))
 	{
 	}
 
@@ -45,7 +45,7 @@ public:
 	auto space_write_callback() { return m_space_write_cb.bind(); }
 	auto dma_complete_callback() { return m_dma_complete_cb.bind(); }
 
-	// currently used by GPL16250, but GPL16230 adds NAND support too
+	// currently used by GPL16250VA, but GPL16230 adds NAND support too
 	auto nand_command_out() { return m_nand_command_out.bind(); }
 	auto nand_address_out() { return m_nand_address_out.bind(); }
 	auto nand_data_out() { return m_nand_data_out.bind(); }
@@ -80,7 +80,7 @@ public:
 protected:
 	using cs_callback_delegate = device_delegate<void (u16, u16, u16, u16, u16)>;
 
-	sunplus_gcm394_base_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, u32 clock, address_map_constructor internal);
+	generalplus_gpl162xx_base_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, u32 clock, address_map_constructor internal);
 
 	virtual void device_add_mconfig(machine_config &config) override ATTR_COLD;
 	virtual void device_start() override ATTR_COLD;
@@ -371,32 +371,32 @@ private:
 
 
 
-class sunplus_gcm394_device : public sunplus_gcm394_base_device
+class generalplus_gpl16218a_device : public generalplus_gpl162xx_base_device
 {
 public:
 	template <typename T>
-	sunplus_gcm394_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock, T &&screen_tag) :
-		sunplus_gcm394_device(mconfig, tag, owner, clock)
+	generalplus_gpl16218a_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock, T &&screen_tag) :
+		generalplus_gpl16218a_device(mconfig, tag, owner, clock)
 	{
 		m_screen.set_tag(std::forward<T>(screen_tag));
 	}
 
-	sunplus_gcm394_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock);
+	generalplus_gpl16218a_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock);
 };
 
 
-class generalplus_gpac800_device : public sunplus_gcm394_base_device
+class generalplus_gpl16250va_device : public generalplus_gpl162xx_base_device
 {
 public:
 	template <typename T>
-	generalplus_gpac800_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock, T &&screen_tag) :
-		generalplus_gpac800_device(mconfig, tag, owner, clock)
+	generalplus_gpl16250va_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock, T &&screen_tag) :
+		generalplus_gpl16250va_device(mconfig, tag, owner, clock)
 	{
 		m_screen.set_tag(std::forward<T>(screen_tag));
 		m_csbase = 0x30000;
 	}
 
-	generalplus_gpac800_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock);
+	generalplus_gpl16250va_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock);
 
 
 protected:
@@ -441,8 +441,8 @@ private:
 };
 
 
-DECLARE_DEVICE_TYPE(GCM394, sunplus_gcm394_device)
-DECLARE_DEVICE_TYPE(GPL16250, generalplus_gpac800_device)
+DECLARE_DEVICE_TYPE(GPL16218A, generalplus_gpl16218a_device)
+DECLARE_DEVICE_TYPE(GPL16250VA, generalplus_gpl16250va_device)
 
 
 
