@@ -741,40 +741,44 @@ TIMER_DEVICE_CALLBACK_MEMBER(sunplus_gcm394_base_device::timer_f_cb)
 {
 }
 
-u16 sunplus_gcm394_base_device::timera_ctrl_r()
+// P_Timer*_Ctrl
+// 
+// 15  TM*IF/C
+// 14  TM*IE
+// 13  TM*EN
+// 12
+//
+// 11  EXTASEL[1]
+// 10  EXTASEL[0]
+//  9  EXTBSEL[1]
+//  8  EXTBSEL[0]
+// 
+//  7
+//  6  SRCBSEL[2]
+//  5  SRCBSEL[1]
+//  4  SRCBSEL[0]
+// 
+//  3  SRCASEL[3]
+//  2  SRCASEL[2]
+//  1  SRCASEL[1]
+//  0  SRCASEL[0]
+
+template<int Timer>
+u16 sunplus_gcm394_base_device::timer_ctrl_r()
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::timera_ctrl_r\n", machine().describe_context());
-	return m_timera_ctrl;
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::timer%c_ctrl_r\n", machine().describe_context(), 'a'+Timer);
+
+	if (Timer > 1)
+		return machine().rand();
+
+	return m_timer_ctrl[Timer];
 }
 
-void sunplus_gcm394_base_device::timera_ctrl_w(u16 data)
+template<int Timer>
+void sunplus_gcm394_base_device::timer_ctrl_w(u16 data)
 {
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::timera_ctrl_w %04x\n", machine().describe_context(), data);
-	m_timera_ctrl = data;
-}
-
-u16 sunplus_gcm394_base_device::timerb_ctrl_r()
-{
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::timerb_ctrl_r\n", machine().describe_context());
-	return m_timerb_ctrl;
-}
-
-void sunplus_gcm394_base_device::timerb_ctrl_w(u16 data)
-{
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::timerb_ctrl_w %04x\n", machine().describe_context(), data);
-	m_timerb_ctrl = data;
-}
-
-u16 sunplus_gcm394_base_device::timerc_ctrl_r()
-{
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::timerc_ctrl_r\n", machine().describe_context());
-	return machine().rand();
-}
-
-u16 sunplus_gcm394_base_device::timerd_ctrl_r()
-{
-	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::timerd_ctrl_r\n", machine().describe_context());
-	return machine().rand();
+	LOGMASKED(LOG_GCM394, "%s:sunplus_gcm394_base_device::timer%c_ctrl_w %04x\n", machine().describe_context(), 'a'+Timer, data);
+	m_timer_ctrl[Timer] = data;
 }
 
 // CHA (for sound output)
@@ -1616,33 +1620,33 @@ void sunplus_gcm394_base_device::base_internal_map(address_map &map)
 	map(0x0078b8, 0x0078b8).w(m_gpl_timebase, FUNC(gpl_timebase_device::timebase_reset_w)); // 78b8 - TimeBase_Reset
 
 
-	map(0x0078c0, 0x0078c0).rw(FUNC(sunplus_gcm394_base_device::timera_ctrl_r), FUNC(sunplus_gcm394_base_device::timera_ctrl_w)); // beijuehh
+	map(0x0078c0, 0x0078c0).rw(FUNC(sunplus_gcm394_base_device::timer_ctrl_r<0>), FUNC(sunplus_gcm394_base_device::timer_ctrl_w<0>)); // beijuehh
 	// 78c1 - TimerA_CCCtrl
 	// 78c2 - TimerA_Preload
 	// 78c3 - TimerA_CCReg
 	// 78c4 - TimerA_UpCount
 
-	map(0x0078c8, 0x0078c8).rw(FUNC(sunplus_gcm394_base_device::timerb_ctrl_r), FUNC(sunplus_gcm394_base_device::timerb_ctrl_w)); // dressmtv
+	map(0x0078c8, 0x0078c8).rw(FUNC(sunplus_gcm394_base_device::timer_ctrl_r<1>), FUNC(sunplus_gcm394_base_device::timer_ctrl_w<1>)); // dressmtv
 	// 78c9 - TimerB_CCCtrl
 	// 78ca - TimerB_Preload
 	// 78cb - TimerB_CCReg
 	// 78cc - TimerB_UpCount
 
-	map(0x0078d0, 0x0078d0).r(FUNC(sunplus_gcm394_base_device::timerc_ctrl_r)); // jak_s500
+	map(0x0078d0, 0x0078d0).rw(FUNC(sunplus_gcm394_base_device::timer_ctrl_r<2>), FUNC(sunplus_gcm394_base_device::timer_ctrl_w<2>)); // jak_s500
 	// 78d1 - TimerC_CCCtrl
 	// 78d2 - TimerC_Preload
 	// 78d3 - TimerC_CCReg
 	// 78d4 - TimerC_UpCount
 
-	map(0x0078d8, 0x0078d8).r(FUNC(sunplus_gcm394_base_device::timerd_ctrl_r)); // jak_tsh
+	map(0x0078d8, 0x0078d8).rw(FUNC(sunplus_gcm394_base_device::timer_ctrl_r<3>), FUNC(sunplus_gcm394_base_device::timer_ctrl_w<3>)); // jak_tsh
 	// 78da - TimerD_Preload
 	// 78dc - TimerD_UpCount
 
-	// 78e0 - TimerE_Ctrl
+	map(0x0078e0, 0x0078e0).rw(FUNC(sunplus_gcm394_base_device::timer_ctrl_r<4>), FUNC(sunplus_gcm394_base_device::timer_ctrl_w<4>)); // 78e0 - TimerE_Ctrl
 	// 78e2 - TimerE_Preload
 	// 78e4 - TimerE_UpCount
 
-	// 78e8 - TimerF_Ctrl
+	map(0x0078e8, 0x0078e8).rw(FUNC(sunplus_gcm394_base_device::timer_ctrl_r<5>), FUNC(sunplus_gcm394_base_device::timer_ctrl_w<5>)); // 78e8 - TimerF_Ctrl
 	// 78ea - TimerF_Preload
 	// 78ec - TimerF_UpCount
 
@@ -1831,8 +1835,7 @@ void sunplus_gcm394_base_device::device_start()
 	save_item(NAME(m_adc_setup));
 	save_item(NAME(m_madc_ctrl));
 	save_item(NAME(m_csbase));
-	save_item(NAME(m_timera_ctrl));
-	save_item(NAME(m_timerb_ctrl));
+	save_item(NAME(m_timer_ctrl));
 }
 
 void sunplus_gcm394_base_device::device_reset()
@@ -1892,8 +1895,8 @@ void sunplus_gcm394_base_device::device_reset()
 	m_adc_setup = 0x0000;
 	m_madc_ctrl = 0x0000;
 
-	m_timera_ctrl = 0x0000;
-	m_timerb_ctrl = 0x0000;
+	for (int i = 0; i < 6; i++)
+		m_timer_ctrl[i] = 0x0000;
 
 	m_spg_video->reset();
 }

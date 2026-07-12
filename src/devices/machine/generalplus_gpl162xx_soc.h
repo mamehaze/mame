@@ -170,9 +170,7 @@ protected:
 	u16 m_adc_setup;
 	u16 m_madc_ctrl;
 
-	u16 m_timera_ctrl;
-	u16 m_timerb_ctrl;
-
+	u16 m_timer_ctrl[6];
 
 	u16 internalrom_lower32_r(offs_t offset);
 
@@ -299,14 +297,8 @@ protected:
 
 	virtual void update_interrupts(int state);
 
-	u16 timera_ctrl_r();
-	void timera_ctrl_w(u16 data);
-
-	u16 timerb_ctrl_r();
-	void timerb_ctrl_w(u16 data);
-
-	u16 timerc_ctrl_r();
-	u16 timerd_ctrl_r();
+	template<int Timer> u16 timer_ctrl_r();
+	template<int Timer> void timer_ctrl_w(u16 data);
 
 	u16 cha_ctrl_r();
 	void cha_ctrl_w(u16 data);
