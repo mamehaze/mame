@@ -146,8 +146,8 @@ void gcm394_game_state::base(machine_config &config)
 	m_screen->set_refresh_hz(60);
 	m_screen->set_size(320*2, 262*2);
 	m_screen->set_visarea(0, (320*2)-1, 0, (240*2)-1);
-	m_screen->set_screen_update("maincpu", FUNC(generalplus_gpl16218a_device::screen_update));
-	m_screen->screen_vblank().set(m_maincpu, FUNC(generalplus_gpl16218a_device::vblank));
+	m_screen->set_screen_update("maincpu", FUNC(generalplus_gpl16218b_device::screen_update));
+	m_screen->screen_vblank().set(m_maincpu, FUNC(generalplus_gpl16218b_device::vblank));
 
 	SPEAKER(config, "speaker", 2).front();
 }

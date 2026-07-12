@@ -370,21 +370,6 @@ private:
 };
 
 
-
-class generalplus_gpl16218a_device : public generalplus_gpl162xx_base_device
-{
-public:
-	template <typename T>
-	generalplus_gpl16218a_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock, T &&screen_tag) :
-		generalplus_gpl16218a_device(mconfig, tag, owner, clock)
-	{
-		m_screen.set_tag(std::forward<T>(screen_tag));
-	}
-
-	generalplus_gpl16218a_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock);
-};
-
-
 class generalplus_gpl16250va_device : public generalplus_gpl162xx_base_device
 {
 public:
@@ -441,7 +426,7 @@ private:
 };
 
 
-DECLARE_DEVICE_TYPE(GPL16218A, generalplus_gpl16218a_device)
+
 DECLARE_DEVICE_TYPE(GPL16250VA, generalplus_gpl16250va_device)
 
 

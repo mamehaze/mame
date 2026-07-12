@@ -15,7 +15,7 @@
     GPL16248VB
     GPL16258VB (this could be GPAC800B)
 
-    die is marked 'GPL16218A' on some chips
+    die is marked 'GCM394' on some chips
 
     The GPAC500 / GPAC800 might be slightly customized rather than direct rebadgings
 
@@ -35,7 +35,6 @@
 #include "logmacro.h"
 
 
-DEFINE_DEVICE_TYPE(GPL16218A, generalplus_gpl16218a_device, "gcm394", "GeneralPlus GPL1622x/GPL1623x/GPL1624x System-on-a-Chip")
 
 generalplus_gpl162xx_base_device::generalplus_gpl162xx_base_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, u32 clock, address_map_constructor internal) :
 	unsp_20_device(mconfig, type, tag, owner, clock, internal),
@@ -77,10 +76,6 @@ generalplus_gpl162xx_base_device::generalplus_gpl162xx_base_device(const machine
 {
 }
 
-generalplus_gpl16218a_device::generalplus_gpl16218a_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock) :
-	generalplus_gpl162xx_base_device(mconfig, GPL16218A, tag, owner, clock)
-{
-}
 
 
 
@@ -2870,83 +2865,7 @@ u16 generalplus_gpl16250va_device::nand_ecc_err1_lb_r()
 	return 0x0000;
 }
 
-/*
-UNMAPPED reads  writes
 
-jak_tsm uses these (all iniitalized near start)
-unclear if these are specific to the GPL16250VA type, or present in the older types
-
-[:maincpu] ':maincpu' (00043F):generalplus_gpl162xx_base_device::unk_w @ 0x780a (data 0x0000)
-[:maincpu] ':maincpu' (000442):generalplus_gpl162xx_base_device::unk_w @ 0x7808 (data 0x0000)
-[:maincpu] ':maincpu' (000445):generalplus_gpl162xx_base_device::unk_w @ 0x782f (data 0x0002)
-[:maincpu] ':maincpu' (000449):generalplus_gpl162xx_base_device::unk_w @ 0x783d (data 0x05d9)
-[:maincpu] ':maincpu' (00044D):generalplus_gpl162xx_base_device::unk_w @ 0x783c (data 0x0a57)
-[:maincpu] ':maincpu' (000451):generalplus_gpl162xx_base_device::unk_w @ 0x783b (data 0x2400)
-[:maincpu] ':maincpu' (000454):generalplus_gpl162xx_base_device::unk_w @ 0x783e (data 0x0002)
-[:maincpu] ':maincpu' (000458):generalplus_gpl162xx_base_device::unk_w @ 0x783a (data 0x3011)
-[:maincpu] ':maincpu' (00045B):generalplus_gpl162xx_base_device::unk_w @ 0x7874 (data 0x0000)
-[:maincpu] ':maincpu' (00045D):generalplus_gpl162xx_base_device::unk_w @ 0x787c (data 0x0000)
-[:maincpu] ':maincpu' (00045F):generalplus_gpl162xx_base_device::unk_w @ 0x7888 (data 0x0000)
-[:maincpu] ':maincpu' (000461):generalplus_gpl162xx_base_device::unk_w @ 0x787e (data 0x0000)
-
-jak_car2 uses these
-
-[:maincpu] ':maincpu' (004056):generalplus_gpl162xx_base_device::unk_w @ 0x782f (data 0x0002)
-[:maincpu] ':maincpu' (004059):generalplus_gpl162xx_base_device::unk_w @ 0x783d (data 0x05d9)
-[:maincpu] ':maincpu' (00405C):generalplus_gpl162xx_base_device::unk_w @ 0x783c (data 0x0a57)
-[:maincpu] ':maincpu' (00405F):generalplus_gpl162xx_base_device::unk_w @ 0x783b (data 0x2400)
-[:maincpu] ':maincpu' (004062):generalplus_gpl162xx_base_device::unk_w @ 0x783e (data 0x0002)
-[:maincpu] ':maincpu' (004065):generalplus_gpl162xx_base_device::unk_w @ 0x783a (data 0x3011)
-[:maincpu] ':maincpu' (004069):generalplus_gpl162xx_base_device::unk_r @ 0x7880
-[:maincpu] ':maincpu' (00406F):generalplus_gpl162xx_base_device::unk_w @ 0x7874 (data 0x1249)
-[:maincpu] ':maincpu' (004071):generalplus_gpl162xx_base_device::unk_w @ 0x787c (data 0x1249)
-[:maincpu] ':maincpu' (004073):generalplus_gpl162xx_base_device::unk_w @ 0x7888 (data 0x1249)
-[:maincpu] ':maincpu' (004075):generalplus_gpl162xx_base_device::unk_w @ 0x787e (data 0x1249)
-[:maincpu] ':maincpu' (004088):generalplus_gpl162xx_base_device::unk_w @ 0x7841 (data 0x000f)
-[:maincpu] ':maincpu' (00408F):generalplus_gpl162xx_base_device::unk_w @ 0x780a (data 0x0000)
-[:maincpu] ':maincpu' (004092):generalplus_gpl162xx_base_device::unk_w @ 0x7808 (data 0x0002)
-
-[:maincpu] ':maincpu' (03000A):generalplus_gpl162xx_base_device::unk_w @ 0x7874 (data 0x36db)
-[:maincpu] ':maincpu' (03000C):generalplus_gpl162xx_base_device::unk_w @ 0x787c (data 0x36db)
-[:maincpu] ':maincpu' (03000E):generalplus_gpl162xx_base_device::unk_w @ 0x7888 (data 0x36db)
-[:maincpu] ':maincpu' (030010):generalplus_gpl162xx_base_device::unk_w @ 0x787e (data 0x36db)
-[:maincpu] ':maincpu' (030013):generalplus_gpl162xx_base_device::unk_w @ 0x787f (data 0x0010)
-[:maincpu] ':maincpu' (03001D):generalplus_gpl162xx_base_device::unk_w @ 0x7804 (data 0x1c7f)
-[:maincpu] ':maincpu' (030023):generalplus_gpl162xx_base_device::unk_w @ 0x7805 (data 0xcdf0)
-[:maincpu] ':maincpu' (03E645):generalplus_gpl162xx_base_device::unk_w @ 0x7861 (data 0x1f66)
-[:maincpu] ':maincpu' (03E64C):generalplus_gpl162xx_base_device::unk_w @ 0x786b (data 0x0000)
-[:maincpu] ':maincpu' (03E64F):generalplus_gpl162xx_base_device::unk_w @ 0x7869 (data 0x0000)
-[:maincpu] ':maincpu' (03E652):generalplus_gpl162xx_base_device::unk_w @ 0x786a (data 0x0000)
-[:maincpu] ':maincpu' (03E65B):generalplus_gpl162xx_base_device::unk_w @ 0x7966 (data 0x0001)
-[:maincpu] ':maincpu' (03CBD0):generalplus_gpl162xx_base_device::unk_w @ 0x7871 (data 0x0000)
-
--- this one seems like a common alt type of DMA, used in both hw types as it polls 707c status before doing it
-[:maincpu] ':maincpu' (03B4C7):generalplus_gpl162xx_base_device::unk_w @ 0x707c (data 0x0001)
--- also video / alt dma?
-[:maincpu] ':maincpu' (068C15):generalplus_gpl162xx_base_device::unk_r @ 0x707e
-
-beambox sets things up with different values (ultimately stalls on some check, maybe seeprom?)
-
-[:maincpu] ':maincpu' (00043F):generalplus_gpl162xx_base_device::unk_w @ 0x780a (data 0x0000)
-[:maincpu] ':maincpu' (000442):generalplus_gpl162xx_base_device::unk_w @ 0x7808 (data 0x0000)
-[:maincpu] ':maincpu' (000445):generalplus_gpl162xx_base_device::unk_w @ 0x782f (data 0x0002)
-[:maincpu] ':maincpu' (000449):generalplus_gpl162xx_base_device::unk_w @ 0x783d (data 0x05d9)
-[:maincpu] ':maincpu' (00044D):generalplus_gpl162xx_base_device::unk_w @ 0x783c (data 0x0f58)
-[:maincpu] ':maincpu' (000451):generalplus_gpl162xx_base_device::unk_w @ 0x783b (data 0x2400)
-[:maincpu] ':maincpu' (000454):generalplus_gpl162xx_base_device::unk_w @ 0x783e (data 0x0002)
-[:maincpu] ':maincpu' (000458):generalplus_gpl162xx_base_device::unk_w @ 0x783a (data 0x4011)
-[:maincpu] ':maincpu' (00045C):generalplus_gpl162xx_base_device::unk_w @ 0x7874 (data 0x2492)   -- note pair of 4, but different values to above games
-[:maincpu] ':maincpu' (00045E):generalplus_gpl162xx_base_device::unk_w @ 0x787c (data 0x2492)
-[:maincpu] ':maincpu' (000460):generalplus_gpl162xx_base_device::unk_w @ 0x7888 (data 0x2492)
-[:maincpu] ':maincpu' (000462):generalplus_gpl162xx_base_device::unk_w @ 0x787e (data 0x2492)
-
-vbaby code is very differet, attempts to load NAND block manually, not with DMA
-
-*/
-
-
-// all tilemap registers etc. appear to be in the same place as the above system, including the 'extra' ones not on the earlier models
-// so it's likely this is built on top of that just with NAND support
 void generalplus_gpl16250va_device::gpac800_internal_map(address_map &map)
 {
 	generalplus_gpl162xx_base_device::base_internal_map(map);

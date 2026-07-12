@@ -7,7 +7,7 @@
 
 #include "bus/generic/carts.h"
 #include "bus/generic/slot.h"
-#include "machine/generalplus_gpl162xx_soc.h"
+#include "machine/generalplus_gpl162xx_b_soc.h"
 
 #include "screen.h"
 #include "speaker.h"
