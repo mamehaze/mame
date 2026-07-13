@@ -36,6 +36,8 @@ protected:
 	generalplus_gpl16218b_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, u32 clock, address_map_constructor internal);
 
 	void gpl16218b_map(address_map &map);
+
+	// virtual const tiny_rom_entry *device_rom_region() const override ATTR_COLD; // uncertain
 };
 
 
@@ -54,6 +56,8 @@ protected:
 	generalplus_gpl16238b_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, u32 clock, address_map_constructor internal);
 
 	void gpl16238b_map(address_map &map);
+
+	virtual const tiny_rom_entry *device_rom_region() const override ATTR_COLD;
 };
 
 
@@ -73,6 +77,8 @@ protected:
 	virtual void device_add_mconfig(machine_config &config) override ATTR_COLD;
 
 	void gpl16248vb_map(address_map &map);
+
+	virtual const tiny_rom_entry *device_rom_region() const override ATTR_COLD;
 };
 
 class generalplus_gpl16258vb_device : public generalplus_gpl16248vb_device
@@ -90,6 +96,8 @@ protected:
 	virtual void device_add_mconfig(machine_config &config) override ATTR_COLD;
 
 	void gpl16258vb_map(address_map &map);
+
+	virtual const tiny_rom_entry *device_rom_region() const override ATTR_COLD;
 };
 
 

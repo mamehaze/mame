@@ -369,7 +369,7 @@ void wrlshunt_game_state::gpl16220a_romram(machine_config &config)
 	common_config(config);
 }
 
-void wrlshunt_game_state::gpl16258b_romram(machine_config &config)
+void wrlshunt_game_state::gpl16258vb_romram(machine_config &config)
 {
 	GPL16258VB(config, m_maincpu, 96000000, m_screen);
 	common_config(config);
@@ -671,11 +671,11 @@ CONS(2011, wrlshunt, 0, 0, gpl16250va_romram, wrlshunt, wrlshunt_game_state, ini
 // ----------------------------------------------------
 // these use RAM up to 2fff
 //
-// high resolution mode is used, NAND not used, SRAM is used, so probably GPL16248B or GPL16258B
+// high resolution mode is used, NAND not used, SRAM is used, so probably GPL16248B or gpl16258vb
 // ----------------------------------------------------
 
 // ぼくはトミカドライバー はたらくのりもの大集合！
-CONS(2014, tomycar,  0, 0, gpl16258b_romram, paccon, jak_prft_game_state, init_wrlshunt, "Takara Tomy", "Boku wa Tomica Driver - Hataraku Norimono Daishuugou! (Japan)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING)
+CONS(2014, tomycar,  0, 0, gpl16258vb_romram, paccon, jak_prft_game_state, init_wrlshunt, "Takara Tomy", "Boku wa Tomica Driver - Hataraku Norimono Daishuugou! (Japan)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING)
 
 
 // ----------------------------------------------------
