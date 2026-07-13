@@ -56,6 +56,18 @@ generalplus_gpl16258vb_device::generalplus_gpl16258vb_device(const machine_confi
 {
 }
 
+void generalplus_gpl16248vb_device::device_add_mconfig(machine_config & config)
+{
+	generalplus_gpl16238b_device::device_add_mconfig(config);
+	m_spg_video->set_has_vga_modes();
+}
+
+void generalplus_gpl16258vb_device::device_add_mconfig(machine_config & config)
+{
+	generalplus_gpl16248vb_device::device_add_mconfig(config);
+	m_spg_video->set_has_3d_sprite_modes();
+}
+
 DEFINE_DEVICE_TYPE(GPL16218B, generalplus_gpl16218b_device, "gpl16218b", "GeneralPlus GPL16218B System-on-a-Chip") // aka GPAC500B
 DEFINE_DEVICE_TYPE(GPL16238B, generalplus_gpl16238b_device, "gpl16238b", "GeneralPlus GPL16238B System-on-a-Chip")
 DEFINE_DEVICE_TYPE(GPL16248VB, generalplus_gpl16248vb_device, "gpl16248vb", "GeneralPlus GPL16248VB System-on-a-Chip")

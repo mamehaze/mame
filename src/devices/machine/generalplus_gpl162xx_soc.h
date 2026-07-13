@@ -412,6 +412,8 @@ public:
 
 protected:
 	generalplus_gpl16220a_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, u32 clock, address_map_constructor internal);
+
+	void gpl16220a_map(address_map &map);
 };
 
 class generalplus_gpl16230a_device : public generalplus_gpl16220a_device
@@ -428,6 +430,8 @@ public:
 
 protected:
 	generalplus_gpl16230a_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, u32 clock, address_map_constructor internal);
+
+	void gpl16230a_map(address_map &map);
 };
 
 
@@ -447,6 +451,8 @@ protected:
 	generalplus_gpl16240va_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, u32 clock, address_map_constructor internal);
 
 	virtual void device_add_mconfig(machine_config &config) override ATTR_COLD;
+
+	void gpl16240va_map(address_map &map);
 };
 
 
@@ -467,8 +473,8 @@ protected:
 	virtual const tiny_rom_entry *device_rom_region() const override ATTR_COLD;
 
 	virtual void device_add_mconfig(machine_config &config) override ATTR_COLD;
-private:
 
+	void gpl16250va_map(address_map &map);
 };
 
 DECLARE_DEVICE_TYPE(GPL16220A, generalplus_gpl16220a_device)

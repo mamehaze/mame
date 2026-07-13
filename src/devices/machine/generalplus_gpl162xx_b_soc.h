@@ -65,6 +65,7 @@ public:
 
 protected:
 	generalplus_gpl16248vb_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, u32 clock, address_map_constructor internal);
+	virtual void device_add_mconfig(machine_config &config) override ATTR_COLD;
 };
 
 class generalplus_gpl16258vb_device : public generalplus_gpl16248vb_device
@@ -77,6 +78,9 @@ public:
 	}
 
 	generalplus_gpl16258vb_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock);
+
+protected:
+	virtual void device_add_mconfig(machine_config &config) override ATTR_COLD;
 };
 
 

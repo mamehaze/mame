@@ -76,7 +76,40 @@ generalplus_gpl162xx_base_device::generalplus_gpl162xx_base_device(const machine
 {
 }
 
+generalplus_gpl16220a_device::generalplus_gpl16220a_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock) :
+	generalplus_gpl162xx_base_device(mconfig, GPL16220A, tag, owner, clock, address_map_constructor(FUNC(generalplus_gpl16220a_device::gpl16220a_map), this))
+{
+}
 
+generalplus_gpl16220a_device::generalplus_gpl16220a_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, u32 clock, address_map_constructor internal) :
+	generalplus_gpl162xx_base_device(mconfig, type, tag, owner, clock, internal)
+{
+}
+
+generalplus_gpl16230a_device::generalplus_gpl16230a_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock) :
+	generalplus_gpl16220a_device(mconfig, GPL16230A, tag, owner, clock, address_map_constructor(FUNC(generalplus_gpl16230a_device::gpl16230a_map), this))
+{
+}
+
+generalplus_gpl16230a_device::generalplus_gpl16230a_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, u32 clock, address_map_constructor internal) :
+	generalplus_gpl16220a_device(mconfig, type, tag, owner, clock, internal)
+{
+}
+
+generalplus_gpl16240va_device::generalplus_gpl16240va_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock) :
+	generalplus_gpl16230a_device(mconfig, GPL16240VA, tag, owner, clock, address_map_constructor(FUNC(generalplus_gpl16240va_device::gpl16240va_map), this))
+{
+}
+
+generalplus_gpl16240va_device::generalplus_gpl16240va_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, u32 clock, address_map_constructor internal) :
+	generalplus_gpl16230a_device(mconfig, type, tag, owner, clock, internal)
+{
+}
+
+generalplus_gpl16250va_device::generalplus_gpl16250va_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock) :
+	generalplus_gpl16240va_device(mconfig, GPL16250VA, tag, owner, clock, address_map_constructor(FUNC(generalplus_gpl16250va_device::gpl16250va_map), this))
+{
+}
 
 
 
@@ -1488,656 +1521,6 @@ void generalplus_gpl162xx_base_device::unk_w(offs_t offset, u16 data)
 // 7e00 - 7eff Sound Phase
 
 
-void generalplus_gpl162xx_base_device::base_internal_map(address_map &map)
-{
-	map(0x000000, 0x006fff).ram().share("mainram");
-	map(0x007000, 0x007fff).rw(FUNC(generalplus_gpl162xx_base_device::unk_r), FUNC(generalplus_gpl162xx_base_device::unk_w)); // catch unhandled
-
-	// ######################################################################################################################################################################################
-	// 70xx region = video hardware
-	// ######################################################################################################################################################################################
-
-	// note, tilemaps are at the same address offsets in video device as spg2xx (but unknown devices are extra)
-
-	map(0x007000, 0x007007).rw(m_spg_video, FUNC(gcm394_base_video_device::tmap2_regs_r), FUNC(gcm394_base_video_device::tmap2_regs_w)); // written with other unknown_video_device1 LSB/MSB regs below (roz layer or line layer?)
-	map(0x007008, 0x00700f).rw(m_spg_video, FUNC(gcm394_base_video_device::tmap3_regs_r), FUNC(gcm394_base_video_device::tmap3_regs_w)); // written with other unknown_video_device2 LSB/MSB regs below (roz layer or line layer?)
-
-	map(0x007010, 0x007015).rw(m_spg_video, FUNC(gcm394_base_video_device::tmap0_regs_r), FUNC(gcm394_base_video_device::tmap0_regs_w));
-	map(0x007016, 0x00701b).rw(m_spg_video, FUNC(gcm394_base_video_device::tmap1_regs_r), FUNC(gcm394_base_video_device::tmap1_regs_w));
-
-	map(0x00701c, 0x00701c).w(m_spg_video, FUNC(gcm394_base_video_device::vcomp_value_w)); // these 3 are written together in paccon
-	map(0x00701d, 0x00701d).w(m_spg_video, FUNC(gcm394_base_video_device::vcomp_offset_w));
-	map(0x00701e, 0x00701e).w(m_spg_video, FUNC(gcm394_base_video_device::vcomp_step_w));
-
-	// tilebase LSBs
-	map(0x007020, 0x007020).rw(m_spg_video, FUNC(gcm394_base_video_device::tmap0_tilebase_lsb_r), FUNC(gcm394_base_video_device::tmap0_tilebase_lsb_w));           // tilebase, written with other tmap0 regs
-	map(0x007021, 0x007021).rw(m_spg_video, FUNC(gcm394_base_video_device::tmap1_tilebase_lsb_r), FUNC(gcm394_base_video_device::tmap1_tilebase_lsb_w));           // tilebase, written with other tmap1 regs
-	map(0x007022, 0x007022).rw(m_spg_video, FUNC(gcm394_base_video_device::sprite_7022_gfxbase_lsb_r), FUNC(gcm394_base_video_device::sprite_7022_gfxbase_lsb_w)); // sprite tilebase written as 7022, 702d and 7042 group
-	map(0x007023, 0x007023).rw(m_spg_video, FUNC(gcm394_base_video_device::tmap2_tilebase_lsb_r), FUNC(gcm394_base_video_device::tmap2_tilebase_lsb_w));           // written with other tmap2 regs (roz layer or line layer?)
-	map(0x007024, 0x007024).rw(m_spg_video, FUNC(gcm394_base_video_device::tmap3_tilebase_lsb_r), FUNC(gcm394_base_video_device::tmap3_tilebase_lsb_w));           // written with other tmap3 regs (roz layer or line layer?)
-
-	map(0x00702a, 0x00702a).w(m_spg_video, FUNC(gcm394_base_video_device::blending_w)); // blend level control
-
-	// tilebase MSBs
-	map(0x00702b, 0x00702b).rw(m_spg_video, FUNC(gcm394_base_video_device::tmap0_tilebase_msb_r), FUNC(gcm394_base_video_device::tmap0_tilebase_msb_w));           // written with other tmap0 regs
-	map(0x00702c, 0x00702c).rw(m_spg_video, FUNC(gcm394_base_video_device::tmap1_tilebase_msb_r), FUNC(gcm394_base_video_device::tmap1_tilebase_msb_w));           // written with other tmap1 regs
-	map(0x00702d, 0x00702d).rw(m_spg_video, FUNC(gcm394_base_video_device::sprite_702d_gfxbase_msb_r), FUNC(gcm394_base_video_device::sprite_702d_gfxbase_msb_w)); // sprites, written as 7022, 702d and 7042 group
-	map(0x00702e, 0x00702e).rw(m_spg_video, FUNC(gcm394_base_video_device::tmap2_tilebase_msb_r), FUNC(gcm394_base_video_device::tmap2_tilebase_msb_w));           // written with other tmap2 regs (roz layer or line layer?)
-	map(0x00702f, 0x00702f).rw(m_spg_video, FUNC(gcm394_base_video_device::tmap3_tilebase_msb_r), FUNC(gcm394_base_video_device::tmap3_tilebase_msb_w));           // written with other tmap3 regs (roz layer or line layer?)
-
-	map(0x007036, 0x007036).w(m_spg_video, FUNC(gcm394_base_video_device::split_irq_xpos_w));
-	map(0x007037, 0x007037).w(m_spg_video, FUNC(gcm394_base_video_device::split_irq_ypos_w));
-
-
-	map(0x007030, 0x007030).rw(m_spg_video, FUNC(gcm394_base_video_device::video_7030_brightness_r), FUNC(gcm394_base_video_device::video_7030_brightness_w));
-	map(0x007038, 0x007038).r(m_spg_video, FUNC(gcm394_base_video_device::video_curline_r));
-	map(0x00703a, 0x00703a).rw(m_spg_video, FUNC(gcm394_base_video_device::video_703a_palettebank_r), FUNC(gcm394_base_video_device::video_703a_palettebank_w));
-	map(0x00703c, 0x00703c).rw(m_spg_video, FUNC(gcm394_base_video_device::video_703c_tvcontrol1_r), FUNC(gcm394_base_video_device::video_703c_tvcontrol1_w)); // TV Control 1
-
-	map(0x007042, 0x007042).rw(m_spg_video, FUNC(gcm394_base_video_device::sprite_7042_extra_r), FUNC(gcm394_base_video_device::sprite_7042_extra_w)); // maybe sprites,  written as 7022, 702d and 7042 group
-
-	map(0x007051, 0x007051).r(m_spg_video, FUNC(gcm394_base_video_device::video_7051_r)); // wrlshunt checks this (doesn't exist on older SPG?)
-
-	map(0x007062, 0x007062).rw(m_spg_video, FUNC(gcm394_base_video_device::videoirq_source_enable_r), FUNC(gcm394_base_video_device::videoirq_source_enable_w));
-	map(0x007063, 0x007063).rw(m_spg_video, FUNC(gcm394_base_video_device::video_7063_videoirq_source_r), FUNC(gcm394_base_video_device::video_7063_videoirq_source_ack_w));
-
-	// note, 70 / 71 / 72 are the same offsets used for DMA as in spg2xx video device
-	map(0x007070, 0x007070).w(m_spg_video, FUNC(gcm394_base_video_device::video_dma_source_w));                                                      // video dma, not system dma? (sets pointers to ram buffers)
-	map(0x007071, 0x007071).w(m_spg_video, FUNC(gcm394_base_video_device::video_dma_dest_w));                                                        // sets pointers to 7300, 7400 ram areas below
-	map(0x007072, 0x007072).rw(m_spg_video, FUNC(gcm394_base_video_device::video_dma_size_busy_r), FUNC(gcm394_base_video_device::video_dma_size_trigger_w));     //
-
-	// these don't exist on older SPG
-	map(0x00707c, 0x00707c).r(m_spg_video, FUNC(gcm394_base_video_device::video_707c_r)); // wrlshunt polls this waiting for 0x8000, is this some kind of manual port-based data upload?
-
-	map(0x00707e, 0x00707e).w(m_spg_video, FUNC(gcm394_base_video_device::ppu_ram_bank_w));                                                         // written around same time as DMA, seems to select alt sprite bank
-	map(0x00707f, 0x00707f).rw(m_spg_video, FUNC(gcm394_base_video_device::ppu_enable_r), FUNC(gcm394_base_video_device::ppu_enable_w));
-
-	// another set of registers for something?
-	map(0x007080, 0x007080).w(m_spg_video, FUNC(gcm394_base_video_device::tv_saturation_w));
-	map(0x007081, 0x007081).w(m_spg_video, FUNC(gcm394_base_video_device::tv_hue_w));
-	map(0x007082, 0x007082).w(m_spg_video, FUNC(gcm394_base_video_device::tv_brightness_w));
-	map(0x007083, 0x007083).rw(m_spg_video, FUNC(gcm394_base_video_device::tv_sharpness_r), FUNC(gcm394_base_video_device::tv_sharpness_w));
-	map(0x007084, 0x007084).w(m_spg_video, FUNC(gcm394_base_video_device::tv_y_gain_w));
-	map(0x007085, 0x007085).w(m_spg_video, FUNC(gcm394_base_video_device::tv_y_delay_w));
-	map(0x007086, 0x007086).w(m_spg_video, FUNC(gcm394_base_video_device::tv_v_position_w));
-	map(0x007087, 0x007087).w(m_spg_video, FUNC(gcm394_base_video_device::tv_h_position_w));
-	map(0x007088, 0x007088).w(m_spg_video, FUNC(gcm394_base_video_device::tv_videodac_w));
-
-	map(0x0070e0, 0x0070e0).r(m_spg_video, FUNC(gcm394_base_video_device::video_70e0_prng_r)); // gormiti checks this
-
-	// ######################################################################################################################################################################################
-	// 73xx-77xx = video ram
-	// ######################################################################################################################################################################################
-
-	map(0x007100, 0x0071ff).ram().share("rowscroll"); // based on jak_s500
-	map(0x007200, 0x0072ff).ram().share("rowzoom"); // ^^
-
-	map(0x007300, 0x0073ff).rw(m_spg_video, FUNC(gcm394_base_video_device::palette_r), FUNC(gcm394_base_video_device::palette_w));
-
-	map(0x007400, 0x0077ff).rw(m_spg_video, FUNC(gcm394_base_video_device::spriteram_r), FUNC(gcm394_base_video_device::spriteram_w));
-
-	// ######################################################################################################################################################################################
-	// 78xx region = system regs?
-	// ######################################################################################################################################################################################
-
-	map(0x007803, 0x007803).rw(FUNC(generalplus_gpl162xx_base_device::sys_ctrl_r), FUNC(generalplus_gpl162xx_base_device::sys_ctrl_w));
-	map(0x007804, 0x007804).rw(FUNC(generalplus_gpl162xx_base_device::clk_ctrl0_r), FUNC(generalplus_gpl162xx_base_device::clk_ctrl0_w));
-
-	map(0x007807, 0x007807).w(FUNC(generalplus_gpl162xx_base_device::clock_ctrl_w));
-	// 7808
-
-	map(0x00780a, 0x00780a).w(FUNC(generalplus_gpl162xx_base_device::watchdog_ctrl_w));
-	map(0x00780b, 0x00780b).nopw(); // watchdog clear
-	map(0x00780c, 0x00780c).w(FUNC(generalplus_gpl162xx_base_device::waitmode_enter_780c_w));
-
-	map(0x00780f, 0x00780f).r(FUNC(generalplus_gpl162xx_base_device::power_state_r));
-
-	map(0x007810, 0x007810).rw(FUNC(generalplus_gpl162xx_base_device::membankswitch_7810_r), FUNC(generalplus_gpl162xx_base_device::membankswitch_7810_w));  // 7810 Bank Switch Control Register  (P_BankSwitch_Ctrl) (maybe)
-
-	map(0x007816, 0x007816).w(FUNC(generalplus_gpl162xx_base_device::unkarea_7816_w)); // undocumented, check what writes it
-
-	map(0x007817, 0x007817).w(FUNC(generalplus_gpl162xx_base_device::pllchange_w));
-	map(0x007818, 0x007818).rw(FUNC(generalplus_gpl162xx_base_device::pllclkwait_r), FUNC(generalplus_gpl162xx_base_device::pllclkwait_w)); // 7818 - PLLCLKWait
-	map(0x007819, 0x007819).rw(FUNC(generalplus_gpl162xx_base_device::cache_ctrl_r), FUNC(generalplus_gpl162xx_base_device::cache_ctrl_w));
-
-	// ######################################################################################################################################################################################
-	// 782x region = memory config / control
-	// ######################################################################################################################################################################################
-																										 // wrlshunt                                                               | smartfp
-	map(0x007820, 0x007824).w(FUNC(generalplus_gpl162xx_base_device::chipselect_csx_memory_device_control_w)); // 7f8a (7f8a before DMA from ROM to RAM, 008a after DMA from ROM to RAM) | 3f04      7820 Chip Select (CS0) Memory Device Control (P_MC50_Ctrl)
-																										 // 7f47                                                                   | 0044      7821 Chip Select (CS1) Memory Device Control (P_MC51_Ctrl)
-																										 // 0047                                                                   | 1f44      7822 Chip Select (CS2) Memory Device Control (P_MC52_Ctrl)
-																										 // 0047                                                                   | 0044      7823 Chip Select (CS3) Memory Device Control (P_MC53_Ctrl)
-																										 // 0047                                                                   | 0044      7824 Chip Select (CS4) Memory Device Control (P_MC54_Ctrl)
-
-	map(0x00782d, 0x00782d).rw(FUNC(generalplus_gpl162xx_base_device::raw_war_r), FUNC(generalplus_gpl162xx_base_device::raw_war_w)); // on startup
-	// 782f
-
-	map(0x007835, 0x007835).w(FUNC(generalplus_gpl162xx_base_device::mcs0_page_w));
-
-	// 783a
-	// 783b
-	// 783c
-	// 783d
-	// 783e
-
-	// 7840 - accessed by code in RAM when changing bank in tkmag220 (P_Mem_Ctrl on GPL162xxA)
-	// 7841 - ^^ (P_Addr_Ctrl on GPL162xxA)
-
-	// ######################################################################################################################################################################################
-	// 786x - 788x - IO related
-	// on GPL162xx the ports each have different capability / features
-	// and there are a few other bits mixed in here
-	// ######################################################################################################################################################################################
-
-	map(0x007860, 0x007860).rw(FUNC(generalplus_gpl162xx_base_device::ioa_data_r), FUNC(generalplus_gpl162xx_base_device::ioa_data_w)); //    7860  I/O PortA Data Register
-	map(0x007861, 0x007861).rw(FUNC(generalplus_gpl162xx_base_device::ioa_buffer_r), FUNC(generalplus_gpl162xx_base_device::ioa_buffer_w)); // 7861  I/O PortA Buffer Register
-	map(0x007862, 0x007862).rw(FUNC(generalplus_gpl162xx_base_device::ioa_dir_r), FUNC(generalplus_gpl162xx_base_device::ioa_dir_w));  // 7862  I/O PortA Direction Register
-	map(0x007863, 0x007863).rw(FUNC(generalplus_gpl162xx_base_device::ioa_attrib_r), FUNC(generalplus_gpl162xx_base_device::ioa_attrib_w)); //    7863  I/O PortA Attribute Register
-	// 7864 P_IOA_Drv
-
-	map(0x007868, 0x007868).rw(FUNC(generalplus_gpl162xx_base_device::iob_data_r), FUNC(generalplus_gpl162xx_base_device::iob_data_w)); // on startup   // 7868  I/O PortB Data Register
-	map(0x007869, 0x007869).rw(FUNC(generalplus_gpl162xx_base_device::iob_buffer_r), FUNC(generalplus_gpl162xx_base_device::iob_buffer_w)); //  7869  I/O PortB Buffer Register   // jak_s500
-	map(0x00786a, 0x00786a).rw(FUNC(generalplus_gpl162xx_base_device::iob_dir_r), FUNC(generalplus_gpl162xx_base_device::iob_dir_w)); // 786a  I/O PortB Direction Register
-	map(0x00786b, 0x00786b).rw(FUNC(generalplus_gpl162xx_base_device::iob_attrib_r), FUNC(generalplus_gpl162xx_base_device::iob_attrib_w)); // 786b  I/O PortB Attribute Register
-	// 786c  P_IOB_Latch (I/O PortB Latch / Wakeup)
-	// 786d  P_IOB_Drv
-
-	map(0x007870, 0x007870).rw(FUNC(generalplus_gpl162xx_base_device::ioc_data_r) ,FUNC(generalplus_gpl162xx_base_device::ioc_data_w)); // 7870  I/O PortC Data Register
-	map(0x007871, 0x007871).rw(FUNC(generalplus_gpl162xx_base_device::ioc_buffer_r), FUNC(generalplus_gpl162xx_base_device::ioc_buffer_w)); // 7871  I/O PortC Buffer Register
-	map(0x007872, 0x007872).rw(FUNC(generalplus_gpl162xx_base_device::ioc_dir_r), FUNC(generalplus_gpl162xx_base_device::ioc_dir_w)); // 7872  I/O PortC Direction Register
-	map(0x007873, 0x007873).rw(FUNC(generalplus_gpl162xx_base_device::ioc_attrib_r), FUNC(generalplus_gpl162xx_base_device::ioc_attrib_w)); // 7873  I/O PortC Attribute Register
-	// 7874 P_SDRAM_Drv (data 0x1249) (bkrankp data 0x36db)
-	// 7875 P_IOC_Drv
-	// 7876 P_SDRAM_Dly (SDRAM Port Delay Adjustment Register)
-	// 7877 P_IOC_Latch (I/O PortC Latch Register for Wakeup)
-
-	map(0x007878, 0x007878).rw(FUNC(generalplus_gpl162xx_base_device::iod_data_r) ,FUNC(generalplus_gpl162xx_base_device::iod_data_w)); // 7878  I/O PortD Data Register
-	map(0x007879, 0x007879).rw(FUNC(generalplus_gpl162xx_base_device::iod_buffer_r), FUNC(generalplus_gpl162xx_base_device::iod_buffer_w)); // 7879  I/O PortD Buffer Register
-	map(0x00787a, 0x00787a).rw(FUNC(generalplus_gpl162xx_base_device::iod_dir_r), FUNC(generalplus_gpl162xx_base_device::iod_dir_w)); // 787a  I/O PortD Direction Register
-	map(0x00787b, 0x00787b).rw(FUNC(generalplus_gpl162xx_base_device::iod_attib_r), FUNC(generalplus_gpl162xx_base_device::iod_attib_w)); // 787b  I/O PortD Attribute Register
-	map(0x00787c, 0x00787c).rw(FUNC(generalplus_gpl162xx_base_device::iod_drv_r), FUNC(generalplus_gpl162xx_base_device::iod_drv_w)); // P_IOD_Drv - I/O PortD Driving Capability Register
-	// 787d - P_IOD_Dly (I/O PortD Delay Adjustment Register)
-	// 787e - P_CS_Drc (CS Port Driving Capability)
-	// 787f - P_CS_Dly (CS Port Delay Adjustment Register)
-
-	// 7880 - P_IOE_DATA
-	map(0x007881, 0x007881).rw(FUNC(generalplus_gpl162xx_base_device::ioe_buffer_r), FUNC(generalplus_gpl162xx_base_device::ioe_buffer_w));
-	map(0x007882, 0x007882).rw(FUNC(generalplus_gpl162xx_base_device::ioe_dir_r), FUNC(generalplus_gpl162xx_base_device::ioe_dir_w));
-	map(0x007883, 0x007883).rw(FUNC(generalplus_gpl162xx_base_device::ioe_attrib_r), FUNC(generalplus_gpl162xx_base_device::ioe_attrib_w));
-	// 7884 - P_IOE_Drv
-
-	// 0x7888 - P_MEM_DRV
-	// 0x7889 - P_MEM_DLY0
-	// 0x788a - P_MEM_DLY1
-	// 0x788b - P_MEM_DLY2
-	// 0x788c - P_MEM_DLY3
-	// 0x788d - P_MEM_DLY4
-	// 0x788e - P_MEM_DLY5
-	// 0x788f - P_MEM_DLY6
-
-	// ######################################################################################################################################################################################
-	// 78ax - interrupt controller?
-	// ######################################################################################################################################################################################
-
-	map(0x0078a0, 0x0078a0).rw(FUNC(generalplus_gpl162xx_base_device::int_status1_r), FUNC(generalplus_gpl162xx_base_device::int_status1_w));
-	map(0x0078a1, 0x0078a1).rw(FUNC(generalplus_gpl162xx_base_device::int_status2_r), FUNC(generalplus_gpl162xx_base_device::int_status2_w));
-	// 78a2 (is int_status3 on GPL95xx)
-	map(0x0078a3, 0x0078a3).rw(FUNC(generalplus_gpl162xx_base_device::int_status3_r), FUNC(generalplus_gpl162xx_base_device::int_status3_w));
-
-	map(0x0078a4, 0x0078a4).w(FUNC(generalplus_gpl162xx_base_device::int_priority_1_w));
-	map(0x0078a5, 0x0078a5).w(FUNC(generalplus_gpl162xx_base_device::int_priority_2_w));
-	map(0x0078a6, 0x0078a6).w(FUNC(generalplus_gpl162xx_base_device::int_priority_3_w));
-
-	map(0x0078a8, 0x0078a8).w(FUNC(generalplus_gpl162xx_base_device::mint_ctrl_w));
-
-	// ######################################################################################################################################################################################
-	// 78bx - timer control?
-	// ######################################################################################################################################################################################
-
-	map(0x0078b0, 0x0078b0).rw(m_gpl_timebase, FUNC(gpl_timebase_device::timebasea_ctrl_r), FUNC(gpl_timebase_device::timebasea_ctrl_w));  // 78b0 TimeBase A Control Register (P_TimeBaseA_Ctrl)
-	map(0x0078b1, 0x0078b1).rw(m_gpl_timebase, FUNC(gpl_timebase_device::timebaseb_ctrl_r), FUNC(gpl_timebase_device::timebaseb_ctrl_w));  // 78b1 TimeBase B Control Register (P_TimeBaseB_Ctrl)
-	map(0x0078b2, 0x0078b2).rw(m_gpl_timebase, FUNC(gpl_timebase_device::timebasec_ctrl_r), FUNC(gpl_timebase_device::timebasec_ctrl_w));  // 78b2 TimeBase C Control Register (P_TimeBaseC_Ctrl)
-
-	map(0x0078b8, 0x0078b8).w(m_gpl_timebase, FUNC(gpl_timebase_device::timebase_reset_w)); // 78b8 - TimeBase_Reset
-
-	
-	map(0x0078c0, 0x0078c0).rw(FUNC(generalplus_gpl162xx_base_device::timer_ctrl_r<0>), FUNC(generalplus_gpl162xx_base_device::timer_ctrl_w<0>)); // beijuehh
-	map(0x0078c1, 0x0078c1).rw(FUNC(generalplus_gpl162xx_base_device::timer_ccp_ctrl_r<0>), FUNC(generalplus_gpl162xx_base_device::timer_ccp_ctrl_w<0>)); // 78c1 - TimerA_CCCtrl
-	map(0x0078c2, 0x0078c2).rw(FUNC(generalplus_gpl162xx_base_device::timer_preload_r<0>), FUNC(generalplus_gpl162xx_base_device::timer_preload_w<0>)); // 78c2 - TimerA_Preload
-	map(0x0078c3, 0x0078c3).rw(FUNC(generalplus_gpl162xx_base_device::timer_cc_reg_r<0>), FUNC(generalplus_gpl162xx_base_device::timer_cc_reg_w<0>)); // 78c3 - TimerA_CCReg
-	map(0x0078c4, 0x0078c4).r(FUNC(generalplus_gpl162xx_base_device::timer_upcount_r<0>)); // 78c4 - TimerA_UpCount
-
-	map(0x0078c8, 0x0078c8).rw(FUNC(generalplus_gpl162xx_base_device::timer_ctrl_r<1>), FUNC(generalplus_gpl162xx_base_device::timer_ctrl_w<1>)); // dressmtv
-	map(0x0078c9, 0x0078c9).rw(FUNC(generalplus_gpl162xx_base_device::timer_ccp_ctrl_r<1>), FUNC(generalplus_gpl162xx_base_device::timer_ccp_ctrl_w<1>)); // 78c9 - TimerB_CCCtrl
-	map(0x0078ca, 0x0078ca).rw(FUNC(generalplus_gpl162xx_base_device::timer_preload_r<1>), FUNC(generalplus_gpl162xx_base_device::timer_preload_w<1>)); // 78ca - TimerB_Preload
-	map(0x0078cb, 0x0078cb).rw(FUNC(generalplus_gpl162xx_base_device::timer_cc_reg_r<1>), FUNC(generalplus_gpl162xx_base_device::timer_cc_reg_w<1>));  // 78cb - TimerB_CCReg
-	map(0x0078cc, 0x0078cc).r(FUNC(generalplus_gpl162xx_base_device::timer_upcount_r<1>)); // 78cc - TimerB_UpCount
-
-	map(0x0078d0, 0x0078d0).rw(FUNC(generalplus_gpl162xx_base_device::timer_ctrl_r<2>), FUNC(generalplus_gpl162xx_base_device::timer_ctrl_w<2>)); // jak_s500
-	map(0x0078d1, 0x0078d1).rw(FUNC(generalplus_gpl162xx_base_device::timer_ccp_ctrl_r<2>), FUNC(generalplus_gpl162xx_base_device::timer_ccp_ctrl_w<2>)); // 78d1 - TimerC_CCCtrl
-	map(0x0078d2, 0x0078d2).rw(FUNC(generalplus_gpl162xx_base_device::timer_preload_r<2>), FUNC(generalplus_gpl162xx_base_device::timer_preload_w<2>)); // 78d2 - TimerC_Preload
-	map(0x0078d3, 0x0078d3).rw(FUNC(generalplus_gpl162xx_base_device::timer_cc_reg_r<2>), FUNC(generalplus_gpl162xx_base_device::timer_cc_reg_w<2>));  // 78d3 - TimerC_CCReg
-	map(0x0078d4, 0x0078d4).r(FUNC(generalplus_gpl162xx_base_device::timer_upcount_r<2>));  // 78d4 - TimerC_UpCount
-
-	map(0x0078d8, 0x0078d8).rw(FUNC(generalplus_gpl162xx_base_device::timer_ctrl_r<3>), FUNC(generalplus_gpl162xx_base_device::timer_ctrl_w<3>)); // jak_tsh
-	// no TimerD_CCCtrl
-	map(0x0078da, 0x0078da).rw(FUNC(generalplus_gpl162xx_base_device::timer_preload_r<3>), FUNC(generalplus_gpl162xx_base_device::timer_preload_w<3>)); // 78da - TimerD_Preload
-	// no TimerD_CCReg
-	map(0x0078dc, 0x0078dc).r(FUNC(generalplus_gpl162xx_base_device::timer_upcount_r<3>));  // 78dc - TimerD_UpCount
-
-	map(0x0078e0, 0x0078e0).rw(FUNC(generalplus_gpl162xx_base_device::timer_ctrl_r<4>), FUNC(generalplus_gpl162xx_base_device::timer_ctrl_w<4>)); // 78e0 - TimerE_Ctrl
-	// no TimerE_CCCtrl
-	map(0x0078e2, 0x0078e2).rw(FUNC(generalplus_gpl162xx_base_device::timer_preload_r<4>), FUNC(generalplus_gpl162xx_base_device::timer_preload_w<4>)); // 78e2 - TimerE_Preload
-	// no TimerE_CCReg
-	map(0x0078e4, 0x0078e4).r(FUNC(generalplus_gpl162xx_base_device::timer_upcount_r<4>));  // 78e4 - TimerE_UpCount
-
-	map(0x0078e8, 0x0078e8).rw(FUNC(generalplus_gpl162xx_base_device::timer_ctrl_r<5>), FUNC(generalplus_gpl162xx_base_device::timer_ctrl_w<5>)); // 78e8 - TimerF_Ctrl
-	// no TimerF_CCCtrl
-	map(0x0078ea, 0x0078ea).rw(FUNC(generalplus_gpl162xx_base_device::timer_preload_r<5>), FUNC(generalplus_gpl162xx_base_device::timer_preload_w<5>)); // 78ea - TimerF_Preload
-	// no TimerF_CCReg
-	map(0x0078ec, 0x0078ec).r(FUNC(generalplus_gpl162xx_base_device::timer_upcount_r<5>));  // 78ec - TimerF_UpCount
-
-	// ######################################################################################################################################################################################
-	// 78fx - DAC FIFO etc.
-	// ######################################################################################################################################################################################
-
-	map(0x0078f0, 0x0078f0).rw(FUNC(generalplus_gpl162xx_base_device::cha_ctrl_r), FUNC(generalplus_gpl162xx_base_device::cha_ctrl_w));
-
-	map(0x0078fb, 0x0078fb).r(FUNC(generalplus_gpl162xx_base_device::dac_pga_r));
-
-	// ######################################################################################################################################################################################
-	// 790x - UART
-	// ######################################################################################################################################################################################
-
-	map(0x007904, 0x007904).r(FUNC(generalplus_gpl162xx_base_device::uart_status_r)); // lazertag after a while
-
-	// ######################################################################################################################################################################################
-	// 792x -793x - RTC
-	// ######################################################################################################################################################################################
-
-	map(0x007934, 0x007934).rw(FUNC(generalplus_gpl162xx_base_device::rtc_ctrl_r), FUNC(generalplus_gpl162xx_base_device::rtc_ctrl_w));
-	map(0x007935, 0x007935).rw(FUNC(generalplus_gpl162xx_base_device::rtc_int_status_r), FUNC(generalplus_gpl162xx_base_device::rtc_int_status_w));
-	map(0x007936, 0x007936).rw(FUNC(generalplus_gpl162xx_base_device::rtc_int_ctrl_r), FUNC(generalplus_gpl162xx_base_device::rtc_int_ctrl_w));
-
-	// ######################################################################################################################################################################################
-	// 794x - SPI
-	// ######################################################################################################################################################################################
-
-	//7940 P_SPI_Ctrl     - SPI Control Register
-	//7941 P_SPI_TXStatus - SPI Transmit Status Register
-	map(0x007942, 0x007942).w(FUNC(generalplus_gpl162xx_base_device::spi_7942_txdata_w)); //7942 P_SPI_TXData   - SPI Transmit FIFO Register
-	//7943 P_SPI_RXStatus - SPI Receive Status Register
-	map(0x007944, 0x007944).r(FUNC(generalplus_gpl162xx_base_device::spi_7944_rxdata_r));           // 7944 P_SPI_RXData - SPI Receive FIFO Register    (jak_s500 accelerometer)   (also the SPI ROM DMA input port for bkrankp?)
-	map(0x007945, 0x007945).r(FUNC(generalplus_gpl162xx_base_device::spi_7945_misc_control_reg_r)); // 7945 P_SPI_Misc   - SPI Misc Control Register    (jak_s500 accelerometer)
-
-	// ######################################################################################################################################################################################
-	// 796x - ADC
-	// ######################################################################################################################################################################################
-
-	map(0x007960, 0x007960).w(FUNC(generalplus_gpl162xx_base_device::adc_setup_w));
-	map(0x007961, 0x007961).rw(FUNC(generalplus_gpl162xx_base_device::madc_ctrl_r), FUNC(generalplus_gpl162xx_base_device::madc_ctrl_w));
-	map(0x007962, 0x007962).r(FUNC(generalplus_gpl162xx_base_device::madc_data_r));
-
-	// ######################################################################################################################################################################################
-	// 7axx region = usb?
-	// ######################################################################################################################################################################################
-
-	map(0x007a35, 0x007a35).r(FUNC(generalplus_gpl162xx_base_device::usb_7a35_r)); // wlsair60
-	map(0x007a37, 0x007a37).r(FUNC(generalplus_gpl162xx_base_device::usb_7a37_r)); // wlsair60
-	map(0x007a39, 0x007a39).r(FUNC(generalplus_gpl162xx_base_device::usb_7a39_r)); // wlsair60
-	map(0x007a3a, 0x007a3a).r(FUNC(generalplus_gpl162xx_base_device::usb_7a3a_r)); // ?
-	map(0x007a46, 0x007a46).r(FUNC(generalplus_gpl162xx_base_device::usb_7a46_r)); // wlsair60
-	map(0x007a54, 0x007a54).r(FUNC(generalplus_gpl162xx_base_device::usb_7a54_r)); // wlsair60
-
-	// ######################################################################################################################################################################################
-	// 7a80 - 7abf = dma controller
-	// ######################################################################################################################################################################################
-
-	map(0x007a80, 0x007a87).rw(m_gpl_dma, FUNC(gpl_dma_device::system_dma_params_channel0_r), FUNC(gpl_dma_device::system_dma_params_channel0_w));
-	map(0x007a88, 0x007a8f).rw(m_gpl_dma, FUNC(gpl_dma_device::system_dma_params_channel1_r), FUNC(gpl_dma_device::system_dma_params_channel1_w)); // jak_tsm writes here
-	map(0x007a90, 0x007a97).rw(m_gpl_dma, FUNC(gpl_dma_device::system_dma_params_channel2_r), FUNC(gpl_dma_device::system_dma_params_channel2_w)); // bkrankp writes here (is this on all types or just SPI?)
-	map(0x007a98, 0x007a9f).rw(m_gpl_dma, FUNC(gpl_dma_device::system_dma_params_channel3_r), FUNC(gpl_dma_device::system_dma_params_channel3_w)); // not seen, but probably
-
-	map(0x007abe, 0x007abe).rw(m_gpl_dma, FUNC(gpl_dma_device::system_dma_memtype_r), FUNC(gpl_dma_device::system_dma_memtype_w)); // 7abe - written with DMA stuff (source type for each channel so that device handles timings properly?)
-	map(0x007abf, 0x007abf).rw(m_gpl_dma, FUNC(gpl_dma_device::system_dma_status_r), FUNC(gpl_dma_device::system_dma_status_w));
-
-	// ######################################################################################################################################################################################
-	// 7bxx-7fxx = audio
-	// ######################################################################################################################################################################################
-
-	map(0x007b80, 0x007bbf).rw(m_spg_audio, FUNC(sunplus_gcm394_audio_device::control_r), FUNC(sunplus_gcm394_audio_device::control_w));
-	map(0x007c00, 0x007dff).rw(m_spg_audio, FUNC(sunplus_gcm394_audio_device::audio_r), FUNC(sunplus_gcm394_audio_device::audio_w));
-	map(0x007e00, 0x007fff).rw(m_spg_audio, FUNC(sunplus_gcm394_audio_device::audio_phase_r), FUNC(sunplus_gcm394_audio_device::audio_phase_w));
-
-}
-
-void generalplus_gpl162xx_base_device::gcm394_internal_map(address_map &map)
-{
-	generalplus_gpl162xx_base_device::base_internal_map(map);
-
-	// no internal ROM on this model?
-
-	map(0x08000, 0x0ffff).r(FUNC(generalplus_gpl162xx_base_device::internalrom_lower32_r)).nopw();
-
-	map(0x10000, 0x01ffff).nopr();
-
-	map(0x020000, 0x1fffff).rw(FUNC(generalplus_gpl162xx_base_device::cs_space_r), FUNC(generalplus_gpl162xx_base_device::cs_space_w));
-	map(0x200000, 0x3fffff).rw(FUNC(generalplus_gpl162xx_base_device::cs_bank_space_r), FUNC(generalplus_gpl162xx_base_device::cs_bank_space_w));
-}
-
-u16 generalplus_gpl162xx_base_device::cs_space_r(offs_t offset)
-{
-	return m_cs_space->read_word(offset);
-}
-
-void generalplus_gpl162xx_base_device::cs_space_w(offs_t offset, u16 data)
-{
-	m_cs_space->write_word(offset, data);
-}
-u16 generalplus_gpl162xx_base_device::cs_bank_space_r(offs_t offset)
-{
-	int bank = m_membankswitch_7810 & 0x3f;
-	int realoffset = offset + (bank * 0x200000) - m_csbase;
-
-	if (realoffset < 0)
-	{
-		logerror("read real offset < 0\n");
-		return 0;
-	}
-
-	return m_cs_space->read_word(realoffset);
-}
-
-void generalplus_gpl162xx_base_device::cs_bank_space_w(offs_t offset, u16 data)
-{
-	int bank = m_membankswitch_7810 & 0x3f;
-	int realoffset = offset + (bank * 0x200000) - m_csbase;
-
-	if (realoffset < 0)
-	{
-		logerror("write real offset < 0\n");
-		return;
-	}
-
-	m_cs_space->write_word(realoffset, data);
-}
-
-
-
-u16 generalplus_gpl162xx_base_device::internalrom_lower32_r(offs_t offset)
-{
-	if (m_boot_mode == 0)
-	{
-		u16 *introm = (u16*)m_internalrom->base();
-		return introm[offset];
-	}
-	else
-	{
-		if (!m_cs_space)
-			return 0x0000;
-
-		u16 val = m_cs_space->read_word(offset+0x8000);
-		return val;
-	}
-}
-
-
-void generalplus_gpl162xx_base_device::device_start()
-{
-	unsp_20_device::device_start();
-
-	m_cs_callback.resolve();
-
-	save_item(NAME(m_sys_ctrl));
-	save_item(NAME(m_clock_ctrl));
-	save_item(NAME(m_membankswitch_7810));
-	save_item(NAME(m_7816));
-	save_item(NAME(m_pllchange));
-	save_item(NAME(m_cache_ctrl));
-	save_item(NAME(m_782x));
-	save_item(NAME(m_782d));
-	save_item(NAME(m_7835));
-	save_item(NAME(m_7862_porta_direction));
-	save_item(NAME(m_7863_porta_attribute));
-
-	save_item(NAME(m_786a_portb_direction));
-	save_item(NAME(m_786b_portb_attribute));
-
-	save_item(NAME(m_ioc_data));
-	//save_item(NAME(m_7871));
-	save_item(NAME(m_7872_portc_direction));
-	save_item(NAME(m_7873_portc_attribute));
-	save_item(NAME(m_ioe_dir));
-	save_item(NAME(m_ioe_attrib));
-	save_item(NAME(m_int_status1));
-	save_item(NAME(m_int_priority_1));
-	save_item(NAME(m_int_priority_2));
-	save_item(NAME(m_int_priority_3));
-	save_item(NAME(m_misc_int_ctrl));
-	save_item(NAME(m_cha_ctrl));
-	save_item(NAME(m_dac_pga));
-	save_item(NAME(m_rtc_ctrl));
-	save_item(NAME(m_rtc_int_status));
-	save_item(NAME(m_rtc_int_ctrl));
-	save_item(NAME(m_adc_setup));
-	save_item(NAME(m_madc_ctrl));
-	save_item(NAME(m_csbase));
-	save_item(NAME(m_timer_ctrl));
-	save_item(NAME(m_timer_preload));
-	save_item(NAME(m_timer_ccp_ctrl));
-	save_item(NAME(m_timer_cc_reg));
-}
-
-void generalplus_gpl162xx_base_device::device_reset()
-{
-	unsp_20_device::device_reset();
-
-	m_dac_pga = 0x0000;
-	m_782d = 0x0000;
-
-	m_clock_ctrl = 0x0000;
-
-	m_membankswitch_7810 = 0x0001;
-
-	m_7816 = 0x0000;
-	m_pllchange = 0x0000;
-
-	m_cache_ctrl = 0x0000;
-
-	m_782x[0] = 0x0000;
-	m_782x[1] = 0x0000;
-	m_782x[2] = 0x0000;
-	m_782x[3] = 0x0000;
-	m_782x[4] = 0x0000;
-
-	m_7835 = 0x0000;
-
-	m_7862_porta_direction = 0x0000;
-	m_7863_porta_attribute = 0x0000;
-
-	m_786a_portb_direction = 0x0000;
-	m_786b_portb_attribute = 0x0000;
-
-	m_ioc_data = 0x0000;
-
-	//m_7871 = 0x0000;
-
-	m_7872_portc_direction = 0x0000;
-	m_7873_portc_attribute = 0x0000;
-
-	m_ioe_dir = 0x0000;
-	m_ioe_attrib = 0x0000;
-
-	m_int_status1 = 0x0000;
-
-	m_int_priority_1 = 0x0000;
-	m_int_priority_2 = 0x0000;
-	m_int_priority_3 = 0x0000;
-
-	m_misc_int_ctrl = 0x0000;
-
-	m_cha_ctrl = 0x0000;
-
-	m_rtc_ctrl = 0x0000;
-	m_rtc_int_status = 0x0000;
-	m_rtc_int_ctrl = 0x0000;
-
-	m_adc_setup = 0x0000;
-	m_madc_ctrl = 0x0000;
-
-	for (int i = 0; i < 6; i++)
-	{
-		m_timer_ctrl[i] = 0x0000;
-		m_timer_preload[i] = 0x0000;
-	}
-
-	for (int i = 0; i < 3; i++)
-	{
-		m_timer_ccp_ctrl[i] = 0x0000;
-		m_timer_cc_reg[i] = 0x0000;
-	}
-
-	m_nand_addr_low = 0x0000;
-	m_nand_addr_high = 0x0000;
-	m_nand_dma_ctrl = 0x0000;
-	m_nand_ctrl = 0x0000;
-	m_nand_ecc_cpckr_lb = 0x0000;
-	m_nand_ecc_lpr_ckh_lb = 0x0000;
-	m_nand_ecc_lpr_ckl_lb = 0x0000;
-	m_nand_bch_ctrl = 0x0000;
-	m_nand_ecc_ctrl = 0x0000;
-
-	m_spg_video->reset();
-}
-
-
-IRQ_CALLBACK_MEMBER(generalplus_gpl162xx_base_device::irq_vector_cb)
-{
-	//logerror("irq_vector_cb %d\n", irqline);
-
-	//if (irqline == UNSP_IRQ6_LINE)
-	//  set_state_unsynced(UNSP_IRQ6_LINE, CLEAR_LINE);
-
-	if (irqline == UNSP_IRQ4_LINE)
-		set_state_unsynced(UNSP_IRQ4_LINE, CLEAR_LINE);
-
-	return 0;
-}
-
-
-/* the IRQ6 interrupt on Wrlshunt
-   reads 78a1, checks bit 0400
-   if it IS set, just increases value in RAM at 1a2e  (no ack)
-   if it ISN'T set, then read/write 78b2 (ack something?) then increase value in RAM  at 1a2e
-   (smartfp doesn't touch these addresses? but instead reads/writes 7935, alt ack?)
-
-   wrlshunt also has an IRQ4
-   it always reads/writes 78c0 before executing payload (ack?)
-   payload is a lot of manipulation of values in RAM, no registers touched
-
-   wrlshunt also has FIQ
-   no ack mechanism, for sound timer maybe (as it appears to be on spg110)
-
-
-   ----
-
-   IRQ5 is video IRQ
-   in both games writing 0x0001 to 7063 seems to be an ack mechanism
-   wrlshunt also checks bit 0x0040 of 7863 and will ack that too with alt code paths
-
-   7863 is therefore some kind of 'video irq source' ?
-
-*/
-
-void generalplus_gpl162xx_base_device::audioirq_w(int state)
-{
-	//set_state_unsynced(UNSP_IRQ5_LINE, state);
-}
-
-void generalplus_gpl162xx_base_device::videoirq_w(int state)
-{
-	set_state_unsynced(UNSP_IRQ5_LINE, state);
-}
-
-u16 generalplus_gpl162xx_base_device::read_space(offs_t offset)
-{
-	address_space &space = this->space(AS_PROGRAM);
-	u16 val;
-	if (offset < m_csbase)
-	{
-		val = space.read_word(offset);
-	}
-	else
-	{
-		val = m_cs_space->read_word(offset - m_csbase);
-	}
-
-	return val;
-}
-
-
-
-void generalplus_gpl162xx_base_device::write_space(offs_t offset, u16 data)
-{
-	address_space &space = this->space(AS_PROGRAM);
-	if (offset < m_csbase)
-	{
-		space.write_word(offset, data);
-	}
-	else
-	{
-		m_cs_space->write_word(offset - m_csbase, data);
-	}
-}
-
-void generalplus_gpl162xx_base_device::dma_complete(int state)
-{
-	m_dma_complete_cb(state);
-}
-
-void generalplus_gpl162xx_base_device::device_add_mconfig(machine_config &config)
-{
-	SUNPLUS_GCM394_AUDIO(config, m_spg_audio, DERIVED_CLOCK(1, 1));
-	m_spg_audio->write_irq_callback().set(FUNC(generalplus_gpl162xx_base_device::audioirq_w));
-	m_spg_audio->space_read_callback().set(FUNC(generalplus_gpl162xx_base_device::read_space));
-	m_spg_audio->add_route(0, *this, 1.0, 0);
-	m_spg_audio->add_route(1, *this, 1.0, 1);
-
-	GPL_DMA(config, m_gpl_dma);
-	m_gpl_dma->space_read_callback().set(FUNC(generalplus_gpl162xx_base_device::read_space));
-	m_gpl_dma->space_write_callback().set(FUNC(generalplus_gpl162xx_base_device::write_space));
-	m_gpl_dma->dma_complete_callback().set(FUNC(generalplus_gpl162xx_base_device::dma_complete));
-
-	GPL_TIMEBASE(config, m_gpl_timebase);
-	m_gpl_timebase->updateirqs_callback().set(FUNC(generalplus_gpl162xx_base_device::update_interrupts));
-
-	GCM394_VIDEO(config, m_spg_video, DERIVED_CLOCK(1, 1), DEVICE_SELF, m_screen);
-	m_spg_video->write_video_irq_callback().set(FUNC(generalplus_gpl162xx_base_device::videoirq_w));
-	m_spg_video->space_read_callback().set(FUNC(generalplus_gpl162xx_base_device::read_space));
-	m_spg_video->set_video_space(DEVICE_SELF, AS_PROGRAM);
-
-	TIMER(config, m_timer_a).configure_generic(FUNC(generalplus_gpl162xx_base_device::timer_a_cb));
-	TIMER(config, m_timer_b).configure_generic(FUNC(generalplus_gpl162xx_base_device::timer_b_cb));
-	TIMER(config, m_timer_c).configure_generic(FUNC(generalplus_gpl162xx_base_device::timer_c_cb));
-	TIMER(config, m_timer_d).configure_generic(FUNC(generalplus_gpl162xx_base_device::timer_d_cb));
-	TIMER(config, m_timer_e).configure_generic(FUNC(generalplus_gpl162xx_base_device::timer_e_cb));
-	TIMER(config, m_timer_f).configure_generic(FUNC(generalplus_gpl162xx_base_device::timer_f_cb));
-
-	TIMER(config, m_scheduler).configure_generic(FUNC(generalplus_gpl162xx_base_device::scheduler_cb));
-}
-
-void generalplus_gpl16240va_device::device_add_mconfig(machine_config & config)
-{
-	generalplus_gpl16230a_device::device_add_mconfig(config);
-	m_spg_video->set_has_vga_modes();
-}
-
-void generalplus_gpl16250va_device::device_add_mconfig(machine_config & config)
-{
-	generalplus_gpl16240va_device::device_add_mconfig(config);
-	m_spg_video->set_has_3d_sprite_modes();
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // GPL16250VA register list
@@ -2704,41 +2087,719 @@ void generalplus_gpl16250va_device::device_add_mconfig(machine_config & config)
 // 7e00 - 7fff Sound Phase
 
 
-
-generalplus_gpl16220a_device::generalplus_gpl16220a_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock) :
-	generalplus_gpl162xx_base_device(mconfig, GPL16220A, tag, owner, clock, address_map_constructor(FUNC(generalplus_gpl16220a_device::gpac800_internal_map), this))
+void generalplus_gpl162xx_base_device::base_internal_map(address_map &map)
 {
+	map(0x000000, 0x006fff).ram().share("mainram");
+	map(0x007000, 0x007fff).rw(FUNC(generalplus_gpl162xx_base_device::unk_r), FUNC(generalplus_gpl162xx_base_device::unk_w)); // catch unhandled
+
+	// ######################################################################################################################################################################################
+	// 70xx region = video hardware
+	// ######################################################################################################################################################################################
+
+	// note, tilemaps are at the same address offsets in video device as spg2xx (but unknown devices are extra)
+
+	map(0x007000, 0x007007).rw(m_spg_video, FUNC(gcm394_base_video_device::tmap2_regs_r), FUNC(gcm394_base_video_device::tmap2_regs_w)); // written with other unknown_video_device1 LSB/MSB regs below (roz layer or line layer?)
+	map(0x007008, 0x00700f).rw(m_spg_video, FUNC(gcm394_base_video_device::tmap3_regs_r), FUNC(gcm394_base_video_device::tmap3_regs_w)); // written with other unknown_video_device2 LSB/MSB regs below (roz layer or line layer?)
+
+	map(0x007010, 0x007015).rw(m_spg_video, FUNC(gcm394_base_video_device::tmap0_regs_r), FUNC(gcm394_base_video_device::tmap0_regs_w));
+	map(0x007016, 0x00701b).rw(m_spg_video, FUNC(gcm394_base_video_device::tmap1_regs_r), FUNC(gcm394_base_video_device::tmap1_regs_w));
+
+	map(0x00701c, 0x00701c).w(m_spg_video, FUNC(gcm394_base_video_device::vcomp_value_w)); // these 3 are written together in paccon
+	map(0x00701d, 0x00701d).w(m_spg_video, FUNC(gcm394_base_video_device::vcomp_offset_w));
+	map(0x00701e, 0x00701e).w(m_spg_video, FUNC(gcm394_base_video_device::vcomp_step_w));
+
+	// tilebase LSBs
+	map(0x007020, 0x007020).rw(m_spg_video, FUNC(gcm394_base_video_device::tmap0_tilebase_lsb_r), FUNC(gcm394_base_video_device::tmap0_tilebase_lsb_w));           // tilebase, written with other tmap0 regs
+	map(0x007021, 0x007021).rw(m_spg_video, FUNC(gcm394_base_video_device::tmap1_tilebase_lsb_r), FUNC(gcm394_base_video_device::tmap1_tilebase_lsb_w));           // tilebase, written with other tmap1 regs
+	map(0x007022, 0x007022).rw(m_spg_video, FUNC(gcm394_base_video_device::sprite_7022_gfxbase_lsb_r), FUNC(gcm394_base_video_device::sprite_7022_gfxbase_lsb_w)); // sprite tilebase written as 7022, 702d and 7042 group
+	map(0x007023, 0x007023).rw(m_spg_video, FUNC(gcm394_base_video_device::tmap2_tilebase_lsb_r), FUNC(gcm394_base_video_device::tmap2_tilebase_lsb_w));           // written with other tmap2 regs (roz layer or line layer?)
+	map(0x007024, 0x007024).rw(m_spg_video, FUNC(gcm394_base_video_device::tmap3_tilebase_lsb_r), FUNC(gcm394_base_video_device::tmap3_tilebase_lsb_w));           // written with other tmap3 regs (roz layer or line layer?)
+
+	map(0x00702a, 0x00702a).w(m_spg_video, FUNC(gcm394_base_video_device::blending_w)); // blend level control
+
+	// tilebase MSBs
+	map(0x00702b, 0x00702b).rw(m_spg_video, FUNC(gcm394_base_video_device::tmap0_tilebase_msb_r), FUNC(gcm394_base_video_device::tmap0_tilebase_msb_w));           // written with other tmap0 regs
+	map(0x00702c, 0x00702c).rw(m_spg_video, FUNC(gcm394_base_video_device::tmap1_tilebase_msb_r), FUNC(gcm394_base_video_device::tmap1_tilebase_msb_w));           // written with other tmap1 regs
+	map(0x00702d, 0x00702d).rw(m_spg_video, FUNC(gcm394_base_video_device::sprite_702d_gfxbase_msb_r), FUNC(gcm394_base_video_device::sprite_702d_gfxbase_msb_w)); // sprites, written as 7022, 702d and 7042 group
+	map(0x00702e, 0x00702e).rw(m_spg_video, FUNC(gcm394_base_video_device::tmap2_tilebase_msb_r), FUNC(gcm394_base_video_device::tmap2_tilebase_msb_w));           // written with other tmap2 regs (roz layer or line layer?)
+	map(0x00702f, 0x00702f).rw(m_spg_video, FUNC(gcm394_base_video_device::tmap3_tilebase_msb_r), FUNC(gcm394_base_video_device::tmap3_tilebase_msb_w));           // written with other tmap3 regs (roz layer or line layer?)
+
+	map(0x007036, 0x007036).w(m_spg_video, FUNC(gcm394_base_video_device::split_irq_xpos_w));
+	map(0x007037, 0x007037).w(m_spg_video, FUNC(gcm394_base_video_device::split_irq_ypos_w));
+
+
+	map(0x007030, 0x007030).rw(m_spg_video, FUNC(gcm394_base_video_device::video_7030_brightness_r), FUNC(gcm394_base_video_device::video_7030_brightness_w));
+	map(0x007038, 0x007038).r(m_spg_video, FUNC(gcm394_base_video_device::video_curline_r));
+	map(0x00703a, 0x00703a).rw(m_spg_video, FUNC(gcm394_base_video_device::video_703a_palettebank_r), FUNC(gcm394_base_video_device::video_703a_palettebank_w));
+	map(0x00703c, 0x00703c).rw(m_spg_video, FUNC(gcm394_base_video_device::video_703c_tvcontrol1_r), FUNC(gcm394_base_video_device::video_703c_tvcontrol1_w)); // TV Control 1
+
+	map(0x007042, 0x007042).rw(m_spg_video, FUNC(gcm394_base_video_device::sprite_7042_extra_r), FUNC(gcm394_base_video_device::sprite_7042_extra_w)); // maybe sprites,  written as 7022, 702d and 7042 group
+
+	map(0x007051, 0x007051).r(m_spg_video, FUNC(gcm394_base_video_device::video_7051_r)); // wrlshunt checks this (doesn't exist on older SPG?)
+
+	map(0x007062, 0x007062).rw(m_spg_video, FUNC(gcm394_base_video_device::videoirq_source_enable_r), FUNC(gcm394_base_video_device::videoirq_source_enable_w));
+	map(0x007063, 0x007063).rw(m_spg_video, FUNC(gcm394_base_video_device::video_7063_videoirq_source_r), FUNC(gcm394_base_video_device::video_7063_videoirq_source_ack_w));
+
+	// note, 70 / 71 / 72 are the same offsets used for DMA as in spg2xx video device
+	map(0x007070, 0x007070).w(m_spg_video, FUNC(gcm394_base_video_device::video_dma_source_w));                                                      // video dma, not system dma? (sets pointers to ram buffers)
+	map(0x007071, 0x007071).w(m_spg_video, FUNC(gcm394_base_video_device::video_dma_dest_w));                                                        // sets pointers to 7300, 7400 ram areas below
+	map(0x007072, 0x007072).rw(m_spg_video, FUNC(gcm394_base_video_device::video_dma_size_busy_r), FUNC(gcm394_base_video_device::video_dma_size_trigger_w));     //
+
+	// these don't exist on older SPG
+	map(0x00707c, 0x00707c).r(m_spg_video, FUNC(gcm394_base_video_device::video_707c_r)); // wrlshunt polls this waiting for 0x8000, is this some kind of manual port-based data upload?
+
+	map(0x00707e, 0x00707e).w(m_spg_video, FUNC(gcm394_base_video_device::ppu_ram_bank_w));                                                         // written around same time as DMA, seems to select alt sprite bank
+	map(0x00707f, 0x00707f).rw(m_spg_video, FUNC(gcm394_base_video_device::ppu_enable_r), FUNC(gcm394_base_video_device::ppu_enable_w));
+
+	// another set of registers for something?
+	map(0x007080, 0x007080).w(m_spg_video, FUNC(gcm394_base_video_device::tv_saturation_w));
+	map(0x007081, 0x007081).w(m_spg_video, FUNC(gcm394_base_video_device::tv_hue_w));
+	map(0x007082, 0x007082).w(m_spg_video, FUNC(gcm394_base_video_device::tv_brightness_w));
+	map(0x007083, 0x007083).rw(m_spg_video, FUNC(gcm394_base_video_device::tv_sharpness_r), FUNC(gcm394_base_video_device::tv_sharpness_w));
+	map(0x007084, 0x007084).w(m_spg_video, FUNC(gcm394_base_video_device::tv_y_gain_w));
+	map(0x007085, 0x007085).w(m_spg_video, FUNC(gcm394_base_video_device::tv_y_delay_w));
+	map(0x007086, 0x007086).w(m_spg_video, FUNC(gcm394_base_video_device::tv_v_position_w));
+	map(0x007087, 0x007087).w(m_spg_video, FUNC(gcm394_base_video_device::tv_h_position_w));
+	map(0x007088, 0x007088).w(m_spg_video, FUNC(gcm394_base_video_device::tv_videodac_w));
+
+	map(0x0070e0, 0x0070e0).r(m_spg_video, FUNC(gcm394_base_video_device::video_70e0_prng_r)); // gormiti checks this
+
+	// ######################################################################################################################################################################################
+	// 73xx-77xx = video ram
+	// ######################################################################################################################################################################################
+
+	map(0x007100, 0x0071ff).ram().share("rowscroll"); // based on jak_s500
+	map(0x007200, 0x0072ff).ram().share("rowzoom"); // ^^
+
+	map(0x007300, 0x0073ff).rw(m_spg_video, FUNC(gcm394_base_video_device::palette_r), FUNC(gcm394_base_video_device::palette_w));
+
+	map(0x007400, 0x0077ff).rw(m_spg_video, FUNC(gcm394_base_video_device::spriteram_r), FUNC(gcm394_base_video_device::spriteram_w));
+
+	// ######################################################################################################################################################################################
+	// 78xx region = system regs?
+	// ######################################################################################################################################################################################
+
+	map(0x007803, 0x007803).rw(FUNC(generalplus_gpl162xx_base_device::sys_ctrl_r), FUNC(generalplus_gpl162xx_base_device::sys_ctrl_w));
+	map(0x007804, 0x007804).rw(FUNC(generalplus_gpl162xx_base_device::clk_ctrl0_r), FUNC(generalplus_gpl162xx_base_device::clk_ctrl0_w));
+
+	map(0x007807, 0x007807).w(FUNC(generalplus_gpl162xx_base_device::clock_ctrl_w));
+	// 7808
+
+	map(0x00780a, 0x00780a).w(FUNC(generalplus_gpl162xx_base_device::watchdog_ctrl_w));
+	map(0x00780b, 0x00780b).nopw(); // watchdog clear
+	map(0x00780c, 0x00780c).w(FUNC(generalplus_gpl162xx_base_device::waitmode_enter_780c_w));
+
+	map(0x00780f, 0x00780f).r(FUNC(generalplus_gpl162xx_base_device::power_state_r));
+
+	map(0x007810, 0x007810).rw(FUNC(generalplus_gpl162xx_base_device::membankswitch_7810_r), FUNC(generalplus_gpl162xx_base_device::membankswitch_7810_w));  // 7810 Bank Switch Control Register  (P_BankSwitch_Ctrl) (maybe)
+
+	map(0x007816, 0x007816).w(FUNC(generalplus_gpl162xx_base_device::unkarea_7816_w)); // undocumented, check what writes it
+
+	map(0x007817, 0x007817).w(FUNC(generalplus_gpl162xx_base_device::pllchange_w));
+	map(0x007818, 0x007818).rw(FUNC(generalplus_gpl162xx_base_device::pllclkwait_r), FUNC(generalplus_gpl162xx_base_device::pllclkwait_w)); // 7818 - PLLCLKWait
+	map(0x007819, 0x007819).rw(FUNC(generalplus_gpl162xx_base_device::cache_ctrl_r), FUNC(generalplus_gpl162xx_base_device::cache_ctrl_w));
+
+	// ######################################################################################################################################################################################
+	// 782x region = memory config / control
+	// ######################################################################################################################################################################################
+																										 // wrlshunt                                                               | smartfp
+	map(0x007820, 0x007824).w(FUNC(generalplus_gpl162xx_base_device::chipselect_csx_memory_device_control_w)); // 7f8a (7f8a before DMA from ROM to RAM, 008a after DMA from ROM to RAM) | 3f04      7820 Chip Select (CS0) Memory Device Control (P_MC50_Ctrl)
+																										 // 7f47                                                                   | 0044      7821 Chip Select (CS1) Memory Device Control (P_MC51_Ctrl)
+																										 // 0047                                                                   | 1f44      7822 Chip Select (CS2) Memory Device Control (P_MC52_Ctrl)
+																										 // 0047                                                                   | 0044      7823 Chip Select (CS3) Memory Device Control (P_MC53_Ctrl)
+																										 // 0047                                                                   | 0044      7824 Chip Select (CS4) Memory Device Control (P_MC54_Ctrl)
+
+	map(0x00782d, 0x00782d).rw(FUNC(generalplus_gpl162xx_base_device::raw_war_r), FUNC(generalplus_gpl162xx_base_device::raw_war_w)); // on startup
+	// 782f
+
+	map(0x007835, 0x007835).w(FUNC(generalplus_gpl162xx_base_device::mcs0_page_w));
+
+	// 783a
+	// 783b
+	// 783c
+	// 783d
+	// 783e
+
+	// 7840 - accessed by code in RAM when changing bank in tkmag220 (P_Mem_Ctrl on GPL162xxA)
+	// 7841 - ^^ (P_Addr_Ctrl on GPL162xxA)
+
+	// ######################################################################################################################################################################################
+	// 786x - 788x - IO related
+	// on GPL162xx the ports each have different capability / features
+	// and there are a few other bits mixed in here
+	// ######################################################################################################################################################################################
+
+	map(0x007860, 0x007860).rw(FUNC(generalplus_gpl162xx_base_device::ioa_data_r), FUNC(generalplus_gpl162xx_base_device::ioa_data_w)); //    7860  I/O PortA Data Register
+	map(0x007861, 0x007861).rw(FUNC(generalplus_gpl162xx_base_device::ioa_buffer_r), FUNC(generalplus_gpl162xx_base_device::ioa_buffer_w)); // 7861  I/O PortA Buffer Register
+	map(0x007862, 0x007862).rw(FUNC(generalplus_gpl162xx_base_device::ioa_dir_r), FUNC(generalplus_gpl162xx_base_device::ioa_dir_w));  // 7862  I/O PortA Direction Register
+	map(0x007863, 0x007863).rw(FUNC(generalplus_gpl162xx_base_device::ioa_attrib_r), FUNC(generalplus_gpl162xx_base_device::ioa_attrib_w)); //    7863  I/O PortA Attribute Register
+	// 7864 P_IOA_Drv
+
+	map(0x007868, 0x007868).rw(FUNC(generalplus_gpl162xx_base_device::iob_data_r), FUNC(generalplus_gpl162xx_base_device::iob_data_w)); // on startup   // 7868  I/O PortB Data Register
+	map(0x007869, 0x007869).rw(FUNC(generalplus_gpl162xx_base_device::iob_buffer_r), FUNC(generalplus_gpl162xx_base_device::iob_buffer_w)); //  7869  I/O PortB Buffer Register   // jak_s500
+	map(0x00786a, 0x00786a).rw(FUNC(generalplus_gpl162xx_base_device::iob_dir_r), FUNC(generalplus_gpl162xx_base_device::iob_dir_w)); // 786a  I/O PortB Direction Register
+	map(0x00786b, 0x00786b).rw(FUNC(generalplus_gpl162xx_base_device::iob_attrib_r), FUNC(generalplus_gpl162xx_base_device::iob_attrib_w)); // 786b  I/O PortB Attribute Register
+	// 786c  P_IOB_Latch (I/O PortB Latch / Wakeup)
+	// 786d  P_IOB_Drv
+
+	map(0x007870, 0x007870).rw(FUNC(generalplus_gpl162xx_base_device::ioc_data_r) ,FUNC(generalplus_gpl162xx_base_device::ioc_data_w)); // 7870  I/O PortC Data Register
+	map(0x007871, 0x007871).rw(FUNC(generalplus_gpl162xx_base_device::ioc_buffer_r), FUNC(generalplus_gpl162xx_base_device::ioc_buffer_w)); // 7871  I/O PortC Buffer Register
+	map(0x007872, 0x007872).rw(FUNC(generalplus_gpl162xx_base_device::ioc_dir_r), FUNC(generalplus_gpl162xx_base_device::ioc_dir_w)); // 7872  I/O PortC Direction Register
+	map(0x007873, 0x007873).rw(FUNC(generalplus_gpl162xx_base_device::ioc_attrib_r), FUNC(generalplus_gpl162xx_base_device::ioc_attrib_w)); // 7873  I/O PortC Attribute Register
+	// 7874 P_SDRAM_Drv (data 0x1249) (bkrankp data 0x36db)
+	// 7875 P_IOC_Drv
+	// 7876 P_SDRAM_Dly (SDRAM Port Delay Adjustment Register)
+	// 7877 P_IOC_Latch (I/O PortC Latch Register for Wakeup)
+
+	map(0x007878, 0x007878).rw(FUNC(generalplus_gpl162xx_base_device::iod_data_r) ,FUNC(generalplus_gpl162xx_base_device::iod_data_w)); // 7878  I/O PortD Data Register
+	map(0x007879, 0x007879).rw(FUNC(generalplus_gpl162xx_base_device::iod_buffer_r), FUNC(generalplus_gpl162xx_base_device::iod_buffer_w)); // 7879  I/O PortD Buffer Register
+	map(0x00787a, 0x00787a).rw(FUNC(generalplus_gpl162xx_base_device::iod_dir_r), FUNC(generalplus_gpl162xx_base_device::iod_dir_w)); // 787a  I/O PortD Direction Register
+	map(0x00787b, 0x00787b).rw(FUNC(generalplus_gpl162xx_base_device::iod_attib_r), FUNC(generalplus_gpl162xx_base_device::iod_attib_w)); // 787b  I/O PortD Attribute Register
+	map(0x00787c, 0x00787c).rw(FUNC(generalplus_gpl162xx_base_device::iod_drv_r), FUNC(generalplus_gpl162xx_base_device::iod_drv_w)); // P_IOD_Drv - I/O PortD Driving Capability Register
+	// 787d - P_IOD_Dly (I/O PortD Delay Adjustment Register)
+	// 787e - P_CS_Drc (CS Port Driving Capability)
+	// 787f - P_CS_Dly (CS Port Delay Adjustment Register)
+
+	// 7880 - P_IOE_DATA
+	map(0x007881, 0x007881).rw(FUNC(generalplus_gpl162xx_base_device::ioe_buffer_r), FUNC(generalplus_gpl162xx_base_device::ioe_buffer_w));
+	map(0x007882, 0x007882).rw(FUNC(generalplus_gpl162xx_base_device::ioe_dir_r), FUNC(generalplus_gpl162xx_base_device::ioe_dir_w));
+	map(0x007883, 0x007883).rw(FUNC(generalplus_gpl162xx_base_device::ioe_attrib_r), FUNC(generalplus_gpl162xx_base_device::ioe_attrib_w));
+	// 7884 - P_IOE_Drv
+
+	// 0x7888 - P_MEM_DRV
+	// 0x7889 - P_MEM_DLY0
+	// 0x788a - P_MEM_DLY1
+	// 0x788b - P_MEM_DLY2
+	// 0x788c - P_MEM_DLY3
+	// 0x788d - P_MEM_DLY4
+	// 0x788e - P_MEM_DLY5
+	// 0x788f - P_MEM_DLY6
+
+	// ######################################################################################################################################################################################
+	// 78ax - interrupt controller?
+	// ######################################################################################################################################################################################
+
+	map(0x0078a0, 0x0078a0).rw(FUNC(generalplus_gpl162xx_base_device::int_status1_r), FUNC(generalplus_gpl162xx_base_device::int_status1_w));
+	map(0x0078a1, 0x0078a1).rw(FUNC(generalplus_gpl162xx_base_device::int_status2_r), FUNC(generalplus_gpl162xx_base_device::int_status2_w));
+	// 78a2 (is int_status3 on GPL95xx)
+	map(0x0078a3, 0x0078a3).rw(FUNC(generalplus_gpl162xx_base_device::int_status3_r), FUNC(generalplus_gpl162xx_base_device::int_status3_w));
+
+	map(0x0078a4, 0x0078a4).w(FUNC(generalplus_gpl162xx_base_device::int_priority_1_w));
+	map(0x0078a5, 0x0078a5).w(FUNC(generalplus_gpl162xx_base_device::int_priority_2_w));
+	map(0x0078a6, 0x0078a6).w(FUNC(generalplus_gpl162xx_base_device::int_priority_3_w));
+
+	map(0x0078a8, 0x0078a8).w(FUNC(generalplus_gpl162xx_base_device::mint_ctrl_w));
+
+	// ######################################################################################################################################################################################
+	// 78bx - timer control?
+	// ######################################################################################################################################################################################
+
+	map(0x0078b0, 0x0078b0).rw(m_gpl_timebase, FUNC(gpl_timebase_device::timebasea_ctrl_r), FUNC(gpl_timebase_device::timebasea_ctrl_w));  // 78b0 TimeBase A Control Register (P_TimeBaseA_Ctrl)
+	map(0x0078b1, 0x0078b1).rw(m_gpl_timebase, FUNC(gpl_timebase_device::timebaseb_ctrl_r), FUNC(gpl_timebase_device::timebaseb_ctrl_w));  // 78b1 TimeBase B Control Register (P_TimeBaseB_Ctrl)
+	map(0x0078b2, 0x0078b2).rw(m_gpl_timebase, FUNC(gpl_timebase_device::timebasec_ctrl_r), FUNC(gpl_timebase_device::timebasec_ctrl_w));  // 78b2 TimeBase C Control Register (P_TimeBaseC_Ctrl)
+
+	map(0x0078b8, 0x0078b8).w(m_gpl_timebase, FUNC(gpl_timebase_device::timebase_reset_w)); // 78b8 - TimeBase_Reset
+
+	
+	map(0x0078c0, 0x0078c0).rw(FUNC(generalplus_gpl162xx_base_device::timer_ctrl_r<0>), FUNC(generalplus_gpl162xx_base_device::timer_ctrl_w<0>)); // beijuehh
+	map(0x0078c1, 0x0078c1).rw(FUNC(generalplus_gpl162xx_base_device::timer_ccp_ctrl_r<0>), FUNC(generalplus_gpl162xx_base_device::timer_ccp_ctrl_w<0>)); // 78c1 - TimerA_CCCtrl
+	map(0x0078c2, 0x0078c2).rw(FUNC(generalplus_gpl162xx_base_device::timer_preload_r<0>), FUNC(generalplus_gpl162xx_base_device::timer_preload_w<0>)); // 78c2 - TimerA_Preload
+	map(0x0078c3, 0x0078c3).rw(FUNC(generalplus_gpl162xx_base_device::timer_cc_reg_r<0>), FUNC(generalplus_gpl162xx_base_device::timer_cc_reg_w<0>)); // 78c3 - TimerA_CCReg
+	map(0x0078c4, 0x0078c4).r(FUNC(generalplus_gpl162xx_base_device::timer_upcount_r<0>)); // 78c4 - TimerA_UpCount
+
+	map(0x0078c8, 0x0078c8).rw(FUNC(generalplus_gpl162xx_base_device::timer_ctrl_r<1>), FUNC(generalplus_gpl162xx_base_device::timer_ctrl_w<1>)); // dressmtv
+	map(0x0078c9, 0x0078c9).rw(FUNC(generalplus_gpl162xx_base_device::timer_ccp_ctrl_r<1>), FUNC(generalplus_gpl162xx_base_device::timer_ccp_ctrl_w<1>)); // 78c9 - TimerB_CCCtrl
+	map(0x0078ca, 0x0078ca).rw(FUNC(generalplus_gpl162xx_base_device::timer_preload_r<1>), FUNC(generalplus_gpl162xx_base_device::timer_preload_w<1>)); // 78ca - TimerB_Preload
+	map(0x0078cb, 0x0078cb).rw(FUNC(generalplus_gpl162xx_base_device::timer_cc_reg_r<1>), FUNC(generalplus_gpl162xx_base_device::timer_cc_reg_w<1>));  // 78cb - TimerB_CCReg
+	map(0x0078cc, 0x0078cc).r(FUNC(generalplus_gpl162xx_base_device::timer_upcount_r<1>)); // 78cc - TimerB_UpCount
+
+	map(0x0078d0, 0x0078d0).rw(FUNC(generalplus_gpl162xx_base_device::timer_ctrl_r<2>), FUNC(generalplus_gpl162xx_base_device::timer_ctrl_w<2>)); // jak_s500
+	map(0x0078d1, 0x0078d1).rw(FUNC(generalplus_gpl162xx_base_device::timer_ccp_ctrl_r<2>), FUNC(generalplus_gpl162xx_base_device::timer_ccp_ctrl_w<2>)); // 78d1 - TimerC_CCCtrl
+	map(0x0078d2, 0x0078d2).rw(FUNC(generalplus_gpl162xx_base_device::timer_preload_r<2>), FUNC(generalplus_gpl162xx_base_device::timer_preload_w<2>)); // 78d2 - TimerC_Preload
+	map(0x0078d3, 0x0078d3).rw(FUNC(generalplus_gpl162xx_base_device::timer_cc_reg_r<2>), FUNC(generalplus_gpl162xx_base_device::timer_cc_reg_w<2>));  // 78d3 - TimerC_CCReg
+	map(0x0078d4, 0x0078d4).r(FUNC(generalplus_gpl162xx_base_device::timer_upcount_r<2>));  // 78d4 - TimerC_UpCount
+
+	map(0x0078d8, 0x0078d8).rw(FUNC(generalplus_gpl162xx_base_device::timer_ctrl_r<3>), FUNC(generalplus_gpl162xx_base_device::timer_ctrl_w<3>)); // jak_tsh
+	// no TimerD_CCCtrl
+	map(0x0078da, 0x0078da).rw(FUNC(generalplus_gpl162xx_base_device::timer_preload_r<3>), FUNC(generalplus_gpl162xx_base_device::timer_preload_w<3>)); // 78da - TimerD_Preload
+	// no TimerD_CCReg
+	map(0x0078dc, 0x0078dc).r(FUNC(generalplus_gpl162xx_base_device::timer_upcount_r<3>));  // 78dc - TimerD_UpCount
+
+	map(0x0078e0, 0x0078e0).rw(FUNC(generalplus_gpl162xx_base_device::timer_ctrl_r<4>), FUNC(generalplus_gpl162xx_base_device::timer_ctrl_w<4>)); // 78e0 - TimerE_Ctrl
+	// no TimerE_CCCtrl
+	map(0x0078e2, 0x0078e2).rw(FUNC(generalplus_gpl162xx_base_device::timer_preload_r<4>), FUNC(generalplus_gpl162xx_base_device::timer_preload_w<4>)); // 78e2 - TimerE_Preload
+	// no TimerE_CCReg
+	map(0x0078e4, 0x0078e4).r(FUNC(generalplus_gpl162xx_base_device::timer_upcount_r<4>));  // 78e4 - TimerE_UpCount
+
+	map(0x0078e8, 0x0078e8).rw(FUNC(generalplus_gpl162xx_base_device::timer_ctrl_r<5>), FUNC(generalplus_gpl162xx_base_device::timer_ctrl_w<5>)); // 78e8 - TimerF_Ctrl
+	// no TimerF_CCCtrl
+	map(0x0078ea, 0x0078ea).rw(FUNC(generalplus_gpl162xx_base_device::timer_preload_r<5>), FUNC(generalplus_gpl162xx_base_device::timer_preload_w<5>)); // 78ea - TimerF_Preload
+	// no TimerF_CCReg
+	map(0x0078ec, 0x0078ec).r(FUNC(generalplus_gpl162xx_base_device::timer_upcount_r<5>));  // 78ec - TimerF_UpCount
+
+	// ######################################################################################################################################################################################
+	// 78fx - DAC FIFO etc.
+	// ######################################################################################################################################################################################
+
+	map(0x0078f0, 0x0078f0).rw(FUNC(generalplus_gpl162xx_base_device::cha_ctrl_r), FUNC(generalplus_gpl162xx_base_device::cha_ctrl_w));
+
+	map(0x0078fb, 0x0078fb).r(FUNC(generalplus_gpl162xx_base_device::dac_pga_r));
+
+	// ######################################################################################################################################################################################
+	// 790x - UART
+	// ######################################################################################################################################################################################
+
+	map(0x007904, 0x007904).r(FUNC(generalplus_gpl162xx_base_device::uart_status_r)); // lazertag after a while
+
+	// ######################################################################################################################################################################################
+	// 792x -793x - RTC
+	// ######################################################################################################################################################################################
+
+	map(0x007934, 0x007934).rw(FUNC(generalplus_gpl162xx_base_device::rtc_ctrl_r), FUNC(generalplus_gpl162xx_base_device::rtc_ctrl_w));
+	map(0x007935, 0x007935).rw(FUNC(generalplus_gpl162xx_base_device::rtc_int_status_r), FUNC(generalplus_gpl162xx_base_device::rtc_int_status_w));
+	map(0x007936, 0x007936).rw(FUNC(generalplus_gpl162xx_base_device::rtc_int_ctrl_r), FUNC(generalplus_gpl162xx_base_device::rtc_int_ctrl_w));
+
+	// ######################################################################################################################################################################################
+	// 794x - SPI
+	// ######################################################################################################################################################################################
+
+	//7940 P_SPI_Ctrl     - SPI Control Register
+	//7941 P_SPI_TXStatus - SPI Transmit Status Register
+	map(0x007942, 0x007942).w(FUNC(generalplus_gpl162xx_base_device::spi_7942_txdata_w)); //7942 P_SPI_TXData   - SPI Transmit FIFO Register
+	//7943 P_SPI_RXStatus - SPI Receive Status Register
+	map(0x007944, 0x007944).r(FUNC(generalplus_gpl162xx_base_device::spi_7944_rxdata_r));           // 7944 P_SPI_RXData - SPI Receive FIFO Register    (jak_s500 accelerometer)   (also the SPI ROM DMA input port for bkrankp?)
+	map(0x007945, 0x007945).r(FUNC(generalplus_gpl162xx_base_device::spi_7945_misc_control_reg_r)); // 7945 P_SPI_Misc   - SPI Misc Control Register    (jak_s500 accelerometer)
+
+	// ######################################################################################################################################################################################
+	// 796x - ADC
+	// ######################################################################################################################################################################################
+
+	map(0x007960, 0x007960).w(FUNC(generalplus_gpl162xx_base_device::adc_setup_w));
+	map(0x007961, 0x007961).rw(FUNC(generalplus_gpl162xx_base_device::madc_ctrl_r), FUNC(generalplus_gpl162xx_base_device::madc_ctrl_w));
+	map(0x007962, 0x007962).r(FUNC(generalplus_gpl162xx_base_device::madc_data_r));
+
+	// ######################################################################################################################################################################################
+	// 7axx region = usb?
+	// ######################################################################################################################################################################################
+
+	map(0x007a35, 0x007a35).r(FUNC(generalplus_gpl162xx_base_device::usb_7a35_r)); // wlsair60
+	map(0x007a37, 0x007a37).r(FUNC(generalplus_gpl162xx_base_device::usb_7a37_r)); // wlsair60
+	map(0x007a39, 0x007a39).r(FUNC(generalplus_gpl162xx_base_device::usb_7a39_r)); // wlsair60
+	map(0x007a3a, 0x007a3a).r(FUNC(generalplus_gpl162xx_base_device::usb_7a3a_r)); // ?
+	map(0x007a46, 0x007a46).r(FUNC(generalplus_gpl162xx_base_device::usb_7a46_r)); // wlsair60
+	map(0x007a54, 0x007a54).r(FUNC(generalplus_gpl162xx_base_device::usb_7a54_r)); // wlsair60
+
+	// ######################################################################################################################################################################################
+	// 7a80 - 7abf = dma controller
+	// ######################################################################################################################################################################################
+
+	map(0x007a80, 0x007a87).rw(m_gpl_dma, FUNC(gpl_dma_device::system_dma_params_channel0_r), FUNC(gpl_dma_device::system_dma_params_channel0_w));
+	map(0x007a88, 0x007a8f).rw(m_gpl_dma, FUNC(gpl_dma_device::system_dma_params_channel1_r), FUNC(gpl_dma_device::system_dma_params_channel1_w)); // jak_tsm writes here
+	map(0x007a90, 0x007a97).rw(m_gpl_dma, FUNC(gpl_dma_device::system_dma_params_channel2_r), FUNC(gpl_dma_device::system_dma_params_channel2_w)); // bkrankp writes here (is this on all types or just SPI?)
+	map(0x007a98, 0x007a9f).rw(m_gpl_dma, FUNC(gpl_dma_device::system_dma_params_channel3_r), FUNC(gpl_dma_device::system_dma_params_channel3_w)); // not seen, but probably
+
+	map(0x007abe, 0x007abe).rw(m_gpl_dma, FUNC(gpl_dma_device::system_dma_memtype_r), FUNC(gpl_dma_device::system_dma_memtype_w)); // 7abe - written with DMA stuff (source type for each channel so that device handles timings properly?)
+	map(0x007abf, 0x007abf).rw(m_gpl_dma, FUNC(gpl_dma_device::system_dma_status_r), FUNC(gpl_dma_device::system_dma_status_w));
+
+	// ######################################################################################################################################################################################
+	// 7bxx-7fxx = audio
+	// ######################################################################################################################################################################################
+
+	map(0x007b80, 0x007bbf).rw(m_spg_audio, FUNC(sunplus_gcm394_audio_device::control_r), FUNC(sunplus_gcm394_audio_device::control_w));
+	map(0x007c00, 0x007dff).rw(m_spg_audio, FUNC(sunplus_gcm394_audio_device::audio_r), FUNC(sunplus_gcm394_audio_device::audio_w));
+	map(0x007e00, 0x007fff).rw(m_spg_audio, FUNC(sunplus_gcm394_audio_device::audio_phase_r), FUNC(sunplus_gcm394_audio_device::audio_phase_w));
 }
 
-generalplus_gpl16220a_device::generalplus_gpl16220a_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, u32 clock, address_map_constructor internal) :
-	generalplus_gpl162xx_base_device(mconfig, type, tag, owner, clock, internal)
+
+void generalplus_gpl162xx_base_device::gpac800_internal_map(address_map &map)
 {
+	generalplus_gpl162xx_base_device::base_internal_map(map);
+
+	// 785x = NAND device
+	map(0x007850, 0x007850).rw(FUNC(generalplus_gpl16250va_device::nand_7850_status_r), FUNC(generalplus_gpl16250va_device::nand_7850_w)); // NAND Control Reg
+	map(0x007851, 0x007851).w(FUNC(generalplus_gpl16250va_device::nand_command_w)); // NAND Command Reg
+	map(0x007852, 0x007852).w(FUNC(generalplus_gpl16250va_device::nand_addr_low_w)); // NAND Low Address Reg
+	map(0x007853, 0x007853).w(FUNC(generalplus_gpl16250va_device::nand_addr_high_w)); // NAND High Address Reg
+	map(0x007854, 0x007854).rw(FUNC(generalplus_gpl16250va_device::nand_data_r), FUNC(generalplus_gpl16250va_device::nand_data_w)); // NAND Data Reg
+	map(0x007855, 0x007855).w(FUNC(generalplus_gpl16250va_device::nand_dma_ctrl_w)); // NAND DMA / INT Control
+	map(0x007856, 0x007856).w(FUNC(generalplus_gpl16250va_device::nand_bch_ctrl_w)); // usually 0x0021?
+
+	map(0x007857, 0x007857).w(FUNC(generalplus_gpl16250va_device::nand_ecc_ctrl_w));
+
+	// 7858 - 785f can have a different meaning if nand_bch_ctrl bit 0 is set!
+
+	// 7858 - ECC_LPRL_LB
+	// 7859 - ECC_LPRH_LB
+	// 785a - ECC_CPR_LB
+	map(0x00785b, 0x00785b).w(FUNC(generalplus_gpl16250va_device::nand_ecc_lpr_ckl_lb_w));
+	map(0x00785c, 0x00785c).w(FUNC(generalplus_gpl16250va_device::nand_ecc_lpr_ckh_lb_w));
+	map(0x00785d, 0x00785d).w(FUNC(generalplus_gpl16250va_device::nand_ecc_cpckr_lb_w));
+	map(0x00785e, 0x00785e).r(FUNC(generalplus_gpl16250va_device::nand_ecc_err0_lb_r)); // ECC Low Byte Error Flag 0
+	map(0x00785f, 0x00785f).r(FUNC(generalplus_gpl16250va_device::nand_ecc_err1_lb_r)); // ECC Low Byte Error Flag 1
+
+	map(0x007943, 0x007943).r(FUNC(generalplus_gpl16250va_device::spi_rxstatus_r));
+
+	map(0x007ae2, 0x007ae2).r(FUNC(generalplus_gpl16250va_device::efuse2_r)); // checked by the internal boot ROM
+
+	// 128kwords internal ROM
+	//map(0x08000, 0x0ffff).rom().region("internal", 0);
+	map(0x08000, 0x0ffff).r(FUNC(generalplus_gpl16250va_device::internalrom_lower32_r)); // lower 32kwords of internal ROM is visible / shadowed depending on boot pins and register
+	map(0x10000, 0x17fff).rom().region("internal", 0x10000); // upper words of internal ROM is always visible
+//	map(0x18000, 0x1ffff).noprw(); // reserved
+
+	// page 647 of the GPL162xxA manual has CS space offsets starting at 0x30000, but all other references (including the previous page)
+	// have it at 0x20000 like the B type chips, can it actually move?
+	map(0x020000, 0x1fffff).rw(FUNC(generalplus_gpl16250va_device::cs_space_r), FUNC(generalplus_gpl16250va_device::cs_space_w));
+	map(0x200000, 0x3fffff).rw(FUNC(generalplus_gpl16250va_device::cs_bank_space_r), FUNC(generalplus_gpl16250va_device::cs_bank_space_w));
 }
 
-generalplus_gpl16230a_device::generalplus_gpl16230a_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock) :
-	generalplus_gpl16220a_device(mconfig, GPL16230A, tag, owner, clock, address_map_constructor(FUNC(generalplus_gpl16230a_device::gpac800_internal_map), this))
+void generalplus_gpl162xx_base_device::gcm394_internal_map(address_map &map)
 {
+	generalplus_gpl162xx_base_device::base_internal_map(map);
+
+	// no internal ROM on this model?
+
+	map(0x08000, 0x0ffff).r(FUNC(generalplus_gpl162xx_base_device::internalrom_lower32_r)).nopw();
+
+	map(0x10000, 0x01ffff).nopr();
+
+	map(0x020000, 0x1fffff).rw(FUNC(generalplus_gpl162xx_base_device::cs_space_r), FUNC(generalplus_gpl162xx_base_device::cs_space_w));
+	map(0x200000, 0x3fffff).rw(FUNC(generalplus_gpl162xx_base_device::cs_bank_space_r), FUNC(generalplus_gpl162xx_base_device::cs_bank_space_w));
 }
 
-generalplus_gpl16230a_device::generalplus_gpl16230a_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, u32 clock, address_map_constructor internal) :
-	generalplus_gpl16220a_device(mconfig, type, tag, owner, clock, internal)
+void generalplus_gpl16220a_device::gpl16220a_map(address_map &map)
 {
+	gpac800_internal_map(map);
 }
 
-generalplus_gpl16240va_device::generalplus_gpl16240va_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock) :
-	generalplus_gpl16230a_device(mconfig, GPL16240VA, tag, owner, clock, address_map_constructor(FUNC(generalplus_gpl16240va_device::gpac800_internal_map), this))
+void generalplus_gpl16230a_device::gpl16230a_map(address_map &map)
 {
+	gpac800_internal_map(map);
 }
 
-generalplus_gpl16240va_device::generalplus_gpl16240va_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, u32 clock, address_map_constructor internal) :
-	generalplus_gpl16230a_device(mconfig, type, tag, owner, clock, internal)
+void generalplus_gpl16240va_device::gpl16240va_map(address_map &map)
 {
+	gpac800_internal_map(map);
 }
 
-generalplus_gpl16250va_device::generalplus_gpl16250va_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock) :
-	generalplus_gpl16240va_device(mconfig, GPL16250VA, tag, owner, clock, address_map_constructor(FUNC(generalplus_gpl16250va_device::gpac800_internal_map), this))
+void generalplus_gpl16250va_device::gpl16250va_map(address_map &map)
 {
+	gpac800_internal_map(map);
 }
+
+u16 generalplus_gpl162xx_base_device::cs_space_r(offs_t offset)
+{
+	return m_cs_space->read_word(offset);
+}
+
+void generalplus_gpl162xx_base_device::cs_space_w(offs_t offset, u16 data)
+{
+	m_cs_space->write_word(offset, data);
+}
+u16 generalplus_gpl162xx_base_device::cs_bank_space_r(offs_t offset)
+{
+	int bank = m_membankswitch_7810 & 0x3f;
+	int realoffset = offset + (bank * 0x200000) - m_csbase;
+
+	if (realoffset < 0)
+	{
+		logerror("read real offset < 0\n");
+		return 0;
+	}
+
+	return m_cs_space->read_word(realoffset);
+}
+
+void generalplus_gpl162xx_base_device::cs_bank_space_w(offs_t offset, u16 data)
+{
+	int bank = m_membankswitch_7810 & 0x3f;
+	int realoffset = offset + (bank * 0x200000) - m_csbase;
+
+	if (realoffset < 0)
+	{
+		logerror("write real offset < 0\n");
+		return;
+	}
+
+	m_cs_space->write_word(realoffset, data);
+}
+
+
+
+u16 generalplus_gpl162xx_base_device::internalrom_lower32_r(offs_t offset)
+{
+	if (m_boot_mode == 0)
+	{
+		u16 *introm = (u16*)m_internalrom->base();
+		return introm[offset];
+	}
+	else
+	{
+		if (!m_cs_space)
+			return 0x0000;
+
+		u16 val = m_cs_space->read_word(offset+0x8000);
+		return val;
+	}
+}
+
+
+void generalplus_gpl162xx_base_device::device_start()
+{
+	unsp_20_device::device_start();
+
+	m_cs_callback.resolve();
+
+	save_item(NAME(m_sys_ctrl));
+	save_item(NAME(m_clock_ctrl));
+	save_item(NAME(m_membankswitch_7810));
+	save_item(NAME(m_7816));
+	save_item(NAME(m_pllchange));
+	save_item(NAME(m_cache_ctrl));
+	save_item(NAME(m_782x));
+	save_item(NAME(m_782d));
+	save_item(NAME(m_7835));
+	save_item(NAME(m_7862_porta_direction));
+	save_item(NAME(m_7863_porta_attribute));
+
+	save_item(NAME(m_786a_portb_direction));
+	save_item(NAME(m_786b_portb_attribute));
+
+	save_item(NAME(m_ioc_data));
+	//save_item(NAME(m_7871));
+	save_item(NAME(m_7872_portc_direction));
+	save_item(NAME(m_7873_portc_attribute));
+	save_item(NAME(m_ioe_dir));
+	save_item(NAME(m_ioe_attrib));
+	save_item(NAME(m_int_status1));
+	save_item(NAME(m_int_priority_1));
+	save_item(NAME(m_int_priority_2));
+	save_item(NAME(m_int_priority_3));
+	save_item(NAME(m_misc_int_ctrl));
+	save_item(NAME(m_cha_ctrl));
+	save_item(NAME(m_dac_pga));
+	save_item(NAME(m_rtc_ctrl));
+	save_item(NAME(m_rtc_int_status));
+	save_item(NAME(m_rtc_int_ctrl));
+	save_item(NAME(m_adc_setup));
+	save_item(NAME(m_madc_ctrl));
+	save_item(NAME(m_csbase));
+	save_item(NAME(m_timer_ctrl));
+	save_item(NAME(m_timer_preload));
+	save_item(NAME(m_timer_ccp_ctrl));
+	save_item(NAME(m_timer_cc_reg));
+}
+
+void generalplus_gpl162xx_base_device::device_reset()
+{
+	unsp_20_device::device_reset();
+
+	m_dac_pga = 0x0000;
+	m_782d = 0x0000;
+
+	m_clock_ctrl = 0x0000;
+
+	m_membankswitch_7810 = 0x0001;
+
+	m_7816 = 0x0000;
+	m_pllchange = 0x0000;
+
+	m_cache_ctrl = 0x0000;
+
+	m_782x[0] = 0x0000;
+	m_782x[1] = 0x0000;
+	m_782x[2] = 0x0000;
+	m_782x[3] = 0x0000;
+	m_782x[4] = 0x0000;
+
+	m_7835 = 0x0000;
+
+	m_7862_porta_direction = 0x0000;
+	m_7863_porta_attribute = 0x0000;
+
+	m_786a_portb_direction = 0x0000;
+	m_786b_portb_attribute = 0x0000;
+
+	m_ioc_data = 0x0000;
+
+	//m_7871 = 0x0000;
+
+	m_7872_portc_direction = 0x0000;
+	m_7873_portc_attribute = 0x0000;
+
+	m_ioe_dir = 0x0000;
+	m_ioe_attrib = 0x0000;
+
+	m_int_status1 = 0x0000;
+
+	m_int_priority_1 = 0x0000;
+	m_int_priority_2 = 0x0000;
+	m_int_priority_3 = 0x0000;
+
+	m_misc_int_ctrl = 0x0000;
+
+	m_cha_ctrl = 0x0000;
+
+	m_rtc_ctrl = 0x0000;
+	m_rtc_int_status = 0x0000;
+	m_rtc_int_ctrl = 0x0000;
+
+	m_adc_setup = 0x0000;
+	m_madc_ctrl = 0x0000;
+
+	for (int i = 0; i < 6; i++)
+	{
+		m_timer_ctrl[i] = 0x0000;
+		m_timer_preload[i] = 0x0000;
+	}
+
+	for (int i = 0; i < 3; i++)
+	{
+		m_timer_ccp_ctrl[i] = 0x0000;
+		m_timer_cc_reg[i] = 0x0000;
+	}
+
+	m_nand_addr_low = 0x0000;
+	m_nand_addr_high = 0x0000;
+	m_nand_dma_ctrl = 0x0000;
+	m_nand_ctrl = 0x0000;
+	m_nand_ecc_cpckr_lb = 0x0000;
+	m_nand_ecc_lpr_ckh_lb = 0x0000;
+	m_nand_ecc_lpr_ckl_lb = 0x0000;
+	m_nand_bch_ctrl = 0x0000;
+	m_nand_ecc_ctrl = 0x0000;
+
+	m_spg_video->reset();
+}
+
+
+IRQ_CALLBACK_MEMBER(generalplus_gpl162xx_base_device::irq_vector_cb)
+{
+	//logerror("irq_vector_cb %d\n", irqline);
+
+	//if (irqline == UNSP_IRQ6_LINE)
+	//  set_state_unsynced(UNSP_IRQ6_LINE, CLEAR_LINE);
+
+	if (irqline == UNSP_IRQ4_LINE)
+		set_state_unsynced(UNSP_IRQ4_LINE, CLEAR_LINE);
+
+	return 0;
+}
+
+
+/* the IRQ6 interrupt on Wrlshunt
+   reads 78a1, checks bit 0400
+   if it IS set, just increases value in RAM at 1a2e  (no ack)
+   if it ISN'T set, then read/write 78b2 (ack something?) then increase value in RAM  at 1a2e
+   (smartfp doesn't touch these addresses? but instead reads/writes 7935, alt ack?)
+
+   wrlshunt also has an IRQ4
+   it always reads/writes 78c0 before executing payload (ack?)
+   payload is a lot of manipulation of values in RAM, no registers touched
+
+   wrlshunt also has FIQ
+   no ack mechanism, for sound timer maybe (as it appears to be on spg110)
+
+
+   ----
+
+   IRQ5 is video IRQ
+   in both games writing 0x0001 to 7063 seems to be an ack mechanism
+   wrlshunt also checks bit 0x0040 of 7863 and will ack that too with alt code paths
+
+   7863 is therefore some kind of 'video irq source' ?
+
+*/
+
+void generalplus_gpl162xx_base_device::audioirq_w(int state)
+{
+	//set_state_unsynced(UNSP_IRQ5_LINE, state);
+}
+
+void generalplus_gpl162xx_base_device::videoirq_w(int state)
+{
+	set_state_unsynced(UNSP_IRQ5_LINE, state);
+}
+
+u16 generalplus_gpl162xx_base_device::read_space(offs_t offset)
+{
+	address_space &space = this->space(AS_PROGRAM);
+	u16 val;
+	if (offset < m_csbase)
+	{
+		val = space.read_word(offset);
+	}
+	else
+	{
+		val = m_cs_space->read_word(offset - m_csbase);
+	}
+
+	return val;
+}
+
+
+
+void generalplus_gpl162xx_base_device::write_space(offs_t offset, u16 data)
+{
+	address_space &space = this->space(AS_PROGRAM);
+	if (offset < m_csbase)
+	{
+		space.write_word(offset, data);
+	}
+	else
+	{
+		m_cs_space->write_word(offset - m_csbase, data);
+	}
+}
+
+void generalplus_gpl162xx_base_device::dma_complete(int state)
+{
+	m_dma_complete_cb(state);
+}
+
+void generalplus_gpl162xx_base_device::device_add_mconfig(machine_config &config)
+{
+	SUNPLUS_GCM394_AUDIO(config, m_spg_audio, DERIVED_CLOCK(1, 1));
+	m_spg_audio->write_irq_callback().set(FUNC(generalplus_gpl162xx_base_device::audioirq_w));
+	m_spg_audio->space_read_callback().set(FUNC(generalplus_gpl162xx_base_device::read_space));
+	m_spg_audio->add_route(0, *this, 1.0, 0);
+	m_spg_audio->add_route(1, *this, 1.0, 1);
+
+	GPL_DMA(config, m_gpl_dma);
+	m_gpl_dma->space_read_callback().set(FUNC(generalplus_gpl162xx_base_device::read_space));
+	m_gpl_dma->space_write_callback().set(FUNC(generalplus_gpl162xx_base_device::write_space));
+	m_gpl_dma->dma_complete_callback().set(FUNC(generalplus_gpl162xx_base_device::dma_complete));
+
+	GPL_TIMEBASE(config, m_gpl_timebase);
+	m_gpl_timebase->updateirqs_callback().set(FUNC(generalplus_gpl162xx_base_device::update_interrupts));
+
+	GCM394_VIDEO(config, m_spg_video, DERIVED_CLOCK(1, 1), DEVICE_SELF, m_screen);
+	m_spg_video->write_video_irq_callback().set(FUNC(generalplus_gpl162xx_base_device::videoirq_w));
+	m_spg_video->space_read_callback().set(FUNC(generalplus_gpl162xx_base_device::read_space));
+	m_spg_video->set_video_space(DEVICE_SELF, AS_PROGRAM);
+
+	TIMER(config, m_timer_a).configure_generic(FUNC(generalplus_gpl162xx_base_device::timer_a_cb));
+	TIMER(config, m_timer_b).configure_generic(FUNC(generalplus_gpl162xx_base_device::timer_b_cb));
+	TIMER(config, m_timer_c).configure_generic(FUNC(generalplus_gpl162xx_base_device::timer_c_cb));
+	TIMER(config, m_timer_d).configure_generic(FUNC(generalplus_gpl162xx_base_device::timer_d_cb));
+	TIMER(config, m_timer_e).configure_generic(FUNC(generalplus_gpl162xx_base_device::timer_e_cb));
+	TIMER(config, m_timer_f).configure_generic(FUNC(generalplus_gpl162xx_base_device::timer_f_cb));
+
+	TIMER(config, m_scheduler).configure_generic(FUNC(generalplus_gpl162xx_base_device::scheduler_cb));
+}
+
+void generalplus_gpl16240va_device::device_add_mconfig(machine_config & config)
+{
+	generalplus_gpl16230a_device::device_add_mconfig(config);
+	m_spg_video->set_has_vga_modes();
+}
+
+void generalplus_gpl16250va_device::device_add_mconfig(machine_config & config)
+{
+	generalplus_gpl16240va_device::device_add_mconfig(config);
+	m_spg_video->set_has_3d_sprite_modes();
+}
+
 
 // GPR27P512A   = C2 76
 // HY27UF081G2A = AD F1 80 1D
@@ -2914,49 +2975,6 @@ u16 generalplus_gpl162xx_base_device::nand_ecc_err0_lb_r()
 u16 generalplus_gpl162xx_base_device::nand_ecc_err1_lb_r()
 {
 	return 0x0000;
-}
-
-
-void generalplus_gpl162xx_base_device::gpac800_internal_map(address_map &map)
-{
-	generalplus_gpl162xx_base_device::base_internal_map(map);
-
-	// 785x = NAND device
-	map(0x007850, 0x007850).rw(FUNC(generalplus_gpl16250va_device::nand_7850_status_r), FUNC(generalplus_gpl16250va_device::nand_7850_w)); // NAND Control Reg
-	map(0x007851, 0x007851).w(FUNC(generalplus_gpl16250va_device::nand_command_w)); // NAND Command Reg
-	map(0x007852, 0x007852).w(FUNC(generalplus_gpl16250va_device::nand_addr_low_w)); // NAND Low Address Reg
-	map(0x007853, 0x007853).w(FUNC(generalplus_gpl16250va_device::nand_addr_high_w)); // NAND High Address Reg
-	map(0x007854, 0x007854).rw(FUNC(generalplus_gpl16250va_device::nand_data_r), FUNC(generalplus_gpl16250va_device::nand_data_w)); // NAND Data Reg
-	map(0x007855, 0x007855).w(FUNC(generalplus_gpl16250va_device::nand_dma_ctrl_w)); // NAND DMA / INT Control
-	map(0x007856, 0x007856).w(FUNC(generalplus_gpl16250va_device::nand_bch_ctrl_w)); // usually 0x0021?
-
-	map(0x007857, 0x007857).w(FUNC(generalplus_gpl16250va_device::nand_ecc_ctrl_w));
-
-	// 7858 - 785f can have a different meaning if nand_bch_ctrl bit 0 is set!
-
-	// 7858 - ECC_LPRL_LB
-	// 7859 - ECC_LPRH_LB
-	// 785a - ECC_CPR_LB
-	map(0x00785b, 0x00785b).w(FUNC(generalplus_gpl16250va_device::nand_ecc_lpr_ckl_lb_w));
-	map(0x00785c, 0x00785c).w(FUNC(generalplus_gpl16250va_device::nand_ecc_lpr_ckh_lb_w));
-	map(0x00785d, 0x00785d).w(FUNC(generalplus_gpl16250va_device::nand_ecc_cpckr_lb_w));
-	map(0x00785e, 0x00785e).r(FUNC(generalplus_gpl16250va_device::nand_ecc_err0_lb_r)); // ECC Low Byte Error Flag 0
-	map(0x00785f, 0x00785f).r(FUNC(generalplus_gpl16250va_device::nand_ecc_err1_lb_r)); // ECC Low Byte Error Flag 1
-
-	map(0x007943, 0x007943).r(FUNC(generalplus_gpl16250va_device::spi_rxstatus_r));
-
-	map(0x007ae2, 0x007ae2).r(FUNC(generalplus_gpl16250va_device::efuse2_r)); // checked by the internal boot ROM
-
-	// 128kwords internal ROM
-	//map(0x08000, 0x0ffff).rom().region("internal", 0);
-	map(0x08000, 0x0ffff).r(FUNC(generalplus_gpl16250va_device::internalrom_lower32_r)); // lower 32kwords of internal ROM is visible / shadowed depending on boot pins and register
-	map(0x10000, 0x17fff).rom().region("internal", 0x10000); // upper words of internal ROM is always visible
-//	map(0x18000, 0x1ffff).noprw(); // reserved
-
-	// page 647 of the GPL162xxA manual has CS space offsets starting at 0x30000, but all other references (including the previous page)
-	// have it at 0x20000 like the B type chips, can it actually move?
-	map(0x020000, 0x1fffff).rw(FUNC(generalplus_gpl16250va_device::cs_space_r), FUNC(generalplus_gpl16250va_device::cs_space_w));
-	map(0x200000, 0x3fffff).rw(FUNC(generalplus_gpl16250va_device::cs_bank_space_r), FUNC(generalplus_gpl16250va_device::cs_bank_space_w));
 }
 
 u16 generalplus_gpl162xx_base_device::spi_rxstatus_r()
