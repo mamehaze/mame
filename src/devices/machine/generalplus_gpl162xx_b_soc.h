@@ -18,6 +18,22 @@ class generalplus_gpl162xx_b_base : public generalplus_gpl162xx_base_device
 {
 public:
 	generalplus_gpl162xx_b_base(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, u32 clock, address_map_constructor internal);
+
+protected:
+	virtual void device_start() override ATTR_COLD;
+	virtual void device_reset() override ATTR_COLD;
+
+	void gpl162xx_b_extended_sprite_map(address_map &map) ATTR_COLD;
+	void gpl162xx_b_byteswap_map(address_map &map) ATTR_COLD;
+
+private:
+	void esp_ctrl_w(u16 data);
+	u16 esp_ctrl_r();
+	void byteswap_w(u16 data);
+	u16 byteswap_r();
+
+	u16 m_esp_ctrl;
+	u16 m_byteswap;
 };
 
 
@@ -34,6 +50,7 @@ public:
 
 protected:
 	generalplus_gpl16218b_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, u32 clock, address_map_constructor internal);
+	virtual void device_add_mconfig(machine_config &config) override ATTR_COLD;
 
 	void gpl16218b_map(address_map &map);
 
@@ -54,6 +71,7 @@ public:
 
 protected:
 	generalplus_gpl16238b_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, u32 clock, address_map_constructor internal);
+	virtual void device_add_mconfig(machine_config &config) override ATTR_COLD;
 
 	void gpl16238b_map(address_map &map);
 

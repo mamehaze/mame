@@ -53,6 +53,10 @@ public:
 	void set_has_vga_modes() { m_has_vga_modes = true; } // GPL1624x and above add VGA modes
 	void set_has_3d_sprite_modes() { m_has_3d_sprites = true; } // GPL1625x and above add VGA modes
 
+	void set_has_gpl162xx_b_features() { m_has_gpl162xx_b_features = true; } // B models have different sprite/tilemap palette handling etc.
+	void set_has_gpl162xx_b_extended_sprites() { m_has_gpl162xx_b_extended_sprites = true; } // higher numbered B models have extended sprites
+
+
 	u16 tmap0_regs_r(offs_t offset);
 	void tmap0_regs_w(offs_t offset, u16 data);
 	u16 tmap0_tilebase_lsb_r();
@@ -246,8 +250,12 @@ protected:
 	bool m_use_legacy_mode; // could be related to the 'unused' bits in the palete bank select being set, but uncertain
 	bool m_disallow_resolution_control;
 
+	// TODO: these could be handled by sub-classing the device, but until this gets refactored at least set these
+	//       to represent the differences
 	bool m_has_vga_modes;
 	bool m_has_3d_sprites;
+	bool m_has_gpl162xx_b_features;
+	bool m_has_gpl162xx_b_extended_sprites;
 };
 
 class gcm394_video_device : public gcm394_base_video_device

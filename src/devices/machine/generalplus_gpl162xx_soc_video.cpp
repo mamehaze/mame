@@ -42,7 +42,9 @@ gcm394_base_video_device::gcm394_base_video_device(const machine_config &mconfig
 	m_use_legacy_mode(false),
 	m_disallow_resolution_control(false),
 	m_has_vga_modes(false),
-	m_has_3d_sprites(false)
+	m_has_3d_sprites(false),
+	m_has_gpl162xx_b_features(false),
+	m_has_gpl162xx_b_extended_sprites(false)
 {
 }
 
