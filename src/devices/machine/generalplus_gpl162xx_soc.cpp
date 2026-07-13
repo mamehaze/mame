@@ -2692,10 +2692,40 @@ void generalplus_gpl162xx_base_device::device_add_mconfig(machine_config &config
 // 7c00 - 7dff Sound Attribute
 // 7e00 - 7fff Sound Phase
 
-DEFINE_DEVICE_TYPE(GPL16250VA,   generalplus_gpl16250va_device,  "gpl16250",    "GeneralPlus GPL1625x / GPAC800 System-on-a-Chip")
+
+
+generalplus_gpl16220a_device::generalplus_gpl16220a_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock) :
+	generalplus_gpl162xx_base_device(mconfig, GPL16220A, tag, owner, clock, address_map_constructor(FUNC(generalplus_gpl16220a_device::gpac800_internal_map), this))
+{
+}
+
+generalplus_gpl16220a_device::generalplus_gpl16220a_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, u32 clock, address_map_constructor internal) :
+	generalplus_gpl162xx_base_device(mconfig, type, tag, owner, clock, internal)
+{
+}
+
+generalplus_gpl16230a_device::generalplus_gpl16230a_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock) :
+	generalplus_gpl16220a_device(mconfig, GPL16230A, tag, owner, clock, address_map_constructor(FUNC(generalplus_gpl16230a_device::gpac800_internal_map), this))
+{
+}
+
+generalplus_gpl16230a_device::generalplus_gpl16230a_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, u32 clock, address_map_constructor internal) :
+	generalplus_gpl16220a_device(mconfig, type, tag, owner, clock, internal)
+{
+}
+
+generalplus_gpl16240va_device::generalplus_gpl16240va_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock) :
+	generalplus_gpl16230a_device(mconfig, GPL16240VA, tag, owner, clock, address_map_constructor(FUNC(generalplus_gpl16240va_device::gpac800_internal_map), this))
+{
+}
+
+generalplus_gpl16240va_device::generalplus_gpl16240va_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, u32 clock, address_map_constructor internal) :
+	generalplus_gpl16230a_device(mconfig, type, tag, owner, clock, internal)
+{
+}
 
 generalplus_gpl16250va_device::generalplus_gpl16250va_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock) :
-	generalplus_gpl162xx_base_device(mconfig, GPL16250VA, tag, owner, clock, address_map_constructor(FUNC(generalplus_gpl16250va_device::gpac800_internal_map), this))
+	generalplus_gpl16240va_device(mconfig, GPL16250VA, tag, owner, clock, address_map_constructor(FUNC(generalplus_gpl16250va_device::gpac800_internal_map), this))
 {
 }
 
@@ -2929,13 +2959,12 @@ u16 generalplus_gpl162xx_base_device::efuse2_r()
 	return 0x0300;
 }
 
-
 // it is not clear if these are just different revisions of a standard internal boot ROM, assuming so for now
 // they appear to be for the 'A' models at least, because there are hardcoded addresses which would be above
 // the RAM area of the 'B' models
 //
 // not currently used by the emulation as we overwrite this with our own bootstrap logic
-ROM_START( gpl16250 )
+ROM_START( gpl16250va )
 	ROM_REGION16_BE( 0x20000, "internal", 0 )
 	ROM_DEFAULT_BIOS("v7")
 	ROM_SYSTEM_BIOS( 0, "v7", "GPL16250VA internal ROM (v7)" )
@@ -2946,5 +2975,10 @@ ROM_END
 
 const tiny_rom_entry *generalplus_gpl16250va_device::device_rom_region() const
 {
-	return ROM_NAME( gpl16250 );
+	return ROM_NAME( gpl16250va );
 }
+
+DEFINE_DEVICE_TYPE(GPL16220A,   generalplus_gpl16220a_device,    "gpl16220a",    "GeneralPlus GPL16220A System-on-a-Chip")  // aka GPAC500A
+DEFINE_DEVICE_TYPE(GPL16230A,   generalplus_gpl16230a_device,    "gpl16230a",    "GeneralPlus GPL16230A System-on-a-Chip")
+DEFINE_DEVICE_TYPE(GPL16240VA,  generalplus_gpl16240va_device,   "gpl16240va",   "GeneralPlus GPL16240VA System-on-a-Chip")
+DEFINE_DEVICE_TYPE(GPL16250VA,  generalplus_gpl16250va_device,   "gpl16250va",   "GeneralPlus GPL16250VA System-on-a-Chip") // aka GPAC800A

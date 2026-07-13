@@ -398,7 +398,61 @@ private:
 };
 
 
-class generalplus_gpl16250va_device : public generalplus_gpl162xx_base_device
+class generalplus_gpl16220a_device : public generalplus_gpl162xx_base_device
+{
+public:
+	template <typename T>
+	generalplus_gpl16220a_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock, T &&screen_tag) :
+		generalplus_gpl16220a_device(mconfig, tag, owner, clock)
+	{
+		m_screen.set_tag(std::forward<T>(screen_tag));
+		m_csbase = 0x30000;
+	}
+
+	generalplus_gpl16220a_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock);
+
+protected:
+	generalplus_gpl16220a_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, u32 clock, address_map_constructor internal);
+};
+
+class generalplus_gpl16230a_device : public generalplus_gpl16220a_device
+{
+public:
+	template <typename T>
+	generalplus_gpl16230a_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock, T &&screen_tag) :
+		generalplus_gpl16230a_device(mconfig, tag, owner, clock)
+	{
+		m_screen.set_tag(std::forward<T>(screen_tag));
+		m_csbase = 0x30000;
+	}
+
+	generalplus_gpl16230a_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock);
+
+protected:
+	generalplus_gpl16230a_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, u32 clock, address_map_constructor internal);
+};
+
+
+class generalplus_gpl16240va_device : public generalplus_gpl16230a_device
+{
+public:
+	template <typename T>
+	generalplus_gpl16240va_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock, T &&screen_tag) :
+		generalplus_gpl16240va_device(mconfig, tag, owner, clock)
+	{
+		m_screen.set_tag(std::forward<T>(screen_tag));
+		m_csbase = 0x30000;
+	}
+
+	generalplus_gpl16240va_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock);
+
+protected:
+	generalplus_gpl16240va_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, u32 clock, address_map_constructor internal);
+};
+
+
+
+class generalplus_gpl16250va_device : public generalplus_gpl16240va_device
 {
 public:
 	template <typename T>
@@ -418,10 +472,9 @@ private:
 
 };
 
-
-
+DECLARE_DEVICE_TYPE(GPL16220A, generalplus_gpl16220a_device)
+DECLARE_DEVICE_TYPE(GPL16230A, generalplus_gpl16230a_device)
+DECLARE_DEVICE_TYPE(GPL16240VA, generalplus_gpl16240va_device)
 DECLARE_DEVICE_TYPE(GPL16250VA, generalplus_gpl16250va_device)
-
-
 
 #endif // MAME_MACHINE_GENERALPLUS_GPL162XX_SOC_H
