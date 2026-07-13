@@ -124,31 +124,47 @@ void generalplus_gpl162xx_b_base::gpl162xx_b_byteswap_map(address_map &map)
 void generalplus_gpl16218b_device::gpl16218b_map(address_map &map)
 {
 	map(0x000000, 0x002fff).ram().share("mainram"); // 12K * 16
-	gcm394_internal_map(map);
+	base_internal_map(map);
+	//nand_peripheral_map(map); // no NAND support here
+	spi_peripheral_map(map); // but does have SPI support?
 	gpl162xx_b_byteswap_map(map);
+	internal_rom_4kword(map);
+	cs_main_view_area(map);
 }
 
 void generalplus_gpl16238b_device::gpl16238b_map(address_map &map)
 {
 	map(0x000000, 0x002fff).ram().share("mainram"); // 12K * 16
-	gcm394_internal_map(map);
+	base_internal_map(map);
+	nand_peripheral_map(map);
+	spi_peripheral_map(map);
 	gpl162xx_b_byteswap_map(map);
+	internal_rom_4kword(map);
+	cs_main_view_area(map);
 }
 
 void generalplus_gpl16248vb_device::gpl16248vb_map(address_map &map)
 {
 	map(0x000000, 0x002fff).ram().share("mainram"); // 12K * 16
-	gcm394_internal_map(map);
+	base_internal_map(map);
+	nand_peripheral_map(map);
+	spi_peripheral_map(map);
 	gpl162xx_b_extended_sprite_map(map);
 	gpl162xx_b_byteswap_map(map);
+	internal_rom_4kword(map);
+	cs_main_view_area(map);
 }
 
 void generalplus_gpl16258vb_device::gpl16258vb_map(address_map &map)
 {
 	map(0x000000, 0x002fff).ram().share("mainram"); // 12K * 16
-	gcm394_internal_map(map);
+	base_internal_map(map);
+	nand_peripheral_map(map);
+	spi_peripheral_map(map);
 	gpl162xx_b_extended_sprite_map(map);
 	gpl162xx_b_byteswap_map(map);
+	internal_rom_4kword(map);
+	cs_main_view_area(map);
 }
 
 

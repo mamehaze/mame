@@ -82,8 +82,10 @@ protected:
 	virtual void device_reset() override ATTR_COLD;
 	virtual void device_post_load() override ATTR_COLD;
 
-	void gcm394_internal_map(address_map &map) ATTR_COLD;
 	void base_internal_map(address_map &map) ATTR_COLD;
+	void internal_rom_64kword(address_map &map);
+	void internal_rom_4kword(address_map &map);
+	void cs_main_view_area(address_map &map);
 
 	required_device<screen_device> m_screen;
 	required_device<gcm394_video_device> m_spg_video;
@@ -359,7 +361,8 @@ protected:
 	// config/hacks
 	bool m_disable_timebase_interrupts;
 
-	void gpac800_internal_map(address_map &map) ATTR_COLD;
+	void nand_peripheral_map(address_map &map) ATTR_COLD;
+	void spi_peripheral_map(address_map &map) ATTR_COLD;
 
 private:
 	void dma_complete(int state);

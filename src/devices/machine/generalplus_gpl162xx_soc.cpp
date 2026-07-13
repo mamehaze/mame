@@ -2400,6 +2400,8 @@ void generalplus_gpl162xx_base_device::base_internal_map(address_map &map)
 	map(0x007abe, 0x007abe).rw(m_gpl_dma, FUNC(gpl_dma_device::system_dma_memtype_r), FUNC(gpl_dma_device::system_dma_memtype_w)); // 7abe - written with DMA stuff (source type for each channel so that device handles timings properly?)
 	map(0x007abf, 0x007abf).rw(m_gpl_dma, FUNC(gpl_dma_device::system_dma_status_r), FUNC(gpl_dma_device::system_dma_status_w));
 
+	map(0x007ae2, 0x007ae2).r(FUNC(generalplus_gpl16250va_device::efuse2_r)); // checked by the internal boot ROM
+
 	// ######################################################################################################################################################################################
 	// 7bxx-7fxx = audio
 	// ######################################################################################################################################################################################
@@ -2409,11 +2411,29 @@ void generalplus_gpl162xx_base_device::base_internal_map(address_map &map)
 	map(0x007e00, 0x007fff).rw(m_spg_audio, FUNC(sunplus_gcm394_audio_device::audio_phase_r), FUNC(sunplus_gcm394_audio_device::audio_phase_w));
 }
 
-
-void generalplus_gpl162xx_base_device::gpac800_internal_map(address_map &map)
+void generalplus_gpl162xx_base_device::internal_rom_64kword(address_map &map)
 {
-	generalplus_gpl162xx_base_device::base_internal_map(map);
+	map(0x08000, 0x0ffff).r(FUNC(generalplus_gpl16250va_device::internalrom_lower32_r)); // lower 32kwords of internal ROM is visible / shadowed depending on boot pins and register
+	map(0x10000, 0x17fff).rom().region("internal", 0x10000); // upper words of internal ROM is always visible
+//	map(0x18000, 0x1ffff).noprw(); // reserved
+}
 
+void generalplus_gpl162xx_base_device::internal_rom_4kword(address_map &map)
+{
+	map(0x08000, 0x0ffff).r(FUNC(generalplus_gpl162xx_base_device::internalrom_lower32_r)).nopw(); // f000-ffff can be internal ROM if present, otherwise ROM mirror
+	map(0x10000, 0x1ffff).nopr();
+}
+
+void generalplus_gpl162xx_base_device::cs_main_view_area(address_map &map)
+{
+	// page 647 of the GPL162xxA manual has CS space offsets starting at 0x30000, but all other references (including the previous page)
+	// have it at 0x20000 like the B type chips, can it actually move?
+	map(0x020000, 0x1fffff).rw(FUNC(generalplus_gpl16250va_device::cs_space_r), FUNC(generalplus_gpl16250va_device::cs_space_w));
+	map(0x200000, 0x3fffff).rw(FUNC(generalplus_gpl16250va_device::cs_bank_space_r), FUNC(generalplus_gpl16250va_device::cs_bank_space_w));
+}
+
+void generalplus_gpl162xx_base_device::nand_peripheral_map(address_map &map)
+{
 	// 785x = NAND device
 	map(0x007850, 0x007850).rw(FUNC(generalplus_gpl16250va_device::nand_7850_status_r), FUNC(generalplus_gpl16250va_device::nand_7850_w)); // NAND Control Reg
 	map(0x007851, 0x007851).w(FUNC(generalplus_gpl16250va_device::nand_command_w)); // NAND Command Reg
@@ -2435,59 +2455,52 @@ void generalplus_gpl162xx_base_device::gpac800_internal_map(address_map &map)
 	map(0x00785d, 0x00785d).w(FUNC(generalplus_gpl16250va_device::nand_ecc_cpckr_lb_w));
 	map(0x00785e, 0x00785e).r(FUNC(generalplus_gpl16250va_device::nand_ecc_err0_lb_r)); // ECC Low Byte Error Flag 0
 	map(0x00785f, 0x00785f).r(FUNC(generalplus_gpl16250va_device::nand_ecc_err1_lb_r)); // ECC Low Byte Error Flag 1
-
-	map(0x007943, 0x007943).r(FUNC(generalplus_gpl16250va_device::spi_rxstatus_r));
-
-	map(0x007ae2, 0x007ae2).r(FUNC(generalplus_gpl16250va_device::efuse2_r)); // checked by the internal boot ROM
-
-	// 128kwords internal ROM
-	//map(0x08000, 0x0ffff).rom().region("internal", 0);
-	map(0x08000, 0x0ffff).r(FUNC(generalplus_gpl16250va_device::internalrom_lower32_r)); // lower 32kwords of internal ROM is visible / shadowed depending on boot pins and register
-	map(0x10000, 0x17fff).rom().region("internal", 0x10000); // upper words of internal ROM is always visible
-//	map(0x18000, 0x1ffff).noprw(); // reserved
-
-	// page 647 of the GPL162xxA manual has CS space offsets starting at 0x30000, but all other references (including the previous page)
-	// have it at 0x20000 like the B type chips, can it actually move?
-	map(0x020000, 0x1fffff).rw(FUNC(generalplus_gpl16250va_device::cs_space_r), FUNC(generalplus_gpl16250va_device::cs_space_w));
-	map(0x200000, 0x3fffff).rw(FUNC(generalplus_gpl16250va_device::cs_bank_space_r), FUNC(generalplus_gpl16250va_device::cs_bank_space_w));
 }
 
-void generalplus_gpl162xx_base_device::gcm394_internal_map(address_map &map)
+void generalplus_gpl162xx_base_device::spi_peripheral_map(address_map& map)
 {
-	generalplus_gpl162xx_base_device::base_internal_map(map);
-
-	// no internal ROM on this model?
-
-	map(0x08000, 0x0ffff).r(FUNC(generalplus_gpl162xx_base_device::internalrom_lower32_r)).nopw();
-
-	map(0x10000, 0x01ffff).nopr();
-
-	map(0x020000, 0x1fffff).rw(FUNC(generalplus_gpl162xx_base_device::cs_space_r), FUNC(generalplus_gpl162xx_base_device::cs_space_w));
-	map(0x200000, 0x3fffff).rw(FUNC(generalplus_gpl162xx_base_device::cs_bank_space_r), FUNC(generalplus_gpl162xx_base_device::cs_bank_space_w));
+	map(0x007943, 0x007943).r(FUNC(generalplus_gpl16250va_device::spi_rxstatus_r));
 }
+
 
 void generalplus_gpl16220a_device::gpl16220a_map(address_map &map)
 {
 	map(0x000000, 0x003fff).ram().share("mainram"); // 16K * 16
-	gpac800_internal_map(map);
+	base_internal_map(map);
+	//nand_peripheral_map(map); // no NAND support here
+	//spi_peripheral_map(map); // no SPI support?
+	internal_rom_64kword(map);
+	cs_main_view_area(map);
 }
 
 void generalplus_gpl16230a_device::gpl16230a_map(address_map &map)
 {
 	map(0x000000, 0x006fff).ram().share("mainram"); // 28K * 16
-	gpac800_internal_map(map);
+	base_internal_map(map);
+	nand_peripheral_map(map);
+	spi_peripheral_map(map);
+	internal_rom_64kword(map);
+	cs_main_view_area(map);
 }
 
 void generalplus_gpl16240va_device::gpl16240va_map(address_map &map)
 {
 	map(0x000000, 0x006fff).ram().share("mainram"); // 28K * 16
-	gpac800_internal_map(map);
+	base_internal_map(map);
+	nand_peripheral_map(map);
+	spi_peripheral_map(map);
+	internal_rom_64kword(map);
+	cs_main_view_area(map);
 }
 
 void generalplus_gpl16250va_device::gpl16250va_map(address_map &map)
 {
 	map(0x000000, 0x006fff).ram().share("mainram"); // 28K * 16
-	gpac800_internal_map(map);
+	base_internal_map(map);
+	nand_peripheral_map(map);
+	spi_peripheral_map(map);
+	internal_rom_64kword(map);
+	cs_main_view_area(map);
 }
 
 u16 generalplus_gpl162xx_base_device::cs_space_r(offs_t offset)
