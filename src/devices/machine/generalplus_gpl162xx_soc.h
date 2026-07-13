@@ -411,6 +411,8 @@ public:
 	generalplus_gpl16220a_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock);
 
 protected:
+	virtual const tiny_rom_entry *device_rom_region() const override ATTR_COLD;
+
 	generalplus_gpl16220a_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, u32 clock, address_map_constructor internal);
 
 	void gpl16220a_map(address_map &map);
@@ -429,6 +431,8 @@ public:
 	generalplus_gpl16230a_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock);
 
 protected:
+	virtual const tiny_rom_entry *device_rom_region() const override ATTR_COLD;
+
 	generalplus_gpl16230a_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, u32 clock, address_map_constructor internal);
 
 	void gpl16230a_map(address_map &map);
@@ -448,6 +452,8 @@ public:
 	generalplus_gpl16240va_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock);
 
 protected:
+	virtual const tiny_rom_entry *device_rom_region() const override ATTR_COLD;
+
 	generalplus_gpl16240va_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, u32 clock, address_map_constructor internal);
 
 	virtual void device_add_mconfig(machine_config &config) override ATTR_COLD;

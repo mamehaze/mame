@@ -28,6 +28,8 @@ public:
 
 	void common_config(machine_config &config) ATTR_COLD;
 	void gpl16218b_rom(machine_config &config) ATTR_COLD;
+	void gpl16230a_rom(machine_config &config) ATTR_COLD;
+	void gpl16220a_rom(machine_config &config) ATTR_COLD;
 
 protected:
 private:
@@ -146,6 +148,18 @@ void gpl162xx_rom_base_state::common_config(machine_config &config)
 void gpl162xx_rom_base_state::gpl16218b_rom(machine_config &config)
 {
 	GPL16218B(config, m_maincpu, 96000000, m_screen);
+	common_config(config);
+}
+
+void gpl162xx_rom_base_state::gpl16220a_rom(machine_config &config)
+{
+	GPL16220A(config, m_maincpu, 96000000, m_screen);
+	common_config(config);
+}
+
+void gpl162xx_rom_base_state::gpl16230a_rom(machine_config &config)
+{
+	GPL16230A(config, m_maincpu, 96000000, m_screen);
 	common_config(config);
 }
 
@@ -883,7 +897,6 @@ void gameu_handheld_game_state::init_gameu108()
 // these set SP to 2fff / only use RAM below that, so are probably 'GPL162xx B' type
 //
 // none of them use NAND, or SDRAM, or high resolution modes, so could be GPL16218B
-//
 // ----------------------------------------------------
 
 // the JAKKS ones of these seem to be known as 'Generalplus GPAC500' hardware?
@@ -926,19 +939,23 @@ CONS( 201?, gameu108,      0,              0,      gameu, gameu, gameu_handheld_
 
 // ----------------------------------------------------
 // these set SP to 3fff / only use RAM below that, so must be 'GPL162xx A' type
+//
+// high resolution modes not used, NAND not used, so probably GPL16220A
 // ----------------------------------------------------
 
 // uses a barcode card scanner device with custom cards
-CONS(200?, dressmtv,  0,       0, base, dressmtv, gpl162xx_rom_base_state, empty_init, "Takara Tomy", "Disney Princess Dress Mania TV (Japan)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND )
+CONS(200?, dressmtv,  0,       0, gpl16220a_rom, dressmtv, gpl162xx_rom_base_state, empty_init, "Takara Tomy", "Disney Princess Dress Mania TV (Japan)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND )
 
 // skip the call at 6d47a to get it to show something
-CONS(2008, fpsport,   0,       0, base, base,     gpl162xx_rom_base_state, empty_init, "Fisher-Price", "3-in-1 Smart Sports! (US)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
+CONS(2008, fpsport,   0,       0, gpl16220a_rom, base,     gpl162xx_rom_base_state, empty_init, "Fisher-Price", "3-in-1 Smart Sports! (US)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
 
 // ----------------------------------------------------
 // these set SP to 6fff / only use RAM below that, so must be 'GPL162xx A' type
+
+// high resolution modes are not used, so probably GPL16230A
 // ----------------------------------------------------
 
-CONS(2009, smartfp,   0,       0, base, smartfp,  gpl162xx_rom_base_state, empty_init, "Fisher-Price", "Fun 2 Learn Smart Fit Park (UK)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
-CONS(2009, smartfps,  smartfp, 0, base, smartfp,  gpl162xx_rom_base_state, empty_init, "Fisher-Price", "Fun 2 Learn Smart Fit Park (Spain)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
-CONS(2009, smartfpf,  smartfp, 0, base, smartfp,  gpl162xx_rom_base_state, empty_init, "Fisher-Price", "Fun 2 Learn Smart Fit Park (France)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND) // boxart simply has 'Smart Fit'
+CONS(2009, smartfp,   0,       0, gpl16230a_rom, smartfp,  gpl162xx_rom_base_state, empty_init, "Fisher-Price", "Fun 2 Learn Smart Fit Park (UK)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
+CONS(2009, smartfps,  smartfp, 0, gpl16230a_rom, smartfp,  gpl162xx_rom_base_state, empty_init, "Fisher-Price", "Fun 2 Learn Smart Fit Park (Spain)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
+CONS(2009, smartfpf,  smartfp, 0, gpl16230a_rom, smartfp,  gpl162xx_rom_base_state, empty_init, "Fisher-Price", "Fun 2 Learn Smart Fit Park (France)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND) // boxart simply has 'Smart Fit'
 

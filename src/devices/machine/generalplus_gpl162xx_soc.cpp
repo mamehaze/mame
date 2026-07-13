@@ -3000,15 +3000,46 @@ ROM_START( gpl16250va )
 	ROM_REGION16_BE( 0x20000, "internal", 0 )
 	ROM_DEFAULT_BIOS("v7")
 	ROM_SYSTEM_BIOS( 0, "v7", "GPL16250VA internal ROM (v7)" )
-	ROMX_LOAD("gpl16250v_bootrom_v7.bin",              0x00000, 0x20000, CRC(fc4d0e32) SHA1(4dad40aae258b54fd816590ee769a1c6059b1d4c), ROM_GROUPWORD | ROM_REVERSE | ROM_BIOS(0) ) // from jewelpet music pod
+	ROMX_LOAD("gpl16250va_bootrom_v7.bin",              0x00000, 0x20000, CRC(fc4d0e32) SHA1(4dad40aae258b54fd816590ee769a1c6059b1d4c), ROM_GROUPWORD | ROM_REVERSE | ROM_BIOS(0) ) // from jewelpet music pod
 	ROM_SYSTEM_BIOS( 1, "unk", "GPL16250VA internal ROM (unknown version)" )
-	ROMX_LOAD("gpl16250v_bootrom_unknown_version.bin", 0x00000, 0x20000, CRC(975ece00) SHA1(988e0befd33884b05aeccd6821e5cdd53f6a849f), ROM_GROUPWORD | ROM_REVERSE | ROM_BIOS(1) ) // from dragon quest adventure
+	ROMX_LOAD("gpl16250va_bootrom_unknown_version.bin", 0x00000, 0x20000, CRC(975ece00) SHA1(988e0befd33884b05aeccd6821e5cdd53f6a849f), ROM_GROUPWORD | ROM_REVERSE | ROM_BIOS(1) ) // from dragon quest adventure
 ROM_END
 
 const tiny_rom_entry *generalplus_gpl16250va_device::device_rom_region() const
 {
 	return ROM_NAME( gpl16250va );
 }
+
+ROM_START( gpl1640va )
+	ROM_REGION16_BE( 0x20000, "internal", 0 )
+	ROM_LOAD16_WORD_SWAP("gpl16240va_bootrom.bin", 0x00000, 0x20000, NO_DUMP )
+ROM_END
+
+const tiny_rom_entry *generalplus_gpl16240va_device::device_rom_region() const
+{
+	return ROM_NAME( gpl1640va );
+}
+
+ROM_START( gpl1630a )
+	ROM_REGION16_BE( 0x20000, "internal", 0 )
+	ROM_LOAD16_WORD_SWAP("gpl16230a_bootrom.bin", 0x00000, 0x20000, NO_DUMP )
+ROM_END
+
+const tiny_rom_entry *generalplus_gpl16230a_device::device_rom_region() const
+{
+	return ROM_NAME( gpl1630a );
+}
+
+ROM_START( gpl1620a )
+	ROM_REGION16_BE( 0x20000, "internal", 0 )
+	ROM_LOAD16_WORD_SWAP("gpl16220a_bootrom.bin", 0x00000, 0x20000, NO_DUMP )
+ROM_END
+
+const tiny_rom_entry *generalplus_gpl16220a_device::device_rom_region() const
+{
+	return ROM_NAME( gpl1620a );
+}
+
 
 DEFINE_DEVICE_TYPE(GPL16220A,   generalplus_gpl16220a_device,    "gpl16220a",    "GeneralPlus GPL16220A System-on-a-Chip")  // aka GPAC500A
 DEFINE_DEVICE_TYPE(GPL16230A,   generalplus_gpl16230a_device,    "gpl16230a",    "GeneralPlus GPL16230A System-on-a-Chip")
