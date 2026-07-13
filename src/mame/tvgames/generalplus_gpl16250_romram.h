@@ -47,8 +47,6 @@ private:
 	virtual u16 cs1_r(offs_t offset) override;
 	virtual void cs1_w(offs_t offset, u16 data) override;
 
-	//required_shared_ptr<u16> m_mainram;
-
 	int m_romwords_mask = 0;
 };
 
