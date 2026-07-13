@@ -50,8 +50,8 @@ public:
 	void set_legacy_video_mode() { m_use_legacy_mode = true; }
 	void set_disallow_resolution_control() { m_disallow_resolution_control = true; }
 
-	//void set_pal_sprites(int pal_sprites) { m_pal_sprites = pal_sprites; }
-	//void set_pal_back(int pal_back) { m_pal_back = pal_back; }
+	void set_has_vga_modes() { m_has_vga_modes = true; } // GPL1624x and above add VGA modes
+	void set_has_3d_sprite_modes() { m_has_3d_sprites = true; } // GPL1625x and above add VGA modes
 
 	u16 tmap0_regs_r(offs_t offset);
 	void tmap0_regs_w(offs_t offset, u16 data);
@@ -245,6 +245,9 @@ protected:
 	//int m_pal_back;
 	bool m_use_legacy_mode; // could be related to the 'unused' bits in the palete bank select being set, but uncertain
 	bool m_disallow_resolution_control;
+
+	bool m_has_vga_modes;
+	bool m_has_3d_sprites;
 };
 
 class gcm394_video_device : public gcm394_base_video_device

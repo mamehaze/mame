@@ -9,7 +9,7 @@
 
 #include "bus/generic/carts.h"
 #include "bus/generic/slot.h"
-#include "machine/generalplus_gpl1625x_soc.h"
+#include "machine/generalplus_gpl162xx_soc.h"
 #include "machine/nandflash.h"
 
 #include "screen.h"
