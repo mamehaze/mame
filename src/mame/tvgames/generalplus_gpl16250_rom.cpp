@@ -950,7 +950,7 @@ CONS(200?, dressmtv,  0,       0, gpl16220a_rom, dressmtv, gpl162xx_rom_base_sta
 CONS(2008, fpsport,   0,       0, gpl16220a_rom, base,     gpl162xx_rom_base_state, empty_init, "Fisher-Price", "3-in-1 Smart Sports! (US)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
 
 // ----------------------------------------------------
-// these set SP to 6fff / only use RAM below that, so must be 'GPL162xx A' type
+// these set SP to 6fff so must be 'GPL162xx A' type
 
 // high resolution modes are not used, so probably GPL16230A
 // ----------------------------------------------------
