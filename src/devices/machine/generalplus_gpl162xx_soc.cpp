@@ -3041,7 +3041,7 @@ const tiny_rom_entry *generalplus_gpl16220a_device::device_rom_region() const
 }
 
 
-DEFINE_DEVICE_TYPE(GPL16220A,   generalplus_gpl16220a_device,    "gpl16220a",    "GeneralPlus GPL16220A System-on-a-Chip")  // aka GPAC500A
+DEFINE_DEVICE_TYPE(GPL16220A,   generalplus_gpl16220a_device,    "gpl16220a",    "GeneralPlus GPL16220A System-on-a-Chip")  // aka GPAC500A (not used by JAKKS?)
 DEFINE_DEVICE_TYPE(GPL16230A,   generalplus_gpl16230a_device,    "gpl16230a",    "GeneralPlus GPL16230A System-on-a-Chip")
 DEFINE_DEVICE_TYPE(GPL16240VA,  generalplus_gpl16240va_device,   "gpl16240va",   "GeneralPlus GPL16240VA System-on-a-Chip")
 DEFINE_DEVICE_TYPE(GPL16250VA,  generalplus_gpl16250va_device,   "gpl16250va",   "GeneralPlus GPL16250VA System-on-a-Chip") // aka GPAC800A

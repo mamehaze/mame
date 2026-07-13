@@ -7,6 +7,11 @@
     GPL16248VB
     GPL16258VB (this could be GPAC800B)
 
+	generalplus_gpl162xx_lcdtype.cpp appears to also use a GPL162xxB series
+	chip, just ignoring the video output, it does however use a custom OTP
+	which might mean it's a slight variarion on the above which documentation
+	indicates only have the OTP provided by GeneralPlus
+
 **********************************************************************/
 
 #include "emu.h"
@@ -96,4 +101,4 @@ void generalplus_gpl16258vb_device::device_add_mconfig(machine_config & config)
 DEFINE_DEVICE_TYPE(GPL16218B, generalplus_gpl16218b_device, "gpl16218b", "GeneralPlus GPL16218B System-on-a-Chip") // aka GPAC500B
 DEFINE_DEVICE_TYPE(GPL16238B, generalplus_gpl16238b_device, "gpl16238b", "GeneralPlus GPL16238B System-on-a-Chip")
 DEFINE_DEVICE_TYPE(GPL16248VB, generalplus_gpl16248vb_device, "gpl16248vb", "GeneralPlus GPL16248VB System-on-a-Chip")
-DEFINE_DEVICE_TYPE(GPL16258VB, generalplus_gpl16258vb_device, "gpl16258vb", "GeneralPlus GPL16258VB System-on-a-Chip") // aka GPAC800B
+DEFINE_DEVICE_TYPE(GPL16258VB, generalplus_gpl16258vb_device, "gpl16258vb", "GeneralPlus GPL16258VB System-on-a-Chip") // aka GPAC800B (not used by JAKKS?)

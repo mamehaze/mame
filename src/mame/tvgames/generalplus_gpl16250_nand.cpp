@@ -771,7 +771,7 @@ void generalplus_gpac800_game_state::machine_reset()
 		internal[0x7f02] = 0xfe80 | (addr >> 16);
 		internal[0x7f03] = (addr & 0xffff);
 
-		addr = (dest + 0x20) & 0x000fffff; // point boot vector at code in RAM (probably in reality points to internal code that copies the first block)
+		addr = (dest + 0x20) & 0x001fffff; // point boot vector at code in RAM (probably in reality points to internal code that copies the first block)
 		internal[0x7f04] = 0xfe80 | (addr >> 16);
 		internal[0x7f05] = (addr & 0xffff);
 
@@ -879,6 +879,12 @@ void generalplus_gpac800_game_state::nand_beambox()
 	m_vectorbase = 0x2fe0;
 }
 
+// ----------------------------------------------------
+// these all use RAM up to 6fff
+//
+// JAKKS games are known to be GPAC800, so GPL16240VA
+// ----------------------------------------------------
+
 // NAND dumps w/ internal bootstrap (and u'nSP 2.0 extended opcodes)  (have gpnandnand strings)
 // the JAKKS ones seem to be known as 'Generalplus GPAC800' hardware
 CONS(2011, jak_gtg,    0, 0, generalplus_gpac800_nand64mbyte,       jak_gtg,  generalplus_gpac800_game_state,       nand_init,       "JAKKS Pacific Inc / HotGen Ltd",           "Golden Tee Golf (JAKKS Pacific TV Game)",   MACHINE_NO_SOUND | MACHINE_NOT_WORKING)
@@ -904,8 +910,12 @@ CONS(2013, jak_swc,    0, 0, generalplus_gpac800_nand64mbyte,       jak_car2, ge
 CONS(2014, jak_wdbg,   0, 0, generalplus_gpac800_nand64mbyte,       jak_car2, generalplus_gpac800_game_state,       nand_init_32mb,  "JAKKS Pacific Inc / Super Happy Fun Fun",  "The Walking Dead: Battleground (JAKKS Pacific TV Game)",   MACHINE_NO_SOUND | MACHINE_NOT_WORKING)
 
 
-// these are probably a GPL162xxB as they expect code to be copied to a lower address, and set the stack just below 0x3000
-// B models have only 12K words of RAM, but the GPL16250VA boot ROMs we've seen are hardcoded to look for vectors above that
+// ----------------------------------------------------
+// these all use RAM up to 2fff
+//
+// NAND is used, so GPL16238B, or higher B series is high res modes / 3d sprites are used
+// ----------------------------------------------------
+
 CONS(200?, beambox,    0, 0, generalplus_gpac800_nand64mbyte,       jak_car2, generalplus_gpac800_game_state,       nand_beambox,       "Hasbro",                                   "Playskool Heroes Transformers Rescue Bots Beam Box (Spain)",   MACHINE_NO_SOUND | MACHINE_NOT_WORKING)
 CONS(2010, wlsair60,   0, 0, generalplus_gpac800_nand128mbyte_2048, jak_car2, generalplus_gpac800_game_state,       nand_wlsair60,      "Jungle Soft / Kids Station Toys Inc",      "Wireless Air 60",   MACHINE_NO_SOUND | MACHINE_NOT_WORKING) // some of the games seem to be based on ones found in the 'Millennium Arcade' multigames (WinFun related) so might have the same external timer check
 
@@ -914,5 +924,4 @@ CONS(200?, mgtfit,     0, 0, generalplus_gpac800_nand128mbyte_2048,       jak_ca
 CONS(200?, vbaby,      0, 0, generalplus_gpac800_nand128mbyte_2048_vbaby, jak_car2, generalplus_gpac800_vbaby_game_state, nand_vbaby,         "VTech",                                    "V.Baby", MACHINE_NO_SOUND | MACHINE_NOT_WORKING)
 CONS(200?, tiviboo,    0, 0, generalplus_gpac800_nand128mbyte_2048,       jak_car2, generalplus_gpac800_game_state,       nand_vbaby,         "VTech",                                    "Tivi Boo (France)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING)
 
-// this one is strange, the area specified in the header to copy the code to is an unmapped area?
 CONS(200?, kiugames,   0, 0, generalplus_gpac800_nand512mbyte_2048,      jak_car2, generalplus_gpac800_game_state,       nand_kiugames,      "VideoJet",                                 "Kiu Games",   MACHINE_NO_SOUND | MACHINE_NOT_WORKING) // probably has other names in English too? menus don't appear to be in German

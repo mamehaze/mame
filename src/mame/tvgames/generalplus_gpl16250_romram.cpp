@@ -665,10 +665,15 @@ ROM_END
 
 
 
+// ----------------------------------------------------
+// these use RAM up to 6fff
+//
+// high resolution mode is used, the JAKKS games are known to be GPAC800, so GPL16250VA
+// ----------------------------------------------------
+
 // also sold as "Pac-Man Connect & Play 35th Anniversary" (same ROM?)
 CONS(2012, paccon,   0, 0, gpl16250_romram, paccon, paccon_game_state, init_wrlshunt, "Bandai", "Pac-Man Connect & Play (Feb 14 2012 10:46:23)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
 
-CONS(2008, lazertag, 0, 0, gpl16250_romram, jak_s500, lazertag_game_state, init_wrlshunt, "Tiger Electronics", "Lazer Tag Video Game Module", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
 
 CONS(2009, jak_swcl, 0, 0, gpl16250_romram, jak_s500, jak_s500_game_state, init_wrlshunt, "JAKKS Pacific Inc / HotGen Ltd",          "Star Wars: The Clone Wars - Republic Squadron (JAKKS Pacific TV Motion Game) (May 6 2009 12:53:31)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
 CONS(2009, jak_s500, 0, 0, gpl16250_romram, jak_s500, jak_s500_game_state, init_wrlshunt, "JAKKS Pacific Inc / HotGen Ltd",          "SpongeBob SquarePants Bikini Bottom 500 (JAKKS Pacific TV Motion Game) (Apr 16 2009 15:11:17)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
@@ -685,6 +690,21 @@ CONS(2011, jak_sinv, 0, 0, gpl16250_romram, jak_s500, jak_s500_game_state, init_
 
 CONS(2011, wrlshunt, 0, 0, gpl16250_romram, wrlshunt, wrlshunt_game_state, init_wrlshunt, "Hamy / Kids Station Toys Inc", "Wireless Hunting Video Game System", MACHINE_NO_SOUND | MACHINE_NOT_WORKING)
 
+// ----------------------------------------------------
+// these use RAM up to 2fff
+//
+// high resolution mode is used, NAND not used, SRAM is used, so probably GPL16248B or GPL16258B
+// ----------------------------------------------------
+
 // ぼくはトミカドライバー はたらくのりもの大集合！
 CONS(2014, tomycar,  0, 0, gpl16250_romram, paccon, jak_prft_game_state, init_wrlshunt, "Takara Tomy", "Boku wa Tomica Driver - Hataraku Norimono Daishuugou! (Japan)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING)
+
+
+// ----------------------------------------------------
+// these use RAM up to 3fff
+//
+// high resolution modes not used, NAND not used, SRAM is used, so probably GPL16230A 
+// ----------------------------------------------------
+
+CONS(2008, lazertag, 0, 0, gpl16250_romram, jak_s500, lazertag_game_state, init_wrlshunt, "Tiger Electronics", "Lazer Tag Video Game Module", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
 

@@ -195,6 +195,13 @@ void generalplus_gpspispi_game_state::init_spi()
 }
 
 
+// ----------------------------------------------------
+// these all use RAM up to 6fff
+//
+// high resolution mode is used, most likely GPL16250VA (but could be GPL16240VA if 3d mode isn't used)
+// ----------------------------------------------------
+
+
 // ぼくはプラレール運転士 新幹線で行こう！プラス  (I am a Plarail driver Let's go by Shinkansen! Plus)
 CONS(2015, prailpls, 0, 0, generalplus_gpspispi,         gcm394, generalplus_gpspispi_game_state,         init_spi, "Takara Tomy", "Boku wa Plarail Untenshi Shinkansen de Ikou! Plus (Japan)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND) // has built-in screen, but can be connected to a TV
 
