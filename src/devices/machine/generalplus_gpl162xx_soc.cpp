@@ -1998,6 +1998,16 @@ void generalplus_gpl162xx_base_device::device_reset()
 		m_timer_cc_reg[i] = 0x0000;
 	}
 
+	m_nand_addr_low = 0x0000;
+	m_nand_addr_high = 0x0000;
+	m_nand_dma_ctrl = 0x0000;
+	m_nand_ctrl = 0x0000;
+	m_nand_ecc_cpckr_lb = 0x0000;
+	m_nand_ecc_lpr_ckh_lb = 0x0000;
+	m_nand_ecc_lpr_ckl_lb = 0x0000;
+	m_nand_bch_ctrl = 0x0000;
+	m_nand_ecc_ctrl = 0x0000;
+
 	m_spg_video->reset();
 }
 
@@ -2693,33 +2703,33 @@ generalplus_gpl16250va_device::generalplus_gpl16250va_device(const machine_confi
 // HY27UF081G2A = AD F1 80 1D
 // H27U518S2C   = AD 76
 
-u16 generalplus_gpl16250va_device::nand_data_r()
+u16 generalplus_gpl162xx_base_device::nand_data_r()
 {
 	// straight trampoline for now, but this is talking to the NAND controller, which in turn talks to the NAND
 	return m_nand_data_in();
 }
 
-void generalplus_gpl16250va_device::nand_data_w(u16 data)
+void generalplus_gpl162xx_base_device::nand_data_w(u16 data)
 {
 	m_nand_data_out(data & 0xff);
 }
 
 // 7998
 
-void generalplus_gpl16250va_device::nand_command_w(u16 data)
+void generalplus_gpl162xx_base_device::nand_command_w(u16 data)
 {
 	// documentation indicate this is a 16-bit port, but NAND commands are 8-bit?
 	logerror("%s:generalplus_gpl162xx_base_device::nand_command_w %04x\n", machine().describe_context(), data);
 	m_nand_command_out(data & 0xff);
 }
 
-void generalplus_gpl16250va_device::nand_addr_low_w(u16 data)
+void generalplus_gpl162xx_base_device::nand_addr_low_w(u16 data)
 {
 	logerror("%s:generalplus_gpl162xx_base_device::nand_addr_low_w %04x\n", machine().describe_context(), data);
 	m_nand_addr_low = data;
 }
 
-void generalplus_gpl16250va_device::nand_addr_high_w(u16 data)
+void generalplus_gpl162xx_base_device::nand_addr_high_w(u16 data)
 {
 	logerror("%s:generalplus_gpl162xx_base_device::nand_addr_high_w %04x\n", machine().describe_context(), data);
 	m_nand_addr_high = data;
@@ -2759,7 +2769,7 @@ void generalplus_gpl16250va_device::nand_addr_high_w(u16 data)
 //  1
 //  0
 
-void generalplus_gpl16250va_device::nand_dma_ctrl_w(u16 data)
+void generalplus_gpl162xx_base_device::nand_dma_ctrl_w(u16 data)
 {
 	logerror("%s:generalplus_gpl162xx_base_device::nand_dma_ctrl_w(?) %04x\n", machine().describe_context(), data);
 	m_nand_dma_ctrl = data;
@@ -2787,7 +2797,7 @@ void generalplus_gpl16250va_device::nand_dma_ctrl_w(u16 data)
 //  1  NFCTRL[1] - tWP[1]
 //  0  NFCTRL[0] - tWP[0]
 
-u16 generalplus_gpl16250va_device::nand_7850_status_r()
+u16 generalplus_gpl162xx_base_device::nand_7850_status_r()
 {
 	// TODO, talks to the NAND controller, which talks to the NAND
 	// so the status byte here should reflect that
@@ -2795,7 +2805,7 @@ u16 generalplus_gpl16250va_device::nand_7850_status_r()
 	return m_nand_ctrl | 0x8000;
 }
 
-void generalplus_gpl16250va_device::nand_7850_w(u16 data)
+void generalplus_gpl162xx_base_device::nand_7850_w(u16 data)
 {
 	logerror("%s:generalplus_gpl162xx_base_device::nand_7850_w %04x\n", machine().describe_context(), data);
 	m_nand_ctrl = data;
@@ -2823,50 +2833,50 @@ void generalplus_gpl16250va_device::nand_7850_w(u16 data)
 //  1  BCH_8 - BCH 4/8-bit control register (0 = 4 bits, 1 = 8-bits)
 //  0  BCH_EN - BCH Controller enable register. (1 = enable)
 
-void generalplus_gpl16250va_device::nand_bch_ctrl_w(u16 data)
+void generalplus_gpl162xx_base_device::nand_bch_ctrl_w(u16 data)
 {
 	logerror("%s:generalplus_gpl162xx_base_device::nand_bch_ctrl_w %04x\n", machine().describe_context(), data);
 	m_nand_bch_ctrl = data;
 }
 
-void generalplus_gpl16250va_device::nand_ecc_ctrl_w(u16 data)
+void generalplus_gpl162xx_base_device::nand_ecc_ctrl_w(u16 data)
 {
 	logerror("%s:generalplus_gpl162xx_base_device::nand_ecc_ctrl_w %04x\n", machine().describe_context(), data);
 	m_nand_ecc_ctrl = data;
 }
 
-void generalplus_gpl16250va_device::nand_ecc_lpr_ckl_lb_w(u16 data)
+void generalplus_gpl162xx_base_device::nand_ecc_lpr_ckl_lb_w(u16 data)
 {
 	logerror("%s:generalplus_gpl162xx_base_device::nand_ecc_lpr_ckl_lb_w %04x\n", machine().describe_context(), data);
 	m_nand_ecc_lpr_ckl_lb = data;
 }
 
-void generalplus_gpl16250va_device::nand_ecc_lpr_ckh_lb_w(u16 data)
+void generalplus_gpl162xx_base_device::nand_ecc_lpr_ckh_lb_w(u16 data)
 {
 	logerror("%s:generalplus_gpl162xx_base_device::nand_ecc_lpr_ckh_lb_w %04x\n", machine().describe_context(), data);
 	m_nand_ecc_lpr_ckh_lb = data;
 }
 
-void generalplus_gpl16250va_device::nand_ecc_cpckr_lb_w(u16 data)
+void generalplus_gpl162xx_base_device::nand_ecc_cpckr_lb_w(u16 data)
 {
 	logerror("%s:generalplus_gpl162xx_base_device::nand_ecc_cpckr_lb_w %04x\n", machine().describe_context(), data);
 	m_nand_ecc_cpckr_lb = data;
 }
 
 // [:maincpu] ':maincpu' (00146D)  jak_tsm
-u16 generalplus_gpl16250va_device::nand_ecc_err0_lb_r()
+u16 generalplus_gpl162xx_base_device::nand_ecc_err0_lb_r()
 {
 	return 0x0000;
 }
 
 //[:maincpu] ':maincpu' (001490)  jak_tsm
-u16 generalplus_gpl16250va_device::nand_ecc_err1_lb_r()
+u16 generalplus_gpl162xx_base_device::nand_ecc_err1_lb_r()
 {
 	return 0x0000;
 }
 
 
-void generalplus_gpl16250va_device::gpac800_internal_map(address_map &map)
+void generalplus_gpl162xx_base_device::gpac800_internal_map(address_map &map)
 {
 	generalplus_gpl162xx_base_device::base_internal_map(map);
 
@@ -2908,27 +2918,12 @@ void generalplus_gpl16250va_device::gpac800_internal_map(address_map &map)
 	map(0x200000, 0x3fffff).rw(FUNC(generalplus_gpl16250va_device::cs_bank_space_r), FUNC(generalplus_gpl16250va_device::cs_bank_space_w));
 }
 
-void generalplus_gpl16250va_device::device_reset()
-{
-	generalplus_gpl162xx_base_device::device_reset();
-
-	m_nand_addr_low = 0x0000;
-	m_nand_addr_high = 0x0000;
-	m_nand_dma_ctrl = 0x0000;
-	m_nand_ctrl = 0x0000;
-	m_nand_ecc_cpckr_lb = 0x0000;
-	m_nand_ecc_lpr_ckh_lb = 0x0000;
-	m_nand_ecc_lpr_ckl_lb = 0x0000;
-	m_nand_bch_ctrl = 0x0000;
-	m_nand_ecc_ctrl = 0x0000;
-}
-
-u16 generalplus_gpl16250va_device::spi_rxstatus_r()
+u16 generalplus_gpl162xx_base_device::spi_rxstatus_r()
 {
 	return 0x0007;
 }
 
-u16 generalplus_gpl16250va_device::efuse2_r()
+u16 generalplus_gpl162xx_base_device::efuse2_r()
 {
 	logerror("%s:generalplus_gpl16250va_device::efuse2_r\n", machine().describe_context());
 	return 0x0300;

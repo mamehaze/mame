@@ -359,35 +359,11 @@ protected:
 	// config/hacks
 	bool m_disable_timebase_interrupts;
 
+	void gpac800_internal_map(address_map &map) ATTR_COLD;
+
 private:
 	void dma_complete(int state);
 
-};
-
-
-class generalplus_gpl16250va_device : public generalplus_gpl162xx_base_device
-{
-public:
-	template <typename T>
-	generalplus_gpl16250va_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock, T &&screen_tag) :
-		generalplus_gpl16250va_device(mconfig, tag, owner, clock)
-	{
-		m_screen.set_tag(std::forward<T>(screen_tag));
-		m_csbase = 0x30000;
-	}
-
-	generalplus_gpl16250va_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock);
-
-
-protected:
-	void gpac800_internal_map(address_map &map) ATTR_COLD;
-
-	//virtual void device_start() override ATTR_COLD;
-	virtual void device_reset() override ATTR_COLD;
-
-	virtual const tiny_rom_entry *device_rom_region() const override ATTR_COLD;
-
-private:
 	u16 nand_7850_status_r();
 	u16 nand_data_r();
 	void nand_data_w(u16 data);
@@ -418,6 +394,33 @@ private:
 	u16 m_nand_ecc_lpr_ckl_lb;
 	u16 m_nand_bch_ctrl;
 	u16 m_nand_ecc_ctrl;
+
+};
+
+
+class generalplus_gpl16250va_device : public generalplus_gpl162xx_base_device
+{
+public:
+	template <typename T>
+	generalplus_gpl16250va_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock, T &&screen_tag) :
+		generalplus_gpl16250va_device(mconfig, tag, owner, clock)
+	{
+		m_screen.set_tag(std::forward<T>(screen_tag));
+		m_csbase = 0x30000;
+	}
+
+	generalplus_gpl16250va_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock);
+
+
+protected:
+
+	//virtual void device_start() override ATTR_COLD;
+	virtual void device_reset() override ATTR_COLD;
+
+	virtual const tiny_rom_entry *device_rom_region() const override ATTR_COLD;
+
+private:
+
 };
 
 
