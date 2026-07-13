@@ -406,7 +406,6 @@ public:
 		generalplus_gpl16220a_device(mconfig, tag, owner, clock)
 	{
 		m_screen.set_tag(std::forward<T>(screen_tag));
-		m_csbase = 0x30000;
 	}
 
 	generalplus_gpl16220a_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock);
@@ -423,7 +422,6 @@ public:
 		generalplus_gpl16230a_device(mconfig, tag, owner, clock)
 	{
 		m_screen.set_tag(std::forward<T>(screen_tag));
-		m_csbase = 0x30000;
 	}
 
 	generalplus_gpl16230a_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock);
@@ -441,7 +439,6 @@ public:
 		generalplus_gpl16240va_device(mconfig, tag, owner, clock)
 	{
 		m_screen.set_tag(std::forward<T>(screen_tag));
-		m_csbase = 0x30000;
 	}
 
 	generalplus_gpl16240va_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock);
@@ -460,7 +457,6 @@ public:
 		generalplus_gpl16250va_device(mconfig, tag, owner, clock)
 	{
 		m_screen.set_tag(std::forward<T>(screen_tag));
-		m_csbase = 0x30000;
 	}
 
 	generalplus_gpl16250va_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock);

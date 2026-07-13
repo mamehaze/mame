@@ -2937,14 +2937,14 @@ void generalplus_gpl162xx_base_device::gpac800_internal_map(address_map &map)
 	map(0x007ae2, 0x007ae2).r(FUNC(generalplus_gpl16250va_device::efuse2_r)); // checked by the internal boot ROM
 
 	// 128kwords internal ROM
-	//map(0x08000, 0x0ffff).rom().region("internal", 0); // lower 32kwords of internal ROM is visible / shadowed depending on boot pins and register
-	map(0x08000, 0x0ffff).r(FUNC(generalplus_gpl16250va_device::internalrom_lower32_r)).nopw();
+	//map(0x08000, 0x0ffff).rom().region("internal", 0);
+	map(0x08000, 0x0ffff).r(FUNC(generalplus_gpl16250va_device::internalrom_lower32_r)); // lower 32kwords of internal ROM is visible / shadowed depending on boot pins and register
 	map(0x10000, 0x17fff).rom().region("internal", 0x10000); // upper words of internal ROM is always visible
-	//map(0x18000, 0x27fff).rom().region("internal", 0x20000); // ? apparently more upper words, but nothing is here?
-	map(0x28000, 0x2ffff).noprw(); // reserved
-	// 0x30000+ is CS access
+//	map(0x18000, 0x1ffff).noprw(); // reserved
 
-	map(0x030000, 0x1fffff).rw(FUNC(generalplus_gpl16250va_device::cs_space_r), FUNC(generalplus_gpl16250va_device::cs_space_w));
+	// page 647 of the GPL162xxA manual has CS space offsets starting at 0x30000, but all other references (including the previous page)
+	// have it at 0x20000 like the B type chips, can it actually move?
+	map(0x020000, 0x1fffff).rw(FUNC(generalplus_gpl16250va_device::cs_space_r), FUNC(generalplus_gpl16250va_device::cs_space_w));
 	map(0x200000, 0x3fffff).rw(FUNC(generalplus_gpl16250va_device::cs_bank_space_r), FUNC(generalplus_gpl16250va_device::cs_bank_space_w));
 }
 
