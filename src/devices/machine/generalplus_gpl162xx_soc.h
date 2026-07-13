@@ -26,11 +26,6 @@
 class generalplus_gpl162xx_base_device : public unsp_20_device, public device_mixer_interface
 {
 public:
-	generalplus_gpl162xx_base_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, u32 clock) :
-		generalplus_gpl162xx_base_device(mconfig, type, tag, owner, clock, address_map_constructor(FUNC(generalplus_gpl162xx_base_device::gcm394_internal_map), this))
-	{
-	}
-
 	auto porta_in() { return m_porta_in.bind(); }
 	auto portb_in() { return m_portb_in.bind(); }
 	auto portc_in() { return m_portc_in.bind(); }
