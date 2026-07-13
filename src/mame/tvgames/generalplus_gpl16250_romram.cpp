@@ -332,7 +332,30 @@ void wrlshunt_game_state::init_ths()
 
 void wrlshunt_game_state::gpl16250_romram(machine_config &config)
 {
-	gcm394_game_state::base(config);
+	set_addrmap(0, &gcm394_game_state::cs_map_base);
+
+	GPL16250VA(config, m_maincpu, 96000000, m_screen);
+	m_maincpu->porta_in().set(FUNC(wrlshunt_game_state::porta_r));
+	m_maincpu->portb_in().set(FUNC(wrlshunt_game_state::portb_r));
+	m_maincpu->portc_in().set(FUNC(wrlshunt_game_state::portc_r));
+	m_maincpu->porta_out().set(FUNC(wrlshunt_game_state::porta_w));
+	m_maincpu->space_read_callback().set(FUNC(wrlshunt_game_state::read_external_space));
+	m_maincpu->space_write_callback().set(FUNC(wrlshunt_game_state::write_external_space));
+	m_maincpu->set_irq_acknowledge_callback(m_maincpu, FUNC(generalplus_gpl162xx_base_device::irq_vector_cb));
+	m_maincpu->add_route(ALL_OUTPUTS, "speaker", 0.5, 0);
+	m_maincpu->add_route(ALL_OUTPUTS, "speaker", 0.5, 1);
+	m_maincpu->set_bootmode(1); // boot from external ROM / CS mirror
+	m_maincpu->set_cs_config_callback(FUNC(wrlshunt_game_state::cs_callback));
+	m_maincpu->set_cs_space(DEVICE_SELF, 0);
+
+	SCREEN(config, m_screen, SCREEN_TYPE_RASTER);
+	m_screen->set_refresh_hz(60);
+	m_screen->set_size(320*2, 262*2);
+	m_screen->set_visarea(0, (320*2)-1, 0, (240*2)-1);
+	m_screen->set_screen_update("maincpu", FUNC(generalplus_gpl16250va_device::screen_update));
+	m_screen->screen_vblank().set(m_maincpu, FUNC(generalplus_gpl16250va_device::vblank));
+
+	SPEAKER(config, "speaker", 2).front();
 }
 
 u16 wrlshunt_game_state::porta_r()
@@ -395,22 +418,18 @@ void jak_s500_game_state::machine_reset()
 {
 	cs_callback(0x00, 0x00, 0x00, 0x00, 0x00);
 	m_maincpu->reset(); // reset CPU so vector gets read etc.
-
-	//m_maincpu->set_paldisplaybank_high_hack(0);
 }
 
 
 void lazertag_game_state::machine_reset()
 {
 	jak_s500_game_state::machine_reset();
-	//m_maincpu->set_pal_sprites_hack(0x800);
 }
 
 void paccon_game_state::machine_reset()
 {
 	jak_s500_game_state::machine_reset();
 	m_maincpu->space(AS_PROGRAM).install_read_handler(0x6593, 0x6593, read16smo_delegate(*this, FUNC(paccon_game_state::paccon_speedup_hack_r)));
-//  install_speedup_hack(0x6593, 0x30033);
 }
 
 void jak_pf_game_state::machine_reset()

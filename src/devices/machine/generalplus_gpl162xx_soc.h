@@ -445,6 +445,8 @@ public:
 
 protected:
 	generalplus_gpl16240va_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, u32 clock, address_map_constructor internal);
+
+	virtual void device_add_mconfig(machine_config &config) override ATTR_COLD;
 };
 
 
@@ -464,6 +466,7 @@ public:
 protected:
 	virtual const tiny_rom_entry *device_rom_region() const override ATTR_COLD;
 
+	virtual void device_add_mconfig(machine_config &config) override ATTR_COLD;
 private:
 
 };

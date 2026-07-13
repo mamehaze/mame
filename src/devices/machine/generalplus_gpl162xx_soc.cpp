@@ -2127,6 +2127,17 @@ void generalplus_gpl162xx_base_device::device_add_mconfig(machine_config &config
 	TIMER(config, m_scheduler).configure_generic(FUNC(generalplus_gpl162xx_base_device::scheduler_cb));
 }
 
+void generalplus_gpl16240va_device::device_add_mconfig(machine_config & config)
+{
+	generalplus_gpl16230a_device::device_add_mconfig(config);
+	m_spg_video->set_has_vga_modes();
+}
+
+void generalplus_gpl16250va_device::device_add_mconfig(machine_config & config)
+{
+	generalplus_gpl16240va_device::device_add_mconfig(config);
+	m_spg_video->set_has_3d_sprite_modes();
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // GPL16250VA register list
