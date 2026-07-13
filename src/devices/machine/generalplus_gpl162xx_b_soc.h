@@ -16,14 +16,15 @@
 class generalplus_gpl16218b_device : public generalplus_gpl162xx_base_device
 {
 public:
-	template <typename T>
-	generalplus_gpl16218b_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock, T &&screen_tag) :
-		generalplus_gpl16218b_device(mconfig, tag, owner, clock)
+	template <typename T> generalplus_gpl16218b_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock, T &&screen_tag) :
+	generalplus_gpl16218b_device(mconfig, tag, owner, clock)
 	{
 		m_screen.set_tag(std::forward<T>(screen_tag));
 	}
 
 	generalplus_gpl16218b_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock);
+
+	generalplus_gpl16218b_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, u32 clock, address_map_constructor internal);
 };
 
 DECLARE_DEVICE_TYPE(GPL16218B, generalplus_gpl16218b_device)
