@@ -20,7 +20,7 @@ generalplus_gpl162xx_b_base::generalplus_gpl162xx_b_base(const machine_config &m
 }
 
 generalplus_gpl16218b_device::generalplus_gpl16218b_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock) :
-	generalplus_gpl162xx_b_base(mconfig, GPL16218B, tag, owner, clock, address_map_constructor(FUNC(generalplus_gpl16218b_device::gcm394_internal_map), this))
+	generalplus_gpl162xx_b_base(mconfig, GPL16218B, tag, owner, clock, address_map_constructor(FUNC(generalplus_gpl16218b_device::gpl16218b_map), this))
 {
 }
 
@@ -31,7 +31,7 @@ generalplus_gpl16218b_device::generalplus_gpl16218b_device(const machine_config 
 
 
 generalplus_gpl16238b_device::generalplus_gpl16238b_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock) :
-	generalplus_gpl16218b_device(mconfig, GPL16238B, tag, owner, clock, address_map_constructor(FUNC(generalplus_gpl16238b_device::gcm394_internal_map), this))
+	generalplus_gpl16218b_device(mconfig, GPL16238B, tag, owner, clock, address_map_constructor(FUNC(generalplus_gpl16238b_device::gpl16238b_map), this))
 {
 }
 
@@ -42,7 +42,7 @@ generalplus_gpl16238b_device::generalplus_gpl16238b_device(const machine_config 
 
 
 generalplus_gpl16248vb_device::generalplus_gpl16248vb_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock) :
-	generalplus_gpl16238b_device(mconfig, GPL16248VB, tag, owner, clock, address_map_constructor(FUNC(generalplus_gpl16248vb_device::gcm394_internal_map), this))
+	generalplus_gpl16238b_device(mconfig, GPL16248VB, tag, owner, clock, address_map_constructor(FUNC(generalplus_gpl16248vb_device::gpl16248vb_map), this))
 {
 }
 
@@ -52,9 +52,34 @@ generalplus_gpl16248vb_device::generalplus_gpl16248vb_device(const machine_confi
 }
 
 generalplus_gpl16258vb_device::generalplus_gpl16258vb_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock) :
-	generalplus_gpl16248vb_device(mconfig, GPL16258VB, tag, owner, clock, address_map_constructor(FUNC(generalplus_gpl16258vb_device::gcm394_internal_map), this))
+	generalplus_gpl16248vb_device(mconfig, GPL16258VB, tag, owner, clock, address_map_constructor(FUNC(generalplus_gpl16258vb_device::gpl16258vb_map), this))
 {
 }
+
+void generalplus_gpl16218b_device::gpl16218b_map(address_map &map)
+{
+	map(0x000000, 0x002fff).ram().share("mainram"); // 12K * 16
+	gcm394_internal_map(map);
+}
+
+void generalplus_gpl16238b_device::gpl16238b_map(address_map &map)
+{
+	map(0x000000, 0x002fff).ram().share("mainram"); // 12K * 16
+	gcm394_internal_map(map);
+}
+
+void generalplus_gpl16248vb_device::gpl16248vb_map(address_map &map)
+{
+	map(0x000000, 0x002fff).ram().share("mainram"); // 12K * 16
+	gcm394_internal_map(map);
+}
+
+void generalplus_gpl16258vb_device::gpl16258vb_map(address_map &map)
+{
+	map(0x000000, 0x002fff).ram().share("mainram"); // 12K * 16
+	gcm394_internal_map(map);
+}
+
 
 void generalplus_gpl16248vb_device::device_add_mconfig(machine_config & config)
 {

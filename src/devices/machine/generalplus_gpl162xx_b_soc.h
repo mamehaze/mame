@@ -13,6 +13,7 @@
 
 #include "generalplus_gpl162xx_soc.h"
 
+
 class generalplus_gpl162xx_b_base : public generalplus_gpl162xx_base_device
 {
 public:
@@ -33,6 +34,8 @@ public:
 
 protected:
 	generalplus_gpl16218b_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, u32 clock, address_map_constructor internal);
+
+	void gpl16218b_map(address_map &map);
 };
 
 
@@ -49,6 +52,8 @@ public:
 
 protected:
 	generalplus_gpl16238b_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, u32 clock, address_map_constructor internal);
+
+	void gpl16238b_map(address_map &map);
 };
 
 
@@ -66,6 +71,8 @@ public:
 protected:
 	generalplus_gpl16248vb_device(const machine_config &mconfig, device_type type, const char *tag, device_t *owner, u32 clock, address_map_constructor internal);
 	virtual void device_add_mconfig(machine_config &config) override ATTR_COLD;
+
+	void gpl16248vb_map(address_map &map);
 };
 
 class generalplus_gpl16258vb_device : public generalplus_gpl16248vb_device
@@ -81,6 +88,8 @@ public:
 
 protected:
 	virtual void device_add_mconfig(machine_config &config) override ATTR_COLD;
+
+	void gpl16258vb_map(address_map &map);
 };
 
 

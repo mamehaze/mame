@@ -2089,7 +2089,6 @@ void generalplus_gpl162xx_base_device::unk_w(offs_t offset, u16 data)
 
 void generalplus_gpl162xx_base_device::base_internal_map(address_map &map)
 {
-	map(0x000000, 0x006fff).ram().share("mainram");
 	map(0x007000, 0x007fff).rw(FUNC(generalplus_gpl162xx_base_device::unk_r), FUNC(generalplus_gpl162xx_base_device::unk_w)); // catch unhandled
 
 	// ######################################################################################################################################################################################
@@ -2469,21 +2468,25 @@ void generalplus_gpl162xx_base_device::gcm394_internal_map(address_map &map)
 
 void generalplus_gpl16220a_device::gpl16220a_map(address_map &map)
 {
+	map(0x000000, 0x003fff).ram().share("mainram"); // 16K * 16
 	gpac800_internal_map(map);
 }
 
 void generalplus_gpl16230a_device::gpl16230a_map(address_map &map)
 {
+	map(0x000000, 0x006fff).ram().share("mainram"); // 28K * 16
 	gpac800_internal_map(map);
 }
 
 void generalplus_gpl16240va_device::gpl16240va_map(address_map &map)
 {
+	map(0x000000, 0x006fff).ram().share("mainram"); // 28K * 16
 	gpac800_internal_map(map);
 }
 
 void generalplus_gpl16250va_device::gpl16250va_map(address_map &map)
 {
+	map(0x000000, 0x006fff).ram().share("mainram"); // 28K * 16
 	gpac800_internal_map(map);
 }
 
