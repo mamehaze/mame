@@ -590,6 +590,11 @@ mpc2000xl
 @source:akai/mpc3000.cpp
 mpc3000
 
+@source:akai/s1000.cpp
+s1000
+s1000pb
+s1100
+
 @source:akai/s3000.cpp
 s2000
 s3000
@@ -17829,7 +17834,7 @@ kchampvs3
 kchampvs4
 karateda
 
-@source:dataeast/kingobox.cpp
+@source:dataeast/kingofb.cpp
 kingofb
 kingofbj
 ringking
@@ -18443,6 +18448,9 @@ tontonba
 @source:eaca/cgenie.cpp
 cgenie
 cgenienz
+
+@source:eaca/genie3.cpp
+genie3de
 
 @source:edevices/diverboy.cpp
 diverboy
@@ -29917,6 +29925,7 @@ ampkr2b1
 ampkr2b2
 ampkr2b3
 ampkr2b4
+ampkr2b5
 ampkr2jsp
 ampkr2jspa
 ampkr2jspb
