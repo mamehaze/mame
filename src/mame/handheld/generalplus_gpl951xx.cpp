@@ -562,6 +562,11 @@ ROM_START( tamasmrta )
 	ROM_LOAD16_WORD_SWAP( "tamasmart_s_spi.bin", 0x0000, 0x1000000, CRC(da7296dc) SHA1(92b5f92fc06274ee886d4ce3c11dae9e40c1f219) )
 ROM_END
 
+ROM_START( teriermn )
+	ROM_REGION16_BE(0x1000000, "spi", ROMREGION_ERASE00)
+	ROM_LOAD16_WORD_SWAP( "spi_terriermon.bin", 0x0000, 0x1000000, CRC(02073b42) SHA1(8d4a947cf60463e9896f941d7647359a7eac1c1e) )
+ROM_END
+
 ROM_START( flufflav )
 	ROM_REGION16_BE(0x400000, "spi", ROMREGION_ERASE00)
 	ROM_LOAD16_WORD_SWAP( "gpr25l320.u2", 0x0000, 0x400000, CRC(67bcd4cb) SHA1(5ffb140bf8e4608b5420a649aede3946923f6dac) )
@@ -667,6 +672,13 @@ ROM_START( smkfrnd )
 	ROM_LOAD16_WORD_SWAP( "gpr25l6403.u3", 0x0000, 0x800000, CRC(1a865cc2) SHA1(c7abee0b625c713f22c0ffbc923e0938e503ce55) )
 ROM_END
 
+ROM_START( chiikawa )
+	ROM_REGION16_BE(0x800000, "spi", ROMREGION_ERASE00 )
+	ROM_LOAD16_WORD_SWAP( "chiikawa_to_issho.bin", 0x0000, 0x800000, CRC(cb65a0f6) SHA1(2c8fa2c52fbb7968c4cebfd4b7bdf9b97f31f2f3) )
+ROM_END
+
+
+
 void generalplus_gpl951xx_game_state::init_fif()
 {
 	u16 *spirom16 = (u16*)memregion("spi")->base();
@@ -730,6 +742,9 @@ CONS(2022, kenshino, 0,        0, puni, base, generalplus_gpl951xx_game_state, e
 CONS(2021, tamasmrt,  0,        0, puni, base, generalplus_gpl951xx_game_state, empty_init, "Bandai", "Tamagotchi Smart (Japan, set 1)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
 CONS(2021, tamasmrta, tamasmrt, 0, puni, base, generalplus_gpl951xx_game_state, empty_init, "Bandai", "Tamagotchi Smart (Japan, set 2)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
 
+CONS(2021, teriermn,  0,        0, puni, base, generalplus_gpl951xx_game_state, empty_init, "Bandai", "Terriermon (Japan)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
+
+
 // 'Poo' emoji shaped item, comes in multiple colours, has a solder pad which might change between units
 // this was dumped from the 'Lavender' unit
 CONS(2021, flufflav, 0,        0, flufflav, bubltea, generalplus_gpl951xx_game_state, empty_init, "Happinet", "Fuwatcho Uncho Fuwa Fuwa (lavender, Japan)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
@@ -785,3 +800,5 @@ CONS( 201?, bubltea,   0,        0, bubltea, bubltea, generalplus_gpl951xx_game_
 CONS( 2022, pink218,      0,       0,      pink218,   bfspyhnt, generalplus_gpl951xx_game_state, init_pink218, "<unknown>", "218-in-1 Handheld Game (pink)", MACHINE_NOT_WORKING | MACHINE_NO_SOUND )
 
 CONS( 2022, smkfrnd,      0,       0,      puni,   segapet2, generalplus_gpl951xx_game_state, empty_init, "Tomy", "Sumikko Gurashi: Sumikko Friend", MACHINE_NOT_WORKING | MACHINE_NO_SOUND )
+
+CONS( 2022, chiikawa,     0,       0,      puni,   segapet2, generalplus_gpl951xx_game_state, empty_init, "Bandai", "Chiikawa to Issho (Japan)", MACHINE_NOT_WORKING | MACHINE_NO_SOUND )
