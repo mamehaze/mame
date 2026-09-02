@@ -20845,6 +20845,9 @@ rztoshden
 @source:handheld/scrablex.cpp
 scrablex
 
+@source:handheld/sfc_nes_bootleg.cpp
+sfcnes
+
 @source:handheld/talkingbb.cpp
 talkingbb
 
