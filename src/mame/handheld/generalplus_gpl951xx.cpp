@@ -552,6 +552,16 @@ ROM_START( kenshino )
 	ROM_LOAD16_WORD_SWAP( "kenshi no michi.bin", 0x0000, 0x800000, CRC(259c8393) SHA1(5a1aa31127a188cdce1efb87d48016b49aebfd61) )
 ROM_END
 
+ROM_START( tamasmrt )
+	ROM_REGION16_BE(0x1000000, "spi", ROMREGION_ERASE00)
+	ROM_LOAD16_WORD_SWAP( "tamasmart_mb_spi.bin", 0x0000, 0x1000000, CRC(d1bce309) SHA1(b17f245e1c5919584cd84e8708ed7aba25c3aced) )
+ROM_END
+
+ROM_START( tamasmrta )
+	ROM_REGION16_BE(0x1000000, "spi", ROMREGION_ERASE00)
+	ROM_LOAD16_WORD_SWAP( "tamasmart_s_spi.bin", 0x0000, 0x1000000, CRC(da7296dc) SHA1(92b5f92fc06274ee886d4ce3c11dae9e40c1f219) )
+ROM_END
+
 ROM_START( flufflav )
 	ROM_REGION16_BE(0x400000, "spi", ROMREGION_ERASE00)
 	ROM_LOAD16_WORD_SWAP( "gpr25l320.u2", 0x0000, 0x400000, CRC(67bcd4cb) SHA1(5ffb140bf8e4608b5420a649aede3946923f6dac) )
@@ -716,6 +726,9 @@ CONS(2021, punistar, 0,        0, puni, base, generalplus_gpl951xx_game_state, e
 CONS(2020, pixlstar, 0,        0, pixlstar, base, generalplus_gpl951xx_game_state, empty_init, "Skyrocket Toys", "Pixel Stars Dreamhouse", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
 
 CONS(2022, kenshino, 0,        0, puni, base, generalplus_gpl951xx_game_state, empty_init, "Takara Tomy", "Kenshi No Michi (Japan)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
+
+CONS(2021, tamasmrt,  0,        0, puni, base, generalplus_gpl951xx_game_state, empty_init, "Bandai", "Tamagotchi Smart (Japan, set 1)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
+CONS(2021, tamasmrta, tamasmrt, 0, puni, base, generalplus_gpl951xx_game_state, empty_init, "Bandai", "Tamagotchi Smart (Japan, set 2)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND)
 
 // 'Poo' emoji shaped item, comes in multiple colours, has a solder pad which might change between units
 // this was dumped from the 'Lavender' unit
