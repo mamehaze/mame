@@ -90,10 +90,10 @@
 
 #include "emu.h"
 
-#include "cpu/arm7/arm7.h"
-
 #include "bus/generic/slot.h"
 #include "bus/generic/carts.h"
+#include "cpu/arm7/arm7.h"
+#include "machine/timer.h"
 
 #include "screen.h"
 #include "softlist_dev.h"
@@ -109,6 +109,7 @@ public:
 		: driver_device(mconfig, type, tag)
 		, m_maincpu(*this, "maincpu")
 		, m_screen(*this, "screen")
+		, m_timer(*this, "timer")
 	{ }
 
 	void ivl_karaoke_base(machine_config &config);
@@ -120,12 +121,29 @@ protected:
 private:
 	required_device<cpu_device> m_maincpu;
 	required_device<screen_device> m_screen;
+	required_device<timer_device> m_timer;
 
 	uint32_t screen_update(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect);
 
-	uint32_t a000004_r();
+	TIMER_DEVICE_CALLBACK_MEMBER(timer_expired);
+
+	uint32_t irq_status_r();
+
+	void irq_enable_w(offs_t offset, u32 data, u32 mem_mask);
+	void irq_unk_w(offs_t offset, u32 data, u32 mem_mask);
+	void display_dma_w(offs_t offset, u32 data, u32 mem_mask);
+
+	void timer_ctrl_w(offs_t offset, u32 data, u32 mem_mask);
+	void timer_reload_w(offs_t offset, u32 data, u32 mem_mask);
 
 	void arm_map(address_map &map) ATTR_COLD;
+
+	void check_irqs();
+
+	u16 m_timer_ctrl;
+	u16 m_irq_state;
+	u16 m_irq_enable;
+	u16 m_video_dma_params[6];
 };
 
 class easy_karaoke_cartslot_state : public ivl_karaoke_state
@@ -156,7 +174,10 @@ uint32_t ivl_karaoke_state::screen_update(screen_device &screen, bitmap_rgb32 &b
 
 void ivl_karaoke_state::machine_start()
 {
-
+	save_item(NAME(m_timer_ctrl));
+	save_item(NAME(m_irq_state));
+	save_item(NAME(m_irq_enable));
+	save_item(NAME(m_video_dma_params));
 }
 
 void easy_karaoke_cartslot_state::machine_start()
@@ -172,7 +193,27 @@ void easy_karaoke_cartslot_state::machine_start()
 
 void ivl_karaoke_state::machine_reset()
 {
+	m_timer_ctrl = 0x0000;
+	m_irq_state = 0x0000;
+	m_irq_enable = 0x0000;
+
+	for (int i = 0; i < 6; i++)
+		m_video_dma_params[i] = 0x0000;
+
 	m_maincpu->set_state_int(arm7_cpu_device::ARM7_R15, 0x04000000);
+}
+
+void ivl_karaoke_state::check_irqs()
+{
+	if ((m_irq_enable & 0x0010) && (m_irq_state & 0x0010))
+	{
+		logerror("should IRQ?\n");
+		m_maincpu->set_input_line(arm7_cpu_device::ARM7_FIRQ_LINE, HOLD_LINE);
+	}
+	else
+	{
+		m_maincpu->set_input_line(arm7_cpu_device::ARM7_FIRQ_LINE, CLEAR_LINE);
+	}
 }
 
 DEVICE_IMAGE_LOAD_MEMBER(easy_karaoke_cartslot_state::cart_load)
@@ -188,29 +229,111 @@ DEVICE_IMAGE_LOAD_MEMBER(easy_karaoke_cartslot_state::cart_load)
 static INPUT_PORTS_START( ivl_karaoke )
 INPUT_PORTS_END
 
-uint32_t ivl_karaoke_state::a000004_r()
+uint32_t ivl_karaoke_state::irq_status_r()
 {
-	return machine().rand();
+	logerror("irq_status_r\n");
+	return m_irq_state;
+}
+
+void ivl_karaoke_state::timer_ctrl_w(offs_t offset, u32 data, u32 mem_mask)
+{
+	logerror("%s: timer_ctrl_w %08x %08x\n", machine().describe_context(), data, mem_mask);
+
+	if ((m_timer_ctrl & 0x8000) != (data & 0x8000))
+	{
+		if (data & 0x8000)
+		{
+			logerror("------------------ timer on\n");
+			m_timer->adjust(attotime::from_msec(1));
+		}
+		else
+		{
+			logerror("------------------ timer off\n");
+			m_timer->adjust(attotime::never);
+		}
+
+	}
+	m_timer_ctrl = data;
+}
+
+void ivl_karaoke_state::timer_reload_w(offs_t offset, u32 data, u32 mem_mask)
+{
+	logerror("%s: timer_reload_w %08x %08x\n", machine().describe_context(), data, mem_mask);
+}
+
+void ivl_karaoke_state::irq_enable_w(offs_t offset, u32 data, u32 mem_mask)
+{
+	logerror("%s: irq_enable_w %08x %08x\n", machine().describe_context(), data, mem_mask);
+	m_irq_enable = data;
+	check_irqs();
+}
+
+void ivl_karaoke_state::irq_unk_w(offs_t offset, u32 data, u32 mem_mask)
+{
+	logerror("%s: irq_unk_w %08x %08x\n", machine().describe_context(), data, mem_mask);
+}
+
+void ivl_karaoke_state::display_dma_w(offs_t offset, u32 data, u32 mem_mask)
+{
+	// length written is 0xc9720
+	// which is 720 x 573 words
+	static const char *const names[6] = { "Mode", "Trigger?", "Length Low", "Length High", "Source Addr Low", "Source Addr High" };
+
+	logerror("%s: display_dma_w %02x:(%s) %08x %08x\n", machine().describe_context(), offset, names[offset], data, mem_mask);
+	m_video_dma_params[offset] = data;
 }
 
 void ivl_karaoke_state::arm_map(address_map &map)
 {
 	map(0x00000000, 0x007fffff).ram();
 	map(0x04000000, 0x047fffff).rom().region("maincpu", 0);
-	map(0x0a000004, 0x0a000007).r(FUNC(ivl_karaoke_state::a000004_r));
+
+	map(0x0a000004, 0x0a000007).r(FUNC(ivl_karaoke_state::irq_status_r));
+	map(0x0a000008, 0x0a00000b).w(FUNC(ivl_karaoke_state::irq_enable_w));
+	map(0x0a00000c, 0x0a00000f).w(FUNC(ivl_karaoke_state::irq_unk_w));
+
+	map(0x0a800000, 0x0a800003).w(FUNC(ivl_karaoke_state::timer_ctrl_w));
+	map(0x0a800030, 0x0a800033).w(FUNC(ivl_karaoke_state::timer_reload_w));
+
+	//  0x0c000000 - video regs?
+	map(0x0c001000, 0x0c001017).w(FUNC(ivl_karaoke_state::display_dma_w));
+	//  0x0c002000 - more display / video regs?
+
+	//  0x0c800000 - audio
+	//  0x0c801000 - audio DMA
+	// 
+	//  0x0cc00000 - audio (2nd path)
+	//  0x0cc01000 - audio DMA (2nd path)
+
+	//  0x0d000000 - i2c
+	//  0x0d400000 - USB 1.1
+
+	//  0x0e400000 - NAND flash
+
+	//  0x0f000000 - System Control / GPIO
+	//  0x0f400000 - Memory / Bus Controller
 }
 
+TIMER_DEVICE_CALLBACK_MEMBER(ivl_karaoke_state::timer_expired)
+{
+	logerror("--------------------------- Timer Expired\n");
+	m_timer->adjust(attotime::from_msec(1));
+	m_irq_state |= 0x0010;
+	check_irqs();
+}
 
 void ivl_karaoke_state::ivl_karaoke_base(machine_config &config)
 {
-	ARM9(config, m_maincpu, 72000000); // ARM 720 core
+	ARM710T(config, m_maincpu, 72000000); // ARM 720 core
 	m_maincpu->set_addrmap(AS_PROGRAM, &ivl_karaoke_state::arm_map);
 
 	SCREEN(config, m_screen);
 	m_screen->set_refresh_hz(60);
-	m_screen->set_size(320, 262);
-	m_screen->set_visarea(0, 320-1, 0, 240-1);
+	m_screen->set_size(720, 574);
+	m_screen->set_visarea(0, 720-1, 0, 574-1);
 	m_screen->set_screen_update(FUNC(ivl_karaoke_state::screen_update));
+
+	TIMER(config, m_timer).configure_generic(FUNC(ivl_karaoke_state::timer_expired));
 
 	SPEAKER(config, "speaker", 2).front();
 }
