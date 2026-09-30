@@ -35,9 +35,8 @@
 #include "emu.h"
 #include "bus/c2color/slot.h"
 #include "bus/c2color/carts.h"
-#include "cpu/mcs51/i8052.h"
+
 #include "machine/generic_spi_flash.h"
-#include "machine/i2chle.h"
 #include "sound/dac.h"
 
 #include "rendutil.h"
@@ -46,6 +45,9 @@
 #include "speaker.h"
 
 #include "ioprocs.h"
+
+#include "c2color_companion.h"
+#include "c2color_cpu.h"
 
 #include <vector>
 
@@ -58,161 +60,6 @@
 
 
 namespace {
-
-// The exact SoC is still unidentified.  Use the ROM-less 8052 configuration
-// with the additional arithmetic registers exercised by the firmware.
-class c2_color_cpu_device : public i8052_device
-{
-public:
-	c2_color_cpu_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock);
-
-protected:
-	virtual void device_start() override ATTR_COLD;
-	virtual void device_reset() override ATTR_COLD;
-	virtual void sfr_map(address_map &map) override ATTR_COLD;
-
-private:
-	u8 math_r(offs_t offset) { return m_math[offset]; }
-	void math_w(offs_t offset, u8 data);
-	u8 unknown_r() { return m_unknown; }
-	void unknown_w(u8 data) { m_unknown = data; }
-
-	u8 m_math[6] = {};
-	u8 m_math_written = 0;
-	u8 m_unknown = 0;
-};
-
-DEFINE_DEVICE_TYPE_PRIVATE(C2_COLOR_CPU, c2_color_cpu_device, c2_color_cpu_device, "c2_color_cpu", "C2 Color 8051-based CPU")
-
-c2_color_cpu_device::c2_color_cpu_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock)
-	: i8052_device(mconfig, C2_COLOR_CPU, tag, owner, clock, 0)
-{
-}
-
-void c2_color_cpu_device::device_start()
-{
-	i8052_device::device_start();
-	save_item(NAME(m_math));
-	save_item(NAME(m_math_written));
-	save_item(NAME(m_unknown));
-}
-
-void c2_color_cpu_device::device_reset()
-{
-	i8052_device::device_reset();
-	std::fill(std::begin(m_math), std::end(m_math), 0);
-	m_math_written = 0;
-	m_unknown = 0;
-}
-
-void c2_color_cpu_device::sfr_map(address_map &map)
-{
-	i8052_device::sfr_map(map);
-	map(0x8e, 0x8e).rw(FUNC(c2_color_cpu_device::unknown_r), FUNC(c2_color_cpu_device::unknown_w));
-	map(0xe9, 0xee).rw(FUNC(c2_color_cpu_device::math_r), FUNC(c2_color_cpu_device::math_w));
-}
-
-void c2_color_cpu_device::math_w(offs_t offset, u8 data)
-{
-	if (!offset)
-		m_math_written = 0;
-	m_math[offset] = data;
-	m_math_written |= 1U << offset;
-	if (offset != 5)
-		return;
-
-	// Multiplication writes E9, ED, EA, EE.  Division writes all six bytes
-	// in ascending order, supplying a 32-bit dividend and 16-bit divisor.
-	u32 const operand = u32(m_math[0]) | (u32(m_math[1]) << 8);
-	u32 const factor = u32(m_math[4]) | (u32(m_math[5]) << 8);
-	u32 result = operand * factor;
-	if (m_math_written == 0x3f)
-	{
-		u32 const dividend = operand | (u32(m_math[2]) << 16) | (u32(m_math[3]) << 24);
-		result = factor ? dividend / factor : 0xffffffff;
-		u16 const remainder = factor ? dividend % factor : 0;
-		m_math[4] = remainder;
-		m_math[5] = remainder >> 8;
-	}
-	for (unsigned i = 0; i != 4; ++i)
-		m_math[i] = result >> (8 * i);
-	// Arithmetic timing and overflow/division-by-zero status are unknown.
-}
-
-
-// High-level model of the unidentified companion at I2C address 0x53.
-// Only the observed three-byte challenge and two-byte response are understood.
-// TODO: Identify the device and the remaining commands.
-class c2_color_companion_device : public device_t, public i2c_hle_interface
-{
-public:
-	c2_color_companion_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock = 0);
-
-protected:
-	virtual void device_start() override ATTR_COLD;
-	virtual void device_reset() override ATTR_COLD;
-	virtual u8 read_data(u16 offset) override;
-	virtual void write_data(u16 offset, u8 data) override;
-	virtual const char *get_tag() override { return tag(); }
-
-private:
-	u8 m_challenge[3]{};
-	u8 m_received = 0;
-	u8 m_response = 0;
-};
-
-DEFINE_DEVICE_TYPE_PRIVATE(C2_COLOR_COMPANION, c2_color_companion_device, c2_color_companion_device, "c2_color_companion", "C2 Color companion (HLE)")
-
-c2_color_companion_device::c2_color_companion_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock)
-	: device_t(mconfig, C2_COLOR_COMPANION, tag, owner, clock)
-	, i2c_hle_interface(mconfig, *this, 0x53)
-{
-}
-
-void c2_color_companion_device::device_start()
-{
-	save_item(NAME(m_challenge));
-	save_item(NAME(m_received));
-	save_item(NAME(m_response));
-}
-
-void c2_color_companion_device::device_reset()
-{
-	std::fill(std::begin(m_challenge), std::end(m_challenge), 0);
-	m_received = m_response = 0;
-}
-
-void c2_color_companion_device::write_data(u16 offset, u8 data)
-{
-	// Command 1 is followed by three challenge bytes.
-	if (offset == 1)
-		m_received = 0;
-	if ((offset >= 1) && (offset <= 3) && (offset == m_received + 1))
-	{
-		m_challenge[m_received++] = data;
-		if (m_received == 3)
-		{
-			u8 const a = bitswap<8>(m_challenge[0], 3, 2, 1, 0, 7, 6, 5, 4) ^ 0x19;
-			u8 const b = bitswap<8>(m_challenge[1], 0, 1, 2, 3, 4, 5, 6, 7) ^ 0xac;
-			u8 const c = bitswap<8>(m_challenge[2], 6, 7, 4, 5, 2, 3, 0, 1) ^ 0x58;
-			m_response = a + b + c;
-		}
-	}
-}
-
-u8 c2_color_companion_device::read_data(u16 offset)
-{
-	// Firmware writes command 2, then issues STOP and a two-byte read.
-	if (m_received == 3)
-	{
-		if (offset == 0)
-			return 1;
-		if (offset == 1)
-			return m_response;
-	}
-	return 0xff;
-}
-
 
 class c2_color_state : public driver_device
 {
