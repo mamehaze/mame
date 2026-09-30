@@ -156,8 +156,6 @@ private:
 	void ext_map(address_map &map) ATTR_COLD;
 	void io_2200_map(address_map &map) ATTR_COLD;
 	void io_2300_map(address_map &map) ATTR_COLD;
-	void io_2400_map(address_map &map) ATTR_COLD;
-	void io_2500_map(address_map &map) ATTR_COLD;
 
 	required_device<c2_color_cpu_device> m_maincpu;
 	required_device<c2color_cartslot_device> m_cart;
@@ -464,11 +462,7 @@ void c2_color_state::dma(unsigned channel)
 	}
 	for (u32 i = 0; i != count; ++i)
 	{
-		if (channel == 0)
-			dma_w(destination, destination_address + i, fill ? m_dma_channel[0].m_dma_fill[i & 3] : dma_r(source, source_address + i));
-		else
-			dma_w(destination, destination_address + i, fill ? m_dma_channel[1].m_dma_fill[i & 3] : dma_r(source, source_address + i));
-
+		dma_w(destination, destination_address + i, fill ? m_dma_channel[channel].m_dma_fill[i & 3] : dma_r(source, source_address + i));
 	}
 
 	reg(0x2147) |= 0x40 << channel;
@@ -1054,19 +1048,29 @@ void c2_color_state::c2_dma_channel1_w(offs_t offset, u8 data)
 
 void c2_color_state::io_2200_map(address_map &map)
 {
-	map(0x2400, 0x2439).rw(FUNC(c2_color_state::c2_dma_channel0_r), FUNC(c2_color_state::c2_dma_channel0_w));
-	map(0x243a, 0x2473).rw(FUNC(c2_color_state::c2_dma_channel1_r), FUNC(c2_color_state::c2_dma_channel1_w));
+	map(0x2200, 0x2239).rw(FUNC(c2_color_state::c2_dma_channel0_r), FUNC(c2_color_state::c2_dma_channel0_w));
+	map(0x223a, 0x2273).rw(FUNC(c2_color_state::c2_dma_channel1_r), FUNC(c2_color_state::c2_dma_channel1_w));
 }
 
-void c2_color_state::io_2300_map(address_map &map)
+void c2_color_state::ext_map(address_map &map)
 {
+	io_2200_map(map);
+
+	map(0x0000, 0x1fff).ram().share("xram");
+	map(0x2000, 0x22ff).rw(FUNC(c2_color_state::io_r), FUNC(c2_color_state::io_w));
+
+	//////////////////////////////////////////////
+	// 0x2300 region
+	//////////////////////////////////////////////
+
 	map(0x2345, 0x2345).ram();
 	map(0x2436, 0x243c).nopw();
 	map(0x234d, 0x234d).ram();
 
-}
-void c2_color_state::io_2400_map(address_map &map)
-{
+	//////////////////////////////////////////////
+	// 0x2400 region
+	//////////////////////////////////////////////
+
 	map(0x2400, 0x2400).rw(FUNC(c2_color_state::io_2400_r), FUNC(c2_color_state::io_2400_w));
 
 	map(0x2402, 0x2402).w(FUNC(c2_color_state::io_2402_w));
@@ -1110,11 +1114,11 @@ void c2_color_state::io_2400_map(address_map &map)
 	map(0x247d, 0x247e).ram().share("overlay_y");
 
 	map(0x24a4, 0x24a4).ram();
-}
 
+	//////////////////////////////////////////////
+	// 0x2500 region
+	//////////////////////////////////////////////
 
-void c2_color_state::io_2500_map(address_map &map)
-{
 	map(0x2541, 0x2541).ram();
 	map(0x2542, 0x2546).nopw();
 
@@ -1123,19 +1127,6 @@ void c2_color_state::io_2500_map(address_map &map)
 	map(0x256b, 0x256e).nopw();
 
 	map(0x25e3, 0x25e6).nopw();
-}
-
-void c2_color_state::ext_map(address_map &map)
-{
-	io_2200_map(map);
-
-	map(0x0000, 0x1fff).ram().share("xram");
-	map(0x2000, 0x22ff).rw(FUNC(c2_color_state::io_r), FUNC(c2_color_state::io_w));
-
-	io_2300_map(map);
-	io_2400_map(map);
-	io_2500_map(map);
-
 }
 
 static INPUT_PORTS_START( c2_color )
