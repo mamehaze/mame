@@ -123,6 +123,7 @@ private:
 	void io_21c0_w(u8 data);
 	void io_2402_w(u8 data);
 	void io_229b_w(u8 data);
+	void io_229d_w(u8 data);
 	void io_2200_w(u8 data);
 	void io_223a_w(u8 data);
 
@@ -199,6 +200,7 @@ private:
 
 	struct dma_channel
 	{
+		u8 m_dma_trigger;
 		u8 m_dma_count[4];
 		u8 m_dma_source_addr[4];
 		u8 m_dma_source;
@@ -448,7 +450,7 @@ void c2_color_state::dma(unsigned channel)
 	u32 const source_address = reg32(base + 0x12);
 	u32 const destination_address = reg32(base + 0x27);
 	u32 const count = reg32(base + 1);
-	bool const fill = BIT(reg(base), 1);
+	bool const fill = BIT(m_dma_channel[channel].m_dma_trigger, 1);
 	LOGMASKED(LOG_DMA, "%s: DMA %u %x:%08x -> %x:%08x, %08x bytes%s\n", machine().describe_context(), channel,
 		source, source_address, destination, destination_address, count, fill ? " (fill)" : "");
 
@@ -673,7 +675,7 @@ u8 c2_color_state::io_r(offs_t offset)
 // 2200 region
 
 	case 0x2226: break; // unknown
-	case 0x229b: break; // unknown
+	case 0x229b: break; // unknown JPEG
 	case 0x22a1: break; // unknown
 
 
@@ -768,8 +770,14 @@ void c2_color_state::io_229b_w(u8 data)
 		m_quant_pos = 0;
 }
 
+void c2_color_state::io_229d_w(u8 data)
+{
+	m_quant[BIT(reg(0x229b), 2) ? 0 : 1][m_quant_pos++ & 0x7f] = data;
+}
+
 void c2_color_state::io_2200_w(u8 data)
 {
+	m_dma_channel[0].m_dma_trigger = data;
 	if (data == 2)
 		m_dma_channel[0].m_dma_fill_pos = 0;
 	if (BIT(data, 0))
@@ -778,6 +786,7 @@ void c2_color_state::io_2200_w(u8 data)
 
 void c2_color_state::io_223a_w(u8 data)
 {
+	m_dma_channel[1].m_dma_trigger = data;
 	if (data == 2)
 		m_dma_channel[1].m_dma_fill_pos = 0;
 	if (BIT(data, 0))
@@ -966,7 +975,7 @@ void c2_color_state::io_w(offs_t offset, u8 data)
 	// 74
 	case 0x229a: break; // unknown
 	case 0x229b: io_229b_w(data); break; // is read
-	case 0x229d: m_quant[BIT(reg(0x229b), 2) ? 0 : 1][m_quant_pos++ & 0x7f] = data;	break;
+	case 0x229d: io_229d_w(data); break;
 
 	case 0x22a1: break; // unknown // is read
 
