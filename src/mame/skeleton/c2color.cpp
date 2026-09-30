@@ -108,6 +108,8 @@ private:
 	void io_21c0_w(u8 data);
 	void io_2402_w(u8 previous, u8 data);
 	void io_229b_w(u8 previous, u8 data);
+	void io_2200_w(u8 data);
+	void io_223a_w(u8 data);
 
 	TIMER_CALLBACK_MEMBER(audio_tick);
 
@@ -510,22 +512,13 @@ u8 c2_color_state::io_r(offs_t offset)
 	u8 data = reg(address);
 	switch (address)
 	{
-	case 0x2002:
-		data = (data & ~2) | ((BIT(data, 1) && m_companion_sda) ? 2 : 0);
-		break;
-	case 0x2053:
-		data = (data & 0x03) | (m_buttons->read() & 0xfc);
-		break;
-	case 0x2152:
-		data = (data & 0x7f) | (BIT(m_buttons->read(), 0) ? 0x80 : 0);
-		break;
-	case 0x2156:
-		data |= 0x18; // SPI transmit/receive ready; transfers currently complete immediately.
-		break;
-	case 0x2400:
-		data = (data & 0x3f) | (BIT(data, 2) ? 0x80 : 0x40); // DRAM stop/resume acknowledgement.
-		break;
+	case 0x2002: data = (data & ~2) | ((BIT(data, 1) && m_companion_sda) ? 2 : 0); break;
+	case 0x2053: data = (data & 0x03) | (m_buttons->read() & 0xfc); break;
+	case 0x2152: data = (data & 0x7f) | (BIT(m_buttons->read(), 0) ? 0x80 : 0); break;
+	case 0x2156: data |= 0x18; /* SPI transmit / receive ready; transfers currently complete immediately. */ break;
+	case 0x2400: data = (data & 0x3f) | (BIT(data, 2) ? 0x80 : 0x40); /* DRAM stop / resume acknowledgement. */ break;
 	}
+
 	if (!machine().side_effects_disabled())
 		LOGMASKED(LOG_REGS, "%s: read %04x = %02x\n", machine().describe_context(), address, data);
 	return data;
@@ -603,6 +596,22 @@ void c2_color_state::io_229b_w(u8 previous, u8 data)
 		m_quant_pos = 0;
 }
 
+void c2_color_state::io_2200_w(u8 data)
+{
+	if (data == 2)
+		m_dma_fill_pos = 0;
+	if (BIT(data, 0))
+		dma(0);
+}
+
+void c2_color_state::io_223a_w(u8 data)
+{
+	if (data == 2)
+		m_dma_fill_pos = 0;
+	if (BIT(data, 0))
+		dma(1);
+}
+
 void c2_color_state::io_w(offs_t offset, u8 data)
 {
 	u16 const address = 0x2000 + offset;
@@ -612,46 +621,74 @@ void c2_color_state::io_w(offs_t offset, u8 data)
 	switch (address)
 	{
 	case 0x2002: io_2002_w(data); break;
+	// 0x2024 - 0x2027 - JPEG width
+	// 0x202a - 0x202d - JPEG height
 	case 0x2042: spi_select(); break;
-	case 0x2152: spi_select(); break;
-	case 0x2155: spi_select(); break;
-	case 0x2064: io_2064_w(data); break;
+
+	// 205f - 2062 - Timer Val
+	case 0x2064: io_2064_w(data); break; // Timer?
+
 	case 0x208c: audio_control(); break;
 	case 0x2097: audio_control(); break;
-	case 0x246d: audio_control(); break;
+	// 0x2099 - 209b - Audio remaining related
+	// 0x20a5 - 20a7 - Audio address related
+
+	// 20ac - ADC?
 	case 0x20ad: io_20ad_w(previous, data); break;
-	case 0x2149: reg(0x2147) &= ~data; update_irq(); break;
-	case 0x214a: reg(0x2148) &= ~data; update_irq(); break;
-	case 0x214f: reg(0x214d) &= ~data; update_irq(); break;
-	case 0x2150: reg(0x214e) &= ~data; update_irq(); break;
+	// 20ae - ADC?
+	// 20af - ADC?
+	
+	// 2144 - RAM access address upper
 	case 0x2145: update_irq(); break;
 	case 0x2146: update_irq(); break;
+	// 2147 IRQ related (DMA)
+	// 2148 IRQ related (JPEG decoding, DMA)
+	case 0x2149: reg(0x2147) &= ~data; update_irq(); break;
+	case 0x214a: reg(0x2148) &= ~data; update_irq(); break;
 	case 0x214b: update_irq(); break;
-	case 0x214c: update_irq(); break;		
+	case 0x214c: update_irq(); break;
+	// 214d IRQ related
+	// 214e IRQ related (audio)
+	case 0x214f: reg(0x214d) &= ~data; update_irq(); break;
+	case 0x2150: reg(0x214e) &= ~data; update_irq(); break;
+
+	case 0x2152: spi_select(); break;
+	case 0x2155: spi_select(); break;
+
 	case 0x2157: spi_exchange(data); break; /* Bit 6 of 2155 also enables a debug output stream on this port,  With no flash selected those bytes do not enter a flash command parser. */
 	case 0x2158: reg(address) = spi_exchange(data);	break;
+	// 0x246f - 0x2472 - render overlay
+	// 0x2473 - 0x2476 - render mask
+	// 0x2477 - 0x2478 - overlay width
+	// 0x2479 - 0x247a - overlay height
+	// 0x247b - 0x247c - overlay x
+	// 0x247d - 0x247e - overlay y
 	case 0x2185: io_2185_w(previous, data); break;
+	// 0x2186 - render columns
+	// 0x2187 - render rows
+	// 0x219d - 0x219e - render OSD related
+	// 0x219f - 0x21a0 - render OSD related
+	// 0x21a1 - 0x21a2 - render OSD related
+	// 0x21a3 - render OSD related
+	// 0x21a4 - 0x21a5 - render font
 	case 0x21c0: io_21c0_w(data); break;
 
-	
-	case 0x2200:
-		if (data == 2)
-			m_dma_fill_pos = 0;
-		if (BIT(data, 0))
-			dma(0);
-		break;
+	case 0x2200: io_2200_w(data); break;
+	// 2201 - 2204 - DMA count
+	// 2227 - 222a - DMA dest address
 
-	case 0x223a:
-		if (data == 2)
-			m_dma_fill_pos = 0;
-		if (BIT(data, 0))
-			dma(1);
-		break;
 	case 0x220d: m_dma_fill[m_dma_fill_pos++ & 3] = data; break;
+	case 0x223a: io_223a_w(data); break;
 	case 0x229b: io_229b_w(previous, data); break;
 	case 0x229d: m_quant[BIT(reg(0x229b), 2) ? 0 : 1][m_quant_pos++ & 0x7f] = data;	break;
+
 	case 0x2402: io_2402_w(previous, data); break;
 	case 0x2405: dram_access(data); break;
+	// 0x244a - 0x244d JPEG destination
+	// 0x244e - 0x2451 JPEG source
+	// 0x2452 - 0x2455 JPEG length
+	// 0x2460 - 0x2462 render base
+	case 0x246d: audio_control(); break;
 	}
 }
 
