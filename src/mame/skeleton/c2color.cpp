@@ -55,7 +55,7 @@
 #define LOG_DMA  (1U << 2)
 #define LOG_SPI  (1U << 3)
 
-#define VERBOSE (0)
+#define VERBOSE (LOG_REGS)
 #include "logmacro.h"
 
 
@@ -513,14 +513,110 @@ u8 c2_color_state::io_r(offs_t offset)
 	switch (address)
 	{
 	case 0x2002: data = (data & ~2) | ((BIT(data, 1) && m_companion_sda) ? 2 : 0); break;
+	case 0x2004: break; // unknown
+	case 0x200a: break; // unknown
+	case 0x200b: break; // unknown
+	case 0x203a: break; // unknown
+	case 0x203b: break; // unknown
+	case 0x203c: break; // unknown
+	case 0x203f: break; // unknown
+
+	case 0x2040: break; // unknown
+	case 0x2041: break; // unknown
+	case 0x2042: break; // unknown
+	case 0x204b: break; // unknown
+	case 0x204c: break; // unknown
+
+	case 0x2051: break; // unknown
+
 	case 0x2053: data = (data & 0x03) | (m_buttons->read() & 0xfc); break;
+
+	case 0x205a: break; // unknown
+	case 0x205b: break; // unknown
+	case 0x205c: break; // unknown
+
+	case 0x205f: break; // unknown
+	case 0x2060: break; // unknown
+	case 0x2061: break; // unknown
+	case 0x2062: break; // unknown
+
+	case 0x2064: break; // unknown
+	case 0x2065: break; // unknown
+	case 0x2067: break; // unknown
+
+	case 0x208d: break; // unknown
+	case 0x2097: break; // unknown
+
+	case 0x20ac: break; // unknown
+	case 0x20ab: break; // unknown
+	case 0x20ad: break; // unknown
+	case 0x20ae: break; // unknown
+	case 0x20af: break; // unknown
+
+	case 0x2140: break; // unknown
+	case 0x2141: break; // unknown
+	case 0x2142: break; // unknown
+	case 0x2145: break; // unknown
+	case 0x2146: break; // unknown
+	case 0x2147: break; // unknown
+	case 0x2148: break; // unknown
+	case 0x2149: break; // unknown
+	case 0x214b: break; // unknown
+	case 0x214c: break; // unknown
+	case 0x214e: break; // unknown
+
+	case 0x2151: break; // unknown
 	case 0x2152: data = (data & 0x7f) | (BIT(m_buttons->read(), 0) ? 0x80 : 0); break;
+	case 0x2155: break; // unknown SPI
 	case 0x2156: data |= 0x18; /* SPI transmit / receive ready; transfers currently complete immediately. */ break;
+	case 0x2158: break; // unknown
+	case 0x215c: break; // unknown
+	case 0x215d: break; // unknown
+
+	case 0x2184: break; // unknown
+	case 0x2185: break; // unknown
+	case 0x2188: break; // unknown
+	case 0x218a: break; // unknown
+	case 0x218b: break; // unknown
+	case 0x218c: break; // unknown
+
+	case 0x21c7: break; // unknown
+
+	case 0x2226: break; // unknown
+	case 0x229b: break; // unknown
+	case 0x22a1: break; // unknown
+
+	case 0x2345: break; // unknown
+	case 0x234d: break; // unknown
+
 	case 0x2400: data = (data & 0x3f) | (BIT(data, 2) ? 0x80 : 0x40); /* DRAM stop / resume acknowledgement. */ break;
+	case 0x2403: break; // unknown
+	case 0x2404: break; // unknown
+	case 0x2405: break; // unknown
+
+	case 0x2435: break; // unknown
+	case 0x2436: break; // unknown
+	case 0x2437: break; // unknown
+	case 0x2438: break; // unknown
+
+
+	case 0x246d: break; // unknown
+	case 0x246e: break; // unknown
+	case 0x24a4: break; // unknown
+
+	case 0x2541: break; // unknown
+	case 0x254a: break; // unknown
+
+
+	default:
+	{
+		if (!machine().side_effects_disabled())
+			LOGMASKED(LOG_REGS, "%s: read %04x = %02x\n", machine().describe_context(), address, data);
+	}
+	break;
+
 	}
 
-	if (!machine().side_effects_disabled())
-		LOGMASKED(LOG_REGS, "%s: read %04x = %02x\n", machine().describe_context(), address, data);
 	return data;
 }
 
@@ -615,80 +711,264 @@ void c2_color_state::io_223a_w(u8 data)
 void c2_color_state::io_w(offs_t offset, u8 data)
 {
 	u16 const address = 0x2000 + offset;
-	LOGMASKED(LOG_REGS, "%s: write %04x = %02x\n", machine().describe_context(), address, data);
 	u8 const previous = reg(address);
 	reg(address) = data;
 	switch (address)
 	{
 	case 0x2002: io_2002_w(data); break;
-	// 0x2024 - 0x2027 - JPEG width
-	// 0x202a - 0x202d - JPEG height
+	case 0x2004: break; // unknown
+	case 0x200a: break; // unknown
+	case 0x200b: break; // unknown
+
+	case 0x2024: case 0x2025: case 0x2026: case 0x2027: break; // JPEG width
+	case 0x202a: case 0x202b: case 0x202c: case 0x202d: break; // JPEG height
+
+	case 0x2028: break; // unknown
+	case 0x2029: break; // unknown
+	case 0x202e: break; // unknown
+	case 0x202f: break; // unknown
+
+	case 0x203a: break; // unknown
+	case 0x203b: break; // unknown
+	case 0x203c: break; // unknown
+	case 0x203f: break; // unknown
+	case 0x2040: break; // unknown
+
+	case 0x2041: break;
 	case 0x2042: spi_select(); break;
 
-	// 205f - 2062 - Timer Val
+	case 0x204b: break;
+	case 0x204c: break;
+
+	case 0x2051: break;
+	case 0x2053: break;
+	case 0x205b: break;
+	case 0x205c: break;
+
+	case 0x205f: case 0x2060: case 0x2061: case 0x2062: break; // Timer Val
 	case 0x2064: io_2064_w(data); break; // Timer?
+	case 0x2065: break; // unknown
+	case 0x2066: break;
+	case 0x2067: break;
 
 	case 0x208c: audio_control(); break;
-	case 0x2097: audio_control(); break;
-	// 0x2099 - 209b - Audio remaining related
-	// 0x20a5 - 20a7 - Audio address related
+	case 0x208d: break;
 
-	// 20ac - ADC?
+	case 0x2093: break; // unknown
+	case 0x2097: audio_control(); break;
+	case 0x2099: case 0x209a: case 0x209b: break; //Audio remaining related
+	case 0x20a5: case 0x20a6: case 0x20a7: break; // Audio address related
+
+	case 0x20ab: break; // unknown
+	case 0x20ac: break; // -ADC ?
 	case 0x20ad: io_20ad_w(previous, data); break;
-	// 20ae - ADC?
-	// 20af - ADC?
-	
-	// 2144 - RAM access address upper
+	case 0x20ae: break; // -ADC ?
+	case 0x20af: break; // -ADC ?
+
+	case 0x20b6: break; // unknown
+	case 0x20b7: break; // unknown
+	case 0x20b8: break; // unknown
+	case 0x20b9: break; // unknown
+
+	case 0x2140: break; // unknown
+	case 0x2141: break; // unknown
+	case 0x2142: break; // unknown
+
+	case 0x2144: break; // RAM access address upper
 	case 0x2145: update_irq(); break;
 	case 0x2146: update_irq(); break;
-	// 2147 IRQ related (DMA)
-	// 2148 IRQ related (JPEG decoding, DMA)
+	case 0x2147: break; // IRQ related (DMA)
+	case 0x2148: break; // IRQ related (JPEG decoding, DMA)
 	case 0x2149: reg(0x2147) &= ~data; update_irq(); break;
 	case 0x214a: reg(0x2148) &= ~data; update_irq(); break;
 	case 0x214b: update_irq(); break;
 	case 0x214c: update_irq(); break;
-	// 214d IRQ related
-	// 214e IRQ related (audio)
+	case 0x214d: break; // IRQ related
+	case 0x214e: break; // IRQ related (audio)
 	case 0x214f: reg(0x214d) &= ~data; update_irq(); break;
 	case 0x2150: reg(0x214e) &= ~data; update_irq(); break;
+	case 0x2151: break; // unknown
 
 	case 0x2152: spi_select(); break;
+	case 0x2154: break; // unknown
 	case 0x2155: spi_select(); break;
+	case 0x2156: break; // unknown
 
 	case 0x2157: spi_exchange(data); break; /* Bit 6 of 2155 also enables a debug output stream on this port,  With no flash selected those bytes do not enter a flash command parser. */
 	case 0x2158: reg(address) = spi_exchange(data);	break;
-	// 0x246f - 0x2472 - render overlay
-	// 0x2473 - 0x2476 - render mask
-	// 0x2477 - 0x2478 - overlay width
-	// 0x2479 - 0x247a - overlay height
-	// 0x247b - 0x247c - overlay x
-	// 0x247d - 0x247e - overlay y
+	case 0x215c: break; // unknown
+	case 0x215d: break; // unknown
+
+	case 0x2184: break; // unknown
 	case 0x2185: io_2185_w(previous, data); break;
-	// 0x2186 - render columns
-	// 0x2187 - render rows
-	// 0x219d - 0x219e - render OSD related
-	// 0x219f - 0x21a0 - render OSD related
-	// 0x21a1 - 0x21a2 - render OSD related
-	// 0x21a3 - render OSD related
-	// 0x21a4 - 0x21a5 - render font
+	case 0x2186: break; // render columns
+	case 0x2187: break; // render rows
+	case 0x2188: break; // unknown
+	case 0x218a: break; // unknown
+	case 0x218b: break; // unknown
+	case 0x218c: break; // unknown
+	case 0x218d: break; // unknown
+	case 0x218e: break; // unknown
+	case 0x218f: break; // unknown
+	case 0x2190: break; // unknown
+	case 0x2191: break; // unknown
+	case 0x2192: break; // unknown
+	case 0x2193: break; // unknown
+	case 0x2194: break; // unknown
+	case 0x2195: break; // unknown
+	case 0x2196: break; // unknown
+	case 0x2197: break; // unknown
+	case 0x2198: break; // unknown
+	case 0x2199: break; // unknown
+	case 0x219a: break; // unknown
+	case 0x219b: break; // unknown
+	case 0x219c: break; // unknown
+	case 0x219d: case 0x219e: break; // render OSD related
+	case 0x219f: case 0x21a0: break; // render OSD related
+	case 0x21a1: case 0x21a2: break; // render OSD related
+	case 0x21a3: break; // render OSD related
+	case 0x21a4: case 0x21a5: break; // render font
+	case 0x21a6: break; // unknown
+	case 0x21a7: break; // unknown
+	case 0x21a8: break; // unknown
+	case 0x21a9: break; // unknown
+	case 0x21aa: break; // unknown
+	case 0x21ab: break; // unknown
+	case 0x21ac: break; // unknown
+	case 0x21ad: break; // unknown
+	case 0x21ae: break; // unknown
+	case 0x21af: break; // unknown
+	case 0x21b0: break; // unknown
+	case 0x21b1: break; // unknown
+	case 0x21b2: break; // unknown
+	case 0x21b3: break; // unknown
+	case 0x21b4: break; // unknown
+	case 0x21b5: break; // unknown
+	case 0x21b6: break; // unknown
+	case 0x21b7: break; // unknown
+	case 0x21b8: break; // unknown
+	case 0x21b9: break; // unknown
+	case 0x21ba: break; // unknown
+	case 0x21bb: break; // unknown
+
+	case 0x21bf: break; // unknown
 	case 0x21c0: io_21c0_w(data); break;
+	case 0x21c7: break; // unknown
 
+	// 1st DMA channel
 	case 0x2200: io_2200_w(data); break;
-	// 2201 - 2204 - DMA count
-	// 2227 - 222a - DMA dest address
-
+	case 0x2201: case 0x2202: case 0x2203: case 0x2204: break; // 2201 - 2204 - DMA count
 	case 0x220d: m_dma_fill[m_dma_fill_pos++ & 3] = data; break;
+	case 0x220e: break; // unknown
+	case 0x220f: break; // unknown
+	case 0x2210: break; // 2210 - DMA source
+	case 0x2211: break; // unknown
+	case 0x2212: case 0x2213: case 0x2214: case 0x2215: break; // 2212 - 2215 - DMA source address
+	case 0x2225: break; // 2225 - DMA dest
+	case 0x2226: break;
+	case 0x2227: case 0x2228: case 0x2229: case 0x222a: break; // 2227 - 222a - DMA dest address
+
+	// 2nd DMA channel
 	case 0x223a: io_223a_w(data); break;
+	case 0x223b: case 0x223c: case 0x223d: case 0x223e: break; // 223b - 223e - DMA Count
+	case 0x2247: break; // 2247 ? is there a DMA fill here?
+	case 0x2248: break; // unknown
+	case 0x2249: break; // unknown
+	case 0x224a: case 0x224b: case 0x224c: case 0x224d: break;// 224a - 224d - DMA source address
+	case 0x224e: break;
+	case 0x224f: break;
+	case 0x225f: break; // 225f - DMA dest
+	case 0x2260: break;
+	case 0x2261: case 0x2262: case 0x2263: case 0x2264: break;// 2261 - 2264 - DMA dest address
+
+	case 0x229a: break; // unknown
 	case 0x229b: io_229b_w(previous, data); break;
 	case 0x229d: m_quant[BIT(reg(0x229b), 2) ? 0 : 1][m_quant_pos++ & 0x7f] = data;	break;
 
+	case 0x22a1: break; // unknown
+
+	case 0x2345: break; // unknown
+	case 0x2346: break; // unknown
+	case 0x2347: break; // unknown
+	case 0x2348: break; // unknown
+	case 0x2349: break; // unknown
+	case 0x234a: break; // unknown
+	case 0x234b: break; // unknown
+	case 0x234c: break; // unknown
+	case 0x234d: break; // unknown
+
+	case 0x2400: break; // unknown
 	case 0x2402: io_2402_w(previous, data); break;
+	case 0x2403: break; // unknown
+	case 0x2404: break; // unknown
 	case 0x2405: dram_access(data); break;
-	// 0x244a - 0x244d JPEG destination
-	// 0x244e - 0x2451 JPEG source
-	// 0x2452 - 0x2455 JPEG length
-	// 0x2460 - 0x2462 render base
+	case 0x2406: break; // unknown
+	case 0x2407: break; // unknown
+
+	case 0x2431: break; // unknown
+	case 0x2432: break; // unknown
+	case 0x2433: break; // unknown
+	case 0x2434: break; // unknown
+
+	case 0x2446: break; // unknown
+	case 0x2447: break; // unknown
+	case 0x2448: break; // unknown
+	case 0x2449: break; // unknown
+
+	case 0x244a: case 0x244b: case 0x244c: case 0x244d: break; // JPEG destination
+	case 0x244e: case 0x244f: case 0x2450: case 0x2451: break; // JPEG source
+	case 0x2452: case 0x2453: case 0x2454: case 0x2455: break; // JPEG length
+	case 0x2456: break; // unknown
+	case 0x2457: break; // unknown
+	case 0x2458: break; // unknown
+	case 0x2459: break; // unknown
+	case 0x245a: break; // unknown
+	case 0x245b: break; // unknown
+	case 0x245c: break; // unknown
+	case 0x245d: break; // unknown
+	case 0x245e: break; // unknown
+	case 0x245f: break; // unknown
+	case 0x2460: case 0x2461: case 0x2462: break; // render base
+	case 0x2464: break;
+	case 0x2465: break;
+	case 0x2466: break;
+	case 0x2468: break;
+	case 0x2469: break;
+	case 0x246a: break;
+	case 0x246c: break;
+
 	case 0x246d: audio_control(); break;
+	case 0x246e: break; // unknown
+	case 0x246f: case 0x2470: case 0x2471: case 0x2472: break; // render overlay
+	case 0x2473: case 0x2474: case 0x2475: case 0x2476: break; // render mask
+	case 0x2477: case 0x2478: break; // overlay width
+	case 0x2479: case 0x247a: break; // overlay height
+	case 0x247b: case 0x247c: break; // overlay x
+	case 0x247d: case 0x247e: break; // overlay y
+
+	case 0x24a4: break; // unknown
+
+	case 0x2541: break; // unknown
+	case 0x2542: break; // unknown
+	case 0x2543: break; // unknown
+	case 0x2544: break; // unknown
+	case 0x2545: break; // unknown
+	case 0x2546: break; // unknown
+	case 0x254a: break; // unknown
+
+	case 0x256b: break; // unknown
+	case 0x256c: break; // unknown
+	case 0x256d: break; // unknown
+	case 0x256e: break; // unknown
+
+	case 0x25e3: break; // unknown
+	case 0x25e4: break; // unknown
+	case 0x25e5: break; // unknown
+
+
+	default:
+		LOGMASKED(LOG_REGS, "%s: write %04x = %02x\n", machine().describe_context(), address, data); break;
+
 	}
 }
 
