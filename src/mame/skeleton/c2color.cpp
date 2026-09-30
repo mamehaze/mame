@@ -149,6 +149,7 @@ private:
 
 	void prog_map(address_map &map) ATTR_COLD;
 	void ext_map(address_map &map) ATTR_COLD;
+	void io_2300_map(address_map &map) ATTR_COLD;
 	void io_2400_map(address_map &map) ATTR_COLD;
 	void io_2500_map(address_map &map) ATTR_COLD;
 
@@ -192,7 +193,9 @@ private:
 	std::unique_ptr<u8[]> m_flash_data[2];
 	u8 m_regs[0x600];
 	u8 m_dma_fill[4];
+	u8 m_dma_fill2[4];
 	u8 m_dma_fill_pos;
+	u8 m_dma_fill_pos2;
 	s8 m_spi_selected;
 	u8 m_quant[2][128];
 	u8 m_quant_pos;
@@ -270,7 +273,11 @@ void c2_color_state::clear_state()
 	m_companion_sda = 1;
 	std::fill(std::begin(m_regs), std::end(m_regs), 0);
 	std::fill(std::begin(m_dma_fill), std::end(m_dma_fill), 0);
+	std::fill(std::begin(m_dma_fill2), std::end(m_dma_fill2), 0);
+
 	m_dma_fill_pos = 0;
+	m_dma_fill_pos2 = 0;
+
 	m_spi_selected = -1;
 
 	for (auto& table : m_quant)
@@ -437,7 +444,13 @@ void c2_color_state::dma(unsigned channel)
 		return;
 	}
 	for (u32 i = 0; i != count; ++i)
-		dma_w(destination, destination_address + i, fill ? m_dma_fill[i & 3] : dma_r(source, source_address + i));
+	{
+		if (channel == 0)
+			dma_w(destination, destination_address + i, fill ? m_dma_fill[i & 3] : dma_r(source, source_address + i));
+		else
+			dma_w(destination, destination_address + i, fill ? m_dma_fill2[i & 3] : dma_r(source, source_address + i));
+
+	}
 
 	reg(0x2147) |= 0x40 << channel;
 	if (destination == 2 || destination == 3)
@@ -652,8 +665,7 @@ u8 c2_color_state::io_r(offs_t offset)
 
 // 2300 region
 
-	case 0x2345: break; // unknown
-	case 0x234d: break; // unknown
+
 
 // 2400 region
 
@@ -763,7 +775,7 @@ void c2_color_state::io_2200_w(u8 data)
 void c2_color_state::io_223a_w(u8 data)
 {
 	if (data == 2)
-		m_dma_fill_pos = 0;
+		m_dma_fill_pos2 = 0;
 	if (BIT(data, 0))
 		dma(1);
 }
@@ -937,12 +949,12 @@ void c2_color_state::io_w(offs_t offset, u8 data)
 	// 2nd DMA channel
 	case 0x223a: io_223a_w(data); break;
 	case 0x223b: case 0x223c: case 0x223d: case 0x223e: break; // 223b - 223e - DMA Count
-	case 0x2247: break; // 2247 ? is there a DMA fill here?
+	case 0x2247: m_dma_fill2[m_dma_fill_pos2++ & 3] = data; break;
 	case 0x2248: break; // unknown
 	case 0x2249: break; // unknown
-	case 0x224a: case 0x224b: case 0x224c: case 0x224d: break;// 224a - 224d - DMA source address
-	case 0x224e: break;
-	case 0x224f: break;
+	case 0x224a: break; // 224a - DMA source
+	case 0x224b: break; // unknown
+	case 0x224c: break; case 0x224d: case 0x224e: case 0x224f: // 224c - 224f - DMA source address
 	case 0x225f: break; // 225f - DMA dest
 	case 0x2260: break;
 	case 0x2261: case 0x2262: case 0x2263: case 0x2264: break;// 2261 - 2264 - DMA dest address
@@ -955,15 +967,7 @@ void c2_color_state::io_w(offs_t offset, u8 data)
 
 // 2300 region
 
-	case 0x2345: break; // unknown
-	case 0x2346: break; // unknown
-	case 0x2347: break; // unknown
-	case 0x2348: break; // unknown
-	case 0x2349: break; // unknown
-	case 0x234a: break; // unknown
-	case 0x234b: break; // unknown
-	case 0x234c: break; // unknown
-	case 0x234d: break; // unknown
+
 
 // 2400 region
 
@@ -1030,6 +1034,15 @@ u8 c2_color_state::read_unk_reg(u16 address)
 	return m_regs[address];
 }
 
+
+
+void c2_color_state::io_2300_map(address_map &map)
+{
+	map(0x2345, 0x2345).ram();
+	map(0x2436, 0x243c).nopw();
+	map(0x234d, 0x234d).ram();
+
+}
 void c2_color_state::io_2400_map(address_map &map)
 {
 	map(0x2400, 0x2400).rw(FUNC(c2_color_state::io_2400_r), FUNC(c2_color_state::io_2400_w));
@@ -1093,8 +1106,9 @@ void c2_color_state::io_2500_map(address_map &map)
 void c2_color_state::ext_map(address_map &map)
 {
 	map(0x0000, 0x1fff).ram().share("xram");
-	map(0x2000, 0x24ff).rw(FUNC(c2_color_state::io_r), FUNC(c2_color_state::io_w));
+	map(0x2000, 0x22ff).rw(FUNC(c2_color_state::io_r), FUNC(c2_color_state::io_w));
 
+	io_2300_map(map);
 	io_2400_map(map);
 	io_2500_map(map);
 
