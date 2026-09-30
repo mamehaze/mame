@@ -85,7 +85,7 @@ private:
 	virtual void machine_reset() override ATTR_COLD;
 
 	u32 screen_update(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect);
-
+	void clear_state();
 	u8 code_r(offs_t offset);
 	u8 io_r(offs_t offset);
 	void io_w(offs_t offset, u8 data);
@@ -124,11 +124,11 @@ private:
 	required_device<dac_16bit_r2r_device> m_dac;
 	required_ioport m_buttons;
 	required_ioport m_battery;
-	u8 m_companion_sda = 1;
-	emu_timer *m_audio_timer = nullptr;
-	u32 m_audio_address = 0;
-	u32 m_audio_remaining = 0;
-	bool m_audio_enabled = false;
+	u8 m_companion_sda;
+	emu_timer *m_audio_timer;
+	u32 m_audio_address;
+	u32 m_audio_remaining;
+	bool m_audio_enabled;
 
 	static constexpr u32 DRAM_SIZE = 0x200000;
 	std::unique_ptr<u8[]> m_dram;
@@ -137,12 +137,12 @@ private:
 	bool m_lcd_sleep = true;
 	bool m_lcd_on = false;
 	std::unique_ptr<u8[]> m_flash_data[2];
-	u8 m_regs[0x600] = {};
-	u8 m_dma_fill[4] = {};
-	u8 m_dma_fill_pos = 0;
-	s8 m_spi_selected = -1;
-	u8 m_quant[2][128] = {};
-	u8 m_quant_pos = 0;
+	u8 m_regs[0x600];
+	u8 m_dma_fill[4];
+	u8 m_dma_fill_pos;
+	s8 m_spi_selected;
+	u8 m_quant[2][128];
+	u8 m_quant_pos;
 };
 
 u32 c2_color_state::screen_update(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect)
@@ -211,11 +211,32 @@ u32 c2_color_state::screen_update(screen_device &screen, bitmap_rgb32 &bitmap, c
 	return 0;
 }
 
+void c2_color_state::clear_state()
+{
+	m_companion_sda = 1;
+	std::fill(std::begin(m_regs), std::end(m_regs), 0);
+	std::fill(std::begin(m_dma_fill), std::end(m_dma_fill), 0);
+	m_dma_fill_pos = 0;
+	m_spi_selected = -1;
+
+	for (auto& table : m_quant)
+		std::fill(std::begin(table), std::end(table), 0);
+	m_quant_pos = 0;
+
+	m_lcd_sleep = true;
+	m_lcd_on = false;
+	m_audio_address = m_audio_remaining = 0;
+	m_audio_enabled = false;
+}
+
 void c2_color_state::machine_start()
 {
 	m_dram = std::make_unique<u8[]>(DRAM_SIZE);
 	m_osd_code = std::make_unique<u16[]>(0x10000);
 	m_osd_attr = std::make_unique<u8[]>(0x10000);
+
+	clear_state();
+
 	save_pointer(NAME(m_dram), DRAM_SIZE);
 	save_pointer(NAME(m_osd_code), 0x10000);
 	save_pointer(NAME(m_osd_attr), 0x10000);
@@ -231,6 +252,7 @@ void c2_color_state::machine_start()
 	save_item(NAME(m_audio_address));
 	save_item(NAME(m_audio_remaining));
 	save_item(NAME(m_audio_enabled));
+
 	m_audio_timer = timer_alloc(FUNC(c2_color_state::audio_tick), this);
 	machine().save().register_postload(save_prepost_delegate(FUNC(c2_color_state::update_irq), this));
 
@@ -255,17 +277,7 @@ void c2_color_state::machine_reset()
 	std::fill_n(m_dram.get(), DRAM_SIZE, 0);
 	std::fill_n(m_osd_code.get(), 0x10000, 0);
 	std::fill_n(m_osd_attr.get(), 0x10000, 0);
-	m_lcd_sleep = true;
-	m_lcd_on = false;
-	std::fill(std::begin(m_regs), std::end(m_regs), 0);
-	std::fill(std::begin(m_dma_fill), std::end(m_dma_fill), 0);
-	m_dma_fill_pos = 0;
-	m_spi_selected = -1;
-	for (auto &table : m_quant)
-		std::fill(std::begin(table), std::end(table), 0);
-	m_quant_pos = 0;
-	m_audio_address = m_audio_remaining = 0;
-	m_audio_enabled = false;
+	clear_state();
 	m_audio_timer->adjust(attotime::never);
 	m_dac->write(0x8000);
 	reg(0x2144) = 1;
@@ -417,14 +429,12 @@ void c2_color_state::jpeg_decode()
 		for (unsigned i = 0; i != 64; ++i)
 			stream.push_back(m_quant[table][i * 2]);
 	}
-	u8 const header[] = {
-		0xff, 0xc0, 0x00, 0x11, 8, u8(height >> 8), u8(height), u8(width >> 8), u8(width),
-		3, 1, 0x21, 0, 2, 0x11, 1, 3, 0x11, 1,
-		0xff, 0xda, 0x00, 0x0c, 3, 1, 0, 2, 0x11, 3, 0x11, 0, 0x3f, 0
-	};
+	u8 const header[] = { 0xff, 0xc0, 0x00, 0x11, 0x08, u8(height >> 8), u8(height), u8(width >> 8), u8(width), 0x03, 0x01, 0x21, 0x00, 0x02, 0x11, 0x01, 0x03, 0x11, 0x01, 0xff, 0xda, 0x00, 0x0c, 0x03, 0x01, 0x00, 0x02, 0x11, 0x03, 0x11, 0x00, 0x3f, 0x00 };
 	stream.insert(stream.end(), std::begin(header), std::end(header));
+
 	for (u32 i = 0; i != length; ++i)
 		stream.push_back(m_dram[(source + i) & (DRAM_SIZE - 1)]);
+
 	stream.push_back(0xff);
 	stream.push_back(0xd9);
 	bitmap_argb32 decoded;
@@ -433,6 +443,7 @@ void c2_color_state::jpeg_decode()
 		render_load_jpeg(decoded, *input);
 	if (!decoded.valid())
 		return;
+
 	for (u32 y = 0; y != decoded.height(); ++y)
 	{
 		for (u32 x = 0; x != decoded.width(); ++x)
