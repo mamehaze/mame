@@ -140,6 +140,11 @@ private:
 	void write_unk_reg(u16 address, u8 data);
 	u8 read_unk_reg(u16 address);
 
+	u8 c2_dma_channel0_r(offs_t offset);
+	void c2_dma_channel0_w(offs_t offset, u8 data);
+	u8 c2_dma_channel1_r(offs_t offset);
+	void c2_dma_channel1_w(offs_t offset, u8 data);
+
 	u32 get_32(u8* rgn);
 	u32 get_24(u8* rgn);
 	u16 get_16(u8* rgn);
@@ -149,6 +154,7 @@ private:
 
 	void prog_map(address_map &map) ATTR_COLD;
 	void ext_map(address_map &map) ATTR_COLD;
+	void io_2200_map(address_map &map) ATTR_COLD;
 	void io_2300_map(address_map &map) ATTR_COLD;
 	void io_2400_map(address_map &map) ATTR_COLD;
 	void io_2500_map(address_map &map) ATTR_COLD;
@@ -192,10 +198,23 @@ private:
 	bool m_lcd_on = false;
 	std::unique_ptr<u8[]> m_flash_data[2];
 	u8 m_regs[0x600];
-	u8 m_dma_fill[4];
-	u8 m_dma_fill2[4];
-	u8 m_dma_fill_pos;
-	u8 m_dma_fill_pos2;
+
+	struct dma_channel
+	{
+		u8 m_dma_count[4];
+		u8 m_dma_source_addr[4];
+		u8 m_dma_source;
+		u8 m_dma_dest_addr[4];
+		u8 m_dma_dest;
+
+		u8 m_dma_fill[4];
+		u8 m_dma_fill_pos;
+	};
+
+	dma_channel m_dma_channel[2];
+
+
+
 	s8 m_spi_selected;
 	u8 m_quant[2][128];
 	u8 m_quant_pos;
@@ -272,11 +291,11 @@ void c2_color_state::clear_state()
 {
 	m_companion_sda = 1;
 	std::fill(std::begin(m_regs), std::end(m_regs), 0);
-	std::fill(std::begin(m_dma_fill), std::end(m_dma_fill), 0);
-	std::fill(std::begin(m_dma_fill2), std::end(m_dma_fill2), 0);
+	std::fill(std::begin(m_dma_channel[0].m_dma_fill), std::end(m_dma_channel[0].m_dma_fill), 0);
+	std::fill(std::begin(m_dma_channel[1].m_dma_fill), std::end(m_dma_channel[1].m_dma_fill), 0);
 
-	m_dma_fill_pos = 0;
-	m_dma_fill_pos2 = 0;
+	m_dma_channel[0].m_dma_fill_pos = 0;
+	m_dma_channel[1].m_dma_fill_pos = 0;
 
 	m_spi_selected = -1;
 
@@ -304,8 +323,8 @@ void c2_color_state::machine_start()
 	save_item(NAME(m_lcd_sleep));
 	save_item(NAME(m_lcd_on));
 	save_item(NAME(m_regs));
-	save_item(NAME(m_dma_fill));
-	save_item(NAME(m_dma_fill_pos));
+	save_item(NAME(m_dma_channel[0].m_dma_fill));
+	save_item(NAME(m_dma_channel[0].m_dma_fill_pos));
 	save_item(NAME(m_spi_selected));
 	save_item(NAME(m_quant));
 	save_item(NAME(m_quant_pos));
@@ -446,9 +465,9 @@ void c2_color_state::dma(unsigned channel)
 	for (u32 i = 0; i != count; ++i)
 	{
 		if (channel == 0)
-			dma_w(destination, destination_address + i, fill ? m_dma_fill[i & 3] : dma_r(source, source_address + i));
+			dma_w(destination, destination_address + i, fill ? m_dma_channel[0].m_dma_fill[i & 3] : dma_r(source, source_address + i));
 		else
-			dma_w(destination, destination_address + i, fill ? m_dma_fill2[i & 3] : dma_r(source, source_address + i));
+			dma_w(destination, destination_address + i, fill ? m_dma_channel[1].m_dma_fill[i & 3] : dma_r(source, source_address + i));
 
 	}
 
@@ -663,15 +682,6 @@ u8 c2_color_state::io_r(offs_t offset)
 	case 0x229b: break; // unknown
 	case 0x22a1: break; // unknown
 
-// 2300 region
-
-
-
-// 2400 region
-
-
-
-
 
 
 	default:
@@ -767,7 +777,7 @@ void c2_color_state::io_229b_w(u8 data)
 void c2_color_state::io_2200_w(u8 data)
 {
 	if (data == 2)
-		m_dma_fill_pos = 0;
+		m_dma_channel[0].m_dma_fill_pos = 0;
 	if (BIT(data, 0))
 		dma(0);
 }
@@ -775,7 +785,7 @@ void c2_color_state::io_2200_w(u8 data)
 void c2_color_state::io_223a_w(u8 data)
 {
 	if (data == 2)
-		m_dma_fill_pos2 = 0;
+		m_dma_channel[1].m_dma_fill_pos = 0;
 	if (BIT(data, 0))
 		dma(1);
 }
@@ -936,20 +946,20 @@ void c2_color_state::io_w(offs_t offset, u8 data)
 	// 1st DMA channel
 	case 0x2200: io_2200_w(data); break;
 	case 0x2201: case 0x2202: case 0x2203: case 0x2204: break; // 2201 - 2204 - DMA count
-	case 0x220d: m_dma_fill[m_dma_fill_pos++ & 3] = data; break;
+	case 0x220d: m_dma_channel[0].m_dma_fill[m_dma_channel[0].m_dma_fill_pos++ & 3] = data; break;
 	case 0x220e: break; // unknown
 	case 0x220f: break; // unknown
 	case 0x2210: break; // 2210 - DMA source
 	case 0x2211: break; // unknown
 	case 0x2212: case 0x2213: case 0x2214: case 0x2215: break; // 2212 - 2215 - DMA source address
 	case 0x2225: break; // 2225 - DMA dest
-	case 0x2226: break;
+	case 0x2226: break; // is read
 	case 0x2227: case 0x2228: case 0x2229: case 0x222a: break; // 2227 - 222a - DMA dest address
 
 	// 2nd DMA channel
 	case 0x223a: io_223a_w(data); break;
 	case 0x223b: case 0x223c: case 0x223d: case 0x223e: break; // 223b - 223e - DMA Count
-	case 0x2247: m_dma_fill2[m_dma_fill_pos2++ & 3] = data; break;
+	case 0x2247: m_dma_channel[1].m_dma_fill[m_dma_channel[1].m_dma_fill_pos++ & 3] = data; break;
 	case 0x2248: break; // unknown
 	case 0x2249: break; // unknown
 	case 0x224a: break; // 224a - DMA source
@@ -959,24 +969,12 @@ void c2_color_state::io_w(offs_t offset, u8 data)
 	case 0x2260: break;
 	case 0x2261: case 0x2262: case 0x2263: case 0x2264: break;// 2261 - 2264 - DMA dest address
 
+	// 74
 	case 0x229a: break; // unknown
-	case 0x229b: io_229b_w(data); break;
+	case 0x229b: io_229b_w(data); break; // is read
 	case 0x229d: m_quant[BIT(reg(0x229b), 2) ? 0 : 1][m_quant_pos++ & 0x7f] = data;	break;
 
-	case 0x22a1: break; // unknown
-
-// 2300 region
-
-
-
-// 2400 region
-
-
-
-// 2500 region
-
-
-
+	case 0x22a1: break; // unknown // is read
 
 	default:
 		LOGMASKED(LOG_REGS, "%s: write %04x = %02x\n", machine().describe_context(), address, data); break;
@@ -1034,7 +1032,31 @@ u8 c2_color_state::read_unk_reg(u16 address)
 	return m_regs[address];
 }
 
+u8 c2_color_state::c2_dma_channel0_r(offs_t offset)
+{
+	return 0x00;
+}
 
+void c2_color_state::c2_dma_channel0_w(offs_t offset, u8 data)
+{
+
+}
+
+u8 c2_color_state::c2_dma_channel1_r(offs_t offset)
+{
+	return 0x00;
+}
+
+void c2_color_state::c2_dma_channel1_w(offs_t offset, u8 data)
+{
+
+}
+
+void c2_color_state::io_2200_map(address_map &map)
+{
+	map(0x2400, 0x2439).rw(FUNC(c2_color_state::c2_dma_channel0_r), FUNC(c2_color_state::c2_dma_channel0_w));
+	map(0x243a, 0x2473).rw(FUNC(c2_color_state::c2_dma_channel1_r), FUNC(c2_color_state::c2_dma_channel1_w));
+}
 
 void c2_color_state::io_2300_map(address_map &map)
 {
@@ -1105,6 +1127,8 @@ void c2_color_state::io_2500_map(address_map &map)
 
 void c2_color_state::ext_map(address_map &map)
 {
+	io_2200_map(map);
+
 	map(0x0000, 0x1fff).ram().share("xram");
 	map(0x2000, 0x22ff).rw(FUNC(c2_color_state::io_r), FUNC(c2_color_state::io_w));
 
