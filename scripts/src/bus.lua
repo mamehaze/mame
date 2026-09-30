@@ -1638,6 +1638,8 @@ if BUSES["CBMIEC"] then
 		MAME_DIR .. "src/devices/bus/cbmiec/c1526.h",
 		MAME_DIR .. "src/devices/bus/cbmiec/c5181.cpp",
 		MAME_DIR .. "src/devices/bus/cbmiec/c5181.h",
+		MAME_DIR .. "src/devices/bus/cbmiec/clipper_fdd.cpp",
+		MAME_DIR .. "src/devices/bus/cbmiec/clipper_fdd.h",
 	}
 
 	dependency {
@@ -4669,6 +4671,8 @@ if BUSES["PET"] then
 		MAME_DIR .. "src/devices/bus/pet/cass.h",
 		MAME_DIR .. "src/devices/bus/pet/c2n.cpp",
 		MAME_DIR .. "src/devices/bus/pet/c2n.h",
+		MAME_DIR .. "src/devices/bus/pet/cdaudio.cpp",
+		MAME_DIR .. "src/devices/bus/pet/cdaudio.h",
 		MAME_DIR .. "src/devices/bus/pet/diag264_lb_tape.cpp",
 		MAME_DIR .. "src/devices/bus/pet/diag264_lb_tape.h",
 		MAME_DIR .. "src/devices/bus/pet/exp.cpp",
@@ -6176,6 +6180,8 @@ if BUSES["VCS_CTRL"] then
 		MAME_DIR .. "src/devices/bus/vcs_ctrl/ctrl.h",
 		MAME_DIR .. "src/devices/bus/vcs_ctrl/c1350.cpp",
 		MAME_DIR .. "src/devices/bus/vcs_ctrl/c1350.h",
+		MAME_DIR .. "src/devices/bus/vcs_ctrl/cdgames.cpp",
+		MAME_DIR .. "src/devices/bus/vcs_ctrl/cdgames.h",
 		MAME_DIR .. "src/devices/bus/vcs_ctrl/cx85.cpp",
 		MAME_DIR .. "src/devices/bus/vcs_ctrl/cx85.h",
 		MAME_DIR .. "src/devices/bus/vcs_ctrl/joystick.cpp",
