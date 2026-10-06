@@ -122,6 +122,7 @@ private:
 	void io_2185_w(u8 previous, u8 data);
 	void io_21c0_w(u8 data);
 	void io_2402_w(u8 data);
+	u8 io_229b_r();
 	void io_229b_w(u8 data);
 	void io_229d_w(u8 data);
 	void io_2200_w(u8 data);
@@ -674,9 +675,10 @@ u8 c2_color_state::io_r(offs_t offset)
 
 // 2200 region
 
-	case 0x2226: break; // unknown
-	case 0x229b: break; // unknown JPEG
-	case 0x22a1: break; // unknown
+	case 0x2226: break; // unknown in DMA section
+
+	case 0x229b: return io_229b_r();  break; // unknown JPEG  // handled
+	case 0x22a1: break; // unknown  // handled
 
 
 
@@ -759,6 +761,11 @@ void c2_color_state::io_2402_w(u8 data)
 
 	if ((data & 0x18) == 0x18 && (previous & 0x18) != 0x18)
 		jpeg_decode();
+}
+
+u8 c2_color_state::io_229b_r()
+{
+	return m_229b_value;
 }
 
 void c2_color_state::io_229b_w(u8 data)
@@ -973,11 +980,11 @@ void c2_color_state::io_w(offs_t offset, u8 data)
 	case 0x2261: case 0x2262: case 0x2263: case 0x2264: break;// 2261 - 2264 - DMA dest address
 
 	// 74
-	case 0x229a: break; // unknown
-	case 0x229b: io_229b_w(data); break; // is read
-	case 0x229d: io_229d_w(data); break;
+	case 0x229a: break; // unknown  // handled
+	case 0x229b: io_229b_w(data); break; // is read // handled
+	case 0x229d: io_229d_w(data); break; // handled
 
-	case 0x22a1: break; // unknown // is read
+	case 0x22a1: break; // unknown // is read // handled
 
 	default:
 		LOGMASKED(LOG_REGS, "%s: write %04x = %02x\n", machine().describe_context(), address, data); break;
@@ -1059,6 +1066,13 @@ void c2_color_state::io_2200_map(address_map &map)
 {
 	map(0x2200, 0x2239).rw(FUNC(c2_color_state::c2_dma_channel0_r), FUNC(c2_color_state::c2_dma_channel0_w));
 	map(0x223a, 0x2273).rw(FUNC(c2_color_state::c2_dma_channel1_r), FUNC(c2_color_state::c2_dma_channel1_w));
+
+	map(0x229a, 0x229a).nopw();
+	map(0x229b, 0x229b).rw(FUNC(c2_color_state::io_229b_r), FUNC(c2_color_state::io_229b_w));
+
+	map(0x229d, 0x229d).w(FUNC(c2_color_state::io_229d_w));
+
+	map(0x22a1, 0x22a1).ram();
 }
 
 void c2_color_state::ext_map(address_map &map)
