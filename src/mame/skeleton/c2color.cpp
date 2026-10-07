@@ -88,7 +88,19 @@ public:
 	    , m_overlay_height(*this, "overlay_height")
 	    , m_overlay_x(*this, "overlay_x")
 	    , m_overlay_y(*this, "overlay_y")
-
+		, m_irq_status0(*this, "irq_status0")
+		, m_irq_status1(*this, "irq_status1")
+		, m_irq_status2(*this, "irq_status2")
+		, m_irq_status3(*this, "irq_status3")
+		, m_render_columns(*this, "render_columns")
+		, m_render_rows(*this, "render_rows")
+		, m_render_osd0(*this, "render_osd0")
+		, m_render_osd1(*this, "render_osd1")
+		, m_render_osd2(*this, "render_osd2")
+		, m_render_osd3(*this, "render_osd3")
+		, m_render_font(*this, "render_font")
+		, m_xram_control(*this, "xram_control")
+		, m_ram_access_upper(*this, "ram_access_upper")
 		, m_companion(*this, "companion")
 		, m_dac(*this, "dac")
 		, m_buttons(*this, "BUTTONS")
@@ -121,7 +133,7 @@ private:
 	void io_2002_w(u8 data);
 	void io_2064_w(u8 data);
 	void io_20ad_w(u8 previous, u8 data);
-	void io_2185_w(u8 previous, u8 data);
+	void io_2185_w(u8 data);
 	void io_21c0_w(u8 data);
 	void io_2402_w(u8 data);
 	u8 io_229b_r();
@@ -129,19 +141,68 @@ private:
 	void io_229d_w(u8 data);
 
 	u8 io_2400_r();
+	u8 io_2152_r();
+	u8 io_2156_r();
+	void io_2156_w(u8 data);
+	u8 io_2155_r();
+	void io_2155_w(u8 data);
+	u8 io_2158_r();
+
+	u8 io_2185_r();
+	void io_2152_w(u8 data);
+	void io_2157_w(u8 data);
+	void io_2158_w(u8 data);
+
+	u8 irqack0_r();
+	u8 irqack1_r();
+	u8 irqack2_r();
+	u8 irqack3_r();
+
+	void irqack0_w(u8 data);
+	void irqack1_w(u8 data);
+	void irqack2_w(u8 data);
+	void irqack3_w(u8 data);
+
+	u8 irqenable0_r();
+	u8 irqenable1_r();
+	u8 irqenable2_r();
+	u8 irqenable3_r();
+
+	void irqenable0_w(u8 data);
+	void irqenable1_w(u8 data);
+	void irqenable2_w(u8 data);
+	void irqenable3_w(u8 data);
 
 	u8 m_2400_value;
 	u8 m_2402_value;
 	u8 m_229b_value;
 	u8 m_2405_value;
+	u8 m_2152_value;
+	u8 m_2155_value;
+	u8 m_2156_value;
+	u8 m_2158_value;
+	u8 m_2185_value;
+
+	u8 m_246d_value;
+
+	u8 m_irqack0;
+	u8 m_irqack1;
+	u8 m_irqack2;
+	u8 m_irqack3;
+
+	u8 m_irqenable0;
+	u8 m_irqenable1;
+	u8 m_irqenable2;
+	u8 m_irqenable3;
+
 
 	u8 io_246d_r();
 	void io_246d_w(u8 data);
 	u8 io_2405_r();
 	void io_2405_w(u8 data);
 	void io_2400_w(u8 data);
-	void write_unk_reg(u16 address, u8 data);
-	u8 read_unk_reg(u16 address);
+	[[maybe_unused]] void write_unk_reg(u16 address, u8 data);
+	[[maybe_unused]] u8 read_unk_reg(u16 address);
 
 	void c2_dma_channel_w(int channel, offs_t offset, u8 data);
 	u8 c2_dma_channel_r(int channel, offs_t offset);
@@ -184,6 +245,21 @@ private:
 	required_shared_ptr<u8> m_overlay_height;
 	required_shared_ptr<u8> m_overlay_x;
 	required_shared_ptr<u8> m_overlay_y;
+	required_shared_ptr<u8> m_irq_status0;
+	required_shared_ptr<u8> m_irq_status1;
+	required_shared_ptr<u8> m_irq_status2;
+	required_shared_ptr<u8> m_irq_status3;
+	required_shared_ptr<u8> m_render_columns;
+	required_shared_ptr<u8> m_render_rows;
+	required_shared_ptr<u8> m_render_osd0;
+	required_shared_ptr<u8> m_render_osd1;
+	required_shared_ptr<u8> m_render_osd2;
+	required_shared_ptr<u8> m_render_osd3;
+	required_shared_ptr<u8> m_render_font;
+	required_shared_ptr<u8> m_xram_control;
+	required_shared_ptr<u8> m_ram_access_upper;
+
+
 
 	required_device<c2_color_companion_device> m_companion;
 	required_device<dac_16bit_r2r_device> m_dac;
@@ -233,9 +309,9 @@ u32 c2_color_state::screen_update(screen_device &screen, bitmap_rgb32 &bitmap, c
 		return 0;
 
 	u32 const base = get_24(m_render_base);
-	u32 const font = (u32(reg(0x21a4)) | (u32(reg(0x21a5)) << 8)) << 9;
-	u16 const columns = reg(0x2186);
-	u16 const rows = reg(0x2187);
+	u32 const font = (u32)(get_16(m_render_font)) << 9;
+	u16 const columns = m_render_columns[0];
+	u16 const rows = m_render_rows[0];
 
 	u32 const overlay = get_32(m_render_overlay);
 	u32 const mask = get_32(m_render_mask);
@@ -279,7 +355,7 @@ u32 c2_color_state::screen_update(screen_device &screen, bitmap_rgb32 &bitmap, c
 	{
 		for (int x = cliprect.min_x; x <= cliprect.max_x; ++x)
 		{
-			if (BIT(reg(0x2185), 0) && x / 16 < columns && y / 20 < rows)
+			if (BIT(m_2185_value, 0) && x / 16 < columns && y / 20 < rows)
 			{
 				u16 const cell = (y / 20) * columns + x / 16;
 				u32 const glyph = font + m_osd_code[cell] * 80 + (y % 20) * 4 + (x % 16) / 4;
@@ -357,6 +433,22 @@ void c2_color_state::machine_start()
 	save_item(NAME(m_229b_value));
 	save_item(NAME(m_2405_value));
 
+	save_item(NAME(m_2152_value));
+	save_item(NAME(m_2155_value));
+	save_item(NAME(m_2156_value));
+	save_item(NAME(m_2158_value));
+	save_item(NAME(m_2185_value));
+
+	save_item(NAME(m_irqack0));
+	save_item(NAME(m_irqack1));
+	save_item(NAME(m_irqack2));
+	save_item(NAME(m_irqack3));
+
+	save_item(NAME(m_irqenable0));
+	save_item(NAME(m_irqenable1));
+	save_item(NAME(m_irqenable2));
+	save_item(NAME(m_irqenable3));
+	
 
 	m_audio_timer = timer_alloc(FUNC(c2_color_state::audio_tick), this);
 	machine().save().register_postload(save_prepost_delegate(FUNC(c2_color_state::update_irq), this));
@@ -385,16 +477,29 @@ void c2_color_state::machine_reset()
 	clear_state();
 	m_audio_timer->adjust(attotime::never);
 	m_dac->write(0x8000);
-	reg(0x2144) = 1;
-	reg(0x2152) = 0x20;
+	m_ram_access_upper[0] = 1;
 	reg(0x2042) = 0x10;
 	reg(0x2002) = 3;
-	update_irq();
 
 	m_2400_value = 0;
 	m_2402_value = 0;
 	m_229b_value = 0;
 	m_2405_value = 0;
+	m_2152_value = 0x20;
+	m_2155_value = 0;
+	m_2156_value = 0;
+	m_2158_value = 0;
+	m_2185_value = 0;
+	m_irqack0 = 0;
+	m_irqack1 = 0;
+	m_irqack2 = 0;
+	m_irqack3 = 0;
+	m_irqenable0 = 0;
+	m_irqenable1 = 0;
+	m_irqenable2 = 0;
+	m_irqenable3 = 0;
+
+	update_irq();
 
 	// The internal boot ROM is undumped.  Substitute its initial load of the
 	// built-in firmware into DRAM, skipping the SPI image's 32-byte header.
@@ -405,9 +510,9 @@ void c2_color_state::machine_reset()
 
 u8 c2_color_state::code_r(offs_t offset)
 {
-	if (BIT(reg(0x2141), 0) && offset >= 0x4000 && offset < 0x4200)
+	if (BIT(m_xram_control[0], 0) && offset >= 0x4000 && offset < 0x4200)
 		return m_xram[offset - 0x4000];
-	u32 const address = offset < 0x8000 ? offset : (u32(reg(0x2144)) << 15) | (offset & 0x7fff);
+	u32 const address = offset < 0x8000 ? offset : ((u32)(m_ram_access_upper[0]) << 15) | (offset & 0x7fff);
 	return m_dram[address & (DRAM_SIZE - 1)];
 }
 
@@ -425,7 +530,7 @@ u32 c2_color_state::reg32(u16 address) const
 void c2_color_state::spi_select()
 {
 	// The first flash uses an active-high select; the other two are active-low.
-	s8 const selected = BIT(reg(0x2155), 5) ? 0 : !BIT(reg(0x2152), 5) ? 1 : !BIT(reg(0x2042), 4) ? 2 : -1;
+	s8 const selected = BIT(m_2155_value, 5) ? 0 : !BIT(m_2152_value, 5) ? 1 : !BIT(reg(0x2042), 4) ? 2 : -1;
 	if (selected == m_spi_selected)
 		return;
 	for (unsigned i = 0; i != 2; ++i)
@@ -496,11 +601,11 @@ void c2_color_state::dma(unsigned channel)
 		dma_w(destination, destination_address + i, fill ? m_dma_channel[channel].m_dma_fill[i & 3] : dma_r(source, source_address + i));
 	}
 
-	reg(0x2147) |= 0x40 << channel;
+	m_irq_status0[0] |= 0x40 << channel;
 	if (destination == 2 || destination == 3)
 	{
-		reg(0x2147) |= 0x01;
-		reg(0x2148) |= 0x40;
+		m_irq_status0[0] |= 0x01;
+		m_irq_status1[0] |= 0x40;
 	}
 	update_irq();
 }
@@ -572,19 +677,19 @@ void c2_color_state::jpeg_decode()
 			m_dram[(address + 1) & (DRAM_SIZE - 1)] = pixel >> 8;
 		}
 	}
-	reg(0x2148) |= 0x30;
+	m_irq_status1[0] |= 0x30;
 	update_irq();
 }
 
 void c2_color_state::update_irq()
 {
-	m_maincpu->set_input_line(MCS51_INT0_LINE, ((reg(0x2147) & reg(0x2145)) | (reg(0x2148) & reg(0x2146))) ? ASSERT_LINE : CLEAR_LINE);
-	m_maincpu->set_input_line(MCS51_INT1_LINE, ((reg(0x214d) & reg(0x214b)) | (reg(0x214e) & reg(0x214c))) ? ASSERT_LINE : CLEAR_LINE);
+	m_maincpu->set_input_line(MCS51_INT0_LINE, ((m_irq_status0[0] & m_irqenable0) | (m_irq_status1[0] & m_irqenable1)) ? ASSERT_LINE : CLEAR_LINE);
+	m_maincpu->set_input_line(MCS51_INT1_LINE, ((m_irq_status2[0] & m_irqenable2) | (m_irq_status3[0] & m_irqenable3)) ? ASSERT_LINE : CLEAR_LINE);
 }
 
 void c2_color_state::audio_control()
 {
-	bool const enabled = BIT(reg(0x208c), 0) && BIT(reg(0x2097), 1) && BIT(reg(0x246d), 1);
+	bool const enabled = BIT(reg(0x208c), 0) && BIT(reg(0x2097), 1) && BIT(m_246d_value, 1);
 	if (enabled && !m_audio_enabled)
 	{
 		// Addresses and lengths are in 16-bit samples.  The observed setting
@@ -616,7 +721,7 @@ TIMER_CALLBACK_MEMBER(c2_color_state::audio_tick)
 	{
 		m_dac->write(0x8000);
 		m_audio_timer->adjust(attotime::never);
-		reg(0x214e) |= 0x10;
+		m_irq_status3[0] |= 0x10;
 		update_irq();
 	}
 }
@@ -670,37 +775,6 @@ u8 c2_color_state::io_r(offs_t offset)
 	case 0x20ae: break; // unknown ADC?
 	case 0x20af: break; // unknown ADC?
 
-// 2100 region
-
-	case 0x2140: break; // unknown
-	case 0x2141: break; // unknown XRAM control
-	case 0x2142: break; // unknown
-	case 0x2145: break; // unknown IRQ 
-	case 0x2146: break; // unknown IRQ
-	case 0x2147: break; // unknown IRQ
-	case 0x2148: break; // unknown IRQ
-	case 0x2149: break; // unknown IRQ
-	case 0x214b: break; // unknown IRQ
-	case 0x214c: break; // unknown IRQ
-	case 0x214e: break; // unknown IRQ
-
-	case 0x2151: break; // unknown
-	case 0x2152: data = (data & 0x7f) | (BIT(m_buttons->read(), 0) ? 0x80 : 0); break;
-	case 0x2155: break; // unknown SPI
-	case 0x2156: data |= 0x18; /* SPI transmit / receive ready; transfers currently complete immediately. */ break;
-	case 0x2158: break; // unknown
-	case 0x215c: break; // unknown
-	case 0x215d: break; // unknown
-
-	case 0x2184: break; // unknown
-	case 0x2185: break; // unknown
-	case 0x2188: break; // unknown
-	case 0x218a: break; // unknown
-	case 0x218b: break; // unknown
-	case 0x218c: break; // unknown
-
-	case 0x21c7: break; // unknown
-
 // 2200 region
 
 
@@ -753,17 +827,26 @@ void c2_color_state::io_20ad_w(u8 previous, u8 data)
 	}
 }
 
-void c2_color_state::io_2185_w(u8 previous, u8 data)
+u8 c2_color_state::io_2185_r()
 {
+	return m_2185_value;
+}
+
+void c2_color_state::io_2185_w(u8 data)
+{
+	u8 previous = m_2185_value;
+	m_2185_value = data;
+
 	// The two table-write strobes are armed separately before both go high.
 	if ((data & 6) == 6)
 	{
 		if (!(previous & 2))
-			m_osd_code[reg32(0x219d) & 0xffff] = reg32(0x219f) & 0xffff;
+			m_osd_code[get_16(m_render_osd0)] = get_16(m_render_osd1);
 		if (!(previous & 4))
-			m_osd_attr[reg32(0x21a1) & 0xffff] = reg(0x21a3);
-		reg(0x2185) &= ~6;
+			m_osd_attr[get_16(m_render_osd2)] = m_render_osd3[0];
+		m_2185_value &= ~6;
 	}
+
 }
 
 void c2_color_state::io_21c0_w(u8 data)
@@ -805,7 +888,145 @@ void c2_color_state::io_229d_w(u8 data)
 	m_quant[BIT(m_229b_value, 2) ? 0 : 1][m_quant_pos++ & 0x7f] = data;
 }
 
+u8 c2_color_state::io_2152_r()
+{
+	return (m_2152_value & 0x7f) | (BIT(m_buttons->read(), 0) ? 0x80 : 0);
+}
 
+void c2_color_state::io_2152_w(u8 data)
+{
+	m_2152_value = data;
+	spi_select();
+}
+
+u8 c2_color_state::io_2156_r()
+{
+	return m_2156_value |= 0x18; /* SPI transmit / receive ready; transfers currently complete immediately. */
+}
+
+void c2_color_state::io_2156_w(u8 data)
+{
+	m_2156_value = data;
+}
+
+u8 c2_color_state::io_2155_r()
+{
+	return m_2155_value;
+}
+
+void c2_color_state::io_2155_w(u8 data)
+{
+	m_2155_value = data;
+	spi_select();
+}
+
+
+u8 c2_color_state::io_2158_r()
+{
+	return m_2158_value;
+}
+
+void c2_color_state::io_2157_w(u8 data)
+{
+	spi_exchange(data);
+}
+
+void c2_color_state::io_2158_w(u8 data)
+{
+	m_2158_value = spi_exchange(data);
+}
+
+u8 c2_color_state::irqack0_r()
+{
+	return m_irqack0;
+}
+
+u8 c2_color_state::irqack1_r()
+{
+	return m_irqack1;
+}
+
+u8 c2_color_state::irqack2_r()
+{
+	return m_irqack2;
+}
+
+u8 c2_color_state::irqack3_r()
+{
+	return m_irqack3;
+}
+
+u8 c2_color_state::irqenable0_r()
+{
+	return m_irqenable0;
+}
+
+u8 c2_color_state::irqenable1_r()
+{
+	return m_irqenable1;
+}
+
+u8 c2_color_state::irqenable2_r()
+{
+	return m_irqenable2;
+}
+
+u8 c2_color_state::irqenable3_r()
+{
+	return m_irqenable3;
+}
+
+void c2_color_state::irqenable0_w(u8 data)
+{
+	m_irqenable0 = data;
+	update_irq();
+}
+
+void c2_color_state::irqenable1_w(u8 data)
+{
+	m_irqenable1 = data;
+	update_irq();
+}
+
+void c2_color_state::irqenable2_w(u8 data)
+{
+	m_irqenable2 = data;
+	update_irq();
+}
+
+void c2_color_state::irqenable3_w(u8 data)
+{
+	m_irqenable3 = data;
+	update_irq();
+}
+
+void c2_color_state::irqack0_w(u8 data)
+{
+	m_irqack0 = data;
+	m_irq_status0[0] &= ~data;
+	update_irq();
+}
+
+void c2_color_state::irqack1_w(u8 data)
+{
+	m_irqack1 = data;
+	m_irq_status1[0] &= ~data;
+	update_irq();
+}
+
+void c2_color_state::irqack2_w(u8 data)
+{
+	m_irqack2 = data;
+	m_irq_status2[0] &= ~data;
+	update_irq();
+}
+
+void c2_color_state::irqack3_w(u8 data)
+{
+	m_irqack3 = data;
+	m_irq_status3[0] &= ~data;
+	update_irq();
+}
 
 void c2_color_state::io_w(offs_t offset, u8 data)
 {
@@ -873,91 +1094,6 @@ void c2_color_state::io_w(offs_t offset, u8 data)
 
 // 2100 region
 
-	case 0x2140: break; // unknown
-	case 0x2141: break; // unknown  XRAM control
-	case 0x2142: break; // unknown
-
-	case 0x2144: break; // RAM access address upper
-	case 0x2145: update_irq(); break;
-	case 0x2146: update_irq(); break;
-	case 0x2147: break; // IRQ related (DMA)
-	case 0x2148: break; // IRQ related (JPEG decoding, DMA)
-	case 0x2149: reg(0x2147) &= ~data; update_irq(); break;
-	case 0x214a: reg(0x2148) &= ~data; update_irq(); break;
-	case 0x214b: update_irq(); break;
-	case 0x214c: update_irq(); break;
-	case 0x214d: break; // IRQ related
-	case 0x214e: break; // IRQ related (audio)
-	case 0x214f: reg(0x214d) &= ~data; update_irq(); break;
-	case 0x2150: reg(0x214e) &= ~data; update_irq(); break;
-	case 0x2151: break; // unknown
-
-	case 0x2152: spi_select(); break;
-	case 0x2154: break; // unknown
-	case 0x2155: spi_select(); break;
-	case 0x2156: break; // unknown
-
-	case 0x2157: spi_exchange(data); break; /* Bit 6 of 2155 also enables a debug output stream on this port,  With no flash selected those bytes do not enter a flash command parser. */
-	case 0x2158: reg(address) = spi_exchange(data);	break;
-	case 0x215c: break; // unknown
-	case 0x215d: break; // unknown
-
-	case 0x2184: break; // unknown
-	case 0x2185: io_2185_w(previous, data); break;
-	case 0x2186: break; // render columns
-	case 0x2187: break; // render rows
-	case 0x2188: break; // unknown
-	case 0x218a: break; // unknown
-	case 0x218b: break; // unknown
-	case 0x218c: break; // unknown
-	case 0x218d: break; // unknown
-	case 0x218e: break; // unknown
-	case 0x218f: break; // unknown
-	case 0x2190: break; // unknown
-	case 0x2191: break; // unknown
-	case 0x2192: break; // unknown
-	case 0x2193: break; // unknown
-	case 0x2194: break; // unknown
-	case 0x2195: break; // unknown
-	case 0x2196: break; // unknown
-	case 0x2197: break; // unknown
-	case 0x2198: break; // unknown
-	case 0x2199: break; // unknown
-	case 0x219a: break; // unknown
-	case 0x219b: break; // unknown
-	case 0x219c: break; // unknown
-	case 0x219d: case 0x219e: break; // render OSD related
-	case 0x219f: case 0x21a0: break; // render OSD related
-	case 0x21a1: case 0x21a2: break; // render OSD related
-	case 0x21a3: break; // render OSD related
-	case 0x21a4: case 0x21a5: break; // render font
-	case 0x21a6: break; // unknown
-	case 0x21a7: break; // unknown
-	case 0x21a8: break; // unknown
-	case 0x21a9: break; // unknown
-	case 0x21aa: break; // unknown
-	case 0x21ab: break; // unknown
-	case 0x21ac: break; // unknown
-	case 0x21ad: break; // unknown
-	case 0x21ae: break; // unknown
-	case 0x21af: break; // unknown
-	case 0x21b0: break; // unknown
-	case 0x21b1: break; // unknown
-	case 0x21b2: break; // unknown
-	case 0x21b3: break; // unknown
-	case 0x21b4: break; // unknown
-	case 0x21b5: break; // unknown
-	case 0x21b6: break; // unknown
-	case 0x21b7: break; // unknown
-	case 0x21b8: break; // unknown
-	case 0x21b9: break; // unknown
-	case 0x21ba: break; // unknown
-	case 0x21bb: break; // unknown
-
-	case 0x21bf: break; // unknown
-	case 0x21c0: io_21c0_w(data); break;
-	case 0x21c7: break; // unknown
-
 	default:
 		LOGMASKED(LOG_REGS, "%s: write %04x = %02x\n", machine().describe_context(), address, data); break;
 
@@ -977,12 +1113,12 @@ u8 c2_color_state::io_2400_r()
 
 u8 c2_color_state::io_246d_r()
 {
-	return read_unk_reg(0x246d);
+	return m_246d_value;
 }
 
 void c2_color_state::io_246d_w(u8 data)
 {
-	write_unk_reg(0x246d, data);
+	m_246d_value = data;
 	audio_control();
 }
 
@@ -1007,6 +1143,7 @@ void c2_color_state::write_unk_reg(u16 address, u8 data)
 	address -= 0x2000;
 	m_regs[address] = data;
 }
+
 
 u8 c2_color_state::read_unk_reg(u16 address)
 {
@@ -1111,7 +1248,65 @@ void c2_color_state::c2_dma_channel1_w(offs_t offset, u8 data)
 void c2_color_state::ext_map(address_map &map)
 {
 	map(0x0000, 0x1fff).ram().share("xram");
-	map(0x2000, 0x21ff).rw(FUNC(c2_color_state::io_r), FUNC(c2_color_state::io_w));
+	map(0x2000, 0x20ff).rw(FUNC(c2_color_state::io_r), FUNC(c2_color_state::io_w));
+
+	//////////////////////////////////////////////
+	// 0x2100 region
+	//////////////////////////////////////////////
+
+	map(0x2140, 0x2140).ram();
+	map(0x2141, 0x2141).ram().share("xram_control");
+	map(0x2142, 0x2142).ram();
+
+	map(0x2144, 0x2144).ram().share("ram_access_upper");
+
+	map(0x2145, 0x2145).rw(FUNC(c2_color_state::irqenable0_r), FUNC(c2_color_state::irqenable0_w));
+	map(0x2146, 0x2146).rw(FUNC(c2_color_state::irqenable1_r), FUNC(c2_color_state::irqenable1_w));
+	map(0x2147, 0x2147).ram().share("irq_status0");
+	map(0x2148, 0x2148).ram().share("irq_status1");
+	map(0x2149, 0x2149).rw(FUNC(c2_color_state::irqack0_r), FUNC(c2_color_state::irqack0_w));
+	map(0x214a, 0x214a).rw(FUNC(c2_color_state::irqack1_r), FUNC(c2_color_state::irqack1_w));
+
+	map(0x214b, 0x214b).rw(FUNC(c2_color_state::irqenable2_r), FUNC(c2_color_state::irqenable2_w));
+	map(0x214c, 0x214c).rw(FUNC(c2_color_state::irqenable3_r), FUNC(c2_color_state::irqenable3_w));
+	map(0x214d, 0x214d).ram().share("irq_status2");
+	map(0x214e, 0x214e).ram().share("irq_status3");
+	map(0x214f, 0x214f).rw(FUNC(c2_color_state::irqack2_r), FUNC(c2_color_state::irqack2_w));
+	map(0x2150, 0x2150).rw(FUNC(c2_color_state::irqack3_r), FUNC(c2_color_state::irqack3_w));
+
+	map(0x2151, 0x2151).nopw();
+
+	map(0x2152, 0x2152).rw(FUNC(c2_color_state::io_2152_r), FUNC(c2_color_state::io_2152_w));
+
+	map(0x2154, 0x2154).ram();
+	map(0x2155, 0x2155).rw(FUNC(c2_color_state::io_2155_r), FUNC(c2_color_state::io_2155_w));
+	map(0x2156, 0x2156).rw(FUNC(c2_color_state::io_2156_r), FUNC(c2_color_state::io_2156_w));
+
+	map(0x2157, 0x2157).w(FUNC(c2_color_state::io_2157_w)); /* Bit 6 of 2155 also enables a debug output stream on this port,  With no flash selected those bytes do not enter a flash command parser. */
+	map(0x2158, 0x2158).rw(FUNC(c2_color_state::io_2158_r), FUNC(c2_color_state::io_2158_w));
+	map(0x215c, 0x215d).ram();
+
+	map(0x2184, 0x2184).ram();
+	map(0x2185, 0x2185).rw(FUNC(c2_color_state::io_2185_r), FUNC(c2_color_state::io_2185_w));
+
+	map(0x2186, 0x2186).ram().share("render_columns");
+	map(0x2187, 0x2187).ram().share("render_rows");
+
+	map(0x2188, 0x2288).ram();
+	map(0x218a, 0x228c).ram();
+
+	map(0x228d, 0x229c).nopw();
+	map(0x219d, 0x219e).ram().share("render_osd0");
+	map(0x219f, 0x21a0).ram().share("render_osd1");
+	map(0x21a1, 0x21a2).ram().share("render_osd2");
+	map(0x21a3, 0x21a3).ram().share("render_osd3");
+	map(0x21a4, 0x21a5).ram().share("render_font");
+	map(0x21a6, 0x21bb).nopw();
+
+	map(0x21bf, 0x21bf).nopw();
+	map(0x21c0, 0x21c0).w(FUNC(c2_color_state::io_21c0_w));
+
+	map(0x21c7, 0x21c7).ram();
 
 	//////////////////////////////////////////////
 	// 0x2200 region
@@ -1132,7 +1327,7 @@ void c2_color_state::ext_map(address_map &map)
 	//////////////////////////////////////////////
 
 	map(0x2345, 0x2345).ram();
-	map(0x2436, 0x243c).nopw();
+	map(0x2336, 0x233c).nopw();
 	map(0x234d, 0x234d).ram();
 
 	//////////////////////////////////////////////
