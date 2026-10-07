@@ -88,10 +88,6 @@ public:
 	    , m_overlay_height(*this, "overlay_height")
 	    , m_overlay_x(*this, "overlay_x")
 	    , m_overlay_y(*this, "overlay_y")
-		, m_irq_status0(*this, "irq_status0")
-		, m_irq_status1(*this, "irq_status1")
-		, m_irq_status2(*this, "irq_status2")
-		, m_irq_status3(*this, "irq_status3")
 		, m_render_columns(*this, "render_columns")
 		, m_render_rows(*this, "render_rows")
 		, m_render_osd0(*this, "render_osd0")
@@ -194,6 +190,16 @@ private:
 	void irqenable2_w(u8 data);
 	void irqenable3_w(u8 data);
 
+	u8 irqstatus0_r();
+	void irqstatus0_w(u8 data);
+	u8 irqstatus1_r();
+	void irqstatus1_w(u8 data);
+	u8 irqstatus2_r();
+	void irqstatus2_w(u8 data);
+	u8 irqstatus3_r();
+	void irqstatus3_w(u8 data);
+
+
 	u8 m_dramstop;
 	u8 m_jpeg_decode_trigger;
 	u8 m_quant_ctrl;
@@ -213,16 +219,9 @@ private:
 	u8 m_2002_value;
 	u8 m_buttons_reg;
 
-	u8 m_irqack0;
-	u8 m_irqack1;
-	u8 m_irqack2;
-	u8 m_irqack3;
-
-	u8 m_irqenable0;
-	u8 m_irqenable1;
-	u8 m_irqenable2;
-	u8 m_irqenable3;
-
+	u8 m_irqack[4];
+	u8 m_irqenable[4];
+	u8 m_irqstatus[4];
 
 	u8 audiocontrol_246d_r();
 	void audiocontrol_246d_w(u8 data);
@@ -271,10 +270,6 @@ private:
 	required_shared_ptr<u8> m_overlay_height;
 	required_shared_ptr<u8> m_overlay_x;
 	required_shared_ptr<u8> m_overlay_y;
-	required_shared_ptr<u8> m_irq_status0;
-	required_shared_ptr<u8> m_irq_status1;
-	required_shared_ptr<u8> m_irq_status2;
-	required_shared_ptr<u8> m_irq_status3;
 	required_shared_ptr<u8> m_render_columns;
 	required_shared_ptr<u8> m_render_rows;
 	required_shared_ptr<u8> m_render_osd0;
@@ -475,16 +470,9 @@ void c2_color_state::machine_start()
 	save_item(NAME(m_spi_exchange1));
 	save_item(NAME(m_osd_codes_reg));
 
-	save_item(NAME(m_irqack0));
-	save_item(NAME(m_irqack1));
-	save_item(NAME(m_irqack2));
-	save_item(NAME(m_irqack3));
-
-	save_item(NAME(m_irqenable0));
-	save_item(NAME(m_irqenable1));
-	save_item(NAME(m_irqenable2));
-	save_item(NAME(m_irqenable3));
-	
+	save_item(NAME(m_irqack));
+	save_item(NAME(m_irqenable));
+	save_item(NAME(m_irqstatus));
 
 	m_audio_timer = timer_alloc(FUNC(c2_color_state::audio_tick), this);
 	machine().save().register_postload(save_prepost_delegate(FUNC(c2_color_state::update_irq), this));
@@ -526,14 +514,13 @@ void c2_color_state::machine_reset()
 	m_spi_status = 0;
 	m_spi_exchange1 = 0;
 	m_osd_codes_reg = 0;
-	m_irqack0 = 0;
-	m_irqack1 = 0;
-	m_irqack2 = 0;
-	m_irqack3 = 0;
-	m_irqenable0 = 0;
-	m_irqenable1 = 0;
-	m_irqenable2 = 0;
-	m_irqenable3 = 0;
+
+	for (int i = 0; i < 4; i++)
+	{
+		m_irqack[i] = 0;
+		m_irqenable[i] = 0;
+		m_irqstatus[i] = 0;
+	}
 
 	update_irq();
 
@@ -633,11 +620,11 @@ void c2_color_state::dma(unsigned channel)
 		dma_w(destination, destination_address + i, fill ? m_dma_channel[channel].m_dma_fill[i & 3] : dma_r(source, source_address + i));
 	}
 
-	m_irq_status0[0] |= 0x40 << channel;
+	m_irqstatus[0] |= 0x40 << channel;
 	if (destination == 2 || destination == 3)
 	{
-		m_irq_status0[0] |= 0x01;
-		m_irq_status1[0] |= 0x40;
+		m_irqstatus[0] |= 0x01;
+		m_irqstatus[1] |= 0x40;
 	}
 	update_irq();
 }
@@ -709,14 +696,14 @@ void c2_color_state::jpeg_decode()
 			m_dram[(address + 1) & (DRAM_SIZE - 1)] = pixel >> 8;
 		}
 	}
-	m_irq_status1[0] |= 0x30;
+	m_irqstatus[1] |= 0x30;
 	update_irq();
 }
 
 void c2_color_state::update_irq()
 {
-	m_maincpu->set_input_line(MCS51_INT0_LINE, ((m_irq_status0[0] & m_irqenable0) | (m_irq_status1[0] & m_irqenable1)) ? ASSERT_LINE : CLEAR_LINE);
-	m_maincpu->set_input_line(MCS51_INT1_LINE, ((m_irq_status2[0] & m_irqenable2) | (m_irq_status3[0] & m_irqenable3)) ? ASSERT_LINE : CLEAR_LINE);
+	m_maincpu->set_input_line(MCS51_INT0_LINE, ((m_irqstatus[0] & m_irqenable[0]) | (m_irqstatus[1] & m_irqenable[1])) ? ASSERT_LINE : CLEAR_LINE);
+	m_maincpu->set_input_line(MCS51_INT1_LINE, ((m_irqstatus[2] & m_irqenable[2]) | (m_irqstatus[3] & m_irqenable[3])) ? ASSERT_LINE : CLEAR_LINE);
 }
 
 void c2_color_state::audio_control()
@@ -753,7 +740,7 @@ TIMER_CALLBACK_MEMBER(c2_color_state::audio_tick)
 	{
 		m_dac->write(0x8000);
 		m_audio_timer->adjust(attotime::never);
-		m_irq_status3[0] |= 0x10;
+		m_irqstatus[3] |= 0x10;
 		update_irq();
 	}
 }
@@ -878,93 +865,133 @@ void c2_color_state::spi_exchange1_w(u8 data) {	m_spi_exchange1 = spi_exchange(d
 
 u8 c2_color_state::irqack0_r()
 {
-	return m_irqack0;
+	return m_irqack[0];
 }
 
 u8 c2_color_state::irqack1_r()
 {
-	return m_irqack1;
+	return m_irqack[1];
 }
 
 u8 c2_color_state::irqack2_r()
 {
-	return m_irqack2;
+	return m_irqack[2];
 }
 
 u8 c2_color_state::irqack3_r()
 {
-	return m_irqack3;
+	return m_irqack[3];
 }
 
 u8 c2_color_state::irqenable0_r()
 {
-	return m_irqenable0;
+	return m_irqenable[0];
 }
 
 u8 c2_color_state::irqenable1_r()
 {
-	return m_irqenable1;
+	return m_irqenable[1];
 }
 
 u8 c2_color_state::irqenable2_r()
 {
-	return m_irqenable2;
+	return m_irqenable[2];
 }
 
 u8 c2_color_state::irqenable3_r()
 {
-	return m_irqenable3;
+	return m_irqenable[3];
 }
 
 void c2_color_state::irqenable0_w(u8 data)
 {
-	m_irqenable0 = data;
+	m_irqenable[0] = data;
 	update_irq();
 }
 
 void c2_color_state::irqenable1_w(u8 data)
 {
-	m_irqenable1 = data;
+	m_irqenable[1] = data;
 	update_irq();
 }
 
 void c2_color_state::irqenable2_w(u8 data)
 {
-	m_irqenable2 = data;
+	m_irqenable[2] = data;
 	update_irq();
 }
 
 void c2_color_state::irqenable3_w(u8 data)
 {
-	m_irqenable3 = data;
+	m_irqenable[3] = data;
 	update_irq();
+}
+
+u8 c2_color_state::irqstatus0_r()
+{
+	return m_irqstatus[0];
+}
+
+void c2_color_state::irqstatus0_w(u8 data)
+{
+	m_irqstatus[0] = data;
+}
+
+u8 c2_color_state::irqstatus1_r()
+{
+	return m_irqstatus[1];
+}
+
+void c2_color_state::irqstatus1_w(u8 data)
+{
+	m_irqstatus[1] = data;
+}
+
+u8 c2_color_state::irqstatus2_r()
+{
+	return m_irqstatus[2];
+}
+
+void c2_color_state::irqstatus2_w(u8 data)
+{
+	m_irqstatus[2] = data;
+}
+
+u8 c2_color_state::irqstatus3_r()
+{
+	return m_irqstatus[3];
+}
+
+void c2_color_state::irqstatus3_w(u8 data)
+{
+	m_irqstatus[3] = data;
 }
 
 void c2_color_state::irqack0_w(u8 data)
 {
-	m_irqack0 = data;
-	m_irq_status0[0] &= ~data;
+	m_irqack[0] = data;
+	m_irqstatus[0] &= ~data;
 	update_irq();
 }
 
 void c2_color_state::irqack1_w(u8 data)
 {
-	m_irqack1 = data;
-	m_irq_status1[0] &= ~data;
+	m_irqack[1] = data;
+	m_irqstatus[1] &= ~data;
 	update_irq();
 }
 
 void c2_color_state::irqack2_w(u8 data)
 {
-	m_irqack2 = data;
-	m_irq_status2[0] &= ~data;
+	m_irqack[2] = data;
+	m_irqstatus[2] &= ~data;
 	update_irq();
 }
 
 void c2_color_state::irqack3_w(u8 data)
 {
-	m_irqack3 = data;
-	m_irq_status3[0] &= ~data;
+	m_irqack[3] = data;
+	m_irqstatus[3] &= ~data;
 	update_irq();
 }
 
@@ -1152,15 +1179,15 @@ void c2_color_state::ext_map(address_map &map)
 
 	map(0x2145, 0x2145).rw(FUNC(c2_color_state::irqenable0_r), FUNC(c2_color_state::irqenable0_w));
 	map(0x2146, 0x2146).rw(FUNC(c2_color_state::irqenable1_r), FUNC(c2_color_state::irqenable1_w));
-	map(0x2147, 0x2147).ram().share("irq_status0");
-	map(0x2148, 0x2148).ram().share("irq_status1");
+	map(0x2147, 0x2147).rw(FUNC(c2_color_state::irqstatus0_r), FUNC(c2_color_state::irqstatus0_w));
+	map(0x2148, 0x2148).rw(FUNC(c2_color_state::irqstatus1_r), FUNC(c2_color_state::irqstatus1_w));
 	map(0x2149, 0x2149).rw(FUNC(c2_color_state::irqack0_r), FUNC(c2_color_state::irqack0_w));
 	map(0x214a, 0x214a).rw(FUNC(c2_color_state::irqack1_r), FUNC(c2_color_state::irqack1_w));
 
 	map(0x214b, 0x214b).rw(FUNC(c2_color_state::irqenable2_r), FUNC(c2_color_state::irqenable2_w));
 	map(0x214c, 0x214c).rw(FUNC(c2_color_state::irqenable3_r), FUNC(c2_color_state::irqenable3_w));
-	map(0x214d, 0x214d).ram().share("irq_status2");
-	map(0x214e, 0x214e).ram().share("irq_status3");
+	map(0x214d, 0x214d).rw(FUNC(c2_color_state::irqstatus2_r), FUNC(c2_color_state::irqstatus2_w));
+	map(0x214e, 0x214e).rw(FUNC(c2_color_state::irqstatus3_r), FUNC(c2_color_state::irqstatus3_w));
 	map(0x214f, 0x214f).rw(FUNC(c2_color_state::irqack2_r), FUNC(c2_color_state::irqack2_w));
 	map(0x2150, 0x2150).rw(FUNC(c2_color_state::irqack3_r), FUNC(c2_color_state::irqack3_w));
 
