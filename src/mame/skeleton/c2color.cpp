@@ -23,21 +23,40 @@
     identify CPU type - It's an i8051 derived CPU, and seems to be "Mars Semiconductor Corp" related, there is a MARS-PCCAM string
                         amongst other things, this is a known USB identifier for the "Discovery Kids Digital Camera"
                         Possibly a MR97327B, which is listed as RISC-51 in places, but little information can be found in English
-
+    - Dump the internal boot ROM; its initial SPI-to-DRAM load is substituted below.
+    - Establish CPU/peripheral clocks, DMA/codec timing and the remaining interrupt sources.
+    - Identify the companion and implement commands beyond the boot challenge.
+    - Complete LCD/OSD palettes, display latching, JPEG formats and audio controls.
+    - Barcode reader, radio, USB and cartridge boot selection are not implemented.
+    - Flash erase/program behaviour depends on the incomplete generic SPI flash model.
 
 *******************************************************************************/
 
 #include "emu.h"
+#include "bus/c2color/slot.h"
+#include "bus/c2color/carts.h"
 
-#include "cpu/mcs51/i8052.h"
+#include "machine/generic_spi_flash.h"
+#include "sound/dac.h"
 
-#include "bus/generic/slot.h"
-#include "bus/generic/carts.h"
-
+#include "rendutil.h"
 #include "screen.h"
-#include "emupal.h"
 #include "softlist_dev.h"
 #include "speaker.h"
+
+#include "ioprocs.h"
+
+#include "c2color_companion.h"
+#include "c2color_cpu.h"
+
+#include <vector>
+
+#define LOG_REGS (1U << 1)
+#define LOG_DMA  (1U << 2)
+#define LOG_SPI  (1U << 3)
+
+#define VERBOSE (LOG_REGS)
+#include "logmacro.h"
 
 
 namespace {
@@ -50,8 +69,54 @@ public:
 		, m_maincpu(*this, "maincpu")
 		, m_cart(*this, "cartslot")
 		, m_cart_region(nullptr)
-		, m_palette(*this, "palette")
 		, m_screen(*this, "screen")
+		, m_flash(*this, "flash%u", 1U)
+		, m_xram(*this, "xram")
+
+		, m_dram_dword_out(*this, "dram_dword_out")
+		, m_dram_dword_out2(*this, "dram_dword_out2")
+	    , m_dram_dword_in(*this, "dram_dword_in")
+	    , m_dram_dword_in2(*this, "dram_dword_in2")
+	    , m_jpeg_dest(*this, "jpeg_dest")
+	    , m_jpeg_src(*this, "jpeg_src")
+	    , m_jpeg_len(*this, "jpeg_len")
+	    , m_render_base(*this, "render_base")
+	    , m_render_unk(*this, "render_unk")
+	    , m_render_overlay(*this, "render_overlay")
+	    , m_render_mask(*this, "render_mask")
+	    , m_overlay_width(*this, "overlay_width")
+	    , m_overlay_height(*this, "overlay_height")
+	    , m_overlay_x(*this, "overlay_x")
+	    , m_overlay_y(*this, "overlay_y")
+		, m_irq_status0(*this, "irq_status0")
+		, m_irq_status1(*this, "irq_status1")
+		, m_irq_status2(*this, "irq_status2")
+		, m_irq_status3(*this, "irq_status3")
+		, m_render_columns(*this, "render_columns")
+		, m_render_rows(*this, "render_rows")
+		, m_render_osd0(*this, "render_osd0")
+		, m_render_osd1(*this, "render_osd1")
+		, m_render_osd2(*this, "render_osd2")
+		, m_render_osd3(*this, "render_osd3")
+		, m_render_font(*this, "render_font")
+		, m_xram_control(*this, "xram_control")
+		, m_ram_access_upper(*this, "ram_access_upper")
+
+		, m_jpeg_width(*this, "jpeg_width")
+		, m_jpeg_height(*this, "jpeg_height")
+
+		, m_timer_val(*this, "timer_val")
+
+		, m_audio_remaining_reg(*this, "audio_remaining_reg")
+		, m_audio_address_reg(*this, "audio_address_reg")
+		, m_adc_reg1(*this, "adc_reg1")
+		, m_adc_reg3(*this, "adc_reg3")
+		, m_adc_reg4(*this, "adc_reg4")
+
+		, m_companion(*this, "companion")
+		, m_dac(*this, "dac")
+		, m_buttons(*this, "BUTTONS")
+		, m_battery(*this, "BATTERY")
 	{ }
 
 	void c2_color(machine_config &config);
@@ -60,92 +125,1324 @@ private:
 	virtual void machine_start() override ATTR_COLD;
 	virtual void machine_reset() override ATTR_COLD;
 
-	uint32_t screen_update(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
+	u32 screen_update(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect);
+	void clear_state();
+	u8 code_r(offs_t offset);
+	void spi_select();
+	u8 spi_exchange(u8 data);
+	void dma(unsigned channel);
+	u8 dma_r(u8 source, u32 address);
+	void dma_w(u8 destination, u32 address, u8 data);
+	void dram_access(u8 data);
+	void jpeg_decode();
+	void audio_control();
+	void update_irq();
 
-	DECLARE_DEVICE_IMAGE_LOAD_MEMBER(cart_load);
+	u8 io_2002_r();
+	void io_2002_w(u8 data);
+	void io_2064_w(u8 data);
+	u8 io_20ad_r();
+	void io_20ad_w(u8 data);
+	void io_2185_w(u8 data);
+	void io_21c0_w(u8 data);
+	void io_2402_w(u8 data);
+	u8 io_229b_r();
+	void io_229b_w(u8 data);
+	void io_229d_w(u8 data);
 
-	u8 cart_r(offs_t offset);
+	u8 io_2042_r();
+	void io_2042_w(u8 data);
+	u8 io_2053_r();
+	void io_2053_w(u8 data);
+	u8 io_2064_r();
+	u8 io_208c_r();
+	void io_208c_w(u8 data);
+	u8 io_2097_r();
+	void io_2097_w(u8 data);
+
+
+	u8 io_2400_r();
+	u8 io_2152_r();
+	u8 io_2156_r();
+	void io_2156_w(u8 data);
+	u8 io_2155_r();
+	void io_2155_w(u8 data);
+	u8 io_2158_r();
+
+	u8 io_2185_r();
+	void io_2152_w(u8 data);
+	void io_2157_w(u8 data);
+	void io_2158_w(u8 data);
+
+	u8 irqack0_r();
+	u8 irqack1_r();
+	u8 irqack2_r();
+	u8 irqack3_r();
+
+	void irqack0_w(u8 data);
+	void irqack1_w(u8 data);
+	void irqack2_w(u8 data);
+	void irqack3_w(u8 data);
+
+	u8 irqenable0_r();
+	u8 irqenable1_r();
+	u8 irqenable2_r();
+	u8 irqenable3_r();
+
+	void irqenable0_w(u8 data);
+	void irqenable1_w(u8 data);
+	void irqenable2_w(u8 data);
+	void irqenable3_w(u8 data);
+
+	u8 m_2400_value;
+	u8 m_2402_value;
+	u8 m_229b_value;
+	u8 m_2405_value;
+	u8 m_2152_value;
+	u8 m_2155_value;
+	u8 m_2156_value;
+	u8 m_2158_value;
+	u8 m_2185_value;
+
+	u8 m_246d_value;
+	u8 m_208c_value;
+	u8 m_2097_value;
+	u8 m_2064_value;
+	u8 m_20ad_value;
+	u8 m_2042_value;
+	u8 m_2002_value;
+	u8 m_2053_value;
+
+	u8 m_irqack0;
+	u8 m_irqack1;
+	u8 m_irqack2;
+	u8 m_irqack3;
+
+	u8 m_irqenable0;
+	u8 m_irqenable1;
+	u8 m_irqenable2;
+	u8 m_irqenable3;
+
+
+	u8 io_246d_r();
+	void io_246d_w(u8 data);
+	u8 io_2405_r();
+	void io_2405_w(u8 data);
+	void io_2400_w(u8 data);
+
+	void c2_dma_channel_w(int channel, offs_t offset, u8 data);
+	u8 c2_dma_channel_r(int channel, offs_t offset);
+
+
+	u8 c2_dma_channel0_r(offs_t offset);
+	void c2_dma_channel0_w(offs_t offset, u8 data);
+	u8 c2_dma_channel1_r(offs_t offset);
+	void c2_dma_channel1_w(offs_t offset, u8 data);
+
+	u32 get_32(u8* rgn);
+	u32 get_24(u8* rgn);
+	u16 get_16(u8* rgn);
+	u8 get_8(u8* rgn);
+
+	TIMER_CALLBACK_MEMBER(audio_tick);
 
 	void prog_map(address_map &map) ATTR_COLD;
 	void ext_map(address_map &map) ATTR_COLD;
 
-	required_device<mcs51_cpu_device> m_maincpu;
-	required_device<generic_slot_device> m_cart;
+	required_device<c2_color_cpu_device> m_maincpu;
+	required_device<c2color_cartslot_device> m_cart;
 	memory_region *m_cart_region;
-	required_device<palette_device> m_palette;
 	required_device<screen_device> m_screen;
+	required_device_array<generic_spi_flash_device, 2> m_flash;
+	required_shared_ptr<u8> m_xram;
+
+	required_shared_ptr<u8> m_dram_dword_out;
+	required_shared_ptr<u8> m_dram_dword_out2;
+	required_shared_ptr<u8> m_dram_dword_in;
+	required_shared_ptr<u8> m_dram_dword_in2;
+	required_shared_ptr<u8> m_jpeg_dest;
+	required_shared_ptr<u8> m_jpeg_src;
+	required_shared_ptr<u8> m_jpeg_len;
+	required_shared_ptr<u8> m_render_base;
+	required_shared_ptr<u8> m_render_unk;
+	required_shared_ptr<u8> m_render_overlay;
+	required_shared_ptr<u8> m_render_mask;
+	required_shared_ptr<u8> m_overlay_width;
+	required_shared_ptr<u8> m_overlay_height;
+	required_shared_ptr<u8> m_overlay_x;
+	required_shared_ptr<u8> m_overlay_y;
+	required_shared_ptr<u8> m_irq_status0;
+	required_shared_ptr<u8> m_irq_status1;
+	required_shared_ptr<u8> m_irq_status2;
+	required_shared_ptr<u8> m_irq_status3;
+	required_shared_ptr<u8> m_render_columns;
+	required_shared_ptr<u8> m_render_rows;
+	required_shared_ptr<u8> m_render_osd0;
+	required_shared_ptr<u8> m_render_osd1;
+	required_shared_ptr<u8> m_render_osd2;
+	required_shared_ptr<u8> m_render_osd3;
+	required_shared_ptr<u8> m_render_font;
+	required_shared_ptr<u8> m_xram_control;
+	required_shared_ptr<u8> m_ram_access_upper;
+
+	required_shared_ptr<u8> m_jpeg_width;
+	required_shared_ptr<u8> m_jpeg_height;
+
+	required_shared_ptr<u8> m_timer_val;
+
+	required_shared_ptr<u8> m_audio_remaining_reg;
+	required_shared_ptr<u8> m_audio_address_reg;
+	required_shared_ptr<u8> m_adc_reg1;
+	required_shared_ptr<u8> m_adc_reg3;
+	required_shared_ptr<u8> m_adc_reg4;
+
+
+	required_device<c2_color_companion_device> m_companion;
+	required_device<dac_16bit_r2r_device> m_dac;
+	required_ioport m_buttons;
+	required_ioport m_battery;
+	u8 m_companion_sda;
+	emu_timer *m_audio_timer;
+	u32 m_audio_address;
+	u32 m_audio_remaining;
+	bool m_audio_enabled;
+
+	static constexpr u32 DRAM_SIZE = 0x200000;
+	std::unique_ptr<u8[]> m_dram;
+	std::unique_ptr<u16[]> m_osd_code;
+	std::unique_ptr<u8[]> m_osd_attr;
+	bool m_lcd_sleep = true;
+	bool m_lcd_on = false;
+	std::unique_ptr<u8[]> m_flash_data[2];
+	u8 m_regs[0x600];
+
+	struct dma_channel
+	{
+		u8 m_dma_trigger;
+		u8 m_dma_count[4];
+		u8 m_dma_source_addr[4];
+		u8 m_dma_source;
+		u8 m_dma_dest_addr[4];
+		u8 m_dma_dest;
+
+		u8 m_dma_fill[4];
+		u8 m_dma_fill_pos;
+	};
+
+	dma_channel m_dma_channel[2];
+
+
+
+	s8 m_spi_selected;
+	u8 m_quant[2][128];
+	u8 m_quant_pos;
 };
 
-uint32_t c2_color_state::screen_update(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
+u32 c2_color_state::screen_update(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect)
 {
+	bitmap.fill(rgb_t::black(), cliprect);
+	if (m_lcd_sleep || !m_lcd_on)
+		return 0;
+
+	u32 const base = get_24(m_render_base);
+	u32 const font = (u32)(get_16(m_render_font)) << 9;
+	u16 const columns = m_render_columns[0];
+	u16 const rows = m_render_rows[0];
+
+	u32 const overlay = get_32(m_render_overlay);
+	u32 const mask = get_32(m_render_mask);
+	u16 const overlay_width = get_16(m_overlay_width);
+	u16 const overlay_height = get_16(m_overlay_height);
+	u16 const overlay_x = get_16(m_overlay_x);
+	u16 const overlay_y = get_16(m_overlay_y);
+	for (int y = cliprect.min_y; y <= cliprect.max_y; ++y)
+	{
+		for (int x = cliprect.min_x; x <= cliprect.max_x; ++x)
+		{
+			u32 const address = base + (y * screen.visible_area().width() + x) * 2;
+			u16 const pixel = m_dram[address & (DRAM_SIZE - 1)] | (u16(m_dram[(address + 1) & (DRAM_SIZE - 1)]) << 8);
+			bitmap.pix(y, x) = rgb_t(pal5bit(pixel >> 11), pal6bit(pixel >> 5), pal5bit(pixel));
+		}
+	}
+
+	// A second RGB565 plane has a separate packed, LSB-first opacity mask.
+	// DMA constructs the plane in DRAM; the display controller composites it.
+	// TODO: Configuration latch timing, signed positions and non-byte-aligned widths.
+	if (BIT(get_8(m_render_unk), 0) && overlay_width && overlay_height)
+	{
+		rectangle area(overlay_x, overlay_x + overlay_width - 1, overlay_y, overlay_y + overlay_height - 1);
+		area &= cliprect;
+		for (int y = area.min_y; y <= area.max_y; ++y)
+		{
+			for (int x = area.min_x; x <= area.max_x; ++x)
+			{
+				u32 const index = (y - overlay_y) * overlay_width + x - overlay_x;
+				if (BIT(m_dram[(mask + (index >> 3)) & (DRAM_SIZE - 1)], index & 7))
+				{
+					u32 const address = overlay + index * 2;
+					u16 const pixel = m_dram[address & (DRAM_SIZE - 1)] | (u16(m_dram[(address + 1) & (DRAM_SIZE - 1)]) << 8);
+					bitmap.pix(y, x) = rgb_t(pal5bit(pixel >> 11), pal6bit(pixel >> 5), pal5bit(pixel));
+				}
+			}
+		}
+	}
+
+	for (int y = cliprect.min_y; y <= cliprect.max_y; ++y)
+	{
+		for (int x = cliprect.min_x; x <= cliprect.max_x; ++x)
+		{
+			if (BIT(m_2185_value, 0) && x / 16 < columns && y / 20 < rows)
+			{
+				u16 const cell = (y / 20) * columns + x / 16;
+				u32 const glyph = font + m_osd_code[cell] * 80 + (y % 20) * 4 + (x % 16) / 4;
+				u8 const ink = BIT(m_dram[glyph & (DRAM_SIZE - 1)], (x & 3) * 2, 2);
+				// TODO: Decode the OSD palette, attributes and blending controls.
+				if (ink)
+					bitmap.pix(y, x) = rgb_t(ink * 85, ink * 85, ink * 85);
+			}
+		}
+	}
 	return 0;
 }
 
+void c2_color_state::clear_state()
+{
+	m_companion_sda = 1;
+	std::fill(std::begin(m_regs), std::end(m_regs), 0);
+	std::fill(std::begin(m_dma_channel[0].m_dma_fill), std::end(m_dma_channel[0].m_dma_fill), 0);
+	std::fill(std::begin(m_dma_channel[1].m_dma_fill), std::end(m_dma_channel[1].m_dma_fill), 0);
 
+	for (int i = 0; i < 2; i++)
+	{
+		m_dma_channel[i].m_dma_trigger = 0;
+		m_dma_channel[i].m_dma_source = 0;
+		m_dma_channel[i].m_dma_dest = 0;
+		m_dma_channel[i].m_dma_fill_pos = 0;
 
+		for (int j = 0; j < 4; j++)
+		{
+			m_dma_channel[i].m_dma_count[j] = 0;
+			m_dma_channel[i].m_dma_source_addr[j] = 0;
+			m_dma_channel[i].m_dma_dest_addr[j] = 0;
+			m_dma_channel[i].m_dma_fill[j] = 0;
+		}
+	}
+
+	m_spi_selected = -1;
+
+	for (auto& table : m_quant)
+		std::fill(std::begin(table), std::end(table), 0);
+	m_quant_pos = 0;
+
+	m_lcd_sleep = true;
+	m_lcd_on = false;
+	m_audio_address = m_audio_remaining = 0;
+	m_audio_enabled = false;
+}
 
 void c2_color_state::machine_start()
 {
-	// if there's a cart, override the standard mapping
-	if (m_cart && m_cart->exists())
+	m_dram = std::make_unique<u8[]>(DRAM_SIZE);
+	m_osd_code = std::make_unique<u16[]>(0x10000);
+	m_osd_attr = std::make_unique<u8[]>(0x10000);
+
+	clear_state();
+
+	save_pointer(NAME(m_dram), DRAM_SIZE);
+	save_pointer(NAME(m_osd_code), 0x10000);
+	save_pointer(NAME(m_osd_attr), 0x10000);
+	save_item(NAME(m_lcd_sleep));
+	save_item(NAME(m_lcd_on));
+	save_item(NAME(m_regs));
+	save_item(NAME(m_dma_channel[0].m_dma_fill));
+	save_item(NAME(m_dma_channel[0].m_dma_fill_pos));
+	save_item(NAME(m_spi_selected));
+	save_item(NAME(m_quant));
+	save_item(NAME(m_quant_pos));
+	save_item(NAME(m_companion_sda));
+	save_item(NAME(m_audio_address));
+	save_item(NAME(m_audio_remaining));
+	save_item(NAME(m_audio_enabled));
+
+	save_item(NAME(m_2400_value));
+	save_item(NAME(m_2402_value));
+	save_item(NAME(m_229b_value));
+	save_item(NAME(m_2405_value));
+
+	save_item(NAME(m_2152_value));
+	save_item(NAME(m_2155_value));
+	save_item(NAME(m_2156_value));
+	save_item(NAME(m_2158_value));
+	save_item(NAME(m_2185_value));
+
+	save_item(NAME(m_irqack0));
+	save_item(NAME(m_irqack1));
+	save_item(NAME(m_irqack2));
+	save_item(NAME(m_irqack3));
+
+	save_item(NAME(m_irqenable0));
+	save_item(NAME(m_irqenable1));
+	save_item(NAME(m_irqenable2));
+	save_item(NAME(m_irqenable3));
+	
+
+	m_audio_timer = timer_alloc(FUNC(c2_color_state::audio_tick), this);
+	machine().save().register_postload(save_prepost_delegate(FUNC(c2_color_state::update_irq), this));
+
+	for (unsigned i = 0; i != 2; ++i)
 	{
-		std::string region_tag;
-		m_cart_region = memregion(region_tag.assign(m_cart->tag()).append(GENERIC_ROM_REGION_TAG).c_str());
+		memory_region *const region = i == 2 ? m_cart_region : memregion(i ? "spi2" : "spi1");
+		u32 const length = region ? region->bytes() : 1;
+		m_flash_data[i] = std::make_unique<u8[]>(length);
+		if (region)
+			std::copy_n(region->base(), length, m_flash_data[i].get());
+		else
+			m_flash_data[i][0] = 0xff;
+		m_flash[i]->set_rom_ptr(m_flash_data[i].get());
+		m_flash[i]->set_rom_size(length);
+		save_pointer(NAME(m_flash_data[i]), length, i);
 	}
 }
 
 void c2_color_state::machine_reset()
 {
+	std::fill_n(&m_xram[0], 0x2000, 0);
+	std::fill_n(m_dram.get(), DRAM_SIZE, 0);
+	std::fill_n(m_osd_code.get(), 0x10000, 0);
+	std::fill_n(m_osd_attr.get(), 0x10000, 0);
+	clear_state();
+	m_audio_timer->adjust(attotime::never);
+	m_dac->write(0x8000);
+	m_ram_access_upper[0] = 1;
+	m_2042_value = 0x10;
+	m_2002_value = 0x03;
+
+	m_2400_value = 0;
+	m_2402_value = 0;
+	m_229b_value = 0;
+	m_2405_value = 0;
+	m_2152_value = 0x20;
+	m_2155_value = 0;
+	m_2156_value = 0;
+	m_2158_value = 0;
+	m_2185_value = 0;
+	m_irqack0 = 0;
+	m_irqack1 = 0;
+	m_irqack2 = 0;
+	m_irqack3 = 0;
+	m_irqenable0 = 0;
+	m_irqenable1 = 0;
+	m_irqenable2 = 0;
+	m_irqenable3 = 0;
+
+	update_irq();
+
+	// The internal boot ROM is undumped.  Substitute its initial load of the
+	// built-in firmware into DRAM, skipping the SPI image's 32-byte header.
+	// The header specifies a 0x40000-byte initial load.
+	// Subsequent resource transfers use the emulated SPI and DMA controllers.
+	std::copy_n(m_flash_data[0].get() + 0x20, 0x40000, m_dram.get());
 }
 
-DEVICE_IMAGE_LOAD_MEMBER(c2_color_state::cart_load)
+u8 c2_color_state::code_r(offs_t offset)
 {
-	uint32_t const size = m_cart->common_get_size("rom");
-
-	m_cart->rom_alloc(size, GENERIC_ROM16_WIDTH, ENDIANNESS_LITTLE);
-	m_cart->common_load_rom(m_cart->get_rom_base(), size, "rom");
-
-	return std::make_pair(std::error_condition(), std::string());
+	if (BIT(m_xram_control[0], 0) && offset >= 0x4000 && offset < 0x4200)
+		return m_xram[offset - 0x4000];
+	u32 const address = offset < 0x8000 ? offset : ((u32)(m_ram_access_upper[0]) << 15) | (offset & 0x7fff);
+	return m_dram[address & (DRAM_SIZE - 1)];
 }
 
-u8 c2_color_state::cart_r(offs_t offset)
+u32 c2_color_state::get_32(u8* rgn) { return u32(rgn[0]) | (u32(rgn[1]) << 8) | (u32(rgn[2]) << 16) | (u32(rgn[3]) << 24); }
+u32 c2_color_state::get_24(u8* rgn) { return u32(rgn[0]) | (u32(rgn[1]) << 8) | (u32(rgn[2]) << 16); }
+u16 c2_color_state::get_16(u8* rgn) { return u16(rgn[0]) | (u16(rgn[1]) << 8); }
+u8 c2_color_state::get_8(u8* rgn) { return u8(rgn[0]); }
+
+
+
+void c2_color_state::spi_select()
 {
-	// skip past 32-byte header
-	return m_cart->read_rom(offset + 32);
+	// The first flash uses an active-high select; the other two are active-low.
+	s8 const selected = BIT(m_2155_value, 5) ? 0 : !BIT(m_2152_value, 5) ? 1 : !BIT(m_2042_value, 4) ? 2 : -1;
+	if (selected == m_spi_selected)
+		return;
+	for (unsigned i = 0; i != 2; ++i)
+		m_flash[i]->cs_w(selected != int(i));
+	m_spi_selected = selected;
+	LOGMASKED(LOG_SPI, "%s: SPI select %d\n", machine().describe_context(), selected);
 }
+
+u8 c2_color_state::spi_exchange(u8 data)
+{
+	if (m_spi_selected < 0 || (m_spi_selected == 2 && !m_cart_region))
+		return 0xff;
+	m_flash[m_spi_selected]->write(data);
+	return m_flash[m_spi_selected]->read();
+}
+
+u8 c2_color_state::dma_r(u8 source, u32 address)
+{
+	switch (source)
+	{
+	case 0:
+		return m_xram[address & 0x1fff];
+	case 2:
+	case 3:
+		return m_dram[address & (DRAM_SIZE - 1)];
+	case 9:
+		return spi_exchange(0xff);
+	default:
+		return 0xff;
+	}
+}
+
+void c2_color_state::dma_w(u8 destination, u32 address, u8 data)
+{
+	switch (destination)
+	{
+	case 0:
+		m_xram[address & 0x1fff] = data;
+		break;
+	case 2:
+	case 3:
+		m_dram[address & (DRAM_SIZE - 1)] = data;
+		break;
+	}
+}
+
+void c2_color_state::dma(unsigned channel)
+{
+	u8 const source = m_dma_channel[channel].m_dma_source & 0x0f;
+	u8 const destination = m_dma_channel[channel].m_dma_dest & 0x0f;
+	u32 const source_address = get_32(m_dma_channel[channel].m_dma_source_addr);
+	u32 const destination_address = get_32(m_dma_channel[channel].m_dma_dest_addr);
+	u32 const count = get_32(m_dma_channel[channel].m_dma_count);
+	bool const fill = BIT(m_dma_channel[channel].m_dma_trigger, 1);
+	LOGMASKED(LOG_DMA, "%s: DMA %u %x:%08x -> %x:%08x, %08x bytes%s\n", machine().describe_context(), channel,
+		source, source_address, destination, destination_address, count, fill ? " (fill)" : "");
+
+	// The observed transfers fit within DRAM.  Other modes, peripheral targets
+	// and transfer timing still need investigation.
+	if (count > DRAM_SIZE || (!fill && source != 0 && source != 2 && source != 3 && source != 9)
+		|| (destination != 0 && destination != 2 && destination != 3))
+	{
+		LOGMASKED(LOG_DMA, "%s: unsupported DMA transfer\n", machine().describe_context());
+		return;
+	}
+	for (u32 i = 0; i != count; ++i)
+	{
+		dma_w(destination, destination_address + i, fill ? m_dma_channel[channel].m_dma_fill[i & 3] : dma_r(source, source_address + i));
+	}
+
+	m_irq_status0[0] |= 0x40 << channel;
+	if (destination == 2 || destination == 3)
+	{
+		m_irq_status0[0] |= 0x01;
+		m_irq_status1[0] |= 0x40;
+	}
+	update_irq();
+}
+
+void c2_color_state::dram_access(u8 data)
+{
+	// Firmware first writes 03, then requests a four-byte read or write.
+	if (data == 0x07)
+	{
+		u32 const address = get_32(m_dram_dword_out);
+		for (unsigned i = 0; i != 4; ++i)
+			m_dram[(address + i) & (DRAM_SIZE - 1)] = m_dram_dword_out[i];
+		m_2405_value |= 0x08;
+	}
+	else if (data == 0x13)
+	{
+		u32 const address = get_32(m_dram_dword_in);
+		for (unsigned i = 0; i != 4; ++i)
+			m_dram_dword_in[i] = m_dram[(address + i) & (DRAM_SIZE - 1)];
+		m_2405_value |= 0x20;
+	}
+}
+
+void c2_color_state::jpeg_decode()
+{
+	u16 const width = get_32(m_jpeg_width) & 0xffff;
+	u16 const height = get_32(m_jpeg_height) & 0xffff;
+	u32 const source = get_32(m_jpeg_src);
+	u32 const destination = get_24(m_jpeg_dest);
+	u32 const length = get_24(m_jpeg_len);
+
+	if (!width || !height || u32(width) * height > DRAM_SIZE / 2 || !length || length > DRAM_SIZE)
+		return;
+
+	// The hardware receives quantisation tables and a baseline 4:2:2 scan
+	// separately.  Supply the JPEG framing expected by the existing decoder;
+	// libjpeg supplies the standard Huffman tables when DHT is omitted.
+	// TODO: Establish whether DRAM holds RGB565 or YUV422 converted on display.
+	std::vector<u8> stream{ 0xff, 0xd8, 0xff, 0xdb, 0x00, 0x84 };
+	for (unsigned table = 0; table != 2; ++table)
+	{
+		stream.push_back(table);
+		for (unsigned i = 0; i != 64; ++i)
+			stream.push_back(m_quant[table][i * 2]);
+	}
+	u8 const header[] = { 0xff, 0xc0, 0x00, 0x11, 0x08, u8(height >> 8), u8(height), u8(width >> 8), u8(width), 0x03, 0x01, 0x21, 0x00, 0x02, 0x11, 0x01, 0x03, 0x11, 0x01, 0xff, 0xda, 0x00, 0x0c, 0x03, 0x01, 0x00, 0x02, 0x11, 0x03, 0x11, 0x00, 0x3f, 0x00 };
+	stream.insert(stream.end(), std::begin(header), std::end(header));
+
+	for (u32 i = 0; i != length; ++i)
+		stream.push_back(m_dram[(source + i) & (DRAM_SIZE - 1)]);
+
+	stream.push_back(0xff);
+	stream.push_back(0xd9);
+	bitmap_argb32 decoded;
+	auto input = util::ram_read(stream.data(), stream.size());
+	if (input)
+		render_load_jpeg(decoded, *input);
+	if (!decoded.valid())
+		return;
+
+	for (u32 y = 0; y != decoded.height(); ++y)
+	{
+		for (u32 x = 0; x != decoded.width(); ++x)
+		{
+			rgb_t const color(decoded.pix(y, x));
+			u16 const pixel = ((color.r() >> 3) << 11) | ((color.g() >> 2) << 5) | (color.b() >> 3);
+			u32 const address = destination + (y * width + x) * 2;
+			m_dram[address & (DRAM_SIZE - 1)] = pixel;
+			m_dram[(address + 1) & (DRAM_SIZE - 1)] = pixel >> 8;
+		}
+	}
+	m_irq_status1[0] |= 0x30;
+	update_irq();
+}
+
+void c2_color_state::update_irq()
+{
+	m_maincpu->set_input_line(MCS51_INT0_LINE, ((m_irq_status0[0] & m_irqenable0) | (m_irq_status1[0] & m_irqenable1)) ? ASSERT_LINE : CLEAR_LINE);
+	m_maincpu->set_input_line(MCS51_INT1_LINE, ((m_irq_status2[0] & m_irqenable2) | (m_irq_status3[0] & m_irqenable3)) ? ASSERT_LINE : CLEAR_LINE);
+}
+
+void c2_color_state::audio_control()
+{
+	bool const enabled = BIT(m_208c_value, 0) && BIT(m_2097_value, 1) && BIT(m_246d_value, 1);
+	if (enabled && !m_audio_enabled)
+	{
+		// Addresses and lengths are in 16-bit samples.  The observed setting
+		// (20ab bits 2:1 clear) plays signed little-endian mono PCM at 8 kHz.
+		// TODO: Other rates, formats, volume and output filtering.
+		m_audio_address = get_24(m_audio_address_reg) * 2;
+		m_audio_remaining = get_24(m_audio_remaining_reg);
+		m_audio_timer->adjust(attotime::zero, 0, attotime::from_hz(8000));
+	}
+	else if (!enabled)
+	{
+		m_audio_timer->adjust(attotime::never);
+		m_dac->write(0x8000);
+	}
+	m_audio_enabled = enabled;
+}
+
+TIMER_CALLBACK_MEMBER(c2_color_state::audio_tick)
+{
+	if (m_audio_remaining)
+	{
+		u16 const sample = m_dram[m_audio_address & (DRAM_SIZE - 1)]
+			| (u16(m_dram[(m_audio_address + 1) & (DRAM_SIZE - 1)]) << 8);
+		m_dac->write(sample ^ 0x8000);
+		m_audio_address += 2;
+		--m_audio_remaining;
+	}
+	else
+	{
+		m_dac->write(0x8000);
+		m_audio_timer->adjust(attotime::never);
+		m_irq_status3[0] |= 0x10;
+		update_irq();
+	}
+}
+
+u8 c2_color_state::io_2002_r()
+{
+	u8 data = m_2002_value;
+	return (data & ~2) | ((BIT(data, 1) && m_companion_sda) ? 2 : 0);
+}
+
+void c2_color_state::io_2002_w(u8 data)
+{
+	m_2002_value = data;
+	if (!BIT(data, 0))
+		m_companion->scl_write(0);
+	m_companion->sda_write(BIT(data, 1));
+	if (BIT(data, 0))
+		m_companion->scl_write(1);
+}
+
+u8 c2_color_state::io_2042_r()
+{
+	return m_2042_value;
+}
+
+void c2_color_state::io_2042_w(u8 data)
+{
+	m_2042_value = data;
+	spi_select();
+}
+
+u8 c2_color_state::io_2053_r()
+{
+	u8 data = m_2053_value;
+	return (data & 0x03) | (m_buttons->read() & 0xfc);
+}
+
+void c2_color_state::io_2053_w(u8 data)
+{
+	m_2053_value = data;
+}
+
+u8 c2_color_state::io_208c_r()
+{
+	return m_208c_value;
+}
+
+void c2_color_state::io_208c_w(u8 data)
+{
+	m_208c_value = data;
+	audio_control();
+}
+
+u8 c2_color_state::io_2097_r()
+{
+	return m_2097_value;
+}
+
+void c2_color_state::io_2097_w(u8 data)
+{
+	m_2097_value = data;
+	audio_control();
+}
+
+
+u8 c2_color_state::io_2064_r()
+{
+	return m_2064_value;
+}
+
+void c2_color_state::io_2064_w(u8 data)
+{
+	m_2064_value = data;
+	if (BIT(data, 1))
+	{
+		// The millisecond unit is inferred from the LCD Sleep Out delay.
+		// TODO: Identify the timer clock and divider controls.
+		u32 const ticks = machine().time().as_ticks(1000);
+		for (unsigned i = 0; i != 4; ++i)
+			m_timer_val[i] = ticks >> (8 * i);
+		m_2064_value &= ~0x02;
+	}
+}
+
+u8 c2_color_state::io_20ad_r()
+{
+	return m_20ad_value;
+}
+
+void c2_color_state::io_20ad_w(u8 data)
+{
+	u8 previous = m_20ad_value;
+
+	m_20ad_value = (data & ~9) | (previous & 8);
+	if (BIT(data, 0))
+	{
+		// Channel 0 measures the batteries.  Voltage scaling, other inputs
+		// and conversion timing are unknown; use representative raw levels.
+		u16 const sample = (m_adc_reg1[0] & 3) == 0 ? m_battery->read() : 0;
+		m_adc_reg3[0] = sample >> 8;
+		m_adc_reg4[0] = sample;
+		m_20ad_value |= 8;
+	}
+}
+
+u8 c2_color_state::io_2185_r()
+{
+	return m_2185_value;
+}
+
+void c2_color_state::io_2185_w(u8 data)
+{
+	u8 previous = m_2185_value;
+	m_2185_value = data;
+
+	// The two table-write strobes are armed separately before both go high.
+	if ((data & 6) == 6)
+	{
+		if (!(previous & 2))
+			m_osd_code[get_16(m_render_osd0)] = get_16(m_render_osd1);
+		if (!(previous & 4))
+			m_osd_attr[get_16(m_render_osd2)] = m_render_osd3[0];
+		m_2185_value &= ~6;
+	}
+
+}
+
+void c2_color_state::io_21c0_w(u8 data)
+{
+	switch (data)
+	{
+	case 0x10: m_lcd_sleep = true; break;
+	case 0x11: m_lcd_sleep = false; break;
+	case 0x28: m_lcd_on = false; break;
+	case 0x29: m_lcd_on = true; break;
+	}
+}
+
+void c2_color_state::io_2402_w(u8 data)
+{
+	u8 previous = m_2402_value;
+	m_2402_value = data;
+
+	if ((data & 0x18) == 0x18 && (previous & 0x18) != 0x18)
+		jpeg_decode();
+}
+
+u8 c2_color_state::io_229b_r()
+{
+	return m_229b_value;
+}
+
+void c2_color_state::io_229b_w(u8 data)
+{
+	u8 previous = m_229b_value;
+	m_229b_value = data;
+
+	if (BIT(previous, 3) && !BIT(data, 3))
+		m_quant_pos = 0;
+}
+
+void c2_color_state::io_229d_w(u8 data)
+{
+	m_quant[BIT(m_229b_value, 2) ? 0 : 1][m_quant_pos++ & 0x7f] = data;
+}
+
+u8 c2_color_state::io_2152_r()
+{
+	return (m_2152_value & 0x7f) | (BIT(m_buttons->read(), 0) ? 0x80 : 0);
+}
+
+void c2_color_state::io_2152_w(u8 data)
+{
+	m_2152_value = data;
+	spi_select();
+}
+
+u8 c2_color_state::io_2156_r()
+{
+	return m_2156_value |= 0x18; /* SPI transmit / receive ready; transfers currently complete immediately. */
+}
+
+void c2_color_state::io_2156_w(u8 data)
+{
+	m_2156_value = data;
+}
+
+u8 c2_color_state::io_2155_r()
+{
+	return m_2155_value;
+}
+
+void c2_color_state::io_2155_w(u8 data)
+{
+	m_2155_value = data;
+	spi_select();
+}
+
+
+u8 c2_color_state::io_2158_r()
+{
+	return m_2158_value;
+}
+
+void c2_color_state::io_2157_w(u8 data)
+{
+	spi_exchange(data);
+}
+
+void c2_color_state::io_2158_w(u8 data)
+{
+	m_2158_value = spi_exchange(data);
+}
+
+u8 c2_color_state::irqack0_r()
+{
+	return m_irqack0;
+}
+
+u8 c2_color_state::irqack1_r()
+{
+	return m_irqack1;
+}
+
+u8 c2_color_state::irqack2_r()
+{
+	return m_irqack2;
+}
+
+u8 c2_color_state::irqack3_r()
+{
+	return m_irqack3;
+}
+
+u8 c2_color_state::irqenable0_r()
+{
+	return m_irqenable0;
+}
+
+u8 c2_color_state::irqenable1_r()
+{
+	return m_irqenable1;
+}
+
+u8 c2_color_state::irqenable2_r()
+{
+	return m_irqenable2;
+}
+
+u8 c2_color_state::irqenable3_r()
+{
+	return m_irqenable3;
+}
+
+void c2_color_state::irqenable0_w(u8 data)
+{
+	m_irqenable0 = data;
+	update_irq();
+}
+
+void c2_color_state::irqenable1_w(u8 data)
+{
+	m_irqenable1 = data;
+	update_irq();
+}
+
+void c2_color_state::irqenable2_w(u8 data)
+{
+	m_irqenable2 = data;
+	update_irq();
+}
+
+void c2_color_state::irqenable3_w(u8 data)
+{
+	m_irqenable3 = data;
+	update_irq();
+}
+
+void c2_color_state::irqack0_w(u8 data)
+{
+	m_irqack0 = data;
+	m_irq_status0[0] &= ~data;
+	update_irq();
+}
+
+void c2_color_state::irqack1_w(u8 data)
+{
+	m_irqack1 = data;
+	m_irq_status1[0] &= ~data;
+	update_irq();
+}
+
+void c2_color_state::irqack2_w(u8 data)
+{
+	m_irqack2 = data;
+	m_irq_status2[0] &= ~data;
+	update_irq();
+}
+
+void c2_color_state::irqack3_w(u8 data)
+{
+	m_irqack3 = data;
+	m_irq_status3[0] &= ~data;
+	update_irq();
+}
+
 
 void c2_color_state::prog_map(address_map &map)
 {
-	map(0x0000, 0xffff).r(FUNC(c2_color_state::cart_r));
+	map(0x0000, 0xffff).r(FUNC(c2_color_state::code_r));
+}
+
+u8 c2_color_state::io_2400_r()
+{
+	u8 data = m_2400_value;
+	return (data & 0x3f) | (BIT(data, 2) ? 0x80 : 0x40); /* DRAM stop / resume acknowledgement. */
+}
+
+u8 c2_color_state::io_246d_r()
+{
+	return m_246d_value;
+}
+
+void c2_color_state::io_246d_w(u8 data)
+{
+	m_246d_value = data;
+	audio_control();
+}
+
+u8 c2_color_state::io_2405_r()
+{
+	return m_2405_value;
+}
+
+void c2_color_state::io_2405_w(u8 data)
+{
+	m_2405_value = data;
+	dram_access(data);
+}
+
+void c2_color_state::io_2400_w(u8 data)
+{
+	m_2400_value = data;
+}
+
+
+u8 c2_color_state::c2_dma_channel_r(int channel, offs_t offset)
+{
+	if (offset == 0x26)
+	{
+		// read
+		return 0x00;
+	}
+	// not seen read
+	return 0x00;
+}
+
+void c2_color_state::c2_dma_channel_w(int channel, offs_t offset, u8 data)
+{
+	if (offset == 0x00)
+	{
+		m_dma_channel[channel].m_dma_trigger = data;
+		if (data == 2)
+			m_dma_channel[channel].m_dma_fill_pos = 0;
+		if (BIT(data, 0))
+			dma(channel);
+	}
+	else if (offset < 0x05)
+	{
+		int realoffset = offset - 0x01;
+		m_dma_channel[channel].m_dma_count[realoffset] = data;
+	}
+	else if (offset < 0x0d)
+	{
+		// unknown
+	}
+	else if (offset == 0xd)
+	{
+		m_dma_channel[channel].m_dma_fill[m_dma_channel[channel].m_dma_fill_pos++ & 3] = data;
+	}
+	else if (offset < 0x0f)
+	{
+		// unknown
+	}
+	else if (offset == 0x10)
+	{
+		m_dma_channel[channel].m_dma_source = data;
+	}
+	else if (offset < 0x12)
+	{
+		// unknown
+	}
+	else if (offset < 0x16)
+	{
+		int realoffset = offset - 0x12;
+		m_dma_channel[channel].m_dma_source_addr[realoffset] = data;
+	}
+	else if (offset < 0x25)
+	{
+		// unknown
+	}
+	else if (offset == 0x25)
+	{
+		m_dma_channel[channel].m_dma_dest = data;
+	}
+	else if (offset == 0x26)
+	{
+		// unknown
+	}
+	else if (offset < 0x2b)
+	{
+		int realoffset = offset - 0x27;
+		m_dma_channel[channel].m_dma_dest_addr[realoffset] = data;
+	}
+	else
+	{
+		// unknown
+	}
+}
+
+u8 c2_color_state::c2_dma_channel0_r(offs_t offset)
+{
+	return c2_dma_channel_r(0, offset);
+}
+
+void c2_color_state::c2_dma_channel0_w(offs_t offset, u8 data)
+{
+	c2_dma_channel_w(0, offset, data);
+}
+
+u8 c2_color_state::c2_dma_channel1_r(offs_t offset)
+{
+	return c2_dma_channel_r(1, offset);
+}
+
+void c2_color_state::c2_dma_channel1_w(offs_t offset, u8 data)
+{
+	c2_dma_channel_w(1, offset, data);
 }
 
 void c2_color_state::ext_map(address_map &map)
 {
-	map(0x2400, 0x2400).nopr();
+	map(0x0000, 0x1fff).ram().share("xram");
+
+	//////////////////////////////////////////////
+	// 0x2000 region
+	//////////////////////////////////////////////
+
+	map(0x2002, 0x2002).rw(FUNC(c2_color_state::io_2002_r), FUNC(c2_color_state::io_2002_w));
+
+	map(0x2004, 0x2004).ram();
+	map(0x200a, 0x200b).ram();
+
+	map(0x2024, 0x2027).ram().share("jpeg_width"); // we only use 16-bits
+
+	map(0x202a, 0x202d).ram().share("jpeg_height"); // we only use 16-bits
+
+	map(0x2028, 0x2029).nopw();
+
+	map(0x202e, 0x202f).nopw();
+
+	map(0x203a, 0x203c).ram();
+
+	map(0x203f, 0x2041).ram();
+
+	map(0x2042, 0x2042).rw(FUNC(c2_color_state::io_2042_r), FUNC(c2_color_state::io_2042_w));
+
+	map(0x204b, 0x204c).ram();
+
+	map(0x2051, 0x2051).ram();
+
+	map(0x2053, 0x2053).rw(FUNC(c2_color_state::io_2053_r), FUNC(c2_color_state::io_2053_w));
+
+	map(0x205a, 0x205c).ram(); // 205a is only read?
+
+	map(0x205f, 0x2062).ram().share("timer_val");
+
+	map(0x2064, 0x2064).rw(FUNC(c2_color_state::io_2064_r), FUNC(c2_color_state::io_2064_w));
+
+	map(0x2065, 0x2065).ram();
+	map(0x2066, 0x2066).nopw();
+	map(0x2067, 0x2067).ram();
+
+	map(0x208c, 0x208c).rw(FUNC(c2_color_state::io_208c_r), FUNC(c2_color_state::io_208c_w));
+
+	map(0x208d, 0x208d).ram();
+
+	map(0x2093, 0x2093).nopw();
+
+	map(0x2097, 0x2097).rw(FUNC(c2_color_state::io_2097_r), FUNC(c2_color_state::io_2097_w));
+
+	map(0x2099, 0x209b).ram().share("audio_remaining_reg"); // Audio remaining 3 bytes
+	map(0x20a5, 0x20a7).ram().share("audio_address_reg"); // Audio address 3 bytes
+
+	map(0x20ab, 0x20ab).ram();
+	map(0x20ac, 0x20ac).ram().share("adc_reg1");
+
+	map(0x20ad, 0x20ad).rw(FUNC(c2_color_state::io_20ad_r), FUNC(c2_color_state::io_20ad_w));
+
+	map(0x20ae, 0x20ae).ram().share("adc_reg3");
+
+	map(0x20af, 0x20af).ram().share("adc_reg4");
+
+	map(0x20b6, 0x20b9).nopw();
+
+	//////////////////////////////////////////////
+	// 0x2100 region
+	//////////////////////////////////////////////
+
+	map(0x2140, 0x2140).ram();
+	map(0x2141, 0x2141).ram().share("xram_control");
+	map(0x2142, 0x2142).ram();
+
+	map(0x2144, 0x2144).ram().share("ram_access_upper");
+
+	map(0x2145, 0x2145).rw(FUNC(c2_color_state::irqenable0_r), FUNC(c2_color_state::irqenable0_w));
+	map(0x2146, 0x2146).rw(FUNC(c2_color_state::irqenable1_r), FUNC(c2_color_state::irqenable1_w));
+	map(0x2147, 0x2147).ram().share("irq_status0");
+	map(0x2148, 0x2148).ram().share("irq_status1");
+	map(0x2149, 0x2149).rw(FUNC(c2_color_state::irqack0_r), FUNC(c2_color_state::irqack0_w));
+	map(0x214a, 0x214a).rw(FUNC(c2_color_state::irqack1_r), FUNC(c2_color_state::irqack1_w));
+
+	map(0x214b, 0x214b).rw(FUNC(c2_color_state::irqenable2_r), FUNC(c2_color_state::irqenable2_w));
+	map(0x214c, 0x214c).rw(FUNC(c2_color_state::irqenable3_r), FUNC(c2_color_state::irqenable3_w));
+	map(0x214d, 0x214d).ram().share("irq_status2");
+	map(0x214e, 0x214e).ram().share("irq_status3");
+	map(0x214f, 0x214f).rw(FUNC(c2_color_state::irqack2_r), FUNC(c2_color_state::irqack2_w));
+	map(0x2150, 0x2150).rw(FUNC(c2_color_state::irqack3_r), FUNC(c2_color_state::irqack3_w));
+
+	map(0x2151, 0x2151).nopw();
+
+	map(0x2152, 0x2152).rw(FUNC(c2_color_state::io_2152_r), FUNC(c2_color_state::io_2152_w));
+
+	map(0x2154, 0x2154).ram();
+	map(0x2155, 0x2155).rw(FUNC(c2_color_state::io_2155_r), FUNC(c2_color_state::io_2155_w));
+	map(0x2156, 0x2156).rw(FUNC(c2_color_state::io_2156_r), FUNC(c2_color_state::io_2156_w));
+
+	map(0x2157, 0x2157).w(FUNC(c2_color_state::io_2157_w)); /* Bit 6 of 2155 also enables a debug output stream on this port,  With no flash selected those bytes do not enter a flash command parser. */
+	map(0x2158, 0x2158).rw(FUNC(c2_color_state::io_2158_r), FUNC(c2_color_state::io_2158_w));
+	map(0x215c, 0x215d).ram();
+
+	map(0x2184, 0x2184).ram();
+	map(0x2185, 0x2185).rw(FUNC(c2_color_state::io_2185_r), FUNC(c2_color_state::io_2185_w));
+
+	map(0x2186, 0x2186).ram().share("render_columns");
+	map(0x2187, 0x2187).ram().share("render_rows");
+
+	map(0x2188, 0x2288).ram();
+	map(0x218a, 0x228c).ram();
+
+	map(0x228d, 0x229c).nopw();
+	map(0x219d, 0x219e).ram().share("render_osd0");
+	map(0x219f, 0x21a0).ram().share("render_osd1");
+	map(0x21a1, 0x21a2).ram().share("render_osd2");
+	map(0x21a3, 0x21a3).ram().share("render_osd3");
+	map(0x21a4, 0x21a5).ram().share("render_font");
+	map(0x21a6, 0x21bb).nopw();
+
+	map(0x21bf, 0x21bf).nopw();
+	map(0x21c0, 0x21c0).w(FUNC(c2_color_state::io_21c0_w));
+
+	map(0x21c7, 0x21c7).ram();
+
+	//////////////////////////////////////////////
+	// 0x2200 region
+	//////////////////////////////////////////////
+
+	map(0x2200, 0x2239).rw(FUNC(c2_color_state::c2_dma_channel0_r), FUNC(c2_color_state::c2_dma_channel0_w));
+	map(0x223a, 0x2273).rw(FUNC(c2_color_state::c2_dma_channel1_r), FUNC(c2_color_state::c2_dma_channel1_w));
+
+	map(0x229a, 0x229a).nopw();
+	map(0x229b, 0x229b).rw(FUNC(c2_color_state::io_229b_r), FUNC(c2_color_state::io_229b_w));
+
+	map(0x229d, 0x229d).w(FUNC(c2_color_state::io_229d_w));
+
+	map(0x22a1, 0x22a1).ram();
+
+	//////////////////////////////////////////////
+	// 0x2300 region
+	//////////////////////////////////////////////
+
+	map(0x2345, 0x2345).ram();
+	map(0x2336, 0x233c).nopw();
+	map(0x234d, 0x234d).ram();
+
+	//////////////////////////////////////////////
+	// 0x2400 region
+	//////////////////////////////////////////////
+
+	map(0x2400, 0x2400).rw(FUNC(c2_color_state::io_2400_r), FUNC(c2_color_state::io_2400_w));
+
+	map(0x2402, 0x2402).w(FUNC(c2_color_state::io_2402_w));
+
+	map(0x2403, 0x2404).ram();
+	map(0x2405, 0x2405).rw(FUNC(c2_color_state::io_2405_r), FUNC(c2_color_state::io_2405_w));
+	map(0x2406, 0x2407).nopw();
+
+	map(0x2429, 0x242c).ram().share("dram_dword_out2");
+	map(0x242d, 0x2430).ram().share("dram_dword_out");
+
+	map(0x2431, 0x2434).ram().share("dram_dword_in2");
+	map(0x2435, 0x2438).ram().share("dram_dword_in");
+
+	map(0x2446, 0x2449).nopw();
+
+	map(0x244a, 0x244c).ram().share("jpeg_dest");
+	map(0x244d, 0x244d).ram();
+	map(0x244e, 0x2451).ram().share("jpeg_src");
+	map(0x2452, 0x2454).ram().share("jpeg_len");
+	map(0x2455, 0x2455).ram();
+
+	map(0x2456, 0x245f).nopw();
+
+	map(0x2460, 0x2462).ram().share("render_base");
+
+	map(0x2464, 0x2466).nopw();
+
+	map(0x2468, 0x246a).nopw();
+
+	map(0x246c, 0x246c).nopw();
+
+	map(0x246d, 0x246d).rw(FUNC(c2_color_state::io_246d_r), FUNC(c2_color_state::io_246d_w));
+
+	map(0x246e, 0x246e).ram().share("render_unk");
+
+	map(0x246f, 0x2472).ram().share("render_overlay");
+	map(0x2473, 0x2476).ram().share("render_mask");
+	map(0x2477, 0x2478).ram().share("overlay_width");
+	map(0x2479, 0x247a).ram().share("overlay_height");
+	map(0x247b, 0x247c).ram().share("overlay_x");
+	map(0x247d, 0x247e).ram().share("overlay_y");
+
+	map(0x24a4, 0x24a4).ram();
+
+	//////////////////////////////////////////////
+	// 0x2500 region
+	//////////////////////////////////////////////
+
+	map(0x2541, 0x2541).ram();
+	map(0x2542, 0x2546).nopw();
+
+	map(0x254a, 0x254a).ram();
+
+	map(0x256b, 0x256e).nopw();
+
+	map(0x25e3, 0x25e6).nopw();
 }
 
 static INPUT_PORTS_START( c2_color )
+	PORT_START("BUTTONS")
+	PORT_BIT(0x01, IP_ACTIVE_HIGH, IPT_BUTTON3) PORT_NAME("Button C")
+	PORT_BIT(0x02, IP_ACTIVE_HIGH, IPT_UNUSED)
+	PORT_BIT(0x04, IP_ACTIVE_HIGH, IPT_JOYSTICK_DOWN)
+	PORT_BIT(0x08, IP_ACTIVE_HIGH, IPT_JOYSTICK_UP)
+	PORT_BIT(0x10, IP_ACTIVE_HIGH, IPT_JOYSTICK_RIGHT)
+	PORT_BIT(0x20, IP_ACTIVE_HIGH, IPT_JOYSTICK_LEFT)
+	PORT_BIT(0x40, IP_ACTIVE_HIGH, IPT_BUTTON1) PORT_NAME("Button A")
+	PORT_BIT(0x80, IP_ACTIVE_HIGH, IPT_BUTTON2) PORT_NAME("Button B")
+
+	PORT_START("BATTERY")
+	PORT_CONFNAME(0x0fff, 0x0200, "Battery")
+	PORT_CONFSETTING(0x0200, "Full")
+	PORT_CONFSETTING(0x0100, "Low")
+	PORT_CONFSETTING(0x0040, "Empty")
 INPUT_PORTS_END
 
 void c2_color_state::c2_color(machine_config &config)
 {
-	I8032(config, m_maincpu, 12'000'000); // exact type and clock unknown
+	C2_COLOR_CPU(config, m_maincpu, 24'000'000); // exact type and clock / opcode cycle counts unknown
 	m_maincpu->set_addrmap(AS_PROGRAM, &c2_color_state::prog_map);
 	m_maincpu->set_addrmap(AS_DATA, &c2_color_state::ext_map);
 
 	SCREEN(config, m_screen);
 	m_screen->set_refresh_hz(60);
 	m_screen->set_vblank_time(ATTOSECONDS_IN_USEC(0));
-	m_screen->set_size(64*8, 32*8);
-	m_screen->set_visarea(0*8, 40*8-1, 0*8, 30*8-1);
+	m_screen->set_size(320, 240);
+	m_screen->set_visarea_full();
 	m_screen->set_screen_update(FUNC(c2_color_state::screen_update));
-	m_screen->set_palette(m_palette);
 
-	PALETTE(config, m_palette).set_format(palette_device::xBGR_555, 0x200);
+	SPEAKER(config, "speaker").front_center();
+	DAC_16BIT_R2R(config, m_dac).add_route(ALL_OUTPUTS, "speaker", 1.0);
 
-	GENERIC_CARTSLOT(config, m_cart, generic_plain_slot, "c2color_cart");
-	m_cart->set_width(GENERIC_ROM16_WIDTH);
-	m_cart->set_device_load(FUNC(c2_color_state::cart_load));
+	GENERIC_SPI_FLASH(config, m_flash[0]);
+	GENERIC_SPI_FLASH(config, m_flash[1]);
+
+	C2_COLOR_COMPANION(config, m_companion);
+	m_companion->sda_callback().set([this] (int state) { m_companion_sda = state; });
+
+	C2COLOR_CARTSLOT(config, "cartslot", c2color_plain_slot);
 
 	SOFTWARE_LIST(config, "cart_list").set_original("c2color_cart");
 }
@@ -175,9 +1472,9 @@ ROM_START( c2color )
 	// unclear if any of the code is used, or if these ROMs are used more like skins
 	// for the base game, accessing the resource table only
 	//
-	// A large number of graphics, which are assumed to be JPEG compressed are indexed
-	// by the MRDB tables, no sound effects or non-graphical resources have been
-	// identified
+	// The MRDB tables index IMG0 resources containing quantisation tables and
+	// baseline JPEG scans.  No sound effects or non-graphical resources have
+	// been identified in this flash.
 
 	ROM_REGION( 0x400000, "spi2", ROMREGION_ERASEFF )
 	ROM_LOAD( "spi.u16", 0x000000, 0x400000, CRC(9101b02a) SHA1(8c31e7641f4667bd8d5d7cc991cd5976828a0628) )
@@ -187,4 +1484,4 @@ ROM_END
 
 
 //    year, name,         parent,  compat, machine,      input,        class,              init,       company,  fullname,                             flags
-CONS( 201?, c2color,      0,       0,      c2_color,   c2_color, c2_color_state, empty_init, "Baiyi Animation", "C2 Color (China)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
+CONS( 201?, c2color,      0,       0,      c2_color,   c2_color, c2_color_state, empty_init, "Baiyi Animation", "C2 Color (China)", MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_GRAPHICS | MACHINE_NOT_WORKING )
