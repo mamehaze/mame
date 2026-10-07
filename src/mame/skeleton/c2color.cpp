@@ -74,7 +74,9 @@ public:
 		, m_xram(*this, "xram")
 
 		, m_dram_dword_out(*this, "dram_dword_out")
+		, m_dram_dword_out2(*this, "dram_dword_out2")
 	    , m_dram_dword_in(*this, "dram_dword_in")
+	    , m_dram_dword_in2(*this, "dram_dword_in2")
 	    , m_jpeg_dest(*this, "jpeg_dest")
 	    , m_jpeg_src(*this, "jpeg_src")
 	    , m_jpeg_len(*this, "jpeg_len")
@@ -131,6 +133,7 @@ private:
 	u8 m_2400_value;
 	u8 m_2402_value;
 	u8 m_229b_value;
+	u8 m_2405_value;
 
 	u8 io_246d_r();
 	void io_246d_w(u8 data);
@@ -158,7 +161,6 @@ private:
 
 	void prog_map(address_map &map) ATTR_COLD;
 	void ext_map(address_map &map) ATTR_COLD;
-	void io_2300_map(address_map &map) ATTR_COLD;
 
 	required_device<c2_color_cpu_device> m_maincpu;
 	required_device<c2color_cartslot_device> m_cart;
@@ -168,7 +170,9 @@ private:
 	required_shared_ptr<u8> m_xram;
 
 	required_shared_ptr<u8> m_dram_dword_out;
+	required_shared_ptr<u8> m_dram_dword_out2;
 	required_shared_ptr<u8> m_dram_dword_in;
+	required_shared_ptr<u8> m_dram_dword_in2;
 	required_shared_ptr<u8> m_jpeg_dest;
 	required_shared_ptr<u8> m_jpeg_src;
 	required_shared_ptr<u8> m_jpeg_len;
@@ -348,6 +352,12 @@ void c2_color_state::machine_start()
 	save_item(NAME(m_audio_remaining));
 	save_item(NAME(m_audio_enabled));
 
+	save_item(NAME(m_2400_value));
+	save_item(NAME(m_2402_value));
+	save_item(NAME(m_229b_value));
+	save_item(NAME(m_2405_value));
+
+
 	m_audio_timer = timer_alloc(FUNC(c2_color_state::audio_tick), this);
 	machine().save().register_postload(save_prepost_delegate(FUNC(c2_color_state::update_irq), this));
 
@@ -384,6 +394,7 @@ void c2_color_state::machine_reset()
 	m_2400_value = 0;
 	m_2402_value = 0;
 	m_229b_value = 0;
+	m_2405_value = 0;
 
 	// The internal boot ROM is undumped.  Substitute its initial load of the
 	// built-in firmware into DRAM, skipping the SPI image's 32-byte header.
@@ -499,17 +510,17 @@ void c2_color_state::dram_access(u8 data)
 	// Firmware first writes 03, then requests a four-byte read or write.
 	if (data == 0x07)
 	{
-		u32 const address = reg32(0x2429);
+		u32 const address = get_32(m_dram_dword_out);
 		for (unsigned i = 0; i != 4; ++i)
 			m_dram[(address + i) & (DRAM_SIZE - 1)] = m_dram_dword_out[i];
-		reg(0x2405) |= 0x08;
+		m_2405_value |= 0x08;
 	}
 	else if (data == 0x13)
 	{
-		u32 const address = reg32(0x2431);
+		u32 const address = get_32(m_dram_dword_in);
 		for (unsigned i = 0; i != 4; ++i)
-			m_dram_dword_out[i] = m_dram[(address + i) & (DRAM_SIZE - 1)];
-		reg(0x2405) |= 0x20;
+			m_dram_dword_in[i] = m_dram[(address + i) & (DRAM_SIZE - 1)];
+		m_2405_value |= 0x20;
 	}
 }
 
@@ -977,12 +988,12 @@ void c2_color_state::io_246d_w(u8 data)
 
 u8 c2_color_state::io_2405_r()
 {
-	return read_unk_reg(0x2405);
+	return m_2405_value;
 }
 
 void c2_color_state::io_2405_w(u8 data)
 {
-	write_unk_reg(0x2405, data);
+	m_2405_value = data;
 	dram_access(data);
 }
 
@@ -1136,9 +1147,10 @@ void c2_color_state::ext_map(address_map &map)
 	map(0x2405, 0x2405).rw(FUNC(c2_color_state::io_2405_r), FUNC(c2_color_state::io_2405_w));
 	map(0x2406, 0x2407).nopw();
 
+	map(0x2429, 0x242c).ram().share("dram_dword_out2");
 	map(0x242d, 0x2430).ram().share("dram_dword_out");
 
-	map(0x2431, 0x2434).nopw();
+	map(0x2431, 0x2434).ram().share("dram_dword_in2");
 	map(0x2435, 0x2438).ram().share("dram_dword_in");
 
 	map(0x2446, 0x2449).nopw();
