@@ -101,6 +101,18 @@ public:
 		, m_render_font(*this, "render_font")
 		, m_xram_control(*this, "xram_control")
 		, m_ram_access_upper(*this, "ram_access_upper")
+
+		, m_jpeg_width(*this, "jpeg_width")
+		, m_jpeg_height(*this, "jpeg_height")
+
+		, m_timer_val(*this, "timer_val")
+
+		, m_audio_remaining_reg(*this, "audio_remaining_reg")
+		, m_audio_address_reg(*this, "audio_address_reg")
+		, m_adc_reg1(*this, "adc_reg1")
+		, m_adc_reg3(*this, "adc_reg3")
+		, m_adc_reg4(*this, "adc_reg4")
+
 		, m_companion(*this, "companion")
 		, m_dac(*this, "dac")
 		, m_buttons(*this, "BUTTONS")
@@ -116,10 +128,6 @@ private:
 	u32 screen_update(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect);
 	void clear_state();
 	u8 code_r(offs_t offset);
-	u8 io_r(offs_t offset);
-	void io_w(offs_t offset, u8 data);
-	u8 &reg(u16 address) { return m_regs[address - 0x2000]; }
-	u32 reg32(u16 address) const;
 	void spi_select();
 	u8 spi_exchange(u8 data);
 	void dma(unsigned channel);
@@ -130,15 +138,28 @@ private:
 	void audio_control();
 	void update_irq();
 
+	u8 io_2002_r();
 	void io_2002_w(u8 data);
 	void io_2064_w(u8 data);
-	void io_20ad_w(u8 previous, u8 data);
+	u8 io_20ad_r();
+	void io_20ad_w(u8 data);
 	void io_2185_w(u8 data);
 	void io_21c0_w(u8 data);
 	void io_2402_w(u8 data);
 	u8 io_229b_r();
 	void io_229b_w(u8 data);
 	void io_229d_w(u8 data);
+
+	u8 io_2042_r();
+	void io_2042_w(u8 data);
+	u8 io_2053_r();
+	void io_2053_w(u8 data);
+	u8 io_2064_r();
+	u8 io_208c_r();
+	void io_208c_w(u8 data);
+	u8 io_2097_r();
+	void io_2097_w(u8 data);
+
 
 	u8 io_2400_r();
 	u8 io_2152_r();
@@ -184,6 +205,13 @@ private:
 	u8 m_2185_value;
 
 	u8 m_246d_value;
+	u8 m_208c_value;
+	u8 m_2097_value;
+	u8 m_2064_value;
+	u8 m_20ad_value;
+	u8 m_2042_value;
+	u8 m_2002_value;
+	u8 m_2053_value;
 
 	u8 m_irqack0;
 	u8 m_irqack1;
@@ -201,8 +229,6 @@ private:
 	u8 io_2405_r();
 	void io_2405_w(u8 data);
 	void io_2400_w(u8 data);
-	[[maybe_unused]] void write_unk_reg(u16 address, u8 data);
-	[[maybe_unused]] u8 read_unk_reg(u16 address);
 
 	void c2_dma_channel_w(int channel, offs_t offset, u8 data);
 	u8 c2_dma_channel_r(int channel, offs_t offset);
@@ -259,6 +285,16 @@ private:
 	required_shared_ptr<u8> m_xram_control;
 	required_shared_ptr<u8> m_ram_access_upper;
 
+	required_shared_ptr<u8> m_jpeg_width;
+	required_shared_ptr<u8> m_jpeg_height;
+
+	required_shared_ptr<u8> m_timer_val;
+
+	required_shared_ptr<u8> m_audio_remaining_reg;
+	required_shared_ptr<u8> m_audio_address_reg;
+	required_shared_ptr<u8> m_adc_reg1;
+	required_shared_ptr<u8> m_adc_reg3;
+	required_shared_ptr<u8> m_adc_reg4;
 
 
 	required_device<c2_color_companion_device> m_companion;
@@ -478,8 +514,8 @@ void c2_color_state::machine_reset()
 	m_audio_timer->adjust(attotime::never);
 	m_dac->write(0x8000);
 	m_ram_access_upper[0] = 1;
-	reg(0x2042) = 0x10;
-	reg(0x2002) = 3;
+	m_2042_value = 0x10;
+	m_2002_value = 0x03;
 
 	m_2400_value = 0;
 	m_2402_value = 0;
@@ -521,16 +557,12 @@ u32 c2_color_state::get_24(u8* rgn) { return u32(rgn[0]) | (u32(rgn[1]) << 8) | 
 u16 c2_color_state::get_16(u8* rgn) { return u16(rgn[0]) | (u16(rgn[1]) << 8); }
 u8 c2_color_state::get_8(u8* rgn) { return u8(rgn[0]); }
 
-u32 c2_color_state::reg32(u16 address) const
-{
-	u8 const *const bytes = &m_regs[address - 0x2000];
-	return u32(bytes[0]) | (u32(bytes[1]) << 8) | (u32(bytes[2]) << 16) | (u32(bytes[3]) << 24);
-}
+
 
 void c2_color_state::spi_select()
 {
 	// The first flash uses an active-high select; the other two are active-low.
-	s8 const selected = BIT(m_2155_value, 5) ? 0 : !BIT(m_2152_value, 5) ? 1 : !BIT(reg(0x2042), 4) ? 2 : -1;
+	s8 const selected = BIT(m_2155_value, 5) ? 0 : !BIT(m_2152_value, 5) ? 1 : !BIT(m_2042_value, 4) ? 2 : -1;
 	if (selected == m_spi_selected)
 		return;
 	for (unsigned i = 0; i != 2; ++i)
@@ -631,8 +663,8 @@ void c2_color_state::dram_access(u8 data)
 
 void c2_color_state::jpeg_decode()
 {
-	u16 const width = reg32(0x2024) & 0xffff;
-	u16 const height = reg32(0x202a) & 0xffff;
+	u16 const width = get_32(m_jpeg_width) & 0xffff;
+	u16 const height = get_32(m_jpeg_height) & 0xffff;
 	u32 const source = get_32(m_jpeg_src);
 	u32 const destination = get_24(m_jpeg_dest);
 	u32 const length = get_24(m_jpeg_len);
@@ -689,14 +721,14 @@ void c2_color_state::update_irq()
 
 void c2_color_state::audio_control()
 {
-	bool const enabled = BIT(reg(0x208c), 0) && BIT(reg(0x2097), 1) && BIT(m_246d_value, 1);
+	bool const enabled = BIT(m_208c_value, 0) && BIT(m_2097_value, 1) && BIT(m_246d_value, 1);
 	if (enabled && !m_audio_enabled)
 	{
 		// Addresses and lengths are in 16-bit samples.  The observed setting
 		// (20ab bits 2:1 clear) plays signed little-endian mono PCM at 8 kHz.
 		// TODO: Other rates, formats, volume and output filtering.
-		m_audio_address = (reg32(0x20a5) & 0xffffff) * 2;
-		m_audio_remaining = reg32(0x2099) & 0xffffff;
+		m_audio_address = get_24(m_audio_address_reg) * 2;
+		m_audio_remaining = get_24(m_audio_remaining_reg);
 		m_audio_timer->adjust(attotime::zero, 0, attotime::from_hz(8000));
 	}
 	else if (!enabled)
@@ -726,73 +758,15 @@ TIMER_CALLBACK_MEMBER(c2_color_state::audio_tick)
 	}
 }
 
-u8 c2_color_state::io_r(offs_t offset)
+u8 c2_color_state::io_2002_r()
 {
-	u16 const address = 0x2000 + offset;
-	u8 data = reg(address);
-	switch (address)
-	{
-// 2000 region
-
-	case 0x2002: data = (data & ~2) | ((BIT(data, 1) && m_companion_sda) ? 2 : 0); break;
-	case 0x2004: break; // unknown
-	case 0x200a: break; // unknown
-	case 0x200b: break; // unknown
-	case 0x203a: break; // unknown
-	case 0x203b: break; // unknown
-	case 0x203c: break; // unknown
-	case 0x203f: break; // unknown
-
-	case 0x2040: break; // unknown
-	case 0x2041: break; // unknown
-	case 0x2042: break; // unknown
-	case 0x204b: break; // unknown
-	case 0x204c: break; // unknown
-
-	case 0x2051: break; // unknown
-
-	case 0x2053: data = (data & 0x03) | (m_buttons->read() & 0xfc); break;
-
-	case 0x205a: break; // unknown
-	case 0x205b: break; // unknown
-	case 0x205c: break; // unknown
-
-	case 0x205f: break; // Timer
-	case 0x2060: break; // Timer
-	case 0x2061: break; // Timer
-	case 0x2062: break; // Timer
-
-	case 0x2064: break; // Timer
-	case 0x2065: break; // unknown
-	case 0x2067: break; // unknown
-
-	case 0x208d: break; // unknown
-	case 0x2097: break; // unknown
-
-	case 0x20ac: break; // unknown ADC?
-	case 0x20ab: break; // unknown
-	case 0x20ad: break; // unknown ADC?
-	case 0x20ae: break; // unknown ADC?
-	case 0x20af: break; // unknown ADC?
-
-// 2200 region
-
-
-
-	default:
-	{
-		if (!machine().side_effects_disabled())
-			LOGMASKED(LOG_REGS, "%s: read %04x = %02x\n", machine().describe_context(), address, data);
-	}
-	break;
-
-	}
-
-	return data;
+	u8 data = m_2002_value;
+	return (data & ~2) | ((BIT(data, 1) && m_companion_sda) ? 2 : 0);
 }
 
 void c2_color_state::io_2002_w(u8 data)
 {
+	m_2002_value = data;
 	if (!BIT(data, 0))
 		m_companion->scl_write(0);
 	m_companion->sda_write(BIT(data, 1));
@@ -800,30 +774,88 @@ void c2_color_state::io_2002_w(u8 data)
 		m_companion->scl_write(1);
 }
 
+u8 c2_color_state::io_2042_r()
+{
+	return m_2042_value;
+}
+
+void c2_color_state::io_2042_w(u8 data)
+{
+	m_2042_value = data;
+	spi_select();
+}
+
+u8 c2_color_state::io_2053_r()
+{
+	u8 data = m_2053_value;
+	return (data & 0x03) | (m_buttons->read() & 0xfc);
+}
+
+void c2_color_state::io_2053_w(u8 data)
+{
+	m_2053_value = data;
+}
+
+u8 c2_color_state::io_208c_r()
+{
+	return m_208c_value;
+}
+
+void c2_color_state::io_208c_w(u8 data)
+{
+	m_208c_value = data;
+	audio_control();
+}
+
+u8 c2_color_state::io_2097_r()
+{
+	return m_2097_value;
+}
+
+void c2_color_state::io_2097_w(u8 data)
+{
+	m_2097_value = data;
+	audio_control();
+}
+
+
+u8 c2_color_state::io_2064_r()
+{
+	return m_2064_value;
+}
+
 void c2_color_state::io_2064_w(u8 data)
 {
+	m_2064_value = data;
 	if (BIT(data, 1))
 	{
 		// The millisecond unit is inferred from the LCD Sleep Out delay.
 		// TODO: Identify the timer clock and divider controls.
 		u32 const ticks = machine().time().as_ticks(1000);
 		for (unsigned i = 0; i != 4; ++i)
-			reg(0x205f + i) = ticks >> (8 * i);
-		reg(0x2064) &= ~0x02;
+			m_timer_val[i] = ticks >> (8 * i);
+		m_2064_value &= ~0x02;
 	}
 }
 
-void c2_color_state::io_20ad_w(u8 previous, u8 data)
+u8 c2_color_state::io_20ad_r()
 {
-	reg(0x20ad) = (data & ~9) | (previous & 8);
+	return m_20ad_value;
+}
+
+void c2_color_state::io_20ad_w(u8 data)
+{
+	u8 previous = m_20ad_value;
+
+	m_20ad_value = (data & ~9) | (previous & 8);
 	if (BIT(data, 0))
 	{
 		// Channel 0 measures the batteries.  Voltage scaling, other inputs
 		// and conversion timing are unknown; use representative raw levels.
-		u16 const sample = (reg(0x20ac) & 3) == 0 ? m_battery->read() : 0;
-		reg(0x20ae) = sample >> 8;
-		reg(0x20af) = sample;
-		reg(0x20ad) |= 8;
+		u16 const sample = (m_adc_reg1[0] & 3) == 0 ? m_battery->read() : 0;
+		m_adc_reg3[0] = sample >> 8;
+		m_adc_reg4[0] = sample;
+		m_20ad_value |= 8;
 	}
 }
 
@@ -1028,77 +1060,6 @@ void c2_color_state::irqack3_w(u8 data)
 	update_irq();
 }
 
-void c2_color_state::io_w(offs_t offset, u8 data)
-{
-	u16 const address = 0x2000 + offset;
-	u8 const previous = reg(address);
-	reg(address) = data;
-	switch (address)
-	{
-// 2000 region
-
-	case 0x2002: io_2002_w(data); break;
-	case 0x2004: break; // unknown
-	case 0x200a: break; // unknown
-	case 0x200b: break; // unknown
-
-	case 0x2024: case 0x2025: case 0x2026: case 0x2027: break; // JPEG width
-	case 0x202a: case 0x202b: case 0x202c: case 0x202d: break; // JPEG height
-
-	case 0x2028: break; // unknown
-	case 0x2029: break; // unknown
-	case 0x202e: break; // unknown
-	case 0x202f: break; // unknown
-
-	case 0x203a: break; // unknown
-	case 0x203b: break; // unknown
-	case 0x203c: break; // unknown
-	case 0x203f: break; // unknown
-	case 0x2040: break; // unknown
-
-	case 0x2041: break;
-	case 0x2042: spi_select(); break;
-
-	case 0x204b: break;
-	case 0x204c: break;
-
-	case 0x2051: break;
-	case 0x2053: break;
-	case 0x205b: break;
-	case 0x205c: break;
-
-	case 0x205f: case 0x2060: case 0x2061: case 0x2062: break; // Timer Val
-	case 0x2064: io_2064_w(data); break; // Timer?
-	case 0x2065: break; // unknown
-	case 0x2066: break;
-	case 0x2067: break;
-
-	case 0x208c: audio_control(); break;
-	case 0x208d: break;
-
-	case 0x2093: break; // unknown
-	case 0x2097: audio_control(); break;
-	case 0x2099: case 0x209a: case 0x209b: break; //Audio remaining related
-	case 0x20a5: case 0x20a6: case 0x20a7: break; // Audio address related
-
-	case 0x20ab: break; // unknown
-	case 0x20ac: break; // -ADC ?
-	case 0x20ad: io_20ad_w(previous, data); break;
-	case 0x20ae: break; // -ADC ?
-	case 0x20af: break; // -ADC ?
-
-	case 0x20b6: break; // unknown
-	case 0x20b7: break; // unknown
-	case 0x20b8: break; // unknown
-	case 0x20b9: break; // unknown
-
-// 2100 region
-
-	default:
-		LOGMASKED(LOG_REGS, "%s: write %04x = %02x\n", machine().describe_context(), address, data); break;
-
-	}
-}
 
 void c2_color_state::prog_map(address_map &map)
 {
@@ -1138,18 +1099,6 @@ void c2_color_state::io_2400_w(u8 data)
 	m_2400_value = data;
 }
 
-void c2_color_state::write_unk_reg(u16 address, u8 data)
-{
-	address -= 0x2000;
-	m_regs[address] = data;
-}
-
-
-u8 c2_color_state::read_unk_reg(u16 address)
-{
-	address -= 0x2000;
-	return m_regs[address];
-}
 
 u8 c2_color_state::c2_dma_channel_r(int channel, offs_t offset)
 {
@@ -1248,7 +1197,67 @@ void c2_color_state::c2_dma_channel1_w(offs_t offset, u8 data)
 void c2_color_state::ext_map(address_map &map)
 {
 	map(0x0000, 0x1fff).ram().share("xram");
-	map(0x2000, 0x20ff).rw(FUNC(c2_color_state::io_r), FUNC(c2_color_state::io_w));
+
+	//////////////////////////////////////////////
+	// 0x2000 region
+	//////////////////////////////////////////////
+
+	map(0x2002, 0x2002).rw(FUNC(c2_color_state::io_2002_r), FUNC(c2_color_state::io_2002_w));
+
+	map(0x2004, 0x2004).ram();
+	map(0x200a, 0x200b).ram();
+
+	map(0x2024, 0x2027).ram().share("jpeg_width"); // we only use 16-bits
+
+	map(0x202a, 0x202d).ram().share("jpeg_height"); // we only use 16-bits
+
+	map(0x2028, 0x2029).nopw();
+
+	map(0x202e, 0x202f).nopw();
+
+	map(0x203a, 0x203c).ram();
+
+	map(0x203f, 0x2041).ram();
+
+	map(0x2042, 0x2042).rw(FUNC(c2_color_state::io_2042_r), FUNC(c2_color_state::io_2042_w));
+
+	map(0x204b, 0x204c).ram();
+
+	map(0x2051, 0x2051).ram();
+
+	map(0x2053, 0x2053).rw(FUNC(c2_color_state::io_2053_r), FUNC(c2_color_state::io_2053_w));
+
+	map(0x205a, 0x205c).ram(); // 205a is only read?
+
+	map(0x205f, 0x2062).ram().share("timer_val");
+
+	map(0x2064, 0x2064).rw(FUNC(c2_color_state::io_2064_r), FUNC(c2_color_state::io_2064_w));
+
+	map(0x2065, 0x2065).ram();
+	map(0x2066, 0x2066).nopw();
+	map(0x2067, 0x2067).ram();
+
+	map(0x208c, 0x208c).rw(FUNC(c2_color_state::io_208c_r), FUNC(c2_color_state::io_208c_w));
+
+	map(0x208d, 0x208d).ram();
+
+	map(0x2093, 0x2093).nopw();
+
+	map(0x2097, 0x2097).rw(FUNC(c2_color_state::io_2097_r), FUNC(c2_color_state::io_2097_w));
+
+	map(0x2099, 0x209b).ram().share("audio_remaining_reg"); // Audio remaining 3 bytes
+	map(0x20a5, 0x20a7).ram().share("audio_address_reg"); // Audio address 3 bytes
+
+	map(0x20ab, 0x20ab).ram();
+	map(0x20ac, 0x20ac).ram().share("adc_reg1");
+
+	map(0x20ad, 0x20ad).rw(FUNC(c2_color_state::io_20ad_r), FUNC(c2_color_state::io_20ad_w));
+
+	map(0x20ae, 0x20ae).ram().share("adc_reg3");
+
+	map(0x20af, 0x20af).ram().share("adc_reg4");
+
+	map(0x20b6, 0x20b9).nopw();
 
 	//////////////////////////////////////////////
 	// 0x2100 region
