@@ -125,8 +125,6 @@ private:
 	u8 io_229b_r();
 	void io_229b_w(u8 data);
 	void io_229d_w(u8 data);
-	void io_2200_w(u8 data);
-	void io_223a_w(u8 data);
 
 	u8 io_2400_r();
 
@@ -142,6 +140,10 @@ private:
 	void write_unk_reg(u16 address, u8 data);
 	u8 read_unk_reg(u16 address);
 
+	void c2_dma_channel_w(int channel, offs_t offset, u8 data);
+	u8 c2_dma_channel_r(int channel, offs_t offset);
+
+
 	u8 c2_dma_channel0_r(offs_t offset);
 	void c2_dma_channel0_w(offs_t offset, u8 data);
 	u8 c2_dma_channel1_r(offs_t offset);
@@ -156,7 +158,6 @@ private:
 
 	void prog_map(address_map &map) ATTR_COLD;
 	void ext_map(address_map &map) ATTR_COLD;
-	void io_2200_map(address_map &map) ATTR_COLD;
 	void io_2300_map(address_map &map) ATTR_COLD;
 
 	required_device<c2_color_cpu_device> m_maincpu;
@@ -295,8 +296,21 @@ void c2_color_state::clear_state()
 	std::fill(std::begin(m_dma_channel[0].m_dma_fill), std::end(m_dma_channel[0].m_dma_fill), 0);
 	std::fill(std::begin(m_dma_channel[1].m_dma_fill), std::end(m_dma_channel[1].m_dma_fill), 0);
 
-	m_dma_channel[0].m_dma_fill_pos = 0;
-	m_dma_channel[1].m_dma_fill_pos = 0;
+	for (int i = 0; i < 2; i++)
+	{
+		m_dma_channel[i].m_dma_trigger = 0;
+		m_dma_channel[i].m_dma_source = 0;
+		m_dma_channel[i].m_dma_dest = 0;
+		m_dma_channel[i].m_dma_fill_pos = 0;
+
+		for (int j = 0; j < 4; j++)
+		{
+			m_dma_channel[i].m_dma_count[j] = 0;
+			m_dma_channel[i].m_dma_source_addr[j] = 0;
+			m_dma_channel[i].m_dma_dest_addr[j] = 0;
+			m_dma_channel[i].m_dma_fill[j] = 0;
+		}
+	}
 
 	m_spi_selected = -1;
 
@@ -366,6 +380,10 @@ void c2_color_state::machine_reset()
 	reg(0x2042) = 0x10;
 	reg(0x2002) = 3;
 	update_irq();
+
+	m_2400_value = 0;
+	m_2402_value = 0;
+	m_229b_value = 0;
 
 	// The internal boot ROM is undumped.  Substitute its initial load of the
 	// built-in firmware into DRAM, skipping the SPI image's 32-byte header.
@@ -445,12 +463,11 @@ void c2_color_state::dma_w(u8 destination, u32 address, u8 data)
 
 void c2_color_state::dma(unsigned channel)
 {
-	u16 const base = 0x2200 + channel * 0x3a;
-	u8 const source = reg(base + 0x10) & 0x0f;
-	u8 const destination = reg(base + 0x25) & 0x0f;
-	u32 const source_address = reg32(base + 0x12);
-	u32 const destination_address = reg32(base + 0x27);
-	u32 const count = reg32(base + 1);
+	u8 const source = m_dma_channel[channel].m_dma_source & 0x0f;
+	u8 const destination = m_dma_channel[channel].m_dma_dest & 0x0f;
+	u32 const source_address = get_32(m_dma_channel[channel].m_dma_source_addr);
+	u32 const destination_address = get_32(m_dma_channel[channel].m_dma_dest_addr);
+	u32 const count = get_32(m_dma_channel[channel].m_dma_count);
 	bool const fill = BIT(m_dma_channel[channel].m_dma_trigger, 1);
 	LOGMASKED(LOG_DMA, "%s: DMA %u %x:%08x -> %x:%08x, %08x bytes%s\n", machine().describe_context(), channel,
 		source, source_address, destination, destination_address, count, fill ? " (fill)" : "");
@@ -675,11 +692,6 @@ u8 c2_color_state::io_r(offs_t offset)
 
 // 2200 region
 
-	case 0x2226: break; // unknown in DMA section
-
-	case 0x229b: return io_229b_r();  break; // unknown JPEG  // handled
-	case 0x22a1: break; // unknown  // handled
-
 
 
 	default:
@@ -779,26 +791,10 @@ void c2_color_state::io_229b_w(u8 data)
 
 void c2_color_state::io_229d_w(u8 data)
 {
-	m_quant[BIT(reg(0x229b), 2) ? 0 : 1][m_quant_pos++ & 0x7f] = data;
+	m_quant[BIT(m_229b_value, 2) ? 0 : 1][m_quant_pos++ & 0x7f] = data;
 }
 
-void c2_color_state::io_2200_w(u8 data)
-{
-	m_dma_channel[0].m_dma_trigger = data;
-	if (data == 2)
-		m_dma_channel[0].m_dma_fill_pos = 0;
-	if (BIT(data, 0))
-		dma(0);
-}
 
-void c2_color_state::io_223a_w(u8 data)
-{
-	m_dma_channel[1].m_dma_trigger = data;
-	if (data == 2)
-		m_dma_channel[1].m_dma_fill_pos = 0;
-	if (BIT(data, 0))
-		dma(1);
-}
 
 void c2_color_state::io_w(offs_t offset, u8 data)
 {
@@ -951,41 +947,6 @@ void c2_color_state::io_w(offs_t offset, u8 data)
 	case 0x21c0: io_21c0_w(data); break;
 	case 0x21c7: break; // unknown
 
-// 2200 region
-
-	// 1st DMA channel
-	case 0x2200: io_2200_w(data); break;
-	case 0x2201: case 0x2202: case 0x2203: case 0x2204: break; // 2201 - 2204 - DMA count
-	case 0x220d: m_dma_channel[0].m_dma_fill[m_dma_channel[0].m_dma_fill_pos++ & 3] = data; break;
-	case 0x220e: break; // unknown
-	case 0x220f: break; // unknown
-	case 0x2210: break; // 2210 - DMA source
-	case 0x2211: break; // unknown
-	case 0x2212: case 0x2213: case 0x2214: case 0x2215: break; // 2212 - 2215 - DMA source address
-	case 0x2225: break; // 2225 - DMA dest
-	case 0x2226: break; // is read
-	case 0x2227: case 0x2228: case 0x2229: case 0x222a: break; // 2227 - 222a - DMA dest address
-
-	// 2nd DMA channel
-	case 0x223a: io_223a_w(data); break;
-	case 0x223b: case 0x223c: case 0x223d: case 0x223e: break; // 223b - 223e - DMA Count
-	case 0x2247: m_dma_channel[1].m_dma_fill[m_dma_channel[1].m_dma_fill_pos++ & 3] = data; break;
-	case 0x2248: break; // unknown
-	case 0x2249: break; // unknown
-	case 0x224a: break; // 224a - DMA source
-	case 0x224b: break; // unknown
-	case 0x224c: break; case 0x224d: case 0x224e: case 0x224f: // 224c - 224f - DMA source address
-	case 0x225f: break; // 225f - DMA dest
-	case 0x2260: break;
-	case 0x2261: case 0x2262: case 0x2263: case 0x2264: break;// 2261 - 2264 - DMA dest address
-
-	// 74
-	case 0x229a: break; // unknown  // handled
-	case 0x229b: io_229b_w(data); break; // is read // handled
-	case 0x229d: io_229d_w(data); break; // handled
-
-	case 0x22a1: break; // unknown // is read // handled
-
 	default:
 		LOGMASKED(LOG_REGS, "%s: write %04x = %02x\n", machine().describe_context(), address, data); break;
 
@@ -1042,28 +1003,109 @@ u8 c2_color_state::read_unk_reg(u16 address)
 	return m_regs[address];
 }
 
+u8 c2_color_state::c2_dma_channel_r(int channel, offs_t offset)
+{
+	if (offset == 0x26)
+	{
+		// read
+		return 0x00;
+	}
+	// not seen read
+	return 0x00;
+}
+
+void c2_color_state::c2_dma_channel_w(int channel, offs_t offset, u8 data)
+{
+	if (offset == 0x00)
+	{
+		m_dma_channel[channel].m_dma_trigger = data;
+		if (data == 2)
+			m_dma_channel[channel].m_dma_fill_pos = 0;
+		if (BIT(data, 0))
+			dma(channel);
+	}
+	else if (offset < 0x05)
+	{
+		int realoffset = offset - 0x01;
+		m_dma_channel[channel].m_dma_count[realoffset] = data;
+	}
+	else if (offset < 0x0d)
+	{
+		// unknown
+	}
+	else if (offset == 0xd)
+	{
+		m_dma_channel[channel].m_dma_fill[m_dma_channel[channel].m_dma_fill_pos++ & 3] = data;
+	}
+	else if (offset < 0x0f)
+	{
+		// unknown
+	}
+	else if (offset == 0x10)
+	{
+		m_dma_channel[channel].m_dma_source = data;
+	}
+	else if (offset < 0x12)
+	{
+		// unknown
+	}
+	else if (offset < 0x16)
+	{
+		int realoffset = offset - 0x12;
+		m_dma_channel[channel].m_dma_source_addr[realoffset] = data;
+	}
+	else if (offset < 0x25)
+	{
+		// unknown
+	}
+	else if (offset == 0x25)
+	{
+		m_dma_channel[channel].m_dma_dest = data;
+	}
+	else if (offset == 0x26)
+	{
+		// unknown
+	}
+	else if (offset < 0x2b)
+	{
+		int realoffset = offset - 0x27;
+		m_dma_channel[channel].m_dma_dest_addr[realoffset] = data;
+	}
+	else
+	{
+		// unknown
+	}
+}
+
 u8 c2_color_state::c2_dma_channel0_r(offs_t offset)
 {
-	return 0x00;
+	return c2_dma_channel_r(0, offset);
 }
 
 void c2_color_state::c2_dma_channel0_w(offs_t offset, u8 data)
 {
-
+	c2_dma_channel_w(0, offset, data);
 }
 
 u8 c2_color_state::c2_dma_channel1_r(offs_t offset)
 {
-	return 0x00;
+	return c2_dma_channel_r(1, offset);
 }
 
 void c2_color_state::c2_dma_channel1_w(offs_t offset, u8 data)
 {
-
+	c2_dma_channel_w(1, offset, data);
 }
 
-void c2_color_state::io_2200_map(address_map &map)
+void c2_color_state::ext_map(address_map &map)
 {
+	map(0x0000, 0x1fff).ram().share("xram");
+	map(0x2000, 0x21ff).rw(FUNC(c2_color_state::io_r), FUNC(c2_color_state::io_w));
+
+	//////////////////////////////////////////////
+	// 0x2200 region
+	//////////////////////////////////////////////
+
 	map(0x2200, 0x2239).rw(FUNC(c2_color_state::c2_dma_channel0_r), FUNC(c2_color_state::c2_dma_channel0_w));
 	map(0x223a, 0x2273).rw(FUNC(c2_color_state::c2_dma_channel1_r), FUNC(c2_color_state::c2_dma_channel1_w));
 
@@ -1073,14 +1115,6 @@ void c2_color_state::io_2200_map(address_map &map)
 	map(0x229d, 0x229d).w(FUNC(c2_color_state::io_229d_w));
 
 	map(0x22a1, 0x22a1).ram();
-}
-
-void c2_color_state::ext_map(address_map &map)
-{
-	io_2200_map(map);
-
-	map(0x0000, 0x1fff).ram().share("xram");
-	map(0x2000, 0x22ff).rw(FUNC(c2_color_state::io_r), FUNC(c2_color_state::io_w));
 
 	//////////////////////////////////////////////
 	// 0x2300 region
