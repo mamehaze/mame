@@ -77,8 +77,6 @@ public:
 		, m_dram_dword_out2(*this, "dram_dword_out2")
 	    , m_dram_dword_in(*this, "dram_dword_in")
 	    , m_dram_dword_in2(*this, "dram_dword_in2")
-	    , m_render_base(*this, "render_base")
-	    , m_render_unk(*this, "render_unk")
 		, m_render_columns(*this, "render_columns")
 		, m_render_rows(*this, "render_rows")
 		, m_xram_control(*this, "xram_control")
@@ -156,8 +154,7 @@ private:
 	void audiocontrol_246d_w(u8 data) {	m_audiocontrol_246d = data; audio_control(); }
 	u8 dramaccess_ctrl_r() { return m_dramaccess_ctrl; }
 	void dramaccess_ctrl_w(u8 data) { m_dramaccess_ctrl = data; dram_access(data); }
-	template<int Channel> void c2_dma_channel_w(offs_t offset, u8 data);
-	template<int Channel> u8 c2_dma_channel_r(offs_t offset);
+
 
 	template <uint8_t Reg> u8 irqack_r() { return m_irqack[Reg]; }
 	template <uint8_t Reg> u8 irqenable_r() { return m_irqenable[Reg]; }
@@ -191,8 +188,6 @@ private:
 
 
 	u32 get_32(u8* rgn);
-	u32 get_24(u8* rgn);
-	u8 get_8(u8* rgn);
 
 	TIMER_CALLBACK_MEMBER(audio_tick);
 
@@ -213,8 +208,7 @@ private:
 	required_shared_ptr<u8> m_dram_dword_in;
 	required_shared_ptr<u8> m_dram_dword_in2;
 
-	required_shared_ptr<u8> m_render_base;
-	required_shared_ptr<u8> m_render_unk;
+	u32 m_render_base24;
 
 	required_shared_ptr<u8> m_render_columns;
 	required_shared_ptr<u8> m_render_rows;
@@ -246,6 +240,8 @@ private:
 	void jpeg_dst_w(offs_t offset, u8 data) { write_reg_swapped(m_jpeg_dst32, offset, data); }
 	u8 jpeg_len_r(offs_t offset) { return read_reg_swapped(m_jpeg_len24, offset); }
 	void jpeg_len_w(offs_t offset, u8 data) { write_reg_swapped(m_jpeg_len24, offset, data); }
+	u8 render_base_r(offs_t offset) { return read_reg_swapped(m_render_base24, offset); }
+	void render_base_w(offs_t offset, u8 data) { write_reg_swapped(m_render_base24, offset, data); }
 	u8 render_overlay_r(offs_t offset) { return read_reg_swapped(m_render_overlay32, offset); }
 	void render_overlay_w(offs_t offset, u8 data) { write_reg_swapped(m_render_overlay32, offset, data); }
 	u8 render_font_r(offs_t offset) { return read_reg_swapped(m_render_font16, offset); }
@@ -269,15 +265,30 @@ private:
 	void render_osd2_w(offs_t offset, u8 data) { write_reg_swapped(m_render_osd2_16, offset, data); }
 	u8 render_osd3_r() { return m_render_osd3_8; }
 	void render_osd3_w(u8 data) { m_render_osd3_8 = data; }
+	u8 render_unknown_r() { return m_render_unknown_8; }
+	void render_unknown_w(u8 data) { m_render_unknown_8 = data; }
 
 	u8 audio_remaining_r(offs_t offset) { return read_reg_swapped(m_audio_remaining_reg24, offset); }
 	void audio_remaining_w(offs_t offset, u8 data) { write_reg_swapped(m_audio_remaining_reg24, offset, data); }
 	u8 audio_address_r(offs_t offset) { return read_reg_swapped(m_audio_address_reg24, offset); }
 	void audio_address_w(offs_t offset, u8 data) { write_reg_swapped(m_audio_address_reg24, offset, data); }
 
-
+	template<int Channel> void dma_unk_w(offs_t offset, u8 data);
+	template<int Channel> u8 dma_unk_r(offs_t offset);
+	template<int Channel> u8 dma_count_r(offs_t offset) { return read_reg_swapped(m_dma_channel[Channel].m_dma_count, offset); }
+	template<int Channel> void dma_count_w(offs_t offset, u8 data) { write_reg_swapped(m_dma_channel[Channel].m_dma_count, offset, data); }
 	template<int Channel> u8 dma_source_addr_r(offs_t offset) { return read_reg_swapped(m_dma_channel[Channel].m_dma_source_addr, offset); }
 	template<int Channel> void dma_source_addr_w(offs_t offset, u8 data) { write_reg_swapped(m_dma_channel[Channel].m_dma_source_addr, offset, data); }
+	template<int Channel> u8 dma_dest_addr_r(offs_t offset) { return read_reg_swapped(m_dma_channel[Channel].m_dma_dest_addr, offset); }
+	template<int Channel> void dma_dest_addr_w(offs_t offset, u8 data) { write_reg_swapped(m_dma_channel[Channel].m_dma_dest_addr, offset, data); }
+	template<int Channel> u8 dma_source_r() { return m_dma_channel[Channel].m_dma_source; }
+	template<int Channel> void dma_source_w(u8 data) { m_dma_channel[Channel].m_dma_source = data; }
+	template<int Channel> u8 dma_dest_r() { return m_dma_channel[Channel].m_dma_dest; }
+	template<int Channel> void dma_dest_w(u8 data) { m_dma_channel[Channel].m_dma_dest = data; }
+	template<int Channel> void dma_fill_w(offs_t offset, u8 data);
+	template<int Channel> u8 dma_trigger_r(offs_t offset) { return m_dma_channel[Channel].m_dma_trigger; }
+	template<int Channel> void dma_trigger_w(offs_t offset, u8 data);
+
 
 	emu_timer *m_audio_timer;
 
@@ -308,16 +319,17 @@ private:
 	u16 m_render_osd1_16;
 	u16 m_render_osd2_16;
 	u8 m_render_osd3_8;
+	u8 m_render_unknown_8;
 	u32 m_audio_remaining_reg24;
 	u32 m_audio_address_reg24;
 
 	struct dma_channel
 	{
 		u8 m_dma_trigger;
-		u8 m_dma_count[4];
+		u32 m_dma_count;
 		u32 m_dma_source_addr;
 		u8 m_dma_source;
-		u8 m_dma_dest_addr[4];
+		u32 m_dma_dest_addr;
 		u8 m_dma_dest;
 
 		u8 m_dma_fill[4];
@@ -337,7 +349,7 @@ u32 c2_color_state::screen_update(screen_device &screen, bitmap_rgb32 &bitmap, c
 	if (m_lcd_sleep || !m_lcd_on)
 		return 0;
 
-	u32 const base = get_24(m_render_base);
+	u32 const base = m_render_base24;
 	u16 const columns = m_render_columns[0];
 	u16 const rows = m_render_rows[0];
 
@@ -354,7 +366,7 @@ u32 c2_color_state::screen_update(screen_device &screen, bitmap_rgb32 &bitmap, c
 	// A second RGB565 plane has a separate packed, LSB-first opacity mask.
 	// DMA constructs the plane in DRAM; the display controller composites it.
 	// TODO: Configuration latch timing, signed positions and non-byte-aligned widths.
-	if (BIT(get_8(m_render_unk), 0) && m_overlay_width16 && m_overlay_height16)
+	if (BIT(m_render_unknown_8, 0) && m_overlay_width16 && m_overlay_height16)
 	{
 		rectangle area(m_overlay_x16, m_overlay_x16 + m_overlay_width16 - 1, m_overlay_y16, m_overlay_y16 + m_overlay_height16 - 1);
 		area &= cliprect;
@@ -404,11 +416,11 @@ void c2_color_state::clear_state()
 		m_dma_channel[i].m_dma_dest = 0;
 		m_dma_channel[i].m_dma_fill_pos = 0;
 		m_dma_channel[i].m_dma_source_addr = 0;
+		m_dma_channel[i].m_dma_dest_addr = 0;
+		m_dma_channel[i].m_dma_count = 0;
 
 		for (int j = 0; j < 4; j++)
 		{
-			m_dma_channel[i].m_dma_count[j] = 0;
-			m_dma_channel[i].m_dma_dest_addr[j] = 0;
 			m_dma_channel[i].m_dma_fill[j] = 0;
 		}
 	}
@@ -428,6 +440,7 @@ void c2_color_state::clear_state()
 	m_jpeg_dst32 = 0;
 	m_jpeg_len24 = 0;
 	m_render_overlay32 = 0;
+	m_render_base24 = 0;
 	m_render_mask32 = 0;
 	m_overlay_width16 = 0;
 	m_overlay_height16 = 0;
@@ -438,6 +451,7 @@ void c2_color_state::clear_state()
 	m_render_osd1_16 = 0;
 	m_render_osd2_16 = 0;
 	m_render_osd3_8 = 0;
+	m_render_unknown_8 = 0;
 
 	m_audio_remaining_reg24 = 0;
 	m_audio_address_reg24 = 0;
@@ -548,9 +562,6 @@ u8 c2_color_state::code_r(offs_t offset)
 }
 
 u32 c2_color_state::get_32(u8* rgn) { return u32(rgn[0]) | (u32(rgn[1]) << 8) | (u32(rgn[2]) << 16) | (u32(rgn[3]) << 24); }
-u32 c2_color_state::get_24(u8* rgn) { return u32(rgn[0]) | (u32(rgn[1]) << 8) | (u32(rgn[2]) << 16); }
-u8 c2_color_state::get_8(u8* rgn) { return u8(rgn[0]); }
-
 
 
 void c2_color_state::spi_select()
@@ -608,8 +619,8 @@ void c2_color_state::dma(unsigned channel)
 	u8 const source = m_dma_channel[channel].m_dma_source & 0x0f;
 	u8 const destination = m_dma_channel[channel].m_dma_dest & 0x0f;
 	u32 const source_address = m_dma_channel[channel].m_dma_source_addr;
-	u32 const destination_address = get_32(m_dma_channel[channel].m_dma_dest_addr);
-	u32 const count = get_32(m_dma_channel[channel].m_dma_count);
+	u32 const destination_address = m_dma_channel[channel].m_dma_dest_addr;
+	u32 const count = m_dma_channel[channel].m_dma_count;
 	bool const fill = BIT(m_dma_channel[channel].m_dma_trigger, 1);
 	LOGMASKED(LOG_DMA, "%s: DMA %u %x:%08x -> %x:%08x, %08x bytes%s\n", machine().describe_context(), channel,
 		source, source_address, destination, destination_address, count, fill ? " (fill)" : "");
@@ -855,86 +866,50 @@ void c2_color_state::prog_map(address_map &map)
 	map(0x0000, 0xffff).r(FUNC(c2_color_state::code_r));
 }
 
-template<int Channel> u8 c2_color_state::c2_dma_channel_r(offs_t offset)
+
+template<int Channel> void c2_color_state::dma_fill_w(offs_t offset, u8 data)
 {
-	if (offset == 0x26)
-	{
-		// read
-		return 0x00;
-	}
-	// not seen read
+	m_dma_channel[Channel].m_dma_fill[m_dma_channel[Channel].m_dma_fill_pos++ & 3] = data;
+}
+
+template<int Channel> void c2_color_state::dma_trigger_w(offs_t offset, u8 data)
+{
+	m_dma_channel[Channel].m_dma_trigger = data;
+	if (data == 2)
+		m_dma_channel[Channel].m_dma_fill_pos = 0;
+	if (BIT(data, 0))
+		dma(Channel);
+}
+
+template<int Channel> u8 c2_color_state::dma_unk_r(offs_t offset)
+{
+	logerror("%s: unhandled DMA read address Channel %d, Offset %02x\n", Channel, offset);
 	return 0x00;
 }
 
-template<int Channel> void c2_color_state::c2_dma_channel_w(offs_t offset, u8 data)
+template<int Channel> void c2_color_state::dma_unk_w(offs_t offset, u8 data)
 {
-	if (offset == 0x00)
-	{
-		m_dma_channel[Channel].m_dma_trigger = data;
-		if (data == 2)
-			m_dma_channel[Channel].m_dma_fill_pos = 0;
-		if (BIT(data, 0))
-			dma(Channel);
-	}
-	else if (offset < 0x05)
-	{
-		int realoffset = offset - 0x01;
-		m_dma_channel[Channel].m_dma_count[realoffset] = data;
-	}
-	else if (offset < 0x0d)
-	{
-		// unknown
-	}
-	else if (offset == 0xd)
-	{
-		m_dma_channel[Channel].m_dma_fill[m_dma_channel[Channel].m_dma_fill_pos++ & 3] = data;
-	}
-	else if (offset < 0x0f)
-	{
-		// unknown
-	}
-	else if (offset == 0x10)
-	{
-		m_dma_channel[Channel].m_dma_source = data;
-	}
-	else if (offset < 0x12)
-	{
-		// unknown
-	}
-	else if (offset < 0x16)
-	{
-		//int realoffset = offset - 0x12;
-		//m_dma_channel[Channel].m_dma_source_addr[realoffset] = data;
-	}
-	else if (offset < 0x25)
-	{
-		// unknown
-	}
-	else if (offset == 0x25)
-	{
-		m_dma_channel[Channel].m_dma_dest = data;
-	}
-	else if (offset == 0x26)
-	{
-		// unknown
-	}
-	else if (offset < 0x2b)
-	{
-		int realoffset = offset - 0x27;
-		m_dma_channel[Channel].m_dma_dest_addr[realoffset] = data;
-	}
-	else
-	{
-		// unknown
-	}
+	logerror("%s: unhandled DMA write address Channel %d, Offset %02x Data %02x\n", Channel, offset, data);
 }
 
 // 0x2200 - 0x2239 for Channel 0
 // 0x223a - 0x224f for Channel 1
 template<int Channel> void c2_color_state::add_dma_map(address_map &map, int base)
 {
-	map(base + 0x00, base + 0x39).rw(FUNC(c2_color_state::c2_dma_channel_r<Channel>), FUNC(c2_color_state::c2_dma_channel_w<Channel>));
+	map(base + 0x00, base + 0x39).rw(FUNC(c2_color_state::dma_unk_r<Channel>), FUNC(c2_color_state::dma_unk_w<Channel>));
+
+	map(base + 0x00, base + 0x00).rw(FUNC(c2_color_state::dma_trigger_r<Channel>), FUNC(c2_color_state::dma_trigger_w<Channel>));
+	map(base + 0x01, base + 0x04).rw(FUNC(c2_color_state::dma_count_r<Channel>), FUNC(c2_color_state::dma_count_w<Channel>));
+	map(base + 0x0d, base + 0x0d).w(FUNC(c2_color_state::dma_fill_w<Channel>));
+
+	map(base + 0x10, base + 0x10).rw(FUNC(c2_color_state::dma_source_r<Channel>), FUNC(c2_color_state::dma_source_w<Channel>));
+
 	map(base + 0x12, base + 0x15).rw(FUNC(c2_color_state::dma_source_addr_r<Channel>), FUNC(c2_color_state::dma_source_addr_w<Channel>));
+
+	map(base + 0x25, base + 0x25).rw(FUNC(c2_color_state::dma_dest_r<Channel>), FUNC(c2_color_state::dma_dest_w<Channel>));
+
+	map(base + 0x27, base + 0x2a).rw(FUNC(c2_color_state::dma_dest_addr_r<Channel>), FUNC(c2_color_state::dma_dest_addr_w<Channel>));
+
 }
 
 void c2_color_state::ext_map(address_map &map)
@@ -1108,7 +1083,7 @@ void c2_color_state::ext_map(address_map &map)
 	
 	//map(0x2456, 0x245f).nopw();
 
-	map(0x2460, 0x2462).ram().share("render_base");
+	map(0x2460, 0x2462).rw(FUNC(c2_color_state::render_base_r), FUNC(c2_color_state::render_base_w));
 
 	//map(0x2464, 0x2466).nopw();
 
@@ -1118,7 +1093,7 @@ void c2_color_state::ext_map(address_map &map)
 
 	map(0x246d, 0x246d).rw(FUNC(c2_color_state::audiocontrol_246d_r), FUNC(c2_color_state::audiocontrol_246d_w)); // seems out of place for audiocontrol
 	
-	map(0x246e, 0x246e).ram().share("render_unk");
+	map(0x246e, 0x246e).rw(FUNC(c2_color_state::render_unknown_r), FUNC(c2_color_state::render_unknown_w));
 
 	map(0x246f, 0x2472).rw(FUNC(c2_color_state::render_overlay_r), FUNC(c2_color_state::render_overlay_w));
 	map(0x2473, 0x2476).rw(FUNC(c2_color_state::render_mask_r), FUNC(c2_color_state::render_mask_w));
