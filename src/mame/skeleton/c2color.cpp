@@ -74,16 +74,9 @@ public:
 		, m_xram(*this, "xram")
 
 		, m_dram_dword_out_data(*this, "dram_dword_out_data")
-	    , m_dram_dword_in_address(*this, "dram_dword_in_address")
 	    , m_dram_dword_in_data(*this, "dram_dword_in_data")
-		, m_xram_control(*this, "xram_control")
-		, m_ram_access_upper(*this, "ram_access_upper")
 
 		, m_timer_val(*this, "timer_val")
-
-		, m_adc_reg1(*this, "adc_reg1")
-		, m_adc_reg3(*this, "adc_reg3")
-		, m_adc_reg4(*this, "adc_reg4")
 
 		, m_companion(*this, "companion")
 		, m_dac(*this, "dac")
@@ -113,8 +106,24 @@ private:
 	u8 companion_r() { u8 data = m_2002_value; return (data & ~2) | ((BIT(data, 1) && m_companion_sda) ? 2 : 0); }
 	void companion_w(u8 data);
 	void timer_ctrl_w(u8 data);
+
+
+
+	u8 adc_reg1_r() { return m_adc_reg1_8; }
+	void adc_reg1_w(u8 data) { m_adc_reg1_8 = data; }
 	u8 adc_r() { return m_adc_reg2; }
 	void adc_w(u8 data);
+	u8 adc_reg3_r() { return m_adc_reg3_8; }
+	void adc_reg3_w(u8 data) { m_adc_reg3_8 = data; }
+	u8 adc_reg4_r() { return m_adc_reg4_8; }
+	void adc_reg4_w(u8 data) { m_adc_reg4_8 = data; }
+
+	u8 xram_control_r() { return m_xram_control_8; }
+	void xram_control_w(u8 data) { m_xram_control_8 = data; }
+	u8 ram_access_upper_r() { return m_ram_access_upper_8; }
+	void ram_access_upper_w(u8 data) { m_ram_access_upper_8 = data; }
+
+
 	u8 osd_codes_r() { return m_osd_codes_reg; }
 	void osd_codes_w(u8 data);
 	void lcd_ctrl_w(u8 data);
@@ -171,7 +180,10 @@ private:
 	u8 m_audiocontrol_208c;
 	u8 m_audiocontrol_2097;
 	u8 m_timer_ctrl;
+	u8 m_adc_reg1_8;
 	u8 m_adc_reg2;
+	u8 m_adc_reg3_8;
+	u8 m_adc_reg4_8;
 	u8 m_spi_select_2042;
 	u8 m_2002_value;
 	u8 m_buttons_reg;
@@ -179,9 +191,6 @@ private:
 	u8 m_irqack[4];
 	u8 m_irqenable[4];
 	u8 m_irqstatus[4];
-
-
-	u32 get_32(u8* rgn);
 
 	TIMER_CALLBACK_MEMBER(audio_tick);
 
@@ -197,22 +206,14 @@ private:
 	required_device_array<generic_spi_flash_device, 2> m_flash;
 	required_shared_ptr<u8> m_xram;
 
-	u32 m_dram_dword_out_address32;
 	required_shared_ptr<u8> m_dram_dword_out_data;
-	required_shared_ptr<u8> m_dram_dword_in_address;
 	required_shared_ptr<u8> m_dram_dword_in_data;
 
-	u32 m_render_base24;
-
-	required_shared_ptr<u8> m_xram_control;
-	required_shared_ptr<u8> m_ram_access_upper;
+	u8 m_xram_control_8;
+	u8 m_ram_access_upper_8;
 
 	required_shared_ptr<u8> m_timer_val;
 
-
-	required_shared_ptr<u8> m_adc_reg1;
-	required_shared_ptr<u8> m_adc_reg3;
-	required_shared_ptr<u8> m_adc_reg4;
 
 	required_device<c2_color_companion_device> m_companion;
 	required_device<dac_16bit_r2r_device> m_dac;
@@ -225,6 +226,8 @@ private:
 	
 	u8 dram_dword_out_address_r(offs_t offset) { return read_reg_swapped(m_dram_dword_out_address32, offset); }
 	void dram_dword_out_address_w(offs_t offset, u8 data) { write_reg_swapped(m_dram_dword_out_address32, offset, data); }
+	u8 dram_dword_in_address_r(offs_t offset) { return read_reg_swapped(m_dram_dword_in_address32, offset); }
+	void dram_dword_in_address_w(offs_t offset, u8 data) { write_reg_swapped(m_dram_dword_in_address32, offset, data); }
 
 	u8 jpeg_src_r(offs_t offset) { return read_reg_swapped(m_jpeg_src32, offset); }
 	void jpeg_src_w(offs_t offset, u8 data) { write_reg_swapped(m_jpeg_src32, offset, data); }
@@ -309,6 +312,10 @@ private:
 	bool m_lcd_sleep = true;
 	bool m_lcd_on = false;
 	std::unique_ptr<u8[]> m_flash_data[2];
+
+	u32 m_dram_dword_out_address32;
+	u32 m_dram_dword_in_address32;
+	u32 m_render_base24;
 
 	u32 m_jpeg_dst32;
 	u32 m_jpeg_src32;
@@ -441,6 +448,9 @@ void c2_color_state::clear_state()
 	m_audio_address = m_audio_remaining = 0;
 	m_audio_enabled = false;
 
+	m_dram_dword_out_address32 = 0;
+	m_dram_dword_in_address32 = 0;
+
 	m_jpeg_src32 = 0;
 	m_jpeg_dst32 = 0;
 	m_jpeg_len24 = 0;
@@ -465,6 +475,11 @@ void c2_color_state::clear_state()
 
 	m_audio_remaining_reg24 = 0;
 	m_audio_address_reg24 = 0;
+
+	m_adc_reg1_8 = 0;
+	m_adc_reg2 = 0;
+	m_adc_reg3_8 = 0;
+	m_adc_reg4_8 = 0;
 
 }
 
@@ -533,7 +548,7 @@ void c2_color_state::machine_reset()
 	clear_state();
 	m_audio_timer->adjust(attotime::never);
 	m_dac->write(0x8000);
-	m_ram_access_upper[0] = 1;
+	m_ram_access_upper_8 = 1;
 	m_spi_select_2042 = 0x10;
 	m_2002_value = 0x03;
 
@@ -565,14 +580,11 @@ void c2_color_state::machine_reset()
 
 u8 c2_color_state::code_r(offs_t offset)
 {
-	if (BIT(m_xram_control[0], 0) && offset >= 0x4000 && offset < 0x4200)
+	if (BIT(m_xram_control_8, 0) && offset >= 0x4000 && offset < 0x4200)
 		return m_xram[offset - 0x4000];
-	u32 const address = offset < 0x8000 ? offset : ((u32)(m_ram_access_upper[0]) << 15) | (offset & 0x7fff);
+	u32 const address = offset < 0x8000 ? offset : ((u32)(m_ram_access_upper_8) << 15) | (offset & 0x7fff);
 	return m_dram[address & (DRAM_SIZE - 1)];
 }
-
-u32 c2_color_state::get_32(u8* rgn) { return u32(rgn[0]) | (u32(rgn[1]) << 8) | (u32(rgn[2]) << 16) | (u32(rgn[3]) << 24); }
-
 
 void c2_color_state::spi_select()
 {
@@ -669,7 +681,7 @@ void c2_color_state::dram_access(u8 data)
 	}
 	else if (data == 0x13)
 	{
-		u32 const address = get_32(m_dram_dword_in_address);
+		u32 const address = m_dram_dword_in_address32;
 		for (unsigned i = 0; i != 4; ++i)
 			m_dram_dword_in_data[i] = m_dram[(address + i) & (DRAM_SIZE - 1)];
 		m_dramaccess_ctrl |= 0x20;
@@ -815,9 +827,9 @@ void c2_color_state::adc_w(u8 data)
 	{
 		// Channel 0 measures the batteries.  Voltage scaling, other inputs
 		// and conversion timing are unknown; use representative raw levels.
-		u16 const sample = (m_adc_reg1[0] & 3) == 0 ? m_battery->read() : 0;
-		m_adc_reg3[0] = sample >> 8;
-		m_adc_reg4[0] = sample;
+		u16 const sample = (m_adc_reg1_8 & 3) == 0 ? m_battery->read() : 0;
+		m_adc_reg3_8 = sample >> 8;
+		m_adc_reg4_8 = sample;
 		m_adc_reg2 |= 8;
 	}
 }
@@ -974,10 +986,10 @@ void c2_color_state::ext_map(address_map &map)
 	map(0x20a5, 0x20a7).rw(FUNC(c2_color_state::audio_address_r), FUNC(c2_color_state::audio_address_w));
 
 	//map(0x20ab, 0x20ab).ram();
-	map(0x20ac, 0x20ac).ram().share("adc_reg1");
+	map(0x20ac, 0x20ac).rw(FUNC(c2_color_state::adc_reg1_r), FUNC(c2_color_state::adc_reg1_w));
 	map(0x20ad, 0x20ad).rw(FUNC(c2_color_state::adc_r), FUNC(c2_color_state::adc_w));
-	map(0x20ae, 0x20ae).ram().share("adc_reg3");
-	map(0x20af, 0x20af).ram().share("adc_reg4");
+	map(0x20ae, 0x20ae).rw(FUNC(c2_color_state::adc_reg3_r), FUNC(c2_color_state::adc_reg3_w));
+	map(0x20af, 0x20af).rw(FUNC(c2_color_state::adc_reg4_r), FUNC(c2_color_state::adc_reg4_w));
 
 	//map(0x20b6, 0x20b9).nopw();
 
@@ -986,10 +998,10 @@ void c2_color_state::ext_map(address_map &map)
 	//////////////////////////////////////////////
 
 	//map(0x2140, 0x2140).ram();
-	map(0x2141, 0x2141).ram().share("xram_control");
+	map(0x2141, 0x2141).rw(FUNC(c2_color_state::xram_control_r), FUNC(c2_color_state::xram_control_w));
 	//map(0x2142, 0x2142).ram();
 
-	map(0x2144, 0x2144).ram().share("ram_access_upper");
+	map(0x2144, 0x2144).rw(FUNC(c2_color_state::ram_access_upper_r), FUNC(c2_color_state::ram_access_upper_w));
 
 	// first IRQ group
 	map(0x2145, 0x2145).rw(FUNC(c2_color_state::irqenable_r<0>), FUNC(c2_color_state::irqenable_w<0>));
