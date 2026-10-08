@@ -73,17 +73,11 @@ public:
 		, m_flash(*this, "flash%u", 1U)
 		, m_xram(*this, "xram")
 
-		, m_dram_dword_out(*this, "dram_dword_out")
-		, m_dram_dword_out2(*this, "dram_dword_out2")
-	    , m_dram_dword_in(*this, "dram_dword_in")
-	    , m_dram_dword_in2(*this, "dram_dword_in2")
-		, m_render_columns(*this, "render_columns")
-		, m_render_rows(*this, "render_rows")
+		, m_dram_dword_out_data(*this, "dram_dword_out_data")
+	    , m_dram_dword_in_address(*this, "dram_dword_in_address")
+	    , m_dram_dword_in_data(*this, "dram_dword_in_data")
 		, m_xram_control(*this, "xram_control")
 		, m_ram_access_upper(*this, "ram_access_upper")
-
-		, m_jpeg_width(*this, "jpeg_width")
-		, m_jpeg_height(*this, "jpeg_height")
 
 		, m_timer_val(*this, "timer_val")
 
@@ -203,21 +197,15 @@ private:
 	required_device_array<generic_spi_flash_device, 2> m_flash;
 	required_shared_ptr<u8> m_xram;
 
-	required_shared_ptr<u8> m_dram_dword_out;
-	required_shared_ptr<u8> m_dram_dword_out2;
-	required_shared_ptr<u8> m_dram_dword_in;
-	required_shared_ptr<u8> m_dram_dword_in2;
+	u32 m_dram_dword_out_address32;
+	required_shared_ptr<u8> m_dram_dword_out_data;
+	required_shared_ptr<u8> m_dram_dword_in_address;
+	required_shared_ptr<u8> m_dram_dword_in_data;
 
 	u32 m_render_base24;
 
-	required_shared_ptr<u8> m_render_columns;
-	required_shared_ptr<u8> m_render_rows;
-
 	required_shared_ptr<u8> m_xram_control;
 	required_shared_ptr<u8> m_ram_access_upper;
-
-	required_shared_ptr<u8> m_jpeg_width;
-	required_shared_ptr<u8> m_jpeg_height;
 
 	required_shared_ptr<u8> m_timer_val;
 
@@ -234,12 +222,23 @@ private:
 	u8 read_reg_swapped(auto &reg, offs_t offset);
 	void write_reg_swapped(auto &reg, offs_t offset, u8 data);
 
+	
+	u8 dram_dword_out_address_r(offs_t offset) { return read_reg_swapped(m_dram_dword_out_address32, offset); }
+	void dram_dword_out_address_w(offs_t offset, u8 data) { write_reg_swapped(m_dram_dword_out_address32, offset, data); }
+
 	u8 jpeg_src_r(offs_t offset) { return read_reg_swapped(m_jpeg_src32, offset); }
 	void jpeg_src_w(offs_t offset, u8 data) { write_reg_swapped(m_jpeg_src32, offset, data); }
 	u8 jpeg_dst_r(offs_t offset) { return read_reg_swapped(m_jpeg_dst32, offset); }
 	void jpeg_dst_w(offs_t offset, u8 data) { write_reg_swapped(m_jpeg_dst32, offset, data); }
 	u8 jpeg_len_r(offs_t offset) { return read_reg_swapped(m_jpeg_len24, offset); }
 	void jpeg_len_w(offs_t offset, u8 data) { write_reg_swapped(m_jpeg_len24, offset, data); }
+
+	u8 jpeg_width_r(offs_t offset) { return read_reg_swapped(m_jpeg_width32, offset); }
+	void jpeg_width_w(offs_t offset, u8 data) { write_reg_swapped(m_jpeg_width32, offset, data); }
+	u8 jpeg_height_r(offs_t offset) { return read_reg_swapped(m_jpeg_height32, offset); }
+	void jpeg_height_w(offs_t offset, u8 data) { write_reg_swapped(m_jpeg_height32, offset, data); }
+
+
 	u8 render_base_r(offs_t offset) { return read_reg_swapped(m_render_base24, offset); }
 	void render_base_w(offs_t offset, u8 data) { write_reg_swapped(m_render_base24, offset, data); }
 	u8 render_overlay_r(offs_t offset) { return read_reg_swapped(m_render_overlay32, offset); }
@@ -267,6 +266,12 @@ private:
 	void render_osd3_w(u8 data) { m_render_osd3_8 = data; }
 	u8 render_unknown_r() { return m_render_unknown_8; }
 	void render_unknown_w(u8 data) { m_render_unknown_8 = data; }
+
+	u8 render_columns_r() { return m_render_columns_8; }
+	void render_columns_w(u8 data) { m_render_columns_8 = data; }
+	u8 render_rows_r() { return m_render_rows_8; }
+	void render_rows_w(u8 data) { m_render_rows_8 = data; }
+
 
 	u8 audio_remaining_r(offs_t offset) { return read_reg_swapped(m_audio_remaining_reg24, offset); }
 	void audio_remaining_w(offs_t offset, u8 data) { write_reg_swapped(m_audio_remaining_reg24, offset, data); }
@@ -308,6 +313,8 @@ private:
 	u32 m_jpeg_dst32;
 	u32 m_jpeg_src32;
 	u32 m_jpeg_len24;
+	u32 m_jpeg_width32;
+	u32 m_jpeg_height32;
 	u32 m_render_overlay32;
 	u16 m_render_font16;
 	u32 m_render_mask32;
@@ -319,6 +326,8 @@ private:
 	u16 m_render_osd1_16;
 	u16 m_render_osd2_16;
 	u8 m_render_osd3_8;
+	u8 m_render_columns_8;
+	u8 m_render_rows_8;
 	u8 m_render_unknown_8;
 	u32 m_audio_remaining_reg24;
 	u32 m_audio_address_reg24;
@@ -349,15 +358,11 @@ u32 c2_color_state::screen_update(screen_device &screen, bitmap_rgb32 &bitmap, c
 	if (m_lcd_sleep || !m_lcd_on)
 		return 0;
 
-	u32 const base = m_render_base24;
-	u16 const columns = m_render_columns[0];
-	u16 const rows = m_render_rows[0];
-
 	for (int y = cliprect.min_y; y <= cliprect.max_y; ++y)
 	{
 		for (int x = cliprect.min_x; x <= cliprect.max_x; ++x)
 		{
-			u32 const address = base + (y * screen.visible_area().width() + x) * 2;
+			u32 const address = m_render_base24 + (y * screen.visible_area().width() + x) * 2;
 			u16 const pixel = m_dram[address & (DRAM_SIZE - 1)] | (u16(m_dram[(address + 1) & (DRAM_SIZE - 1)]) << 8);
 			bitmap.pix(y, x) = rgb_t(pal5bit(pixel >> 11), pal6bit(pixel >> 5), pal5bit(pixel));
 		}
@@ -389,9 +394,9 @@ u32 c2_color_state::screen_update(screen_device &screen, bitmap_rgb32 &bitmap, c
 	{
 		for (int x = cliprect.min_x; x <= cliprect.max_x; ++x)
 		{
-			if (BIT(m_osd_codes_reg, 0) && x / 16 < columns && y / 20 < rows)
+			if (BIT(m_osd_codes_reg, 0) && x / 16 < m_render_columns_8 && y / 20 < m_render_rows_8)
 			{
-				u16 const cell = (y / 20) * columns + x / 16;
+				u16 const cell = (y / 20) * m_render_columns_8 + x / 16;
 				u32 const glyph = (m_render_font16 << 9) + m_osd_code[cell] * 80 + (y % 20) * 4 + (x % 16) / 4;
 				u8 const ink = BIT(m_dram[glyph & (DRAM_SIZE - 1)], (x & 3) * 2, 2);
 				// TODO: Decode the OSD palette, attributes and blending controls.
@@ -439,6 +444,9 @@ void c2_color_state::clear_state()
 	m_jpeg_src32 = 0;
 	m_jpeg_dst32 = 0;
 	m_jpeg_len24 = 0;
+	m_jpeg_width32 = 0;
+	m_jpeg_height32 = 0;
+
 	m_render_overlay32 = 0;
 	m_render_base24 = 0;
 	m_render_mask32 = 0;
@@ -451,6 +459,8 @@ void c2_color_state::clear_state()
 	m_render_osd1_16 = 0;
 	m_render_osd2_16 = 0;
 	m_render_osd3_8 = 0;
+	m_render_columns_8 = 0;
+	m_render_rows_8 = 0;
 	m_render_unknown_8 = 0;
 
 	m_audio_remaining_reg24 = 0;
@@ -652,29 +662,26 @@ void c2_color_state::dram_access(u8 data)
 	// Firmware first writes 03, then requests a four-byte read or write.
 	if (data == 0x07)
 	{
-		u32 const address = get_32(m_dram_dword_out);
+		u32 const address = m_dram_dword_out_address32;
 		for (unsigned i = 0; i != 4; ++i)
-			m_dram[(address + i) & (DRAM_SIZE - 1)] = m_dram_dword_out[i];
+			m_dram[(address + i) & (DRAM_SIZE - 1)] = m_dram_dword_out_data[i];
 		m_dramaccess_ctrl |= 0x08;
 	}
 	else if (data == 0x13)
 	{
-		u32 const address = get_32(m_dram_dword_in);
+		u32 const address = get_32(m_dram_dword_in_address);
 		for (unsigned i = 0; i != 4; ++i)
-			m_dram_dword_in[i] = m_dram[(address + i) & (DRAM_SIZE - 1)];
+			m_dram_dword_in_data[i] = m_dram[(address + i) & (DRAM_SIZE - 1)];
 		m_dramaccess_ctrl |= 0x20;
 	}
 }
 
 void c2_color_state::jpeg_decode()
 {
-	u16 const width = get_32(m_jpeg_width) & 0xffff;
-	u16 const height = get_32(m_jpeg_height) & 0xffff;
-	u32 const source = m_jpeg_src32;
-	u32 const destination = m_jpeg_dst32;
-	u32 const length = m_jpeg_len24;
+	u16 const width = m_jpeg_width32 & 0xffff;
+	u16 const height = m_jpeg_height32 & 0xffff;
 
-	if (!width || !height || u32(width) * height > DRAM_SIZE / 2 || !length || length > DRAM_SIZE)
+	if (!width || !height || u32(width) * height > DRAM_SIZE / 2 || !m_jpeg_len24 || m_jpeg_len24 > DRAM_SIZE)
 		return;
 
 	// The hardware receives quantisation tables and a baseline 4:2:2 scan
@@ -691,8 +698,8 @@ void c2_color_state::jpeg_decode()
 	u8 const header[] = { 0xff, 0xc0, 0x00, 0x11, 0x08, u8(height >> 8), u8(height), u8(width >> 8), u8(width), 0x03, 0x01, 0x21, 0x00, 0x02, 0x11, 0x01, 0x03, 0x11, 0x01, 0xff, 0xda, 0x00, 0x0c, 0x03, 0x01, 0x00, 0x02, 0x11, 0x03, 0x11, 0x00, 0x3f, 0x00 };
 	stream.insert(stream.end(), std::begin(header), std::end(header));
 
-	for (u32 i = 0; i != length; ++i)
-		stream.push_back(m_dram[(source + i) & (DRAM_SIZE - 1)]);
+	for (u32 i = 0; i != m_jpeg_len24; ++i)
+		stream.push_back(m_dram[(m_jpeg_src32 + i) & (DRAM_SIZE - 1)]);
 
 	stream.push_back(0xff);
 	stream.push_back(0xd9);
@@ -709,7 +716,7 @@ void c2_color_state::jpeg_decode()
 		{
 			rgb_t const color(decoded.pix(y, x));
 			u16 const pixel = ((color.r() >> 3) << 11) | ((color.g() >> 2) << 5) | (color.b() >> 3);
-			u32 const address = destination + (y * width + x) * 2;
+			u32 const address = m_jpeg_dst32 + (y * width + x) * 2;
 			m_dram[address & (DRAM_SIZE - 1)] = pixel;
 			m_dram[(address + 1) & (DRAM_SIZE - 1)] = pixel >> 8;
 		}
@@ -925,9 +932,9 @@ void c2_color_state::ext_map(address_map &map)
 	//map(0x2004, 0x2004).ram();
 	//map(0x200a, 0x200b).ram();
 
-	map(0x2024, 0x2027).ram().share("jpeg_width"); // we only use 16-bits
+	map(0x2024, 0x2027).rw(FUNC(c2_color_state::jpeg_width_r), FUNC(c2_color_state::jpeg_width_w)); // we only use 16-bits
 
-	map(0x202a, 0x202d).ram().share("jpeg_height"); // we only use 16-bits
+	map(0x202a, 0x202d).rw(FUNC(c2_color_state::jpeg_height_r), FUNC(c2_color_state::jpeg_height_w)); // we only use 16-bits
 
 	//map(0x2028, 0x2029).nopw();
 
@@ -1014,8 +1021,8 @@ void c2_color_state::ext_map(address_map &map)
 	//map(0x2184, 0x2184).ram();
 	map(0x2185, 0x2185).rw(FUNC(c2_color_state::osd_codes_r), FUNC(c2_color_state::osd_codes_w));
 
-	map(0x2186, 0x2186).ram().share("render_columns");
-	map(0x2187, 0x2187).ram().share("render_rows");
+	map(0x2186, 0x2186).rw(FUNC(c2_color_state::render_columns_r), FUNC(c2_color_state::render_columns_w));
+	map(0x2187, 0x2187).rw(FUNC(c2_color_state::render_rows_r), FUNC(c2_color_state::render_rows_w));
 
 	//map(0x2188, 0x2288).ram();
 	//map(0x218a, 0x228c).ram();
@@ -1067,11 +1074,11 @@ void c2_color_state::ext_map(address_map &map)
 	map(0x2405, 0x2405).rw(FUNC(c2_color_state::dramaccess_ctrl_r), FUNC(c2_color_state::dramaccess_ctrl_w));
 	//map(0x2406, 0x2407).nopw();
 
-	map(0x2429, 0x242c).ram().share("dram_dword_out2");
-	map(0x242d, 0x2430).ram().share("dram_dword_out");
+	map(0x2429, 0x242c).ram().share("dram_dword_out_data");
+	map(0x242d, 0x2430).rw(FUNC(c2_color_state::dram_dword_out_address_r), FUNC(c2_color_state::dram_dword_out_address_w));
 
-	map(0x2431, 0x2434).ram().share("dram_dword_in2");
-	map(0x2435, 0x2438).ram().share("dram_dword_in");
+	map(0x2431, 0x2434).ram().share("dram_dword_in_data");
+	map(0x2435, 0x2438).ram().share("dram_dword_in_address");
 
 	//map(0x2446, 0x2449).nopw();
 
