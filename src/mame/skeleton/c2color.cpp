@@ -79,12 +79,7 @@ public:
 	    , m_dram_dword_in2(*this, "dram_dword_in2")
 	    , m_render_base(*this, "render_base")
 	    , m_render_unk(*this, "render_unk")
-	    , m_render_overlay(*this, "render_overlay")
 	    , m_render_mask(*this, "render_mask")
-	    , m_overlay_width(*this, "overlay_width")
-	    , m_overlay_height(*this, "overlay_height")
-	    , m_overlay_x(*this, "overlay_x")
-	    , m_overlay_y(*this, "overlay_y")
 		, m_render_columns(*this, "render_columns")
 		, m_render_rows(*this, "render_rows")
 		, m_render_osd0(*this, "render_osd0")
@@ -235,12 +230,12 @@ private:
 	u32 m_jpeg_len24;
 	required_shared_ptr<u8> m_render_base;
 	required_shared_ptr<u8> m_render_unk;
-	required_shared_ptr<u8> m_render_overlay;
+	u32 m_render_overlay32;
 	required_shared_ptr<u8> m_render_mask;
-	required_shared_ptr<u8> m_overlay_width;
-	required_shared_ptr<u8> m_overlay_height;
-	required_shared_ptr<u8> m_overlay_x;
-	required_shared_ptr<u8> m_overlay_y;
+	u16 m_overlay_width16;
+	u16 m_overlay_height16;
+	u16 m_overlay_x16;
+	u16 m_overlay_y16;
 	required_shared_ptr<u8> m_render_columns;
 	required_shared_ptr<u8> m_render_rows;
 	required_shared_ptr<u8> m_render_osd0;
@@ -290,6 +285,16 @@ private:
 	void jpeg_dst_w(offs_t offset, u8 data) { write_reg_swapped(m_jpeg_dst32, offset, data); }
 	u8 jpeg_len_r(offs_t offset) { return read_reg_swapped(m_jpeg_len24, offset); }
 	void jpeg_len_w(offs_t offset, u8 data) { write_reg_swapped(m_jpeg_len24, offset, data); }
+	u8 render_overlay_r(offs_t offset) { return read_reg_swapped(m_render_overlay32, offset); }
+	void render_overlay_w(offs_t offset, u8 data) { write_reg_swapped(m_render_overlay32, offset, data); }
+	u8 overlay_width_r(offs_t offset) { return read_reg_swapped(m_overlay_width16, offset); }
+	void overlay_width_w(offs_t offset, u8 data) { write_reg_swapped(m_overlay_width16, offset, data); }
+	u8 overlay_height_r(offs_t offset) { return read_reg_swapped(m_overlay_height16, offset); }
+	void overlay_height_w(offs_t offset, u8 data) { write_reg_swapped(m_overlay_height16, offset, data); }
+	u8 overlay_x_r(offs_t offset) { return read_reg_swapped(m_overlay_x16, offset); }
+	void overlay_x_w(offs_t offset, u8 data) { write_reg_swapped(m_overlay_x16, offset, data); }
+	u8 overlay_y_r(offs_t offset) { return read_reg_swapped(m_overlay_y16, offset); }
+	void overlay_y_w(offs_t offset, u8 data) { write_reg_swapped(m_overlay_y16, offset, data); }
 
 	template<int Channel> u8 dma_source_addr_r(offs_t offset) { return read_reg_swapped(m_dma_channel[Channel].m_dma_source_addr, offset); }
 	template<int Channel> void dma_source_addr_w(offs_t offset, u8 data) { write_reg_swapped(m_dma_channel[Channel].m_dma_source_addr, offset, data); }
@@ -328,12 +333,12 @@ u32 c2_color_state::screen_update(screen_device &screen, bitmap_rgb32 &bitmap, c
 	u16 const columns = m_render_columns[0];
 	u16 const rows = m_render_rows[0];
 
-	u32 const overlay = get_32(m_render_overlay);
+	u32 const overlay = m_render_overlay32;
 	u32 const mask = get_32(m_render_mask);
-	u16 const overlay_width = get_16(m_overlay_width);
-	u16 const overlay_height = get_16(m_overlay_height);
-	u16 const overlay_x = get_16(m_overlay_x);
-	u16 const overlay_y = get_16(m_overlay_y);
+	u16 const overlay_width = m_overlay_width16;
+	u16 const overlay_height = m_overlay_height16;
+	u16 const overlay_x = m_overlay_x16;
+	u16 const overlay_y = m_overlay_y16;
 	for (int y = cliprect.min_y; y <= cliprect.max_y; ++y)
 	{
 		for (int x = cliprect.min_x; x <= cliprect.max_x; ++x)
@@ -420,6 +425,11 @@ void c2_color_state::clear_state()
 	m_jpeg_src32 = 0;
 	m_jpeg_dst32 = 0;
 	m_jpeg_len24 = 0;
+	m_render_overlay32 = 0;
+	m_overlay_width16 = 0;
+	m_overlay_height16 = 0;
+	m_overlay_x16 = 0;
+	m_overlay_y16 = 0;
 }
 
 void c2_color_state::machine_start()
@@ -1146,12 +1156,12 @@ void c2_color_state::ext_map(address_map &map)
 	
 	map(0x246e, 0x246e).ram().share("render_unk");
 
-	map(0x246f, 0x2472).ram().share("render_overlay");
+	map(0x246f, 0x2472).rw(FUNC(c2_color_state::render_overlay_r), FUNC(c2_color_state::render_overlay_w));
 	map(0x2473, 0x2476).ram().share("render_mask");
-	map(0x2477, 0x2478).ram().share("overlay_width");
-	map(0x2479, 0x247a).ram().share("overlay_height");
-	map(0x247b, 0x247c).ram().share("overlay_x");
-	map(0x247d, 0x247e).ram().share("overlay_y");
+	map(0x2477, 0x2478).rw(FUNC(c2_color_state::overlay_width_r), FUNC(c2_color_state::overlay_width_w));
+	map(0x2479, 0x247a).rw(FUNC(c2_color_state::overlay_height_r), FUNC(c2_color_state::overlay_height_w));
+	map(0x247b, 0x247c).rw(FUNC(c2_color_state::overlay_x_r), FUNC(c2_color_state::overlay_x_w));
+	map(0x247d, 0x247e).rw(FUNC(c2_color_state::overlay_y_r), FUNC(c2_color_state::overlay_y_w));
 
 	//map(0x24a4, 0x24a4).ram();
 
