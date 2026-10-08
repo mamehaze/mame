@@ -81,10 +81,6 @@ public:
 	    , m_render_unk(*this, "render_unk")
 		, m_render_columns(*this, "render_columns")
 		, m_render_rows(*this, "render_rows")
-		, m_render_osd0(*this, "render_osd0")
-		, m_render_osd1(*this, "render_osd1")
-		, m_render_osd2(*this, "render_osd2")
-		, m_render_osd3(*this, "render_osd3")
 		, m_xram_control(*this, "xram_control")
 		, m_ram_access_upper(*this, "ram_access_upper")
 
@@ -93,8 +89,6 @@ public:
 
 		, m_timer_val(*this, "timer_val")
 
-		, m_audio_remaining_reg(*this, "audio_remaining_reg")
-		, m_audio_address_reg(*this, "audio_address_reg")
 		, m_adc_reg1(*this, "adc_reg1")
 		, m_adc_reg3(*this, "adc_reg3")
 		, m_adc_reg4(*this, "adc_reg4")
@@ -124,50 +118,53 @@ private:
 	void audio_control();
 	void update_irq();
 
-	u8 io_2002_r();
-	void io_2002_w(u8 data);
+	u8 companion_r() { u8 data = m_2002_value; return (data & ~2) | ((BIT(data, 1) && m_companion_sda) ? 2 : 0); }
+	void companion_w(u8 data);
 	void timer_ctrl_w(u8 data);
-	u8 adc_r();
+	u8 adc_r() { return m_adc_reg2; }
 	void adc_w(u8 data);
+	u8 osd_codes_r() { return m_osd_codes_reg; }
 	void osd_codes_w(u8 data);
 	void lcd_ctrl_w(u8 data);
 	void jpeg_decode_trigger_w(u8 data);
-	u8 quant_ctrl_r();
+	u8 quant_ctrl_r() {	return m_quant_ctrl; }
 	void quant_ctrl_w(u8 data);
-	void quant_data_w(u8 data);
+	void quant_data_w(u8 data) { m_quant[BIT(m_quant_ctrl, 2) ? 0 : 1][m_quant_pos++ & 0x7f] = data; }
+	u8 spi_select_2042_r() { return m_spi_select_2042; }
+	void spi_select_2042_w(u8 data) { m_spi_select_2042 = data;	spi_select(); }
+	u8 buttons_r() { u8 data = m_buttons_reg; return (data & 0x03) | (m_buttons->read() & 0xfc); }
+	void buttons_w(u8 data) { m_buttons_reg = data; }
+	u8 timer_ctrl_r() {	return m_timer_ctrl; }
+	u8 audiocontrol_208c_r() { return m_audiocontrol_208c; }
+	void audiocontrol_208c_w(u8 data) {	m_audiocontrol_208c = data;	audio_control(); }
+	u8 audiocontrol_2097_r() { return m_audiocontrol_2097; }
+	void audiocontrol_2097_w(u8 data) {	m_audiocontrol_2097 = data;	audio_control(); }
 
-	u8 spi_select_2042_r();
-	void spi_select_2042_w(u8 data);
-	u8 buttons_r();
-	void buttons_w(u8 data);
-	u8 timer_ctrl_r();
-	u8 audiocontrol_208c_r();
-	void audiocontrol_208c_w(u8 data);
-	u8 audiocontrol_2097_r();
-	void audiocontrol_2097_w(u8 data);
+	u8 dramstop_r() { u8 data = m_dramstop;	return (data & 0x3f) | (BIT(data, 2) ? 0x80 : 0x40); /* DRAM stop / resume acknowledgement. */ }
+	void dramstop_w(u8 data) { m_dramstop = data; }
 
+	u8 spi_select_2152_r() { return (m_spi_select_2152 & 0x7f) | (BIT(m_buttons->read(), 0) ? 0x80 : 0); }
+	void spi_select_2152_w(u8 data) { m_spi_select_2152 = data; spi_select(); }
+	u8 spi_status_r() {	return m_spi_status |= 0x18; /* SPI transmit / receive ready; transfers currently complete immediately. */ }
+	void spi_status_w(u8 data) { m_spi_status = data; }
+	u8 spi_select_2155_r() { return m_spi_select_2155; }
+	void spi_select_2155_w(u8 data) { m_spi_select_2155 = data;	spi_select(); }
+	void spi_exchange0_w(u8 data) {	spi_exchange(data); }
+	u8 spi_exchange1_r() { return m_spi_exchange1; }
+	void spi_exchange1_w(u8 data) {	m_spi_exchange1 = spi_exchange(data); }
+	u8 audiocontrol_246d_r() { return m_audiocontrol_246d; }
+	void audiocontrol_246d_w(u8 data) {	m_audiocontrol_246d = data; audio_control(); }
+	u8 dramaccess_ctrl_r() { return m_dramaccess_ctrl; }
+	void dramaccess_ctrl_w(u8 data) { m_dramaccess_ctrl = data; dram_access(data); }
+	template<int Channel> void c2_dma_channel_w(offs_t offset, u8 data);
+	template<int Channel> u8 c2_dma_channel_r(offs_t offset);
 
-	u8 dramstop_r();
-	u8 spi_select_2152_r();
-	u8 spi_status_r();
-	void spi_status_w(u8 data);
-	u8 spi_select_2155_r();
-	void spi_select_2155_w(u8 data);
-	u8 spi_exchange1_r();
-
-	u8 osd_codes_r();
-	void spi_select_2152_w(u8 data);
-	void spi_exchange0_w(u8 data);
-	void spi_exchange1_w(u8 data);
-
-	template <uint8_t Reg> u8 irqack_r();
-	template <uint8_t Reg> void irqack_w(u8 data);
-	template <uint8_t Reg> u8 irqenable_r();
-	template <uint8_t Reg> void irqenable_w(u8 data);
-	template <uint8_t Reg> u8 irqstatus_r();
-	template <uint8_t Reg> void irqstatus_w(u8 data);
-
-
+	template <uint8_t Reg> u8 irqack_r() { return m_irqack[Reg]; }
+	template <uint8_t Reg> u8 irqenable_r() { return m_irqenable[Reg]; }
+	template <uint8_t Reg> void irqenable_w(u8 data) {m_irqenable[Reg] = data; update_irq(); }
+	template <uint8_t Reg> u8 irqstatus_r() { return m_irqstatus[Reg]; }
+	template <uint8_t Reg> void irqstatus_w(u8 data) { m_irqstatus[Reg] = data; }
+	template <uint8_t Reg> void irqack_w(u8 data) { m_irqack[Reg] = data; m_irqstatus[Reg] &= ~data; update_irq(); }
 
 	u8 m_dramstop;
 	u8 m_jpeg_decode_trigger;
@@ -192,24 +189,16 @@ private:
 	u8 m_irqenable[4];
 	u8 m_irqstatus[4];
 
-	u8 audiocontrol_246d_r();
-	void audiocontrol_246d_w(u8 data);
-	u8 dramaccess_ctrl_r();
-	void dramaccess_ctrl_w(u8 data);
-	void dramstop_w(u8 data);
-
-	template<int Channel> void c2_dma_channel_w(offs_t offset, u8 data);
-	template<int Channel> u8 c2_dma_channel_r(offs_t offset);
-
 
 	u32 get_32(u8* rgn);
 	u32 get_24(u8* rgn);
-	u16 get_16(u8* rgn);
 	u8 get_8(u8* rgn);
 
 	TIMER_CALLBACK_MEMBER(audio_tick);
 
 	void prog_map(address_map &map) ATTR_COLD;
+
+	template<int Channel> void add_dma_map(address_map &map, int base);
 	void ext_map(address_map &map) ATTR_COLD;
 
 	required_device<c2_color_cpu_device> m_maincpu;
@@ -223,24 +212,13 @@ private:
 	required_shared_ptr<u8> m_dram_dword_out2;
 	required_shared_ptr<u8> m_dram_dword_in;
 	required_shared_ptr<u8> m_dram_dword_in2;
-	u32 m_jpeg_dst32;
-	u32 m_jpeg_src32;
-	u32 m_jpeg_len24;
+
 	required_shared_ptr<u8> m_render_base;
 	required_shared_ptr<u8> m_render_unk;
-	u32 m_render_overlay32;
-	u16 m_render_font16;
-	u32 m_render_mask32;
-	u16 m_overlay_width16;
-	u16 m_overlay_height16;
-	u16 m_overlay_x16;
-	u16 m_overlay_y16;
+
 	required_shared_ptr<u8> m_render_columns;
 	required_shared_ptr<u8> m_render_rows;
-	required_shared_ptr<u8> m_render_osd0;
-	required_shared_ptr<u8> m_render_osd1;
-	required_shared_ptr<u8> m_render_osd2;
-	required_shared_ptr<u8> m_render_osd3;
+
 	required_shared_ptr<u8> m_xram_control;
 	required_shared_ptr<u8> m_ram_access_upper;
 
@@ -249,30 +227,15 @@ private:
 
 	required_shared_ptr<u8> m_timer_val;
 
-	required_shared_ptr<u8> m_audio_remaining_reg;
-	required_shared_ptr<u8> m_audio_address_reg;
+
 	required_shared_ptr<u8> m_adc_reg1;
 	required_shared_ptr<u8> m_adc_reg3;
 	required_shared_ptr<u8> m_adc_reg4;
-
 
 	required_device<c2_color_companion_device> m_companion;
 	required_device<dac_16bit_r2r_device> m_dac;
 	required_ioport m_buttons;
 	required_ioport m_battery;
-	u8 m_companion_sda;
-	emu_timer *m_audio_timer;
-	u32 m_audio_address;
-	u32 m_audio_remaining;
-	bool m_audio_enabled;
-
-	static constexpr u32 DRAM_SIZE = 0x200000;
-	std::unique_ptr<u8[]> m_dram;
-	std::unique_ptr<u16[]> m_osd_code;
-	std::unique_ptr<u8[]> m_osd_attr;
-	bool m_lcd_sleep = true;
-	bool m_lcd_on = false;
-	std::unique_ptr<u8[]> m_flash_data[2];
 
 	u8 read_reg_swapped(auto &reg, offs_t offset);
 	void write_reg_swapped(auto &reg, offs_t offset, u8 data);
@@ -298,9 +261,55 @@ private:
 	u8 overlay_y_r(offs_t offset) { return read_reg_swapped(m_overlay_y16, offset); }
 	void overlay_y_w(offs_t offset, u8 data) { write_reg_swapped(m_overlay_y16, offset, data); }
 
+	u8 render_osd0_r(offs_t offset) { return read_reg_swapped(m_render_osd0_16, offset); }
+	void render_osd0_w(offs_t offset, u8 data) { write_reg_swapped(m_render_osd0_16, offset, data); }
+	u8 render_osd1_r(offs_t offset) { return read_reg_swapped(m_render_osd1_16, offset); }
+	void render_osd1_w(offs_t offset, u8 data) { write_reg_swapped(m_render_osd1_16, offset, data); }
+	u8 render_osd2_r(offs_t offset) { return read_reg_swapped(m_render_osd2_16, offset); }
+	void render_osd2_w(offs_t offset, u8 data) { write_reg_swapped(m_render_osd2_16, offset, data); }
+	u8 render_osd3_r() { return m_render_osd3_8; }
+	void render_osd3_w(u8 data) { m_render_osd3_8 = data; }
+
+	u8 audio_remaining_r(offs_t offset) { return read_reg_swapped(m_audio_remaining_reg24, offset); }
+	void audio_remaining_w(offs_t offset, u8 data) { write_reg_swapped(m_audio_remaining_reg24, offset, data); }
+	u8 audio_address_r(offs_t offset) { return read_reg_swapped(m_audio_address_reg24, offset); }
+	void audio_address_w(offs_t offset, u8 data) { write_reg_swapped(m_audio_address_reg24, offset, data); }
+
+
 	template<int Channel> u8 dma_source_addr_r(offs_t offset) { return read_reg_swapped(m_dma_channel[Channel].m_dma_source_addr, offset); }
 	template<int Channel> void dma_source_addr_w(offs_t offset, u8 data) { write_reg_swapped(m_dma_channel[Channel].m_dma_source_addr, offset, data); }
 
+	emu_timer *m_audio_timer;
+
+	u8 m_companion_sda;
+	u32 m_audio_address;
+	u32 m_audio_remaining;
+	bool m_audio_enabled;
+
+	static constexpr u32 DRAM_SIZE = 0x200000;
+	std::unique_ptr<u8[]> m_dram;
+	std::unique_ptr<u16[]> m_osd_code;
+	std::unique_ptr<u8[]> m_osd_attr;
+	bool m_lcd_sleep = true;
+	bool m_lcd_on = false;
+	std::unique_ptr<u8[]> m_flash_data[2];
+
+	u32 m_jpeg_dst32;
+	u32 m_jpeg_src32;
+	u32 m_jpeg_len24;
+	u32 m_render_overlay32;
+	u16 m_render_font16;
+	u32 m_render_mask32;
+	u16 m_overlay_width16;
+	u16 m_overlay_height16;
+	u16 m_overlay_x16;
+	u16 m_overlay_y16;
+	u16 m_render_osd0_16;
+	u16 m_render_osd1_16;
+	u16 m_render_osd2_16;
+	u8 m_render_osd3_8;
+	u32 m_audio_remaining_reg24;
+	u32 m_audio_address_reg24;
 
 	struct dma_channel
 	{
@@ -316,8 +325,6 @@ private:
 	};
 
 	dma_channel m_dma_channel[2];
-
-
 
 	s8 m_spi_selected;
 	u8 m_quant[2][128];
@@ -426,6 +433,15 @@ void c2_color_state::clear_state()
 	m_overlay_height16 = 0;
 	m_overlay_x16 = 0;
 	m_overlay_y16 = 0;
+
+	m_render_osd0_16 = 0;
+	m_render_osd1_16 = 0;
+	m_render_osd2_16 = 0;
+	m_render_osd3_8 = 0;
+
+	m_audio_remaining_reg24 = 0;
+	m_audio_address_reg24 = 0;
+
 }
 
 void c2_color_state::machine_start()
@@ -533,7 +549,6 @@ u8 c2_color_state::code_r(offs_t offset)
 
 u32 c2_color_state::get_32(u8* rgn) { return u32(rgn[0]) | (u32(rgn[1]) << 8) | (u32(rgn[2]) << 16) | (u32(rgn[3]) << 24); }
 u32 c2_color_state::get_24(u8* rgn) { return u32(rgn[0]) | (u32(rgn[1]) << 8) | (u32(rgn[2]) << 16); }
-u16 c2_color_state::get_16(u8* rgn) { return u16(rgn[0]) | (u16(rgn[1]) << 8); }
 u8 c2_color_state::get_8(u8* rgn) { return u8(rgn[0]); }
 
 
@@ -704,8 +719,6 @@ void c2_color_state::write_reg_swapped(auto &reg, offs_t offset, u8 data)
 	reg = (reg & ~shiftedmask) | shifteddata;
 }
 
-
-
 void c2_color_state::update_irq()
 {
 	m_maincpu->set_input_line(MCS51_INT0_LINE, ((m_irqstatus[0] & m_irqenable[0]) | (m_irqstatus[1] & m_irqenable[1])) ? ASSERT_LINE : CLEAR_LINE);
@@ -720,8 +733,8 @@ void c2_color_state::audio_control()
 		// Addresses and lengths are in 16-bit samples.  The observed setting
 		// (20ab bits 2:1 clear) plays signed little-endian mono PCM at 8 kHz.
 		// TODO: Other rates, formats, volume and output filtering.
-		m_audio_address = get_24(m_audio_address_reg) * 2;
-		m_audio_remaining = get_24(m_audio_remaining_reg);
+		m_audio_address = m_audio_address_reg24 * 2;
+		m_audio_remaining = m_audio_remaining_reg24;
 		m_audio_timer->adjust(attotime::zero, 0, attotime::from_hz(8000));
 	}
 	else if (!enabled)
@@ -751,9 +764,7 @@ TIMER_CALLBACK_MEMBER(c2_color_state::audio_tick)
 	}
 }
 
-u8 c2_color_state::io_2002_r() { u8 data = m_2002_value; return (data & ~2) | ((BIT(data, 1) && m_companion_sda) ? 2 : 0); }
-
-void c2_color_state::io_2002_w(u8 data)
+void c2_color_state::companion_w(u8 data)
 {
 	m_2002_value = data;
 	if (!BIT(data, 0))
@@ -762,16 +773,6 @@ void c2_color_state::io_2002_w(u8 data)
 	if (BIT(data, 0))
 		m_companion->scl_write(1);
 }
-
-u8 c2_color_state::spi_select_2042_r() { return m_spi_select_2042; }
-void c2_color_state::spi_select_2042_w(u8 data) { m_spi_select_2042 = data;	spi_select(); }
-u8 c2_color_state::buttons_r() { u8 data = m_buttons_reg; return (data & 0x03) | (m_buttons->read() & 0xfc); }
-void c2_color_state::buttons_w(u8 data) { m_buttons_reg = data; }
-u8 c2_color_state::audiocontrol_208c_r() { return m_audiocontrol_208c; }
-void c2_color_state::audiocontrol_208c_w(u8 data) {	m_audiocontrol_208c = data;	audio_control(); }
-u8 c2_color_state::audiocontrol_2097_r() { return m_audiocontrol_2097; }
-void c2_color_state::audiocontrol_2097_w(u8 data) {	m_audiocontrol_2097 = data;	audio_control(); }
-u8 c2_color_state::timer_ctrl_r() {	return m_timer_ctrl; }
 
 void c2_color_state::timer_ctrl_w(u8 data)
 {
@@ -786,8 +787,6 @@ void c2_color_state::timer_ctrl_w(u8 data)
 		m_timer_ctrl &= ~0x02;
 	}
 }
-
-u8 c2_color_state::adc_r() { return m_adc_reg2; }
 
 void c2_color_state::adc_w(u8 data)
 {
@@ -805,8 +804,6 @@ void c2_color_state::adc_w(u8 data)
 	}
 }
 
-u8 c2_color_state::osd_codes_r() { return m_osd_codes_reg; }
-
 void c2_color_state::osd_codes_w(u8 data)
 {
 	u8 previous = m_osd_codes_reg;
@@ -816,9 +813,9 @@ void c2_color_state::osd_codes_w(u8 data)
 	if ((data & 6) == 6)
 	{
 		if (!(previous & 2))
-			m_osd_code[get_16(m_render_osd0)] = get_16(m_render_osd1);
+			m_osd_code[m_render_osd0_16] = m_render_osd1_16;
 		if (!(previous & 4))
-			m_osd_attr[get_16(m_render_osd2)] = m_render_osd3[0];
+			m_osd_attr[m_render_osd2_16] = m_render_osd3_8;
 		m_osd_codes_reg &= ~6;
 	}
 
@@ -844,11 +841,6 @@ void c2_color_state::jpeg_decode_trigger_w(u8 data)
 		jpeg_decode();
 }
 
-u8 c2_color_state::quant_ctrl_r()
-{
-	return m_quant_ctrl;
-}
-
 void c2_color_state::quant_ctrl_w(u8 data)
 {
 	u8 previous = m_quant_ctrl;
@@ -858,38 +850,10 @@ void c2_color_state::quant_ctrl_w(u8 data)
 		m_quant_pos = 0;
 }
 
-void c2_color_state::quant_data_w(u8 data) { m_quant[BIT(m_quant_ctrl, 2) ? 0 : 1][m_quant_pos++ & 0x7f] = data; }
-u8 c2_color_state::spi_select_2152_r() { return (m_spi_select_2152 & 0x7f) | (BIT(m_buttons->read(), 0) ? 0x80 : 0); }
-void c2_color_state::spi_select_2152_w(u8 data) { m_spi_select_2152 = data; spi_select(); }
-u8 c2_color_state::spi_status_r() {	return m_spi_status |= 0x18; /* SPI transmit / receive ready; transfers currently complete immediately. */ }
-void c2_color_state::spi_status_w(u8 data) { m_spi_status = data; }
-u8 c2_color_state::spi_select_2155_r() { return m_spi_select_2155; }
-void c2_color_state::spi_select_2155_w(u8 data) { m_spi_select_2155 = data;	spi_select(); }
-u8 c2_color_state::spi_exchange1_r() { return m_spi_exchange1; }
-void c2_color_state::spi_exchange0_w(u8 data) {	spi_exchange(data); }
-void c2_color_state::spi_exchange1_w(u8 data) {	m_spi_exchange1 = spi_exchange(data); }
-
-template <uint8_t Reg> u8 c2_color_state::irqack_r() { return m_irqack[Reg]; }
-template <uint8_t Reg> u8 c2_color_state::irqenable_r() { return m_irqenable[Reg]; }
-template <uint8_t Reg> void c2_color_state::irqenable_w(u8 data) {m_irqenable[Reg] = data; update_irq(); }
-template <uint8_t Reg> u8 c2_color_state::irqstatus_r() { return m_irqstatus[Reg]; }
-template <uint8_t Reg> void c2_color_state::irqstatus_w(u8 data) { m_irqstatus[Reg] = data; }
-template <uint8_t Reg> void c2_color_state::irqack_w(u8 data) { m_irqack[Reg] = data; m_irqstatus[Reg] &= ~data; update_irq(); }
-
 void c2_color_state::prog_map(address_map &map)
 {
 	map(0x0000, 0xffff).r(FUNC(c2_color_state::code_r));
 }
-
-u8 c2_color_state::dramstop_r() { u8 data = m_dramstop;	return (data & 0x3f) | (BIT(data, 2) ? 0x80 : 0x40); /* DRAM stop / resume acknowledgement. */ }
-u8 c2_color_state::audiocontrol_246d_r() { return m_audiocontrol_246d; }
-
-void c2_color_state::audiocontrol_246d_w(u8 data) {	m_audiocontrol_246d = data; audio_control(); }
-u8 c2_color_state::dramaccess_ctrl_r() { return m_dramaccess_ctrl; }
-
-void c2_color_state::dramaccess_ctrl_w(u8 data) { m_dramaccess_ctrl = data; dram_access(data); }
-void c2_color_state::dramstop_w(u8 data) { m_dramstop = data; }
-
 
 template<int Channel> u8 c2_color_state::c2_dma_channel_r(offs_t offset)
 {
@@ -965,6 +929,13 @@ template<int Channel> void c2_color_state::c2_dma_channel_w(offs_t offset, u8 da
 	}
 }
 
+// 0x2200 - 0x2239 for Channel 0
+// 0x223a - 0x224f for Channel 1
+template<int Channel> void c2_color_state::add_dma_map(address_map &map, int base)
+{
+	map(base + 0x00, base + 0x39).rw(FUNC(c2_color_state::c2_dma_channel_r<Channel>), FUNC(c2_color_state::c2_dma_channel_w<Channel>));
+	map(base + 0x12, base + 0x15).rw(FUNC(c2_color_state::dma_source_addr_r<Channel>), FUNC(c2_color_state::dma_source_addr_w<Channel>));
+}
 
 void c2_color_state::ext_map(address_map &map)
 {
@@ -974,7 +945,7 @@ void c2_color_state::ext_map(address_map &map)
 	// 0x2000 region
 	//////////////////////////////////////////////
 
-	map(0x2002, 0x2002).rw(FUNC(c2_color_state::io_2002_r), FUNC(c2_color_state::io_2002_w));
+	map(0x2002, 0x2002).rw(FUNC(c2_color_state::companion_r), FUNC(c2_color_state::companion_w));
 
 	//map(0x2004, 0x2004).ram();
 	//map(0x200a, 0x200b).ram();
@@ -1017,8 +988,8 @@ void c2_color_state::ext_map(address_map &map)
 
 	map(0x2097, 0x2097).rw(FUNC(c2_color_state::audiocontrol_2097_r), FUNC(c2_color_state::audiocontrol_2097_w));
 
-	map(0x2099, 0x209b).ram().share("audio_remaining_reg"); // Audio remaining 3 bytes
-	map(0x20a5, 0x20a7).ram().share("audio_address_reg"); // Audio address 3 bytes
+	map(0x2099, 0x209b).rw(FUNC(c2_color_state::audio_remaining_r), FUNC(c2_color_state::audio_remaining_w));
+	map(0x20a5, 0x20a7).rw(FUNC(c2_color_state::audio_address_r), FUNC(c2_color_state::audio_address_w));
 
 	//map(0x20ab, 0x20ab).ram();
 	map(0x20ac, 0x20ac).ram().share("adc_reg1");
@@ -1073,12 +1044,12 @@ void c2_color_state::ext_map(address_map &map)
 
 	//map(0x2188, 0x2288).ram();
 	//map(0x218a, 0x228c).ram();
-
+	
 	//map(0x228d, 0x229c).nopw();
-	map(0x219d, 0x219e).ram().share("render_osd0");
-	map(0x219f, 0x21a0).ram().share("render_osd1");
-	map(0x21a1, 0x21a2).ram().share("render_osd2");
-	map(0x21a3, 0x21a3).ram().share("render_osd3");
+	map(0x219d, 0x219e).rw(FUNC(c2_color_state::render_osd0_r), FUNC(c2_color_state::render_osd0_w));
+	map(0x219f, 0x21a0).rw(FUNC(c2_color_state::render_osd1_r), FUNC(c2_color_state::render_osd1_w));
+	map(0x21a1, 0x21a2).rw(FUNC(c2_color_state::render_osd2_r), FUNC(c2_color_state::render_osd2_w));
+	map(0x21a3, 0x21a3).rw(FUNC(c2_color_state::render_osd3_r), FUNC(c2_color_state::render_osd3_w));
 	map(0x21a4, 0x21a5).rw(FUNC(c2_color_state::render_font_r), FUNC(c2_color_state::render_font_w));
 	//map(0x21a6, 0x21bb).nopw();
 
@@ -1091,11 +1062,8 @@ void c2_color_state::ext_map(address_map &map)
 	// 0x2200 region
 	//////////////////////////////////////////////
 
-	map(0x2200, 0x2239).rw(FUNC(c2_color_state::c2_dma_channel_r<0>), FUNC(c2_color_state::c2_dma_channel_w<0>));
-	map(0x2212, 0x2215).rw(FUNC(c2_color_state::dma_source_addr_r<0>), FUNC(c2_color_state::dma_source_addr_w<0>));
-
-	map(0x223a, 0x2273).rw(FUNC(c2_color_state::c2_dma_channel_r<1>), FUNC(c2_color_state::c2_dma_channel_w<1>));
-	map(0x224c, 0x224f).rw(FUNC(c2_color_state::dma_source_addr_r<1>), FUNC(c2_color_state::dma_source_addr_w<1>));
+	add_dma_map<0>(map, 0x2200);
+	add_dma_map<1>(map, 0x223a);
 
 	//map(0x229a, 0x229a).nopw();
 	map(0x229b, 0x229b).rw(FUNC(c2_color_state::quant_ctrl_r), FUNC(c2_color_state::quant_ctrl_w));
