@@ -170,34 +170,13 @@ private:
 	void spi_exchange0_w(u8 data);
 	void spi_exchange1_w(u8 data);
 
-	u8 irqack0_r();
-	u8 irqack1_r();
-	u8 irqack2_r();
-	u8 irqack3_r();
+	template <uint8_t Reg> u8 irqack_r();
+	template <uint8_t Reg> void irqack_w(u8 data);
+	template <uint8_t Reg> u8 irqenable_r();
+	template <uint8_t Reg> void irqenable_w(u8 data);
+	template <uint8_t Reg> u8 irqstatus_r();
+	template <uint8_t Reg> void irqstatus_w(u8 data);
 
-	void irqack0_w(u8 data);
-	void irqack1_w(u8 data);
-	void irqack2_w(u8 data);
-	void irqack3_w(u8 data);
-
-	u8 irqenable0_r();
-	u8 irqenable1_r();
-	u8 irqenable2_r();
-	u8 irqenable3_r();
-
-	void irqenable0_w(u8 data);
-	void irqenable1_w(u8 data);
-	void irqenable2_w(u8 data);
-	void irqenable3_w(u8 data);
-
-	u8 irqstatus0_r();
-	void irqstatus0_w(u8 data);
-	u8 irqstatus1_r();
-	void irqstatus1_w(u8 data);
-	u8 irqstatus2_r();
-	void irqstatus2_w(u8 data);
-	u8 irqstatus3_r();
-	void irqstatus3_w(u8 data);
 
 
 	u8 m_dramstop;
@@ -863,138 +842,12 @@ u8 c2_color_state::spi_exchange1_r() { return m_spi_exchange1; }
 void c2_color_state::spi_exchange0_w(u8 data) {	spi_exchange(data); }
 void c2_color_state::spi_exchange1_w(u8 data) {	m_spi_exchange1 = spi_exchange(data); }
 
-u8 c2_color_state::irqack0_r()
-{
-	return m_irqack[0];
-}
-
-u8 c2_color_state::irqack1_r()
-{
-	return m_irqack[1];
-}
-
-u8 c2_color_state::irqack2_r()
-{
-	return m_irqack[2];
-}
-
-u8 c2_color_state::irqack3_r()
-{
-	return m_irqack[3];
-}
-
-u8 c2_color_state::irqenable0_r()
-{
-	return m_irqenable[0];
-}
-
-u8 c2_color_state::irqenable1_r()
-{
-	return m_irqenable[1];
-}
-
-u8 c2_color_state::irqenable2_r()
-{
-	return m_irqenable[2];
-}
-
-u8 c2_color_state::irqenable3_r()
-{
-	return m_irqenable[3];
-}
-
-void c2_color_state::irqenable0_w(u8 data)
-{
-	m_irqenable[0] = data;
-	update_irq();
-}
-
-void c2_color_state::irqenable1_w(u8 data)
-{
-	m_irqenable[1] = data;
-	update_irq();
-}
-
-void c2_color_state::irqenable2_w(u8 data)
-{
-	m_irqenable[2] = data;
-	update_irq();
-}
-
-void c2_color_state::irqenable3_w(u8 data)
-{
-	m_irqenable[3] = data;
-	update_irq();
-}
-
-u8 c2_color_state::irqstatus0_r()
-{
-	return m_irqstatus[0];
-}
-
-void c2_color_state::irqstatus0_w(u8 data)
-{
-	m_irqstatus[0] = data;
-}
-
-u8 c2_color_state::irqstatus1_r()
-{
-	return m_irqstatus[1];
-}
-
-void c2_color_state::irqstatus1_w(u8 data)
-{
-	m_irqstatus[1] = data;
-}
-
-u8 c2_color_state::irqstatus2_r()
-{
-	return m_irqstatus[2];
-}
-
-void c2_color_state::irqstatus2_w(u8 data)
-{
-	m_irqstatus[2] = data;
-}
-
-u8 c2_color_state::irqstatus3_r()
-{
-	return m_irqstatus[3];
-}
-
-void c2_color_state::irqstatus3_w(u8 data)
-{
-	m_irqstatus[3] = data;
-}
-
-void c2_color_state::irqack0_w(u8 data)
-{
-	m_irqack[0] = data;
-	m_irqstatus[0] &= ~data;
-	update_irq();
-}
-
-void c2_color_state::irqack1_w(u8 data)
-{
-	m_irqack[1] = data;
-	m_irqstatus[1] &= ~data;
-	update_irq();
-}
-
-void c2_color_state::irqack2_w(u8 data)
-{
-	m_irqack[2] = data;
-	m_irqstatus[2] &= ~data;
-	update_irq();
-}
-
-void c2_color_state::irqack3_w(u8 data)
-{
-	m_irqack[3] = data;
-	m_irqstatus[3] &= ~data;
-	update_irq();
-}
-
+template <uint8_t Reg> u8 c2_color_state::irqack_r() { return m_irqack[Reg]; }
+template <uint8_t Reg> u8 c2_color_state::irqenable_r() { return m_irqenable[Reg]; }
+template <uint8_t Reg> void c2_color_state::irqenable_w(u8 data) {m_irqenable[Reg] = data; update_irq(); }
+template <uint8_t Reg> u8 c2_color_state::irqstatus_r() { return m_irqstatus[Reg]; }
+template <uint8_t Reg> void c2_color_state::irqstatus_w(u8 data) { m_irqstatus[Reg] = data; }
+template <uint8_t Reg> void c2_color_state::irqack_w(u8 data) { m_irqack[Reg] = data; m_irqstatus[Reg] &= ~data; update_irq(); }
 
 void c2_color_state::prog_map(address_map &map)
 {
@@ -1177,19 +1030,20 @@ void c2_color_state::ext_map(address_map &map)
 
 	map(0x2144, 0x2144).ram().share("ram_access_upper");
 
-	map(0x2145, 0x2145).rw(FUNC(c2_color_state::irqenable0_r), FUNC(c2_color_state::irqenable0_w));
-	map(0x2146, 0x2146).rw(FUNC(c2_color_state::irqenable1_r), FUNC(c2_color_state::irqenable1_w));
-	map(0x2147, 0x2147).rw(FUNC(c2_color_state::irqstatus0_r), FUNC(c2_color_state::irqstatus0_w));
-	map(0x2148, 0x2148).rw(FUNC(c2_color_state::irqstatus1_r), FUNC(c2_color_state::irqstatus1_w));
-	map(0x2149, 0x2149).rw(FUNC(c2_color_state::irqack0_r), FUNC(c2_color_state::irqack0_w));
-	map(0x214a, 0x214a).rw(FUNC(c2_color_state::irqack1_r), FUNC(c2_color_state::irqack1_w));
-
-	map(0x214b, 0x214b).rw(FUNC(c2_color_state::irqenable2_r), FUNC(c2_color_state::irqenable2_w));
-	map(0x214c, 0x214c).rw(FUNC(c2_color_state::irqenable3_r), FUNC(c2_color_state::irqenable3_w));
-	map(0x214d, 0x214d).rw(FUNC(c2_color_state::irqstatus2_r), FUNC(c2_color_state::irqstatus2_w));
-	map(0x214e, 0x214e).rw(FUNC(c2_color_state::irqstatus3_r), FUNC(c2_color_state::irqstatus3_w));
-	map(0x214f, 0x214f).rw(FUNC(c2_color_state::irqack2_r), FUNC(c2_color_state::irqack2_w));
-	map(0x2150, 0x2150).rw(FUNC(c2_color_state::irqack3_r), FUNC(c2_color_state::irqack3_w));
+	// first IRQ group
+	map(0x2145, 0x2145).rw(FUNC(c2_color_state::irqenable_r<0>), FUNC(c2_color_state::irqenable_w<0>));
+	map(0x2146, 0x2146).rw(FUNC(c2_color_state::irqenable_r<1>), FUNC(c2_color_state::irqenable_w<1>));
+	map(0x2147, 0x2147).rw(FUNC(c2_color_state::irqstatus_r<0>), FUNC(c2_color_state::irqstatus_w<0>));
+	map(0x2148, 0x2148).rw(FUNC(c2_color_state::irqstatus_r<1>), FUNC(c2_color_state::irqstatus_w<1>));
+	map(0x2149, 0x2149).rw(FUNC(c2_color_state::irqack_r<0>), FUNC(c2_color_state::irqack_w<0>));
+	map(0x214a, 0x214a).rw(FUNC(c2_color_state::irqack_r<1>), FUNC(c2_color_state::irqack_w<1>));
+	// second IRQ group
+	map(0x214b, 0x214b).rw(FUNC(c2_color_state::irqenable_r<2>), FUNC(c2_color_state::irqenable_w<2>));
+	map(0x214c, 0x214c).rw(FUNC(c2_color_state::irqenable_r<3>), FUNC(c2_color_state::irqenable_w<3>));
+	map(0x214d, 0x214d).rw(FUNC(c2_color_state::irqstatus_r<2>), FUNC(c2_color_state::irqstatus_w<2>));
+	map(0x214e, 0x214e).rw(FUNC(c2_color_state::irqstatus_r<3>), FUNC(c2_color_state::irqstatus_w<3>));
+	map(0x214f, 0x214f).rw(FUNC(c2_color_state::irqack_r<2>), FUNC(c2_color_state::irqack_w<2>));
+	map(0x2150, 0x2150).rw(FUNC(c2_color_state::irqack_r<3>), FUNC(c2_color_state::irqack_w<3>));
 
 	//map(0x2151, 0x2151).nopw();
 
