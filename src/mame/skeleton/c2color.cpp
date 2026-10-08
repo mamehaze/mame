@@ -77,7 +77,6 @@ public:
 		, m_dram_dword_out2(*this, "dram_dword_out2")
 	    , m_dram_dword_in(*this, "dram_dword_in")
 	    , m_dram_dword_in2(*this, "dram_dword_in2")
-	    , m_jpeg_dest(*this, "jpeg_dest")
 	    , m_render_base(*this, "render_base")
 	    , m_render_unk(*this, "render_unk")
 	    , m_render_overlay(*this, "render_overlay")
@@ -206,14 +205,9 @@ private:
 	void dramaccess_ctrl_w(u8 data);
 	void dramstop_w(u8 data);
 
-	void c2_dma_channel_w(int channel, offs_t offset, u8 data);
-	u8 c2_dma_channel_r(int channel, offs_t offset);
+	template<int Channel> void c2_dma_channel_w(offs_t offset, u8 data);
+	template<int Channel> u8 c2_dma_channel_r(offs_t offset);
 
-
-	u8 c2_dma_channel0_r(offs_t offset);
-	void c2_dma_channel0_w(offs_t offset, u8 data);
-	u8 c2_dma_channel1_r(offs_t offset);
-	void c2_dma_channel1_w(offs_t offset, u8 data);
 
 	u32 get_32(u8* rgn);
 	u32 get_24(u8* rgn);
@@ -236,7 +230,7 @@ private:
 	required_shared_ptr<u8> m_dram_dword_out2;
 	required_shared_ptr<u8> m_dram_dword_in;
 	required_shared_ptr<u8> m_dram_dword_in2;
-	required_shared_ptr<u8> m_jpeg_dest;
+	u32 m_jpeg_dst32;
 	u32 m_jpeg_src32;
 	u32 m_jpeg_len24;
 	required_shared_ptr<u8> m_render_base;
@@ -292,14 +286,20 @@ private:
 
 	u8 jpeg_src_r(offs_t offset) { return read_reg_swapped(m_jpeg_src32, offset); }
 	void jpeg_src_w(offs_t offset, u8 data) { write_reg_swapped(m_jpeg_src32, offset, data); }
+	u8 jpeg_dst_r(offs_t offset) { return read_reg_swapped(m_jpeg_dst32, offset); }
+	void jpeg_dst_w(offs_t offset, u8 data) { write_reg_swapped(m_jpeg_dst32, offset, data); }
 	u8 jpeg_len_r(offs_t offset) { return read_reg_swapped(m_jpeg_len24, offset); }
 	void jpeg_len_w(offs_t offset, u8 data) { write_reg_swapped(m_jpeg_len24, offset, data); }
+
+	template<int Channel> u8 dma_source_addr_r(offs_t offset) { return read_reg_swapped(m_dma_channel[Channel].m_dma_source_addr, offset); }
+	template<int Channel> void dma_source_addr_w(offs_t offset, u8 data) { write_reg_swapped(m_dma_channel[Channel].m_dma_source_addr, offset, data); }
+
 
 	struct dma_channel
 	{
 		u8 m_dma_trigger;
 		u8 m_dma_count[4];
-		u8 m_dma_source_addr[4];
+		u32 m_dma_source_addr;
 		u8 m_dma_source;
 		u8 m_dma_dest_addr[4];
 		u8 m_dma_dest;
@@ -396,11 +396,11 @@ void c2_color_state::clear_state()
 		m_dma_channel[i].m_dma_source = 0;
 		m_dma_channel[i].m_dma_dest = 0;
 		m_dma_channel[i].m_dma_fill_pos = 0;
+		m_dma_channel[i].m_dma_source_addr = 0;
 
 		for (int j = 0; j < 4; j++)
 		{
 			m_dma_channel[i].m_dma_count[j] = 0;
-			m_dma_channel[i].m_dma_source_addr[j] = 0;
 			m_dma_channel[i].m_dma_dest_addr[j] = 0;
 			m_dma_channel[i].m_dma_fill[j] = 0;
 		}
@@ -418,6 +418,7 @@ void c2_color_state::clear_state()
 	m_audio_enabled = false;
 
 	m_jpeg_src32 = 0;
+	m_jpeg_dst32 = 0;
 	m_jpeg_len24 = 0;
 }
 
@@ -585,7 +586,7 @@ void c2_color_state::dma(unsigned channel)
 {
 	u8 const source = m_dma_channel[channel].m_dma_source & 0x0f;
 	u8 const destination = m_dma_channel[channel].m_dma_dest & 0x0f;
-	u32 const source_address = get_32(m_dma_channel[channel].m_dma_source_addr);
+	u32 const source_address = m_dma_channel[channel].m_dma_source_addr;
 	u32 const destination_address = get_32(m_dma_channel[channel].m_dma_dest_addr);
 	u32 const count = get_32(m_dma_channel[channel].m_dma_count);
 	bool const fill = BIT(m_dma_channel[channel].m_dma_trigger, 1);
@@ -638,7 +639,7 @@ void c2_color_state::jpeg_decode()
 	u16 const width = get_32(m_jpeg_width) & 0xffff;
 	u16 const height = get_32(m_jpeg_height) & 0xffff;
 	u32 const source = m_jpeg_src32;
-	u32 const destination = get_24(m_jpeg_dest);
+	u32 const destination = m_jpeg_dst32;
 	u32 const length = m_jpeg_len24;
 
 	if (!width || !height || u32(width) * height > DRAM_SIZE / 2 || !length || length > DRAM_SIZE)
@@ -884,7 +885,7 @@ void c2_color_state::dramaccess_ctrl_w(u8 data) { m_dramaccess_ctrl = data; dram
 void c2_color_state::dramstop_w(u8 data) { m_dramstop = data; }
 
 
-u8 c2_color_state::c2_dma_channel_r(int channel, offs_t offset)
+template<int Channel> u8 c2_color_state::c2_dma_channel_r(offs_t offset)
 {
 	if (offset == 0x26)
 	{
@@ -895,20 +896,20 @@ u8 c2_color_state::c2_dma_channel_r(int channel, offs_t offset)
 	return 0x00;
 }
 
-void c2_color_state::c2_dma_channel_w(int channel, offs_t offset, u8 data)
+template<int Channel> void c2_color_state::c2_dma_channel_w(offs_t offset, u8 data)
 {
 	if (offset == 0x00)
 	{
-		m_dma_channel[channel].m_dma_trigger = data;
+		m_dma_channel[Channel].m_dma_trigger = data;
 		if (data == 2)
-			m_dma_channel[channel].m_dma_fill_pos = 0;
+			m_dma_channel[Channel].m_dma_fill_pos = 0;
 		if (BIT(data, 0))
-			dma(channel);
+			dma(Channel);
 	}
 	else if (offset < 0x05)
 	{
 		int realoffset = offset - 0x01;
-		m_dma_channel[channel].m_dma_count[realoffset] = data;
+		m_dma_channel[Channel].m_dma_count[realoffset] = data;
 	}
 	else if (offset < 0x0d)
 	{
@@ -916,7 +917,7 @@ void c2_color_state::c2_dma_channel_w(int channel, offs_t offset, u8 data)
 	}
 	else if (offset == 0xd)
 	{
-		m_dma_channel[channel].m_dma_fill[m_dma_channel[channel].m_dma_fill_pos++ & 3] = data;
+		m_dma_channel[Channel].m_dma_fill[m_dma_channel[Channel].m_dma_fill_pos++ & 3] = data;
 	}
 	else if (offset < 0x0f)
 	{
@@ -924,7 +925,7 @@ void c2_color_state::c2_dma_channel_w(int channel, offs_t offset, u8 data)
 	}
 	else if (offset == 0x10)
 	{
-		m_dma_channel[channel].m_dma_source = data;
+		m_dma_channel[Channel].m_dma_source = data;
 	}
 	else if (offset < 0x12)
 	{
@@ -932,8 +933,8 @@ void c2_color_state::c2_dma_channel_w(int channel, offs_t offset, u8 data)
 	}
 	else if (offset < 0x16)
 	{
-		int realoffset = offset - 0x12;
-		m_dma_channel[channel].m_dma_source_addr[realoffset] = data;
+		//int realoffset = offset - 0x12;
+		//m_dma_channel[Channel].m_dma_source_addr[realoffset] = data;
 	}
 	else if (offset < 0x25)
 	{
@@ -941,7 +942,7 @@ void c2_color_state::c2_dma_channel_w(int channel, offs_t offset, u8 data)
 	}
 	else if (offset == 0x25)
 	{
-		m_dma_channel[channel].m_dma_dest = data;
+		m_dma_channel[Channel].m_dma_dest = data;
 	}
 	else if (offset == 0x26)
 	{
@@ -950,7 +951,7 @@ void c2_color_state::c2_dma_channel_w(int channel, offs_t offset, u8 data)
 	else if (offset < 0x2b)
 	{
 		int realoffset = offset - 0x27;
-		m_dma_channel[channel].m_dma_dest_addr[realoffset] = data;
+		m_dma_channel[Channel].m_dma_dest_addr[realoffset] = data;
 	}
 	else
 	{
@@ -958,25 +959,6 @@ void c2_color_state::c2_dma_channel_w(int channel, offs_t offset, u8 data)
 	}
 }
 
-u8 c2_color_state::c2_dma_channel0_r(offs_t offset)
-{
-	return c2_dma_channel_r(0, offset);
-}
-
-void c2_color_state::c2_dma_channel0_w(offs_t offset, u8 data)
-{
-	c2_dma_channel_w(0, offset, data);
-}
-
-u8 c2_color_state::c2_dma_channel1_r(offs_t offset)
-{
-	return c2_dma_channel_r(1, offset);
-}
-
-void c2_color_state::c2_dma_channel1_w(offs_t offset, u8 data)
-{
-	c2_dma_channel_w(1, offset, data);
-}
 
 void c2_color_state::ext_map(address_map &map)
 {
@@ -1103,8 +1085,11 @@ void c2_color_state::ext_map(address_map &map)
 	// 0x2200 region
 	//////////////////////////////////////////////
 
-	map(0x2200, 0x2239).rw(FUNC(c2_color_state::c2_dma_channel0_r), FUNC(c2_color_state::c2_dma_channel0_w));
-	map(0x223a, 0x2273).rw(FUNC(c2_color_state::c2_dma_channel1_r), FUNC(c2_color_state::c2_dma_channel1_w));
+	map(0x2200, 0x2239).rw(FUNC(c2_color_state::c2_dma_channel_r<0>), FUNC(c2_color_state::c2_dma_channel_w<0>));
+	map(0x2212, 0x2215).rw(FUNC(c2_color_state::dma_source_addr_r<0>), FUNC(c2_color_state::dma_source_addr_w<0>));
+
+	map(0x223a, 0x2273).rw(FUNC(c2_color_state::c2_dma_channel_r<1>), FUNC(c2_color_state::c2_dma_channel_w<1>));
+	map(0x224c, 0x224f).rw(FUNC(c2_color_state::dma_source_addr_r<1>), FUNC(c2_color_state::dma_source_addr_w<1>));
 
 	//map(0x229a, 0x229a).nopw();
 	map(0x229b, 0x229b).rw(FUNC(c2_color_state::quant_ctrl_r), FUNC(c2_color_state::quant_ctrl_w));
@@ -1141,7 +1126,7 @@ void c2_color_state::ext_map(address_map &map)
 
 	//map(0x2446, 0x2449).nopw();
 
-	map(0x244a, 0x244c).ram().share("jpeg_dest");
+	map(0x244a, 0x244c).rw(FUNC(c2_color_state::jpeg_dst_r), FUNC(c2_color_state::jpeg_dst_w));
 	//map(0x244d, 0x244d).ram();
 	map(0x244e, 0x2451).rw(FUNC(c2_color_state::jpeg_src_r), FUNC(c2_color_state::jpeg_src_w));
 	map(0x2452, 0x2454).rw(FUNC(c2_color_state::jpeg_len_r), FUNC(c2_color_state::jpeg_len_w));
