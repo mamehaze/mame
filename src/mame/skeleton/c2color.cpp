@@ -78,7 +78,6 @@ public:
 	    , m_dram_dword_in(*this, "dram_dword_in")
 	    , m_dram_dword_in2(*this, "dram_dword_in2")
 	    , m_jpeg_dest(*this, "jpeg_dest")
-	    , m_jpeg_src(*this, "jpeg_src")
 	    , m_jpeg_len(*this, "jpeg_len")
 	    , m_render_base(*this, "render_base")
 	    , m_render_unk(*this, "render_unk")
@@ -239,7 +238,7 @@ private:
 	required_shared_ptr<u8> m_dram_dword_in;
 	required_shared_ptr<u8> m_dram_dword_in2;
 	required_shared_ptr<u8> m_jpeg_dest;
-	required_shared_ptr<u8> m_jpeg_src;
+	u32 m_jpeg_src32;
 	required_shared_ptr<u8> m_jpeg_len;
 	required_shared_ptr<u8> m_render_base;
 	required_shared_ptr<u8> m_render_unk;
@@ -288,7 +287,12 @@ private:
 	bool m_lcd_sleep = true;
 	bool m_lcd_on = false;
 	std::unique_ptr<u8[]> m_flash_data[2];
-	u8 m_regs[0x600];
+
+	u8 read_reg_swapped(auto &reg, offs_t offset);
+	void write_reg_swapped(auto &reg, offs_t offset, u8 data);
+
+	u8 jpeg_scr_r(offs_t offset);
+	void jpeg_src_w(offs_t offset, u8 data);
 
 	struct dma_channel
 	{
@@ -382,7 +386,6 @@ u32 c2_color_state::screen_update(screen_device &screen, bitmap_rgb32 &bitmap, c
 void c2_color_state::clear_state()
 {
 	m_companion_sda = 1;
-	std::fill(std::begin(m_regs), std::end(m_regs), 0);
 	std::fill(std::begin(m_dma_channel[0].m_dma_fill), std::end(m_dma_channel[0].m_dma_fill), 0);
 	std::fill(std::begin(m_dma_channel[1].m_dma_fill), std::end(m_dma_channel[1].m_dma_fill), 0);
 
@@ -412,6 +415,8 @@ void c2_color_state::clear_state()
 	m_lcd_on = false;
 	m_audio_address = m_audio_remaining = 0;
 	m_audio_enabled = false;
+
+	m_jpeg_src32 = 0;
 }
 
 void c2_color_state::machine_start()
@@ -427,7 +432,6 @@ void c2_color_state::machine_start()
 	save_pointer(NAME(m_osd_attr), 0x10000);
 	save_item(NAME(m_lcd_sleep));
 	save_item(NAME(m_lcd_on));
-	save_item(NAME(m_regs));
 	save_item(NAME(m_dma_channel[0].m_dma_fill));
 	save_item(NAME(m_dma_channel[0].m_dma_fill_pos));
 	save_item(NAME(m_spi_selected));
@@ -631,7 +635,7 @@ void c2_color_state::jpeg_decode()
 {
 	u16 const width = get_32(m_jpeg_width) & 0xffff;
 	u16 const height = get_32(m_jpeg_height) & 0xffff;
-	u32 const source = get_32(m_jpeg_src);
+	u32 const source = m_jpeg_src32;
 	u32 const destination = get_24(m_jpeg_dest);
 	u32 const length = get_24(m_jpeg_len);
 
@@ -678,6 +682,22 @@ void c2_color_state::jpeg_decode()
 	m_irqstatus[1] |= 0x30;
 	update_irq();
 }
+
+u8 c2_color_state::read_reg_swapped(auto &reg, offs_t offset)
+{
+	return (reg >> (offset * 8)) & 0xff;
+}
+
+void c2_color_state::write_reg_swapped(auto &reg, offs_t offset, u8 data)
+{
+	auto shifteddata = data << (offset * 8);
+	auto shiftedmask = 0xff << (offset * 8);
+	reg = (reg & ~shiftedmask) | shifteddata;
+}
+
+
+u8 c2_color_state::jpeg_scr_r(offs_t offset) { return read_reg_swapped(m_jpeg_src32, offset); }
+void c2_color_state::jpeg_src_w(offs_t offset, u8 data) { write_reg_swapped(m_jpeg_src32, offset, data); }
 
 void c2_color_state::update_irq()
 {
@@ -1123,10 +1143,10 @@ void c2_color_state::ext_map(address_map &map)
 
 	map(0x244a, 0x244c).ram().share("jpeg_dest");
 	//map(0x244d, 0x244d).ram();
-	map(0x244e, 0x2451).ram().share("jpeg_src");
+	map(0x244e, 0x2451).rw(FUNC(c2_color_state::jpeg_scr_r), FUNC(c2_color_state::jpeg_src_w));
 	map(0x2452, 0x2454).ram().share("jpeg_len");
 	//map(0x2455, 0x2455).ram();
-
+	
 	//map(0x2456, 0x245f).nopw();
 
 	map(0x2460, 0x2462).ram().share("render_base");
