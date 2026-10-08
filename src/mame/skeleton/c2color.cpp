@@ -79,14 +79,12 @@ public:
 	    , m_dram_dword_in2(*this, "dram_dword_in2")
 	    , m_render_base(*this, "render_base")
 	    , m_render_unk(*this, "render_unk")
-	    , m_render_mask(*this, "render_mask")
 		, m_render_columns(*this, "render_columns")
 		, m_render_rows(*this, "render_rows")
 		, m_render_osd0(*this, "render_osd0")
 		, m_render_osd1(*this, "render_osd1")
 		, m_render_osd2(*this, "render_osd2")
 		, m_render_osd3(*this, "render_osd3")
-		, m_render_font(*this, "render_font")
 		, m_xram_control(*this, "xram_control")
 		, m_ram_access_upper(*this, "ram_access_upper")
 
@@ -231,7 +229,8 @@ private:
 	required_shared_ptr<u8> m_render_base;
 	required_shared_ptr<u8> m_render_unk;
 	u32 m_render_overlay32;
-	required_shared_ptr<u8> m_render_mask;
+	u16 m_render_font16;
+	u32 m_render_mask32;
 	u16 m_overlay_width16;
 	u16 m_overlay_height16;
 	u16 m_overlay_x16;
@@ -242,7 +241,6 @@ private:
 	required_shared_ptr<u8> m_render_osd1;
 	required_shared_ptr<u8> m_render_osd2;
 	required_shared_ptr<u8> m_render_osd3;
-	required_shared_ptr<u8> m_render_font;
 	required_shared_ptr<u8> m_xram_control;
 	required_shared_ptr<u8> m_ram_access_upper;
 
@@ -287,6 +285,10 @@ private:
 	void jpeg_len_w(offs_t offset, u8 data) { write_reg_swapped(m_jpeg_len24, offset, data); }
 	u8 render_overlay_r(offs_t offset) { return read_reg_swapped(m_render_overlay32, offset); }
 	void render_overlay_w(offs_t offset, u8 data) { write_reg_swapped(m_render_overlay32, offset, data); }
+	u8 render_font_r(offs_t offset) { return read_reg_swapped(m_render_font16, offset); }
+	void render_font_w(offs_t offset, u8 data) { write_reg_swapped(m_render_font16, offset, data); }
+	u8 render_mask_r(offs_t offset) { return read_reg_swapped(m_render_mask32, offset); }
+	void render_mask_w(offs_t offset, u8 data) { write_reg_swapped(m_render_mask32, offset, data); }
 	u8 overlay_width_r(offs_t offset) { return read_reg_swapped(m_overlay_width16, offset); }
 	void overlay_width_w(offs_t offset, u8 data) { write_reg_swapped(m_overlay_width16, offset, data); }
 	u8 overlay_height_r(offs_t offset) { return read_reg_swapped(m_overlay_height16, offset); }
@@ -329,16 +331,9 @@ u32 c2_color_state::screen_update(screen_device &screen, bitmap_rgb32 &bitmap, c
 		return 0;
 
 	u32 const base = get_24(m_render_base);
-	u32 const font = (u32)(get_16(m_render_font)) << 9;
 	u16 const columns = m_render_columns[0];
 	u16 const rows = m_render_rows[0];
 
-	u32 const overlay = m_render_overlay32;
-	u32 const mask = get_32(m_render_mask);
-	u16 const overlay_width = m_overlay_width16;
-	u16 const overlay_height = m_overlay_height16;
-	u16 const overlay_x = m_overlay_x16;
-	u16 const overlay_y = m_overlay_y16;
 	for (int y = cliprect.min_y; y <= cliprect.max_y; ++y)
 	{
 		for (int x = cliprect.min_x; x <= cliprect.max_x; ++x)
@@ -352,18 +347,18 @@ u32 c2_color_state::screen_update(screen_device &screen, bitmap_rgb32 &bitmap, c
 	// A second RGB565 plane has a separate packed, LSB-first opacity mask.
 	// DMA constructs the plane in DRAM; the display controller composites it.
 	// TODO: Configuration latch timing, signed positions and non-byte-aligned widths.
-	if (BIT(get_8(m_render_unk), 0) && overlay_width && overlay_height)
+	if (BIT(get_8(m_render_unk), 0) && m_overlay_width16 && m_overlay_height16)
 	{
-		rectangle area(overlay_x, overlay_x + overlay_width - 1, overlay_y, overlay_y + overlay_height - 1);
+		rectangle area(m_overlay_x16, m_overlay_x16 + m_overlay_width16 - 1, m_overlay_y16, m_overlay_y16 + m_overlay_height16 - 1);
 		area &= cliprect;
 		for (int y = area.min_y; y <= area.max_y; ++y)
 		{
 			for (int x = area.min_x; x <= area.max_x; ++x)
 			{
-				u32 const index = (y - overlay_y) * overlay_width + x - overlay_x;
-				if (BIT(m_dram[(mask + (index >> 3)) & (DRAM_SIZE - 1)], index & 7))
+				u32 const index = (y - m_overlay_y16) * m_overlay_width16 + x - m_overlay_x16;
+				if (BIT(m_dram[(m_render_mask32 + (index >> 3)) & (DRAM_SIZE - 1)], index & 7))
 				{
-					u32 const address = overlay + index * 2;
+					u32 const address = m_render_overlay32 + index * 2;
 					u16 const pixel = m_dram[address & (DRAM_SIZE - 1)] | (u16(m_dram[(address + 1) & (DRAM_SIZE - 1)]) << 8);
 					bitmap.pix(y, x) = rgb_t(pal5bit(pixel >> 11), pal6bit(pixel >> 5), pal5bit(pixel));
 				}
@@ -378,7 +373,7 @@ u32 c2_color_state::screen_update(screen_device &screen, bitmap_rgb32 &bitmap, c
 			if (BIT(m_osd_codes_reg, 0) && x / 16 < columns && y / 20 < rows)
 			{
 				u16 const cell = (y / 20) * columns + x / 16;
-				u32 const glyph = font + m_osd_code[cell] * 80 + (y % 20) * 4 + (x % 16) / 4;
+				u32 const glyph = (m_render_font16 << 9) + m_osd_code[cell] * 80 + (y % 20) * 4 + (x % 16) / 4;
 				u8 const ink = BIT(m_dram[glyph & (DRAM_SIZE - 1)], (x & 3) * 2, 2);
 				// TODO: Decode the OSD palette, attributes and blending controls.
 				if (ink)
@@ -426,6 +421,7 @@ void c2_color_state::clear_state()
 	m_jpeg_dst32 = 0;
 	m_jpeg_len24 = 0;
 	m_render_overlay32 = 0;
+	m_render_mask32 = 0;
 	m_overlay_width16 = 0;
 	m_overlay_height16 = 0;
 	m_overlay_x16 = 0;
@@ -1083,7 +1079,7 @@ void c2_color_state::ext_map(address_map &map)
 	map(0x219f, 0x21a0).ram().share("render_osd1");
 	map(0x21a1, 0x21a2).ram().share("render_osd2");
 	map(0x21a3, 0x21a3).ram().share("render_osd3");
-	map(0x21a4, 0x21a5).ram().share("render_font");
+	map(0x21a4, 0x21a5).rw(FUNC(c2_color_state::render_font_r), FUNC(c2_color_state::render_font_w));
 	//map(0x21a6, 0x21bb).nopw();
 
 	//map(0x21bf, 0x21bf).nopw();
@@ -1157,7 +1153,7 @@ void c2_color_state::ext_map(address_map &map)
 	map(0x246e, 0x246e).ram().share("render_unk");
 
 	map(0x246f, 0x2472).rw(FUNC(c2_color_state::render_overlay_r), FUNC(c2_color_state::render_overlay_w));
-	map(0x2473, 0x2476).ram().share("render_mask");
+	map(0x2473, 0x2476).rw(FUNC(c2_color_state::render_mask_r), FUNC(c2_color_state::render_mask_w));
 	map(0x2477, 0x2478).rw(FUNC(c2_color_state::overlay_width_r), FUNC(c2_color_state::overlay_width_w));
 	map(0x2479, 0x247a).rw(FUNC(c2_color_state::overlay_height_r), FUNC(c2_color_state::overlay_height_w));
 	map(0x247b, 0x247c).rw(FUNC(c2_color_state::overlay_x_r), FUNC(c2_color_state::overlay_x_w));
