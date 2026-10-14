@@ -29,15 +29,17 @@ public:
 
 protected:
 	virtual void machine_start() override ATTR_COLD;
+	virtual void machine_reset() override ATTR_COLD;
 
 	required_device<st2205u_base_device> m_maincpu;
 
-private:
-	u8 porta_r();
+//private:
+	virtual u8 porta_r();
 	void portb_w(u8 data);
 	void porta_w(u8 data);
 
 	void st22xx_bbl338_map(address_map &map) ATTR_COLD;
+	void st22xx_class200_map(address_map &map) ATTR_COLD;
 	void st22xx_dphh8213_map(address_map &map) ATTR_COLD;
 	void st22xx_cutepet_map(address_map &map) ATTR_COLD;
 
@@ -46,8 +48,40 @@ private:
 	required_ioport_array<4> m_input_matrix;
 
 	u32 screen_update(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect);
+	u32 class200_screen_update(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect);
+	void class200_lcdc_command_w(u8 data);
+	void class200_lcdc_data_w(u8 data);
+	u8 class200_lcdc_data_r();
+	void class200_lcdc_advance();
+	// ST7775R: 176 columns x 220 rows. LCD bus transfers 16-bit words MSB first.
+	// Reg $22 is RGB565 GRAM data; R20/R21 are the cursor, R36-R39 the window.
+	u16 m_class200_gram[176 * 220] = {};
+	u16 m_class200_lcd_regs[256] = {};
+	u16 m_class200_lcd_command_word = 0;
+	u16 m_class200_lcd_data_word = 0;
+	u8 m_class200_lcd_command_phase = 0;
+	u8 m_class200_lcd_data_phase = 0;
+	u8 m_class200_lcd_read_phase = 0;
+	u8 m_class200_lcd_reg = 0;
+	bool m_class200_lcd_first_nonblack_logged = false;
+	u32 m_class200_lcd_gram_writes = 0;
 
+	u8 m_porta;
 	u8 m_portb;
+};
+
+class st22xx_class200_state : public st22xx_bbl338_state
+{
+public:
+	st22xx_class200_state(const machine_config& mconfig, device_type type, const char* tag)
+		: st22xx_bbl338_state(mconfig, type, tag)
+	{
+	}
+
+	void st22xx_class200(machine_config &config);
+
+	virtual u8 porta_r() override;
+	u8 portb_r();
 };
 
 class st22xx_bbl338_sim_state : public st22xx_bbl338_state
@@ -217,7 +251,34 @@ void st22xx_bbl338_sim_state::machine_start()
 
 void st22xx_bbl338_state::machine_start()
 {
+	save_item(NAME(m_porta));
 	save_item(NAME(m_portb));
+	save_item(NAME(m_class200_gram));
+	save_item(NAME(m_class200_lcd_regs));
+	save_item(NAME(m_class200_lcd_command_word));
+	save_item(NAME(m_class200_lcd_data_word));
+	save_item(NAME(m_class200_lcd_command_phase));
+	save_item(NAME(m_class200_lcd_data_phase));
+	save_item(NAME(m_class200_lcd_read_phase));
+	save_item(NAME(m_class200_lcd_reg));
+	save_item(NAME(m_class200_lcd_first_nonblack_logged));
+	save_item(NAME(m_class200_lcd_gram_writes));
+}
+
+void st22xx_bbl338_state::machine_reset()
+{
+	m_porta = 0xff;
+	m_portb = 0xff;
+	std::fill(std::begin(m_class200_gram), std::end(m_class200_gram), 0);
+	std::fill(std::begin(m_class200_lcd_regs), std::end(m_class200_lcd_regs), 0);
+	m_class200_lcd_regs[0x36] = 0x00af; // H end, 176 columns
+	m_class200_lcd_regs[0x38] = 0x00db; // V end, 220 rows
+	m_class200_lcd_regs[0x03] = 0x0030;
+	m_class200_lcd_command_word = m_class200_lcd_data_word = 0;
+	m_class200_lcd_command_phase = m_class200_lcd_data_phase = 0;
+	m_class200_lcd_read_phase = m_class200_lcd_reg = 0;
+	m_class200_lcd_first_nonblack_logged = false;
+	m_class200_lcd_gram_writes = 0;
 }
 
 void st22xx_bbl338_state::st22xx_dphh8213_map(address_map &map)
@@ -246,6 +307,154 @@ void st22xx_bbl338_state::st22xx_bbl338_map(address_map &map)
 	map(0x0604000, 0x0604000).rw(m_lcdc, FUNC(st7735_lcdc_device::lcdc_data_r), FUNC(st7735_lcdc_device::lcdc_data_w));
 }
 
+// Class200's internal ST2302U BIOS is 8KiB mirrored at 0 and 0x2000.
+// The 4MiB external flash uses PRR >= 0x400 (physical 0x1000000).
+// ST7775R register-command bus is at physical 0x0600000 and data at 0x0604000.
+void st22xx_bbl338_state::st22xx_class200_map(address_map &map)
+{
+	map(0x0000000, 0x0003fff).rom().region("internal", 0);
+	map(0x1000000, 0x13fffff).rom().region("maincpu", 0);
+
+	map(0x0600000, 0x0600000).w(FUNC(st22xx_bbl338_state::class200_lcdc_command_w));
+	map(0x0604000, 0x0604000).rw(FUNC(st22xx_bbl338_state::class200_lcdc_data_r), FUNC(st22xx_bbl338_state::class200_lcdc_data_w));
+}
+
+void st22xx_bbl338_state::class200_lcdc_command_w(u8 data)
+{
+	// 16-bit command index: high byte followed by low byte.
+	if (!m_class200_lcd_command_phase)
+	{
+		m_class200_lcd_command_word = u16(data) << 8;
+		m_class200_lcd_command_phase = 1;
+	}
+	else
+	{
+		m_class200_lcd_command_word |= data;
+		m_class200_lcd_reg = m_class200_lcd_command_word & 0xff;
+		m_class200_lcd_command_phase = 0;
+		m_class200_lcd_data_phase = m_class200_lcd_read_phase = 0;
+	}
+}
+
+void st22xx_bbl338_state::class200_lcdc_data_w(u8 data)
+{
+	if (!m_class200_lcd_data_phase)
+	{
+		m_class200_lcd_data_word = u16(data) << 8;
+		m_class200_lcd_data_phase = 1;
+		return;
+	}
+
+	m_class200_lcd_data_word |= data;
+	m_class200_lcd_data_phase = 0;
+	const u16 value = m_class200_lcd_data_word;
+	const u8 r = m_class200_lcd_reg;
+	if (r == 0x22)
+	{
+		++m_class200_lcd_gram_writes;
+		if (value != 0 && !m_class200_lcd_first_nonblack_logged)
+		{
+			logerror("class200: first non-black LCD pixel=%04X cursor=(%u,%u) writes=%u\n",
+				value, m_class200_lcd_regs[0x20] & 0xff, m_class200_lcd_regs[0x21] & 0xff,
+				m_class200_lcd_gram_writes);
+			m_class200_lcd_first_nonblack_logged = true;
+		}
+		const unsigned col = m_class200_lcd_regs[0x20] & 0xff;
+		const unsigned row = m_class200_lcd_regs[0x21] & 0xff;
+		if (col < 176 && row < 220)
+			m_class200_gram[row * 176 + col] = value;
+		class200_lcdc_advance();
+	}
+	else
+	{
+		m_class200_lcd_regs[r] = value;
+		if (r == 0x03) logerror("class200: LCD R03 entry mode=%04X BGR=%d\n", value, BIT(value, 12));
+		if (r == 0x07)
+			logerror("class200: ST7775R display control=%04X, GRAM writes=%u\n", value, m_class200_lcd_gram_writes);
+	}
+}
+
+u8 st22xx_bbl338_state::class200_lcdc_data_r()
+{
+	// 16-bit readback, high then low; GRAM reads are simplified.
+	const u16 val = (m_class200_lcd_reg == 0x22)
+		? m_class200_gram[(m_class200_lcd_regs[0x21] % 220) * 176 + (m_class200_lcd_regs[0x20] % 176)]
+		: m_class200_lcd_regs[m_class200_lcd_reg];
+	const u8 result = m_class200_lcd_read_phase ? u8(val) : u8(val >> 8);
+	m_class200_lcd_read_phase ^= 1;
+	return result;
+}
+
+void st22xx_bbl338_state::class200_lcdc_advance()
+{
+	// ST7775R R03 bit 3 (AM) selects the fast-changing cursor axis.
+	// Bits 4 and 5 (I/D0, I/D1) control decrement/increment direction.
+	const u16 mode = m_class200_lcd_regs[0x03];
+	const bool x_increment = bool(mode & 0x10);
+	const bool y_increment = bool(mode & 0x20);
+	const unsigned h_start = std::min<unsigned>(m_class200_lcd_regs[0x37] & 0xff, 175);
+	const unsigned h_end = std::min<unsigned>(m_class200_lcd_regs[0x36] & 0xff, 175);
+	const unsigned v_start = std::min<unsigned>(m_class200_lcd_regs[0x39] & 0xff, 219);
+	const unsigned v_end = std::min<unsigned>(m_class200_lcd_regs[0x38] & 0xff, 219);
+	if (h_start > h_end || v_start > v_end)
+		return;
+
+	const auto advance = [](u16 &coord, unsigned lo, unsigned hi, bool increase)
+	{
+		if (increase)
+		{
+			if (coord >= hi) { coord = lo; return true; }
+			coord++;
+		}
+		else
+		{
+			if (coord <= lo) { coord = hi; return true; }
+			coord--;
+		}
+		return false;
+	};
+
+	if (mode & 0x0008) // AM = 1: vertical fastest
+	{
+		if (advance(m_class200_lcd_regs[0x21], v_start, v_end, y_increment))
+			advance(m_class200_lcd_regs[0x20], h_start, h_end, x_increment);
+	}
+	else
+	{
+		if (advance(m_class200_lcd_regs[0x20], h_start, h_end, x_increment))
+			advance(m_class200_lcd_regs[0x21], v_start, v_end, y_increment);
+	}
+}
+
+// The LCD glass is 176 columns by 220 rows, rotated 90 degrees in the
+// Class200 handheld. Basic RGB565, BGR register bit, window and cursors.
+u32 st22xx_bbl338_state::class200_screen_update(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect)
+{
+	if (!(m_class200_lcd_regs[0x07] & 0x0003))
+	{
+		bitmap.fill(rgb_t::black(), cliprect);
+		return 0;
+	}
+	for (int y = cliprect.top(); y <= cliprect.bottom(); y++)
+	{
+		for (int x = cliprect.left(); x <= cliprect.right(); x++)
+		{
+			const u16 pixel = m_class200_gram[x * 176 + y];
+			const u8 r = (pixel >> 11) & 0x1f;
+			const u8 g = (pixel >> 5) & 0x3f;
+			const u8 b = pixel & 0x1f;
+			// Class200 PCB/panel uses BGR subpixel order; the LCD entry-mode
+			// BGR bit still reverses the GRAM transfer order relative to it.
+			// This is a provisional board-level colour calibration.
+			const bool bgr = !BIT(m_class200_lcd_regs[0x03], 12);
+			bitmap.pix(y, x) = bgr
+				? rgb_t((b << 3) | (b >> 2), (g << 2) | (g >> 4), (r << 3) | (r >> 2))
+				: rgb_t((r << 3) | (r >> 2), (g << 2) | (g >> 4), (b << 3) | (b >> 2));
+		}
+	}
+	return 0;
+}
+
 u32 st22xx_bbl338_state::screen_update(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect)
 {
 	return m_lcdc->render_to_bitmap(screen, bitmap, cliprect);
@@ -263,7 +472,10 @@ u8 st22xx_bbl338_state::porta_r()
 			input &= m_input_matrix[i]->read();
 
 	// TODO: bit 7 is I/O for some bitbanged SPI device (used for the menu)
-	input |= 0xc0;
+	// Class200 scans its primary keys with PB7 asserted low (PB = $7f).
+	// The shared DPHH8213 matrix only handles PB0/PB1/PB3/PB5.
+	if (!strcmp(machine().system().name, "class200") && !BIT(m_portb, 7))
+		input &= m_input_matrix[0]->read();
 
 	logerror("%s: port a read\n", machine().describe_context());
 
@@ -273,6 +485,7 @@ u8 st22xx_bbl338_state::porta_r()
 void st22xx_bbl338_state::porta_w(u8 data)
 {
 	// Menu control writes?
+	m_porta = data;
 	logerror("%s: port a write %02x\n", machine().describe_context(), data);
 }
 
@@ -280,6 +493,18 @@ void st22xx_bbl338_state::portb_w(u8 data)
 {
 //  logerror("%s: port b write %02x\n", machine().describe_context(), data);
 	m_portb = data;
+}
+
+u8 st22xx_class200_state::porta_r()
+{
+	u8 input = m_input_matrix[0]->read();
+	return input;
+}
+
+u8 st22xx_class200_state::portb_r()
+{
+	u8 input = m_input_matrix[1]->read();
+	return input;
 }
 
 // input multiplexing not verified for bbl338
@@ -326,6 +551,33 @@ static INPUT_PORTS_START(dphh8213)
 	PORT_BIT(0xf6, IP_ACTIVE_LOW, IPT_UNUSED) // probably unused
 INPUT_PORTS_END
 
+// Class200: hardware-confirmed PA5 (PB7 low) selects the language and
+// activates a game in the menu. The remaining buttons still need mapping.
+static INPUT_PORTS_START(class200)
+	PORT_START("IN1")
+	PORT_BIT(0x01, IP_ACTIVE_LOW, IPT_BUTTON4 ) PORT_NAME("ON/OFF")
+	PORT_BIT(0x02, IP_ACTIVE_LOW, IPT_JOYSTICK_UP)
+	PORT_BIT(0x04, IP_ACTIVE_LOW, IPT_JOYSTICK_LEFT)
+	PORT_BIT(0x08, IP_ACTIVE_LOW, IPT_JOYSTICK_RIGHT)
+	PORT_BIT(0x10, IP_ACTIVE_LOW, IPT_JOYSTICK_DOWN )
+	PORT_BIT(0x20, IP_ACTIVE_LOW, IPT_START1 ) PORT_NAME("S/P")
+	PORT_BIT(0x40, IP_ACTIVE_LOW, IPT_BUTTON3 ) PORT_NAME("Sound")
+	PORT_BIT(0x80, IP_ACTIVE_LOW, IPT_BUTTON2 ) PORT_NAME("B")
+
+	PORT_START("IN2")
+	PORT_BIT(0x01, IP_ACTIVE_LOW, IPT_BUTTON1) PORT_NAME("A")
+	PORT_BIT(0xfe, IP_ACTIVE_LOW, IPT_UNKNOWN )
+
+	PORT_START("IN3")
+	PORT_BIT(0xff, IP_ACTIVE_LOW, IPT_UNKNOWN )
+
+	PORT_START("IN4")
+	PORT_BIT(0xff, IP_ACTIVE_LOW, IPT_UNUSED) // probably unused
+
+	PORT_START("PORTC")
+	PORT_BIT(0xff, IP_ACTIVE_LOW, IPT_UNUSED) // probably unused
+INPUT_PORTS_END
+
 static INPUT_PORTS_START(cutepet)
 	PORT_START("IN1")
 	PORT_BIT(0xff, IP_ACTIVE_LOW, IPT_UNKNOWN )
@@ -355,8 +607,6 @@ void st22xx_bbl338_state::st22xx_dphh8213(machine_config &config)
 
 	SPEAKER(config, "mono").front_center();
 	m_maincpu->add_route(st2205u_base_device::PSG_OUTPUT_PWM, "mono", 1.00);
-	m_maincpu->add_route(st2205u_base_device::PSG_OUTPUT_CURRENT_DAC, "mono", 1.00);
-
 
 	SCREEN(config, m_screen).set_lcd();
 	m_screen->set_refresh_hz(60);
@@ -376,11 +626,14 @@ void st22xx_bbl338_state::st22xx_cutepet(machine_config &config)
 
 void st22xx_bbl338_state::st22xx_bbl338(machine_config &config)
 {
-	ST2302U(config, m_maincpu, 24000000);
+	ST2302U(config, m_maincpu, 32000000);
 	m_maincpu->set_addrmap(AS_DATA, &st22xx_bbl338_state::st22xx_bbl338_map);
 	m_maincpu->in_pa_callback().set(FUNC(st22xx_bbl338_state::porta_r));
 	m_maincpu->out_pb_callback().set(FUNC(st22xx_bbl338_state::portb_w));
 	m_maincpu->in_pc_callback().set_ioport("PORTC");
+
+	SPEAKER(config, "mono").front_center();
+	m_maincpu->add_route(st2205u_base_device::PSG_OUTPUT_PWM, "mono", 1.00);
 
 	// incorrect for bbl338
 	SCREEN(config, m_screen).set_lcd();
@@ -395,6 +648,20 @@ void st22xx_bbl338_state::st22xx_bbl338(machine_config &config)
 }
 
 
+void st22xx_class200_state::st22xx_class200(machine_config &config)
+{
+	st22xx_bbl338(config);
+	m_maincpu->set_addrmap(AS_DATA, &st22xx_class200_state::st22xx_class200_map);
+	m_screen->set_size(220, 176);
+	m_screen->set_visarea(0, 219, 0, 175);
+	m_screen->set_screen_update(FUNC(st22xx_class200_state::class200_screen_update));
+	// The ST7735 instance configured by the base machine is unused here;
+	// the class200-specific ST7775R compatible LCD path handles accesses.
+
+	m_maincpu->in_pb_callback().set(FUNC(st22xx_class200_state::portb_r));
+
+}
+
 ROM_START( bbl338 )
 	ROM_REGION( 0x4000, "internal", ROMREGION_ERASEFF )
 	ROM_LOAD( "internal.rom", 0x000000, 0x4000, NO_DUMP ) // unsure of exact size for this model
@@ -405,7 +672,8 @@ ROM_END
 
 ROM_START( class200 )
 	ROM_REGION( 0x4000, "internal", ROMREGION_ERASEFF )
-	ROM_LOAD( "internal.rom", 0x000000, 0x4000, NO_DUMP ) // unsure of exact size for this model
+	ROM_LOAD( "internal.rom", 0x0000, 0x2000, CRC(024fa502) SHA1(0aca4bbd6b98eb156187a144a274c8d3ead27d40) )
+	ROM_RELOAD( 0x2000, 0x2000 ) // observed 8KiB physical mirror
 
 	ROM_REGION( 0x400000, "maincpu", ROMREGION_ERASEFF )
 	ROM_LOAD( "m29w320eb.bin", 0x000000, 0x400000, CRC(3067b5f6) SHA1(9a159b16898054a74cfb32b5c597b505132f004e) )
@@ -432,7 +700,7 @@ ROM_END
 // this is uses a higher resolution display than the common units, but not as high as the SunPlus based ones
 COMP( 201?, bbl338,   0,      0,      st22xx_bbl338, dphh8213, st22xx_bbl338_sim_state, empty_init, "BaoBaoLong", "Portable Game Player BBL-338 (BaoBaoLong, 48-in-1)", MACHINE_NO_SOUND | MACHINE_NOT_WORKING )
 // also appears to be the higher resolution display
-COMP( 201?, class200, 0,      0,      st22xx_bbl338, dphh8213, st22xx_bbl338_sim_state, empty_init, "<unknown>", "Color LCD Classic Game 200-in-1", MACHINE_NO_SOUND | MACHINE_NOT_WORKING ) // no manufacturer name or product code anywhere
+COMP( 201?, class200, 0,      0,      st22xx_class200, class200,  st22xx_class200_state, empty_init, "<unknown>", "Color LCD Classic Game 200-in-1", MACHINE_NO_SOUND | MACHINE_NOT_WORKING ) // no manufacturer name or product code anywhere
 
 // Language controlled by port bit, set at factory, low resolution
 // different menu protection compared to the st2302u_bbl_spi.cpp sets (games can be selected, but cursor doesn't update)
