@@ -186,6 +186,23 @@ private:
 	uint8_t m_bankregs[4];
 };
 
+class nes_clone_twindncr_state : public nes_clone_state
+{
+public:
+	nes_clone_twindncr_state(const machine_config &mconfig, device_type type, const char *tag) :
+		nes_clone_state(mconfig, type, tag)
+	{ }
+
+	void nes_clone_twindncr(machine_config &config) ATTR_COLD;
+
+private:
+	void nes_clone_twindncr_map(address_map &map) ATTR_COLD;
+	virtual void machine_start() override ATTR_COLD;
+	virtual void machine_reset() override ATTR_COLD;
+	uint8_t rom_r(offs_t offset);
+	void bank_w(offs_t offset, uint8_t data);
+	uint8_t m_bankregs[2];
+};
 
 
 class nes_clone_afbm7800_state : public nes_clone_state
@@ -1413,6 +1430,50 @@ void nes_clone_vtvsocr_state::bank_w(offs_t offset, uint8_t data)
 }
 
 /**************************************************
+ Twin Dancer specifics
+**************************************************/
+
+void nes_clone_twindncr_state::machine_reset()
+{
+	nes_clone_state::machine_reset();
+	m_bankregs[0] = 0;
+	m_bankregs[1] = 0;
+}
+
+void nes_clone_twindncr_state::machine_start()
+{
+	nes_clone_state::machine_start();
+	save_item(NAME(m_bankregs));
+}
+
+void nes_clone_twindncr_state::nes_clone_twindncr(machine_config &config)
+{
+	nes_clone(config);
+	m_maincpu->set_addrmap(AS_PROGRAM, &nes_clone_twindncr_state::nes_clone_twindncr_map);
+}
+
+void nes_clone_twindncr_state::nes_clone_twindncr_map(address_map &map)
+{
+	nes_clone_basemap(map);
+	// 4800 might be mirroring mode
+	map(0x4801, 0x4802).w(FUNC(nes_clone_twindncr_state::bank_w));
+	map(0x8000, 0xffff).r(FUNC(nes_clone_twindncr_state::rom_r));
+}
+
+uint8_t nes_clone_twindncr_state::rom_r(offs_t offset)
+{
+	int bank = ((m_bankregs[0] & 0x06) >> 1) | ((m_bankregs[1] & 0x03) << 2);
+	return m_mainrom[(offset + (bank * 0x8000)) & (m_mainromsize - 1)];
+}
+
+void nes_clone_twindncr_state::bank_w(offs_t offset, uint8_t data)
+{
+	printf("%s: bank_w %02x %02x\n", machine().describe_context().c_str(), offset, data);
+	m_bankregs[offset] = data;
+}
+
+
+/**************************************************
  Ping Pong Specifics
 **************************************************/
 
@@ -1479,6 +1540,11 @@ ROM_END
 ROM_START( dnce2000 ) // use Mapper 241 if you want to run this in a NES emulator
 	ROM_REGION( 0x40000, "maincpu", 0 )
 	ROM_LOAD( "dance.bin", 0x00000, 0x40000, CRC(0982bb50) SHA1(bd608159d7e624ea345f2a188de51cb1aa116421) )
+ROM_END
+
+ROM_START( twindncr )
+	ROM_REGION( 0x80000, "maincpu", 0 )
+	ROM_LOAD( "twindancers_full_raw.bin", 0x00000, 0x80000, CRC(1d8d7c5b) SHA1(f3399c56d19fa080ba98576972d82d9df277211d) )
 ROM_END
 
 ROM_START( croaky )
@@ -1554,6 +1620,8 @@ void nes_clone_state::init_nes_clone()
 CONS( 2004, afbm7800,  0,  0,  nes_clone_afbm7800,    nes_clone, nes_clone_afbm7800_state, init_nes_clone, "Atari / Nice Code", "Atari Flashback Mini 7800", 0 )
 
 CONS( 200?, dnce2000, 0, 0, nes_clone_dnce2000, dnce2000, nes_clone_dnce2000_state, init_nes_clone, "Shenzhen Soyin Electric Appliance Ind. Co., Ltd.", "Dance 2000 / Hot 2000 (Jin Bao TV Dancing Carpet, SY-2000-04)", 0 )
+
+CONS( 200?, twindncr, 0, 0, nes_clone_twindncr, dnce2000, nes_clone_twindncr_state, init_nes_clone, "ABL", "Twin Dancers", 0 )
 
 CONS( 2002, croaky,   0, 0, nes_clone_dnce2000, nes_clone, nes_clone_dnce2000_state, init_nes_clone, "<unknown>", "Croaky Karaoke 16-in-1", MACHINE_NOT_WORKING ) // no inputs
 
