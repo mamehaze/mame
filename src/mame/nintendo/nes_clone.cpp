@@ -240,9 +240,61 @@ private:
 
 	required_region_ptr<uint8_t> m_gfxrom;
 
-	[[maybe_unused]]void bank_w(offs_t offset, uint8_t data);
+	void bank_w(offs_t offset, uint8_t data);
 	uint8_t m_bankregs;
 };
+
+
+class nes_clone_9in1_state : public nes_clone_state
+{
+public:
+	nes_clone_9in1_state(const machine_config &mconfig, device_type type, const char *tag) :
+		nes_clone_state(mconfig, type, tag),
+		m_gfxrom(*this, "gfx1")
+	{ }
+
+	void nes_clone_9in1(machine_config &config) ATTR_COLD;
+
+private:
+	void nes_clone_9in1_map(address_map &map) ATTR_COLD;
+	virtual void machine_start() override ATTR_COLD;
+	virtual void machine_reset() override ATTR_COLD;
+	uint8_t rom_r(offs_t offset);
+	uint8_t vrom_r(offs_t offset);
+	void bank_6000_w(uint8_t data);
+	void bank_6004_w(uint8_t data);
+	uint8_t m_6000;
+	uint8_t m_6004;
+
+	required_region_ptr<uint8_t> m_gfxrom;
+};
+
+
+class nes_clone_2pathlet_state : public nes_clone_state
+{
+public:
+	nes_clone_2pathlet_state(const machine_config &mconfig, device_type type, const char *tag) :
+		nes_clone_state(mconfig, type, tag),
+		m_gfxrom(*this, "gfx1")
+	{ }
+
+	void nes_clone_2pathlet(machine_config &config) ATTR_COLD;
+
+private:
+	void nes_clone_2pathlet_map(address_map &map) ATTR_COLD;
+	virtual void machine_start() override ATTR_COLD;
+	virtual void machine_reset() override ATTR_COLD;
+	uint8_t rom_r(offs_t offset);
+	uint8_t vrom_r(offs_t offset);
+	uint8_t menu_6000_r();
+	void bank_8000_w(uint8_t data);
+	void bank_8800_w(uint8_t data);
+	uint8_t m_8000;
+	uint8_t m_8800;
+
+	required_region_ptr<uint8_t> m_gfxrom;
+};
+
 
 class nes_clone_afbm7800_state : public nes_clone_state
 {
@@ -1515,7 +1567,6 @@ void nes_clone_twindncr_state::bank_w(offs_t offset, uint8_t data)
  Rumble Station specifics
 **************************************************/
 
-
 void nes_clone_rumblstn_state::machine_reset()
 {
 	nes_clone_state::machine_reset();
@@ -1555,6 +1606,123 @@ void nes_clone_rumblstn_state::bank_w(offs_t offset, uint8_t data)
 	m_bankregs[offset] = data;
 }
 
+
+/**************************************************
+ 9-in-1 specifics
+**************************************************/
+
+void nes_clone_9in1_state::machine_reset()
+{
+	nes_clone_state::machine_reset();
+	m_6000 = 0;
+	m_6004 = 0;
+}
+
+void nes_clone_9in1_state::machine_start()
+{
+	nes_clone_state::machine_start();
+
+	m_ppu->space(AS_PROGRAM).install_read_handler(0x0000, 0x1fff, read8sm_delegate(*this, FUNC(nes_clone_9in1_state::vrom_r)));
+
+	save_item(NAME(m_6000));
+	save_item(NAME(m_6004));
+}
+
+void nes_clone_9in1_state::nes_clone_9in1(machine_config &config)
+{
+	nes_clone(config);
+	m_maincpu->set_addrmap(AS_PROGRAM, &nes_clone_9in1_state::nes_clone_9in1_map);
+}
+
+void nes_clone_9in1_state::nes_clone_9in1_map(address_map &map)
+{
+	nes_clone_basemap(map);
+	map(0x6000, 0x6000).w(FUNC(nes_clone_9in1_state::bank_6000_w));
+	map(0x6004, 0x6004).w(FUNC(nes_clone_9in1_state::bank_6004_w));
+	map(0x8000, 0xffff).r(FUNC(nes_clone_9in1_state::rom_r));
+}
+
+uint8_t nes_clone_9in1_state::vrom_r(offs_t offset)
+{
+	return m_gfxrom[offset];
+}
+
+uint8_t nes_clone_9in1_state::rom_r(offs_t offset)
+{
+	return m_mainrom[offset];
+}
+
+void nes_clone_9in1_state::bank_6000_w(uint8_t data)
+{
+	m_6000 = data;
+}
+
+void nes_clone_9in1_state::bank_6004_w(uint8_t data)
+{
+	m_6004 = data;
+}
+
+
+/**************************************************
+ 9-in-1 specifics
+**************************************************/
+
+void nes_clone_2pathlet_state::machine_reset()
+{
+	nes_clone_state::machine_reset();
+	m_8000 = 0;
+	m_8800 = 0;
+}
+
+void nes_clone_2pathlet_state::machine_start()
+{
+	nes_clone_state::machine_start();
+
+	m_ppu->space(AS_PROGRAM).install_read_handler(0x0000, 0x1fff, read8sm_delegate(*this, FUNC(nes_clone_2pathlet_state::vrom_r)));
+
+	save_item(NAME(m_8000));
+	save_item(NAME(m_8800));
+}
+
+void nes_clone_2pathlet_state::nes_clone_2pathlet(machine_config &config)
+{
+	nes_clone(config);
+	m_maincpu->set_addrmap(AS_PROGRAM, &nes_clone_2pathlet_state::nes_clone_2pathlet_map);
+}
+
+void nes_clone_2pathlet_state::nes_clone_2pathlet_map(address_map &map)
+{
+	nes_clone_basemap(map);
+	map(0x6000, 0x6000).r(FUNC(nes_clone_2pathlet_state::menu_6000_r));
+	map(0x8000, 0x8000).w(FUNC(nes_clone_2pathlet_state::bank_8000_w));
+	map(0x8800, 0x8800).w(FUNC(nes_clone_2pathlet_state::bank_8800_w));
+	map(0x8000, 0xffff).r(FUNC(nes_clone_2pathlet_state::rom_r));
+}
+
+uint8_t nes_clone_2pathlet_state::menu_6000_r()
+{
+	return 0xff;
+}
+
+uint8_t nes_clone_2pathlet_state::vrom_r(offs_t offset)
+{
+	return m_gfxrom[offset];
+}
+
+uint8_t nes_clone_2pathlet_state::rom_r(offs_t offset)
+{
+	return m_mainrom[offset];
+}
+
+void nes_clone_2pathlet_state::bank_8000_w(uint8_t data)
+{
+	m_8000 = data;
+}
+
+void nes_clone_2pathlet_state::bank_8800_w(uint8_t data)
+{
+	m_8800 = data;
+}
 
 /**************************************************
  N-Vision Baseball specifics
@@ -1854,6 +2022,6 @@ CONS( 2005, rumblstn, 0, 0, nes_clone_rumblstn, nes_clone, nes_clone_rumblstn_st
 // title on box is Grand Slam Baseball, onscreen is Home Run Baseball
 CONS( 2005, nvbaseb, 0, 0, nes_clone_nvbaseb, nes_clone, nes_clone_nvbaseb_state, empty_init, "N-Vision", "Grand Slam Baseball (Home Run Baseball)", 0 )
 
-CONS( 2005, 2pathlet, 0, 0, nes_clone_nvbaseb, nes_clone, nes_clone_nvbaseb_state, empty_init, "<unknown>", "2 Player Athletics", 0 )
+CONS( 2005, 2pathlet, 0, 0, nes_clone_2pathlet, nes_clone, nes_clone_2pathlet_state, empty_init, "<unknown>", "2 Player Athletics", 0 )
 
-CONS( 2005, nes9in1, 0, 0, nes_clone_nvbaseb, nes_clone, nes_clone_nvbaseb_state, empty_init, "<unknown>", "unknown 9-in-1 TV Game Console", 0 )
+CONS( 2005, nes9in1, 0, 0, nes_clone_9in1, nes_clone, nes_clone_9in1_state, empty_init, "<unknown>", "unknown 9-in-1 TV Game Console", 0 )
