@@ -1542,8 +1542,20 @@ ROM_START( dnce2000 ) // use Mapper 241 if you want to run this in a NES emulato
 	ROM_LOAD( "dance.bin", 0x00000, 0x40000, CRC(0982bb50) SHA1(bd608159d7e624ea345f2a188de51cb1aa116421) )
 ROM_END
 
+ROM_START( glkdance )
+	ROM_REGION( 0x80000, "maincpu", 0 )
+	ROM_LOAD( "glkdance.bin", 0x00000, 0x80000, CRC(1855c027) SHA1(0fac92231b686c61586853b6203c11f9a98aaa19) )
+ROM_END
+
+ROM_START( flshdnce )
+	ROM_REGION( 0x100000, "maincpu", 0 )
+	ROM_LOAD( "noac_dance2_prg_1m.bin", 0x00000, 0x100000, CRC(ce3c0f39) SHA1(ef8c1dcc813bb3e5b1d22ba4fca1add59bb9fd64) )
+ROM_END
+
+
 ROM_START( twindncr )
 	ROM_REGION( 0x80000, "maincpu", 0 )
+	// the mapper is inside the ROM glob
 	ROM_LOAD( "twindancers_full_raw.bin", 0x00000, 0x80000, CRC(1d8d7c5b) SHA1(f3399c56d19fa080ba98576972d82d9df277211d) )
 ROM_END
 
@@ -1586,6 +1598,14 @@ ROM_START( digezlg )
 	ROM_LOAD( "15-in-1_digitalezlg.bin", 0x00000, 0x80000, CRC(11944bf2) SHA1(7c3744926cd1be9d7d81d29333b1839be201fefc) )
 ROM_END
 
+ROM_START( rumblstn )
+	ROM_REGION( 0x100000, "maincpu", ROMREGION_ERASE00 )
+	ROM_LOAD( "prg.u10", 0x00000, 0x100000, CRC(3ff56349) SHA1(3eacc43571baf396815fbccf1f080c2b00358b0f) )
+
+	ROM_REGION( 0x100000, "gfx1", ROMREGION_ERASE00 )
+	ROM_LOAD( "chr.u9", 0x00000, 0x100000, CRC(53f8d91c) SHA1(34bd1373a06246a63a4942abaf038c716bc5d21a) )
+ROM_END
+
 ROM_START( racechl8 )
 	ROM_REGION( 0x100000, "maincpu", ROMREGION_ERASE00 )
 	ROM_LOAD( "pro 400 0517.u4", 0x00000, 0x100000, CRC(13f24783) SHA1(a3b8ceb8954495a7471dfe4d6cdaa15c9945fcc5) )
@@ -1620,6 +1640,10 @@ void nes_clone_state::init_nes_clone()
 CONS( 2004, afbm7800,  0,  0,  nes_clone_afbm7800,    nes_clone, nes_clone_afbm7800_state, init_nes_clone, "Atari / Nice Code", "Atari Flashback Mini 7800", 0 )
 
 CONS( 200?, dnce2000, 0, 0, nes_clone_dnce2000, dnce2000, nes_clone_dnce2000_state, init_nes_clone, "Shenzhen Soyin Electric Appliance Ind. Co., Ltd.", "Dance 2000 / Hot 2000 (Jin Bao TV Dancing Carpet, SY-2000-04)", 0 )
+
+CONS( 200?, glkdance, 0, 0, nes_clone_dnce2000, dnce2000, nes_clone_dnce2000_state, init_nes_clone, "Gold Leopard King", "GLK Dance", 0 )
+
+CONS( 200?, flshdnce, 0, 0, nes_clone_dnce2000, dnce2000, nes_clone_dnce2000_state, init_nes_clone, "<unknown>", "Dance 2000 / Flash Dance", 0 ) // Flash Dance on box, Dance 2000 on title screen
 
 CONS( 200?, twindncr, 0, 0, nes_clone_twindncr, dnce2000, nes_clone_twindncr_state, init_nes_clone, "ABL", "Twin Dancers", 0 )
 
@@ -1670,3 +1694,5 @@ CONS( 200?, pv95in1, 0, 0, nes_clone_afbm7800, nes_clone, nes_clone_taikee_new_s
 
 // mapper at 500x? has custom sound rather than standard NES APU or VTxx sounds, possibly an extra MCU or sound chip in the unit (see https://www.youtube.com/watch?v=OsydFoHW3Lc )
 CONS( 200?, popstar, 0, 0, nes_clone_popstar, nes_clone, nes_clone_popstar_state, init_nes_clone, "<unknown>", "Popstar Karaoke", MACHINE_NOT_WORKING )
+
+CONS( 2005, rumblstn, 0, 0, nes_clone_afbm7800, nes_clone, nes_clone_taikee_new_state, init_nes_clone, "<unknown>", "Rumble Station", 0 )
