@@ -1747,6 +1747,22 @@ ROM_START( nvbaseb )
 	ROM_LOAD( "chr_64k_all_banks.bin", 0x00000, 0x10000, CRC(896551af) SHA1(cae747dfa1e9e7fc88137539da8237ad286e789f) )
 ROM_END
 
+ROM_START( 2pathlet )
+	ROM_REGION( 0x20000, "maincpu", ROMREGION_ERASE00 )
+	ROM_LOAD( "es-a0ya1_4in1_prg.bin", 0x00000, 0x20000, CRC(f77a2663) SHA1(ed60f0c5115d59b3d734f1410a760dd39804cc7e) )
+
+	ROM_REGION( 0x10000, "gfx1", ROMREGION_ERASE00 )
+	ROM_LOAD( "es-a0ya1_4in1_chr.bin", 0x00000, 0x10000, CRC(aa998ce9) SHA1(98cd446333e948b80fe4ad14dc5d812bbca10d72) )
+ROM_END
+
+ROM_START( nes9in1 )
+	ROM_REGION( 0x20000, "maincpu", ROMREGION_ERASE00 )
+	ROM_LOAD( "prg_128kb.bin", 0x00000, 0x20000, CRC(a0d1134e) SHA1(e27ebc6ef994ea254231d611c73cd51c4041d181) )
+
+	ROM_REGION( 0x10000, "gfx1", ROMREGION_ERASE00 )
+	ROM_LOAD( "chr_64kb.bin", 0x00000, 0x10000, CRC(705af081) SHA1(7dd1d84b3b92a57defb05b59e7564f80c4817e45) )
+ROM_END
+
 ROM_START( racechl8 )
 	ROM_REGION( 0x100000, "maincpu", ROMREGION_ERASE00 )
 	ROM_LOAD( "pro 400 0517.u4", 0x00000, 0x100000, CRC(13f24783) SHA1(a3b8ceb8954495a7471dfe4d6cdaa15c9945fcc5) )
@@ -1837,3 +1853,7 @@ CONS( 2005, rumblstn, 0, 0, nes_clone_rumblstn, nes_clone, nes_clone_rumblstn_st
 // box art makes this look like a 16-bit game, but it's a simple NES clone
 // title on box is Grand Slam Baseball, onscreen is Home Run Baseball
 CONS( 2005, nvbaseb, 0, 0, nes_clone_nvbaseb, nes_clone, nes_clone_nvbaseb_state, empty_init, "N-Vision", "Grand Slam Baseball (Home Run Baseball)", 0 )
+
+CONS( 2005, 2pathlet, 0, 0, nes_clone_nvbaseb, nes_clone, nes_clone_nvbaseb_state, empty_init, "<unknown>", "2 Player Athletics", 0 )
+
+CONS( 2005, nes9in1, 0, 0, nes_clone_nvbaseb, nes_clone, nes_clone_nvbaseb_state, empty_init, "<unknown>", "unknown 9-in-1 TV Game Console", 0 )
