@@ -206,7 +206,8 @@ class nes_clone_rumblstn_state : public nes_clone_state
 {
 public:
 	nes_clone_rumblstn_state(const machine_config &mconfig, device_type type, const char *tag) :
-		nes_clone_state(mconfig, type, tag)
+		nes_clone_state(mconfig, type, tag),
+		m_gfxrom(*this, "gfx1")
 	{ }
 
 	void nes_clone_rumblstn(machine_config &config) ATTR_COLD;
@@ -216,8 +217,13 @@ private:
 	virtual void machine_start() override ATTR_COLD;
 	virtual void machine_reset() override ATTR_COLD;
 	uint8_t rom_r(offs_t offset);
-	void bank_w(offs_t offset, uint8_t data);
-	uint8_t m_bankregs[4];
+	uint8_t vrom_r(offs_t offset);
+	void bank_6000_w(uint8_t data);
+	void bank_8000_w(uint8_t data);
+	uint8_t m_6000;
+	uint8_t m_8000;
+
+	required_region_ptr<uint8_t> m_gfxrom;
 };
 
 class nes_clone_nvbaseb_state : public nes_clone_state
@@ -1563,6 +1569,7 @@ void nes_clone_twindncr_state::bank_w(offs_t offset, uint8_t data)
 	m_bankregs[offset] = data;
 }
 
+
 /**************************************************
  Rumble Station specifics
 **************************************************/
@@ -1570,14 +1577,18 @@ void nes_clone_twindncr_state::bank_w(offs_t offset, uint8_t data)
 void nes_clone_rumblstn_state::machine_reset()
 {
 	nes_clone_state::machine_reset();
-	m_bankregs[0] = 0;
-	m_bankregs[1] = 0;
+	m_6000 = 0;
+	m_8000 = 0;
 }
 
 void nes_clone_rumblstn_state::machine_start()
 {
 	nes_clone_state::machine_start();
-	save_item(NAME(m_bankregs));
+
+	m_ppu->space(AS_PROGRAM).install_read_handler(0x0000, 0x1fff, read8sm_delegate(*this, FUNC(nes_clone_rumblstn_state::vrom_r)));
+
+	save_item(NAME(m_6000));
+	save_item(NAME(m_8000));
 }
 
 void nes_clone_rumblstn_state::nes_clone_rumblstn(machine_config &config)
@@ -1589,21 +1600,29 @@ void nes_clone_rumblstn_state::nes_clone_rumblstn(machine_config &config)
 void nes_clone_rumblstn_state::nes_clone_rumblstn_map(address_map &map)
 {
 	nes_clone_basemap(map);
-	// 4800 might be mirroring mode
-	map(0x4801, 0x4802).w(FUNC(nes_clone_rumblstn_state::bank_w));
+	map(0x6000, 0x7fff).w(FUNC(nes_clone_rumblstn_state::bank_6000_w));
+	map(0x8000, 0xffff).w(FUNC(nes_clone_rumblstn_state::bank_8000_w));
 	map(0x8000, 0xffff).r(FUNC(nes_clone_rumblstn_state::rom_r));
+}
+
+uint8_t nes_clone_rumblstn_state::vrom_r(offs_t offset)
+{
+	return m_gfxrom[offset];
 }
 
 uint8_t nes_clone_rumblstn_state::rom_r(offs_t offset)
 {
-	int bank = ((m_bankregs[0] & 0x06) >> 1) | ((m_bankregs[1] & 0x03) << 2);
-	return m_mainrom[(offset + (bank * 0x8000)) & (m_mainromsize - 1)];
+	return m_mainrom[offset];
 }
 
-void nes_clone_rumblstn_state::bank_w(offs_t offset, uint8_t data)
+void nes_clone_rumblstn_state::bank_6000_w(uint8_t data)
 {
-	printf("%s: bank_w %02x %02x\n", machine().describe_context().c_str(), offset, data);
-	m_bankregs[offset] = data;
+	m_6000 = data;
+}
+
+void nes_clone_rumblstn_state::bank_8000_w(uint8_t data)
+{
+	m_8000 = data;
 }
 
 
@@ -1664,7 +1683,7 @@ void nes_clone_9in1_state::bank_6004_w(uint8_t data)
 
 
 /**************************************************
- 9-in-1 specifics
+ 2 Player Athletics specifics
 **************************************************/
 
 void nes_clone_2pathlet_state::machine_reset()
