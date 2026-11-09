@@ -224,16 +224,22 @@ class nes_clone_nvbaseb_state : public nes_clone_state
 {
 public:
 	nes_clone_nvbaseb_state(const machine_config &mconfig, device_type type, const char *tag) :
-		nes_clone_state(mconfig, type, tag)
+		nes_clone_state(mconfig, type, tag),
+		m_gfxrom(*this, "gfx1")
 	{ }
 
 	void nes_clone_nvbaseb(machine_config &config) ATTR_COLD;
 
 private:
 	void nes_clone_nvbaseb_map(address_map &map) ATTR_COLD;
+
 	virtual void machine_start() override ATTR_COLD;
 	virtual void machine_reset() override ATTR_COLD;
 	uint8_t rom_r(offs_t offset);
+	uint8_t vrom_r(offs_t offset);
+
+	required_region_ptr<uint8_t> m_gfxrom;
+
 	[[maybe_unused]]void bank_w(offs_t offset, uint8_t data);
 	uint8_t m_bankregs;
 };
@@ -1564,6 +1570,9 @@ void nes_clone_nvbaseb_state::machine_reset()
 void nes_clone_nvbaseb_state::machine_start()
 {
 	nes_clone_state::machine_start();
+
+	m_ppu->space(AS_PROGRAM).install_read_handler(0x0000, 0x1fff, read8sm_delegate(*this, FUNC(nes_clone_nvbaseb_state::vrom_r)));
+
 	save_item(NAME(m_bankregs));
 }
 
@@ -1576,17 +1585,22 @@ void nes_clone_nvbaseb_state::nes_clone_nvbaseb(machine_config &config)
 void nes_clone_nvbaseb_state::nes_clone_nvbaseb_map(address_map &map)
 {
 	nes_clone_basemap(map);
-	map(0x8000, 0xffff).r(FUNC(nes_clone_nvbaseb_state::rom_r));
+	map(0x8000, 0xffff).rw(FUNC(nes_clone_nvbaseb_state::rom_r), FUNC(nes_clone_nvbaseb_state::bank_w));
+}
+
+uint8_t nes_clone_nvbaseb_state::vrom_r(offs_t offset)
+{
+	return m_gfxrom[offset + ((m_bankregs & 0x38)>>3) * 0x2000];
 }
 
 uint8_t nes_clone_nvbaseb_state::rom_r(offs_t offset)
 {
-	return m_mainrom[offset];
+	return m_mainrom[(offset + (m_bankregs & 0x7) * 0x4000) & (m_mainromsize-1)];
 }
 
 void nes_clone_nvbaseb_state::bank_w(offs_t offset, uint8_t data)
 {
-	printf("%s: bank_w %02x %02x\n", machine().describe_context().c_str(), offset, data);
+	// data written doesn't matter, only offset
 	m_bankregs = offset & 0xff;
 }
 
@@ -1821,4 +1835,5 @@ CONS( 200?, popstar, 0, 0, nes_clone_popstar, nes_clone, nes_clone_popstar_state
 CONS( 2005, rumblstn, 0, 0, nes_clone_rumblstn, nes_clone, nes_clone_rumblstn_state, empty_init, "<unknown>", "Rumble Station", 0 )
 
 // box art makes this look like a 16-bit game, but it's a simple NES clone
-CONS( 2005, nvbaseb, 0, 0, nes_clone_nvbaseb, nes_clone, nes_clone_nvbaseb_state, empty_init, "N-Vision", "Grand Slam Baseball", 0 )
+// title on box is Grand Slam Baseball, onscreen is Home Run Baseball
+CONS( 2005, nvbaseb, 0, 0, nes_clone_nvbaseb, nes_clone, nes_clone_nvbaseb_state, empty_init, "N-Vision", "Grand Slam Baseball (Home Run Baseball)", 0 )
