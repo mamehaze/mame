@@ -35,8 +35,6 @@ public:
 	void nes_clone(machine_config &config) ATTR_COLD;
 	void nes_clone_pal(machine_config &config) ATTR_COLD;
 
-	void init_nes_clone() ATTR_COLD;
-
 protected:
 	virtual void machine_start() override ATTR_COLD;
 	virtual void machine_reset() override ATTR_COLD;
@@ -204,6 +202,41 @@ private:
 	uint8_t m_bankregs[2];
 };
 
+class nes_clone_rumblstn_state : public nes_clone_state
+{
+public:
+	nes_clone_rumblstn_state(const machine_config &mconfig, device_type type, const char *tag) :
+		nes_clone_state(mconfig, type, tag)
+	{ }
+
+	void nes_clone_rumblstn(machine_config &config) ATTR_COLD;
+
+private:
+	void nes_clone_rumblstn_map(address_map &map) ATTR_COLD;
+	virtual void machine_start() override ATTR_COLD;
+	virtual void machine_reset() override ATTR_COLD;
+	uint8_t rom_r(offs_t offset);
+	void bank_w(offs_t offset, uint8_t data);
+	uint8_t m_bankregs[4];
+};
+
+class nes_clone_nvbaseb_state : public nes_clone_state
+{
+public:
+	nes_clone_nvbaseb_state(const machine_config &mconfig, device_type type, const char *tag) :
+		nes_clone_state(mconfig, type, tag)
+	{ }
+
+	void nes_clone_nvbaseb(machine_config &config) ATTR_COLD;
+
+private:
+	void nes_clone_nvbaseb_map(address_map &map) ATTR_COLD;
+	virtual void machine_start() override ATTR_COLD;
+	virtual void machine_reset() override ATTR_COLD;
+	uint8_t rom_r(offs_t offset);
+	[[maybe_unused]]void bank_w(offs_t offset, uint8_t data);
+	uint8_t m_bankregs;
+};
 
 class nes_clone_afbm7800_state : public nes_clone_state
 {
@@ -1472,6 +1505,91 @@ void nes_clone_twindncr_state::bank_w(offs_t offset, uint8_t data)
 	m_bankregs[offset] = data;
 }
 
+/**************************************************
+ Rumble Station specifics
+**************************************************/
+
+
+void nes_clone_rumblstn_state::machine_reset()
+{
+	nes_clone_state::machine_reset();
+	m_bankregs[0] = 0;
+	m_bankregs[1] = 0;
+}
+
+void nes_clone_rumblstn_state::machine_start()
+{
+	nes_clone_state::machine_start();
+	save_item(NAME(m_bankregs));
+}
+
+void nes_clone_rumblstn_state::nes_clone_rumblstn(machine_config &config)
+{
+	nes_clone(config);
+	m_maincpu->set_addrmap(AS_PROGRAM, &nes_clone_rumblstn_state::nes_clone_rumblstn_map);
+}
+
+void nes_clone_rumblstn_state::nes_clone_rumblstn_map(address_map &map)
+{
+	nes_clone_basemap(map);
+	// 4800 might be mirroring mode
+	map(0x4801, 0x4802).w(FUNC(nes_clone_rumblstn_state::bank_w));
+	map(0x8000, 0xffff).r(FUNC(nes_clone_rumblstn_state::rom_r));
+}
+
+uint8_t nes_clone_rumblstn_state::rom_r(offs_t offset)
+{
+	int bank = ((m_bankregs[0] & 0x06) >> 1) | ((m_bankregs[1] & 0x03) << 2);
+	return m_mainrom[(offset + (bank * 0x8000)) & (m_mainromsize - 1)];
+}
+
+void nes_clone_rumblstn_state::bank_w(offs_t offset, uint8_t data)
+{
+	printf("%s: bank_w %02x %02x\n", machine().describe_context().c_str(), offset, data);
+	m_bankregs[offset] = data;
+}
+
+
+/**************************************************
+ N-Vision Baseball specifics
+**************************************************/
+
+
+void nes_clone_nvbaseb_state::machine_reset()
+{
+	nes_clone_state::machine_reset();
+	m_bankregs = 0;
+}
+
+void nes_clone_nvbaseb_state::machine_start()
+{
+	nes_clone_state::machine_start();
+	save_item(NAME(m_bankregs));
+}
+
+void nes_clone_nvbaseb_state::nes_clone_nvbaseb(machine_config &config)
+{
+	nes_clone(config);
+	m_maincpu->set_addrmap(AS_PROGRAM, &nes_clone_nvbaseb_state::nes_clone_nvbaseb_map);
+}
+
+void nes_clone_nvbaseb_state::nes_clone_nvbaseb_map(address_map &map)
+{
+	nes_clone_basemap(map);
+	map(0x8000, 0xffff).r(FUNC(nes_clone_nvbaseb_state::rom_r));
+}
+
+uint8_t nes_clone_nvbaseb_state::rom_r(offs_t offset)
+{
+	return m_mainrom[offset];
+}
+
+void nes_clone_nvbaseb_state::bank_w(offs_t offset, uint8_t data)
+{
+	printf("%s: bank_w %02x %02x\n", machine().describe_context().c_str(), offset, data);
+	m_bankregs = offset & 0xff;
+}
+
 
 /**************************************************
  Ping Pong Specifics
@@ -1606,6 +1724,15 @@ ROM_START( rumblstn )
 	ROM_LOAD( "chr.u9", 0x00000, 0x100000, CRC(53f8d91c) SHA1(34bd1373a06246a63a4942abaf038c716bc5d21a) )
 ROM_END
 
+ROM_START( nvbaseb )
+	ROM_REGION( 0x20000, "maincpu", ROMREGION_ERASE00 )
+	// contains leftover development data in addition to the game
+	ROM_LOAD( "prg_96k_all_banks.bin", 0x00000, 0x18000, CRC(045efbd1) SHA1(82272b06da2f503a6e28da7dcf3682272bc285a6) )
+
+	ROM_REGION( 0x10000, "gfx1", ROMREGION_ERASE00 )
+	ROM_LOAD( "chr_64k_all_banks.bin", 0x00000, 0x10000, CRC(896551af) SHA1(cae747dfa1e9e7fc88137539da8237ad286e789f) )
+ROM_END
+
 ROM_START( racechl8 )
 	ROM_REGION( 0x100000, "maincpu", ROMREGION_ERASE00 )
 	ROM_LOAD( "pro 400 0517.u4", 0x00000, 0x100000, CRC(13f24783) SHA1(a3b8ceb8954495a7471dfe4d6cdaa15c9945fcc5) )
@@ -1628,26 +1755,22 @@ ROM_START( popstar )
 	// 2 globs in base unit, but neither seems to be a ROM, one might be a sound MCU
 ROM_END
 
-void nes_clone_state::init_nes_clone()
-{
-}
-
 } // anonymous namespace
 
 
 // aka 'Atari Flashback' or 'Atari Flashback 1'
 // "Flashback Mini 7800 uses normal NES-style hardware, together with a mapper chipset similar to the Waixing kk33xx cartridges (NES 2.0 Mapper 534)"
-CONS( 2004, afbm7800,  0,  0,  nes_clone_afbm7800,    nes_clone, nes_clone_afbm7800_state, init_nes_clone, "Atari / Nice Code", "Atari Flashback Mini 7800", 0 )
+CONS( 2004, afbm7800,  0,  0,  nes_clone_afbm7800,    nes_clone, nes_clone_afbm7800_state, empty_init, "Atari / Nice Code", "Atari Flashback Mini 7800", 0 )
 
-CONS( 200?, dnce2000, 0, 0, nes_clone_dnce2000, dnce2000, nes_clone_dnce2000_state, init_nes_clone, "Shenzhen Soyin Electric Appliance Ind. Co., Ltd.", "Dance 2000 / Hot 2000 (Jin Bao TV Dancing Carpet, SY-2000-04)", 0 )
+CONS( 200?, dnce2000, 0, 0, nes_clone_dnce2000, dnce2000, nes_clone_dnce2000_state, empty_init, "Shenzhen Soyin Electric Appliance Ind. Co., Ltd.", "Dance 2000 / Hot 2000 (Jin Bao TV Dancing Carpet, SY-2000-04)", 0 )
 
-CONS( 200?, glkdance, 0, 0, nes_clone_dnce2000, dnce2000, nes_clone_dnce2000_state, init_nes_clone, "Gold Leopard King", "GLK Dance", 0 )
+CONS( 200?, glkdance, 0, 0, nes_clone_dnce2000, dnce2000, nes_clone_dnce2000_state, empty_init, "Gold Leopard King", "GLK Dance", 0 )
 
-CONS( 200?, flshdnce, 0, 0, nes_clone_dnce2000, dnce2000, nes_clone_dnce2000_state, init_nes_clone, "<unknown>", "Dance 2000 / Flash Dance", 0 ) // Flash Dance on box, Dance 2000 on title screen
+CONS( 200?, flshdnce, 0, 0, nes_clone_dnce2000, dnce2000, nes_clone_dnce2000_state, empty_init, "<unknown>", "Dance 2000 / Flash Dance", 0 ) // Flash Dance on box, Dance 2000 on title screen
 
-CONS( 200?, twindncr, 0, 0, nes_clone_twindncr, dnce2000, nes_clone_twindncr_state, init_nes_clone, "ABL", "Twin Dancers", 0 )
+CONS( 200?, twindncr, 0, 0, nes_clone_twindncr, dnce2000, nes_clone_twindncr_state, empty_init, "ABL", "Twin Dancers", 0 )
 
-CONS( 2002, croaky,   0, 0, nes_clone_dnce2000, nes_clone, nes_clone_dnce2000_state, init_nes_clone, "<unknown>", "Croaky Karaoke 16-in-1", MACHINE_NOT_WORKING ) // no inputs
+CONS( 2002, croaky,   0, 0, nes_clone_dnce2000, nes_clone, nes_clone_dnce2000_state, empty_init, "<unknown>", "Croaky Karaoke 16-in-1", MACHINE_NOT_WORKING ) // no inputs
 
 // Black pad marked 'SUDOKU' with tails on the S and U characters looping over the logo.  Box says "Plug and Play Sudoku"
 // Has 2 sets of 4 buttons in circular 'direction pad' layouts (on the left for directions, on the right for functions) and 9 red numbered buttons with red power LED on left of them, and reset button on right
@@ -1658,7 +1781,7 @@ CONS( 200?, nytsudo,      0,  0,  nes_clone_sudoku, papsudok, nes_clone_sudoku_s
 
 CONS( 200?, vtvppong, 0,  0, nes_clone_afbm7800, vtvppong, nes_clone_vtvppong_state, init_vtvppong, "<unknown>", "Virtual TV Ping Pong", MACHINE_NOT_WORKING )
 
-CONS( 200?, pjoypj001, 0, 0, nes_clone_afbm7800, nes_clone, nes_clone_taikee_new_state, init_nes_clone, "Trump Grand", "PowerJoy (PJ001, NES based plug & play)", MACHINE_NOT_WORKING )
+CONS( 200?, pjoypj001, 0, 0, nes_clone_afbm7800, nes_clone, nes_clone_taikee_new_state, empty_init, "Trump Grand", "PowerJoy (PJ001, NES based plug & play)", MACHINE_NOT_WORKING )
 
 //
 
@@ -1676,23 +1799,26 @@ CONS( 200?, pjoypj001, 0, 0, nes_clone_afbm7800, nes_clone, nes_clone_taikee_new
     I assume the daughterboard has a microcontroller for sound
     I'm not sure what the smaller glob is, but it looks like it sends commands to the daughterboard.
 */
-CONS( 200?, dancexpt, 0, 0, nes_clone_dancexpt, dancexpt, nes_clone_dancexpt_state, init_nes_clone, "Daidaixing", "Dancing Expert", MACHINE_NOT_WORKING )
+CONS( 200?, dancexpt, 0, 0, nes_clone_dancexpt, dancexpt, nes_clone_dancexpt_state, empty_init, "Daidaixing", "Dancing Expert", MACHINE_NOT_WORKING )
 
-CONS( 200?, vtvsocr,     0,  0,  nes_clone_vtvsocr, nes_clone, nes_clone_vtvsocr_state, init_nes_clone, "<unknown>", "Virtual TV Soccer", MACHINE_NOT_WORKING )
+CONS( 200?, vtvsocr,     0,  0,  nes_clone_vtvsocr, nes_clone, nes_clone_vtvsocr_state, empty_init, "<unknown>", "Virtual TV Soccer", MACHINE_NOT_WORKING )
 
 // manufacturer not named on box
-CONS( 200?, danzkara,  0,  0,  nes_clone_danzkara_pal, danzkara, nes_clone_vtvsocr_state, init_nes_clone, "Game Star", "DanZ Kara (BS-888)", MACHINE_NOT_WORKING )
+CONS( 200?, danzkara,  0,  0,  nes_clone_danzkara_pal, danzkara, nes_clone_vtvsocr_state, empty_init, "Game Star", "DanZ Kara (BS-888)", MACHINE_NOT_WORKING )
 
 // in early 2000s LG TVs
-CONS( 200?, digezlg, 0, 0, nes_clone_dnce2000, digezlg, nes_clone_dnce2000_state, init_nes_clone, "LG", "Digital ez LG", MACHINE_NOT_WORKING )
+CONS( 200?, digezlg, 0, 0, nes_clone_dnce2000, digezlg, nes_clone_dnce2000_state, empty_init, "LG", "Digital ez LG", MACHINE_NOT_WORKING )
 
 // 2005-04-03 date on PCB
-CONS( 2005, racechl8, 0, 0, nes_clone_afbm7800, nes_clone, nes_clone_taikee_new_state, init_nes_clone, "Play Vision / Taikee", "Racing Challenge - 8 Games In 1", 0 )
+CONS( 2005, racechl8, 0, 0, nes_clone_afbm7800, nes_clone, nes_clone_taikee_new_state, empty_init, "Play Vision / Taikee", "Racing Challenge - 8 Games In 1", 0 )
 
 // probably not VT based
-CONS( 200?, pv95in1, 0, 0, nes_clone_afbm7800, nes_clone, nes_clone_taikee_new_state, init_nes_clone, "Play Vision", "Play Vision 95 Games in 1", MACHINE_NOT_WORKING )
+CONS( 200?, pv95in1, 0, 0, nes_clone_afbm7800, nes_clone, nes_clone_taikee_new_state, empty_init, "Play Vision", "Play Vision 95 Games in 1", MACHINE_NOT_WORKING )
 
 // mapper at 500x? has custom sound rather than standard NES APU or VTxx sounds, possibly an extra MCU or sound chip in the unit (see https://www.youtube.com/watch?v=OsydFoHW3Lc )
-CONS( 200?, popstar, 0, 0, nes_clone_popstar, nes_clone, nes_clone_popstar_state, init_nes_clone, "<unknown>", "Popstar Karaoke", MACHINE_NOT_WORKING )
+CONS( 200?, popstar, 0, 0, nes_clone_popstar, nes_clone, nes_clone_popstar_state, empty_init, "<unknown>", "Popstar Karaoke", MACHINE_NOT_WORKING )
 
-CONS( 2005, rumblstn, 0, 0, nes_clone_afbm7800, nes_clone, nes_clone_taikee_new_state, init_nes_clone, "<unknown>", "Rumble Station", 0 )
+CONS( 2005, rumblstn, 0, 0, nes_clone_rumblstn, nes_clone, nes_clone_rumblstn_state, empty_init, "<unknown>", "Rumble Station", 0 )
+
+// box art makes this look like a 16-bit game, but it's a simple NES clone
+CONS( 2005, nvbaseb, 0, 0, nes_clone_nvbaseb, nes_clone, nes_clone_nvbaseb_state, empty_init, "N-Vision", "Grand Slam Baseball", 0 )
