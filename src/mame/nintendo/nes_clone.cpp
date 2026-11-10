@@ -188,7 +188,8 @@ class nes_clone_twindncr_state : public nes_clone_state
 {
 public:
 	nes_clone_twindncr_state(const machine_config &mconfig, device_type type, const char *tag) :
-		nes_clone_state(mconfig, type, tag)
+		nes_clone_state(mconfig, type, tag),
+		m_prgbank(*this, "prgbank")
 	{ }
 
 	void nes_clone_twindncr(machine_config &config) ATTR_COLD;
@@ -197,9 +198,13 @@ private:
 	void nes_clone_twindncr_map(address_map &map) ATTR_COLD;
 	virtual void machine_start() override ATTR_COLD;
 	virtual void machine_reset() override ATTR_COLD;
-	uint8_t rom_r(offs_t offset);
+
+	void update_banks();
 	void bank_w(offs_t offset, uint8_t data);
+
 	uint8_t m_bankregs[2];
+
+	required_memory_bank m_prgbank;
 };
 
 class nes_clone_rumblstn_state : public nes_clone_state
@@ -208,8 +213,7 @@ public:
 	nes_clone_rumblstn_state(const machine_config &mconfig, device_type type, const char *tag) :
 		nes_clone_state(mconfig, type, tag),
 		m_chrbank(*this, "chrbank"),
-		m_prgbank(*this, "prgbank"),
-		m_gfxrom(*this, "gfx1")
+		m_prgbank(*this, "prgbank")
 	{ }
 
 	void nes_clone_rumblstn(machine_config &config) ATTR_COLD;
@@ -224,12 +228,12 @@ private:
 	void update_banks();
 	void bank_6000_w(uint8_t data);
 	void bank_8000_w(uint8_t data);
+
 	uint8_t m_6000;
 	uint8_t m_8000;
 
 	required_memory_bank m_chrbank;
 	required_memory_bank m_prgbank;
-	required_region_ptr<uint8_t> m_gfxrom;
 };
 
 class nes_clone_nvbaseb_state : public nes_clone_state
@@ -237,23 +241,23 @@ class nes_clone_nvbaseb_state : public nes_clone_state
 public:
 	nes_clone_nvbaseb_state(const machine_config &mconfig, device_type type, const char *tag) :
 		nes_clone_state(mconfig, type, tag),
-		m_gfxrom(*this, "gfx1")
+		m_chrbank(*this, "chrbank"),
+		m_prgbank(*this, "prgbank")
 	{ }
 
 	void nes_clone_nvbaseb(machine_config &config) ATTR_COLD;
 
 private:
 	void nes_clone_nvbaseb_map(address_map &map) ATTR_COLD;
+	void nes_ppu_map(address_map &map);
 
 	virtual void machine_start() override ATTR_COLD;
 	virtual void machine_reset() override ATTR_COLD;
-	uint8_t rom_r(offs_t offset);
-	uint8_t vrom_r(offs_t offset);
-
-	required_region_ptr<uint8_t> m_gfxrom;
 
 	void bank_w(offs_t offset, uint8_t data);
-	uint8_t m_bankregs;
+
+	required_memory_bank m_chrbank;
+	required_memory_bank m_prgbank;
 };
 
 
@@ -1557,11 +1561,15 @@ void nes_clone_twindncr_state::machine_reset()
 	nes_clone_state::machine_reset();
 	m_bankregs[0] = 0;
 	m_bankregs[1] = 0;
+	update_banks();
 }
 
 void nes_clone_twindncr_state::machine_start()
 {
 	nes_clone_state::machine_start();
+
+	m_prgbank->configure_entries(0, 16, memregion("maincpu")->base(), 0x8000);
+
 	save_item(NAME(m_bankregs));
 }
 
@@ -1576,21 +1584,20 @@ void nes_clone_twindncr_state::nes_clone_twindncr_map(address_map &map)
 	nes_clone_basemap(map);
 	// 4800 might be mirroring mode
 	map(0x4801, 0x4802).w(FUNC(nes_clone_twindncr_state::bank_w));
-	map(0x8000, 0xffff).r(FUNC(nes_clone_twindncr_state::rom_r));
+	map(0x8000, 0xffff).bankr(m_prgbank);
 }
 
-uint8_t nes_clone_twindncr_state::rom_r(offs_t offset)
+void nes_clone_twindncr_state::update_banks()
 {
 	int bank = ((m_bankregs[0] & 0x06) >> 1) | ((m_bankregs[1] & 0x03) << 2);
-	return m_mainrom[(offset + (bank * 0x8000)) & (m_mainromsize - 1)];
+	m_prgbank->set_entry(bank);
 }
 
 void nes_clone_twindncr_state::bank_w(offs_t offset, uint8_t data)
 {
-	printf("%s: bank_w %02x %02x\n", machine().describe_context().c_str(), offset, data);
 	m_bankregs[offset] = data;
+	update_banks();
 }
-
 
 /**************************************************
  Rumble Station specifics
@@ -1601,6 +1608,7 @@ void nes_clone_rumblstn_state::machine_reset()
 	nes_clone_state::machine_reset();
 	m_6000 = 0;
 	m_8000 = 0;
+	update_banks();
 }
 
 void nes_clone_rumblstn_state::machine_start()
@@ -1783,44 +1791,44 @@ void nes_clone_2pathlet_state::bank_8800_w(uint8_t data)
 void nes_clone_nvbaseb_state::machine_reset()
 {
 	nes_clone_state::machine_reset();
-	m_bankregs = 0;
+	m_chrbank->set_entry(0);
+	m_prgbank->set_entry(0);
 }
 
 void nes_clone_nvbaseb_state::machine_start()
 {
 	nes_clone_state::machine_start();
 
-	m_ppu->space(AS_PROGRAM).install_read_handler(0x0000, 0x1fff, read8sm_delegate(*this, FUNC(nes_clone_nvbaseb_state::vrom_r)));
-
-	save_item(NAME(m_bankregs));
+	m_chrbank->configure_entries(0, 8, memregion("gfx1")->base(), 0x2000);
+	m_prgbank->configure_entries(0, 8, memregion("maincpu")->base(), 0x8000);
 }
 
 void nes_clone_nvbaseb_state::nes_clone_nvbaseb(machine_config &config)
 {
 	nes_clone(config);
 	m_maincpu->set_addrmap(AS_PROGRAM, &nes_clone_nvbaseb_state::nes_clone_nvbaseb_map);
+
+	m_ppu->set_addrmap(AS_PROGRAM, &nes_clone_nvbaseb_state::nes_ppu_map);
 }
 
 void nes_clone_nvbaseb_state::nes_clone_nvbaseb_map(address_map &map)
 {
 	nes_clone_basemap(map);
-	map(0x8000, 0xffff).rw(FUNC(nes_clone_nvbaseb_state::rom_r), FUNC(nes_clone_nvbaseb_state::bank_w));
+	map(0x8000, 0xffff).bankr(m_prgbank).w(FUNC(nes_clone_nvbaseb_state::bank_w));
 }
 
-uint8_t nes_clone_nvbaseb_state::vrom_r(offs_t offset)
+void nes_clone_nvbaseb_state::nes_ppu_map(address_map &map)
 {
-	return m_gfxrom[offset + ((m_bankregs & 0x38)>>3) * 0x2000];
-}
-
-uint8_t nes_clone_nvbaseb_state::rom_r(offs_t offset)
-{
-	return m_mainrom[(offset + (m_bankregs & 0x7) * 0x4000) & (m_mainromsize-1)];
+	map(0x0000, 0x1fff).bankr(m_chrbank);
+	map(0x2000, 0x2fff).ram();
+	map(0x3f00, 0x3fff).rw(m_ppu, FUNC(ppu2c0x_device::palette_read), FUNC(ppu2c0x_device::palette_write));
 }
 
 void nes_clone_nvbaseb_state::bank_w(offs_t offset, uint8_t data)
 {
 	// data written doesn't matter, only offset
-	m_bankregs = offset & 0xff;
+	m_chrbank->set_entry((offset & 0x38) >> 3);
+	m_prgbank->set_entry(offset & 0x07);
 }
 
 
