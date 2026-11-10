@@ -535,7 +535,23 @@ static INPUT_PORTS_START( dnce2000 )
 	PORT_BIT( 0xff, IP_ACTIVE_HIGH, IPT_UNUSED )
 INPUT_PORTS_END
 
+static INPUT_PORTS_START( twindncr )
+	PORT_START("IO0")
+	PORT_BIT( 0x03, IP_ACTIVE_HIGH, IPT_UNUSED )
+	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_SELECT ) PORT_PLAYER(1)
+	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_START ) PORT_PLAYER(1)
+	PORT_BIT( 0x10, IP_ACTIVE_HIGH, IPT_JOYSTICK_UP ) PORT_PLAYER(1) PORT_16WAY // NOT A JOYSTICK!!
+	PORT_BIT( 0x20, IP_ACTIVE_HIGH, IPT_JOYSTICK_DOWN ) PORT_PLAYER(1) PORT_16WAY
+	PORT_BIT( 0x40, IP_ACTIVE_HIGH, IPT_JOYSTICK_LEFT ) PORT_PLAYER(1) PORT_16WAY
+	PORT_BIT( 0x80, IP_ACTIVE_HIGH, IPT_JOYSTICK_RIGHT ) PORT_PLAYER(1) PORT_16WAY
 
+	PORT_START("IO1")
+	PORT_BIT( 0x0f, IP_ACTIVE_HIGH, IPT_UNUSED )
+	PORT_BIT( 0x10, IP_ACTIVE_HIGH, IPT_JOYSTICK_UP ) PORT_PLAYER(2) PORT_16WAY // NOT A JOYSTICK!!
+	PORT_BIT( 0x20, IP_ACTIVE_HIGH, IPT_JOYSTICK_DOWN ) PORT_PLAYER(2) PORT_16WAY
+	PORT_BIT( 0x40, IP_ACTIVE_HIGH, IPT_JOYSTICK_LEFT ) PORT_PLAYER(2) PORT_16WAY
+	PORT_BIT( 0x80, IP_ACTIVE_HIGH, IPT_JOYSTICK_RIGHT ) PORT_PLAYER(2) PORT_16WAY
+INPUT_PORTS_END
 
 static INPUT_PORTS_START( dancexpt )
 	PORT_START("IO1")
@@ -849,7 +865,7 @@ DEVICE_IMAGE_LOAD_MEMBER(nes_clone_popstar_state::cart_load)
 
 void nes_clone_dnce2000_state::nes_clone_dnce2000(machine_config &config)
 {
-	nes_clone_pal(config);
+	nes_clone_pal(config); // PAL units with Dendy timing
 	m_maincpu->set_addrmap(AS_PROGRAM, &nes_clone_dnce2000_state::nes_clone_dnce2000_map);
 }
 
@@ -1545,7 +1561,7 @@ void nes_clone_twindncr_state::machine_start()
 
 void nes_clone_twindncr_state::nes_clone_twindncr(machine_config &config)
 {
-	nes_clone(config);
+	nes_clone_pal(config); // PAL unit, Dendy timing
 	m_maincpu->set_addrmap(AS_PROGRAM, &nes_clone_twindncr_state::nes_clone_twindncr_map);
 }
 
@@ -1985,7 +2001,7 @@ CONS( 200?, glkdance, 0, 0, nes_clone_dnce2000, dnce2000, nes_clone_dnce2000_sta
 
 CONS( 200?, flshdnce, 0, 0, nes_clone_dnce2000, dnce2000, nes_clone_dnce2000_state, empty_init, "<unknown>", "Dance 2000 / Flash Dance", 0 ) // Flash Dance on box, Dance 2000 on title screen
 
-CONS( 200?, twindncr, 0, 0, nes_clone_twindncr, dnce2000, nes_clone_twindncr_state, empty_init, "ABL", "Twin Dancers", 0 )
+CONS( 200?, twindncr, 0, 0, nes_clone_twindncr, twindncr, nes_clone_twindncr_state, empty_init, "ABL", "Twin Dancers", 0 )
 
 CONS( 2002, croaky,   0, 0, nes_clone_dnce2000, nes_clone, nes_clone_dnce2000_state, empty_init, "<unknown>", "Croaky Karaoke 16-in-1", MACHINE_NOT_WORKING ) // no inputs
 
