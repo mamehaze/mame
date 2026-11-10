@@ -207,26 +207,29 @@ class nes_clone_rumblstn_state : public nes_clone_state
 public:
 	nes_clone_rumblstn_state(const machine_config &mconfig, device_type type, const char *tag) :
 		nes_clone_state(mconfig, type, tag),
-		m_gfxrom(*this, "gfx1"),
-		m_nametables(*this, "nametable%u", 0)
+		m_chrbank(*this, "chrbank"),
+		m_prgbank(*this, "prgbank"),
+		m_gfxrom(*this, "gfx1")
 	{ }
 
 	void nes_clone_rumblstn(machine_config &config) ATTR_COLD;
 
 private:
 	void nes_clone_rumblstn_map(address_map &map) ATTR_COLD;
+	void nes_ppu_map(address_map &map);
+
 	virtual void machine_start() override ATTR_COLD;
 	virtual void machine_reset() override ATTR_COLD;
-	uint8_t rom_r(offs_t offset);
-	uint8_t vrom_r(offs_t offset);
+
+	void update_banks();
 	void bank_6000_w(uint8_t data);
 	void bank_8000_w(uint8_t data);
 	uint8_t m_6000;
 	uint8_t m_8000;
-	std::unique_ptr<u8[]> m_nt_ram;
 
+	required_memory_bank m_chrbank;
+	required_memory_bank m_prgbank;
 	required_region_ptr<uint8_t> m_gfxrom;
-	memory_bank_array_creator<4> m_nametables;
 };
 
 class nes_clone_nvbaseb_state : public nes_clone_state
@@ -1603,26 +1606,8 @@ void nes_clone_rumblstn_state::machine_reset()
 void nes_clone_rumblstn_state::machine_start()
 {
 	nes_clone_state::machine_start();
-
-	m_ppu->space(AS_PROGRAM).install_read_handler(0x0000, 0x1fff, read8sm_delegate(*this, FUNC(nes_clone_rumblstn_state::vrom_r)));
-
-	// configure vertical nametable mirroring
-	m_nt_ram = std::make_unique<u8[]>(0x800);
-
-	for (int i = 0; i < 4; i++)
-		m_nametables[i]->configure_entries(0, 2, &m_nt_ram[0], 0x400);
-
-	save_pointer(NAME(m_nt_ram), 0x800);
-
-	m_nametables[0]->set_entry(0);
-	m_nametables[1]->set_entry(1);
-	m_nametables[2]->set_entry(0);
-	m_nametables[3]->set_entry(1);
-
-	m_ppu->space(AS_PROGRAM).install_readwrite_bank(0x2000,0x23ff,m_nametables[0]);
-	m_ppu->space(AS_PROGRAM).install_readwrite_bank(0x2400,0x27ff,m_nametables[1]);
-	m_ppu->space(AS_PROGRAM).install_readwrite_bank(0x2800,0x2bff,m_nametables[2]);
-	m_ppu->space(AS_PROGRAM).install_readwrite_bank(0x2c00,0x2fff,m_nametables[3]);
+	m_chrbank->configure_entries(0, 128, memregion("gfx1")->base(), 0x2000);
+	m_prgbank->configure_entries(0, 32, memregion("maincpu")->base(), 0x8000);
 
 	save_item(NAME(m_6000));
 	save_item(NAME(m_8000));
@@ -1632,6 +1617,16 @@ void nes_clone_rumblstn_state::nes_clone_rumblstn(machine_config &config)
 {
 	nes_clone(config);
 	m_maincpu->set_addrmap(AS_PROGRAM, &nes_clone_rumblstn_state::nes_clone_rumblstn_map);
+
+	m_ppu->set_addrmap(AS_PROGRAM, &nes_clone_rumblstn_state::nes_ppu_map);
+}
+
+void nes_clone_rumblstn_state::nes_ppu_map(address_map &map)
+{
+	map(0x0000, 0x1fff).bankr(m_chrbank);
+	map(0x2000, 0x23ff).mirror(0x0800).ram();
+	map(0x2400, 0x27ff).mirror(0x0800).ram();
+	map(0x3f00, 0x3fff).rw(m_ppu, FUNC(ppu2c0x_device::palette_read), FUNC(ppu2c0x_device::palette_write));
 }
 
 void nes_clone_rumblstn_state::nes_clone_rumblstn_map(address_map &map)
@@ -1639,29 +1634,27 @@ void nes_clone_rumblstn_state::nes_clone_rumblstn_map(address_map &map)
 	nes_clone_basemap(map);
 	map(0x6000, 0x7fff).w(FUNC(nes_clone_rumblstn_state::bank_6000_w));
 	map(0x8000, 0xffff).w(FUNC(nes_clone_rumblstn_state::bank_8000_w));
-	map(0x8000, 0xffff).r(FUNC(nes_clone_rumblstn_state::rom_r));
+	map(0x8000, 0xffff).bankr(m_prgbank);
 }
 
-uint8_t nes_clone_rumblstn_state::vrom_r(offs_t offset)
+void nes_clone_rumblstn_state::update_banks()
 {
-	int bank = ((m_6000 & 0xf0) >> 1) | ((m_8000 & 0x70) >> 4);
-	return m_gfxrom[offset + bank * 0x2000];
-}
-
-uint8_t nes_clone_rumblstn_state::rom_r(offs_t offset)
-{
-	int bank = ((m_6000 & 0x0f) << 1) | (m_8000 & 0x01);
-	return m_mainrom[offset + bank * 0x8000];
+	int chrbank = ((m_6000 & 0xf0) >> 1) | ((m_8000 & 0x70) >> 4);
+	m_chrbank->set_entry(chrbank);
+	int prgbank = ((m_6000 & 0x0f) << 1) | (m_8000 & 0x01);
+	m_prgbank->set_entry(prgbank);
 }
 
 void nes_clone_rumblstn_state::bank_6000_w(uint8_t data)
 {
 	m_6000 = data;
+	update_banks();
 }
 
 void nes_clone_rumblstn_state::bank_8000_w(uint8_t data)
 {
 	m_8000 = data;
+	update_banks();
 }
 
 
