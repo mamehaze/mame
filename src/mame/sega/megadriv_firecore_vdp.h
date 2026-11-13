@@ -27,6 +27,8 @@ public:
 	megadriv_firecore_vdp_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock)
 		: sega315_5313_device(mconfig, FIRECORE_VDP, tag, owner, clock)
 	{
+		printf("b\n");
+		m_vram_size = 0x20000;
 	}
 
 	void draw_firecore(bitmap_rgb32& bitmap, const rectangle& cliprect);

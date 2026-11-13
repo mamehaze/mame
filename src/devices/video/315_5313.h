@@ -134,6 +134,10 @@ protected:
 
 	required_device<m68000_base_device> m_cpu68k;
 	address_space *m_space68k;
+	std::unique_ptr<u16[]> m_vram;
+
+	// config
+	u32 m_vram_size;
 
 	virtual int screen_hpos() override;
 private:
@@ -194,7 +198,6 @@ private:
 	int m_dma_delay;    // SVP and SegaCD have some 'lag' in DMA transfers
 
 	std::unique_ptr<u16[]> m_regs;
-	std::unique_ptr<u16[]> m_vram;
 	std::unique_ptr<u16[]> m_cram;
 	std::unique_ptr<u16[]> m_vsram;
 	/* The VDP keeps a 0x400 byte on-chip cache of the Sprite Attribute Table
