@@ -7,36 +7,6 @@
 
 DEFINE_DEVICE_TYPE(FIRECORE_VDP, megadriv_firecore_vdp_device, "megadriv_firecore_vdp_device", "FireCore / RedKid VDP (MegaDrive clone)")
 
-
-void megadriv_firecore_vdp_device::device_start()
-{
-	sega315_5313_device::device_start();
-	m_xvram = std::make_unique<uint8_t[]>(0x20000);
-	std::fill_n(m_xvram.get(), 0x20000, 0);
-	save_pointer(NAME(m_xvram), 0x20000);
-	save_item(NAME(m_xcram));
-	save_item(NAME(m_xvsram));
-	save_item(NAME(m_xreg));
-	save_item(NAME(m_xaddr));
-	save_item(NAME(m_xcode));
-	save_item(NAME(m_xpending));
-	save_item(NAME(m_xfill));
-}
-
-void megadriv_firecore_vdp_device::device_reset()
-{
-	sega315_5313_device::device_reset();
-
-	std::fill(std::begin(m_xcram), std::end(m_xcram), 0);
-	std::fill(std::begin(m_xvsram), std::end(m_xvsram), 0);
-	std::fill(std::begin(m_xreg), std::end(m_xreg), 0);
-	m_xaddr = 0;
-	m_xcode = 0;
-	m_xpending = false;
-	m_xfill = false;
-}
-
-
 /*
     Firecore extended video mode
 
@@ -55,6 +25,32 @@ void megadriv_firecore_vdp_device::device_reset()
       the sprite table at 0x17000, so these are hardcoded for now.  Plane B is drawn above plane A.
 */
 
+void megadriv_firecore_vdp_device::device_start()
+{
+	sega315_5313_device::device_start();
+	m_xvram = std::make_unique<uint8_t[]>(0x20000);
+	std::fill_n(m_xvram.get(), 0x20000, 0);
+	save_pointer(NAME(m_xvram), 0x20000);
+	save_item(NAME(m_xcram));
+	save_item(NAME(m_xvsram));
+	save_item(NAME(m_xaddr));
+	save_item(NAME(m_xcode));
+	save_item(NAME(m_xpending));
+	save_item(NAME(m_xfill));
+}
+
+void megadriv_firecore_vdp_device::device_reset()
+{
+	sega315_5313_device::device_reset();
+
+	std::fill(std::begin(m_xcram), std::end(m_xcram), 0);
+	std::fill(std::begin(m_xvsram), std::end(m_xvsram), 0);
+	m_xaddr = 0;
+	m_xcode = 0;
+	m_xpending = false;
+	m_xfill = false;
+}
+
 uint16_t megadriv_firecore_vdp_device::xvdp_r(offs_t offset, uint16_t mem_mask)
 {
 	if (!machine().side_effects_disabled() && ((offset & 0x0e) == 0x02)) // control port read clears the pending command
@@ -65,7 +61,7 @@ uint16_t megadriv_firecore_vdp_device::xvdp_r(offs_t offset, uint16_t mem_mask)
 
 void megadriv_firecore_vdp_device::xvdp_w(offs_t offset, uint16_t data, uint16_t mem_mask)
 {
-	if (mem_mask == 0xffff)
+	//if (mem_mask == 0xffff)
 	{
 		if ((offset & 0x0e) == 0x00)
 			xvdp_data_w(data);
@@ -93,7 +89,7 @@ void megadriv_firecore_vdp_device::xvdp_data_w(uint16_t data)
 	if (m_xfill)
 	{
 		m_xfill = false;
-		uint32_t length = m_xreg[0x13] | (m_xreg[0x14] << 8);
+		uint32_t length = m_regs[0x13] | (m_regs[0x14] << 8);
 		if (!length)
 			length = 0x10000;
 
@@ -102,7 +98,7 @@ void megadriv_firecore_vdp_device::xvdp_data_w(uint16_t data)
 		for (uint32_t i = 0; i < length; i++)
 		{
 			write_xram((m_xaddr ^ 1) & 0x1ffff, data >> 8);
-			m_xaddr = (m_xaddr + m_xreg[0x0f]) & 0x1ffff;
+			m_xaddr = (m_xaddr + m_regs[0x0f]) & 0x1ffff;
 		}
 		return;
 	}
@@ -120,7 +116,7 @@ void megadriv_firecore_vdp_device::xvdp_data_w(uint16_t data)
 		m_xvsram[(m_xaddr >> 1) & 0x3f] = data;
 		break;
 	}
-	m_xaddr = (m_xaddr + m_xreg[0x0f]) & 0x1ffff;
+	m_xaddr = (m_xaddr + m_regs[0x0f]) & 0x1ffff;
 }
 
 void megadriv_firecore_vdp_device::xvdp_ctrl_w(uint16_t data)
@@ -129,7 +125,7 @@ void megadriv_firecore_vdp_device::xvdp_ctrl_w(uint16_t data)
 	{
 		if ((data & 0xc000) == 0x8000)
 		{
-			m_xreg[(data >> 8) & 0x1f] = data & 0xff;
+			m_regs[(data >> 8) & 0x1f] = data & 0xff;
 			return;
 		}
 
@@ -143,21 +139,21 @@ void megadriv_firecore_vdp_device::xvdp_ctrl_w(uint16_t data)
 	m_xcode = (m_xcode & 0x03) | ((data >> 2) & 0x3c);
 	m_xaddr = (m_xaddr & 0x03fff) | ((data & 0x03) << 14) | ((data & 0x04) << 14);
 
-	if (!(m_xcode & 0x20) || !BIT(m_xreg[0x01], 4))
+	if (!(m_xcode & 0x20) || !BIT(m_regs[0x01], 4))
 		return;
 
-	switch (m_xreg[0x17] >> 6)
+	switch (m_regs[0x17] >> 6)
 	{
 	case 0:
 	case 1: // 68k -> VDP
 	{
-		uint32_t length = m_xreg[0x13] | (m_xreg[0x14] << 8);
+		uint32_t length = m_regs[0x13] | (m_regs[0x14] << 8);
 		if (!length)
 			length = 0x10000;
 		if (xvdp_enabled())
 			length <<= 1;
 
-		uint32_t source = (m_xreg[0x15] | (m_xreg[0x16] << 8) | ((m_xreg[0x17] & 0x7f) << 16)) << 1;
+		uint32_t source = (m_regs[0x15] | (m_regs[0x16] << 8) | ((m_regs[0x17] & 0x7f) << 16)) << 1;
 		for (uint32_t i = 0; i < length; i++)
 		{
 			xvdp_data_w(m_space68k->read_word(source));
@@ -173,15 +169,15 @@ void megadriv_firecore_vdp_device::xvdp_ctrl_w(uint16_t data)
 
 	case 3: // VRAM copy
 	{
-		uint32_t length = m_xreg[0x13] | (m_xreg[0x14] << 8);
+		uint32_t length = m_regs[0x13] | (m_regs[0x14] << 8);
 		if (!length)
 			length = 0x10000;
-		uint32_t source = m_xreg[0x15] | (m_xreg[0x16] << 8);
+		uint32_t source = m_regs[0x15] | (m_regs[0x16] << 8);
 		for (uint32_t i = 0; i < length; i++)
 		{
 			write_xram((m_xaddr ^ 1) & 0x1ffff, read_xram((source ^ 1) & 0x1ffff));
 			source = (source + 1) & 0xffff;
-			m_xaddr = (m_xaddr + m_xreg[0x0f]) & 0x1ffff;
+			m_xaddr = (m_xaddr + m_regs[0x0f]) & 0x1ffff;
 		}
 		break;
 	}
@@ -209,13 +205,13 @@ uint8_t megadriv_firecore_vdp_device::xvdp_tile_pixel(uint32_t tile, int x, int 
 void megadriv_firecore_vdp_device::xvdp_draw_plane(bitmap_rgb32 &bitmap, const rectangle &cliprect, uint32_t nametable, int plane)
 {
 	static const int sizes[4] = { 32, 64, 64, 128 };
-	const int hsize = sizes[m_xreg[0x10] & 3];
-	const int vsize = sizes[(m_xreg[0x10] >> 4) & 3];
+	const int hsize = sizes[m_regs[0x10] & 3];
+	const int vsize = sizes[(m_regs[0x10] >> 4) & 3];
 
 	for (int y = cliprect.min_y; y <= cliprect.max_y; y++)
 	{
 		int hscroll;
-		switch (m_xreg[0x0b] & 3)
+		switch (m_regs[0x0b] & 3)
 		{
 		default:
 		case 0: hscroll = 0x16000; break;
@@ -246,7 +242,7 @@ void megadriv_firecore_vdp_device::xvdp_draw_plane(bitmap_rgb32 &bitmap, const r
 void megadriv_firecore_vdp_device::xvdp_draw_sprites(bitmap_rgb32 &bitmap, const rectangle &cliprect)
 {
 	const uint32_t table = 0x17000;
-	const int maxsprites = BIT(m_xreg[0x0c], 0) ? 80 : 64;
+	const int maxsprites = BIT(m_regs[0x0c], 0) ? 80 : 64;
 
 	// collect the link list, the first sprite in the list has the highest priority
 	int order[80];
@@ -295,10 +291,10 @@ void megadriv_firecore_vdp_device::xvdp_draw_sprites(bitmap_rgb32 &bitmap, const
 
 void megadriv_firecore_vdp_device::draw_firecore(bitmap_rgb32& bitmap, const rectangle& cliprect)
 {
-	if (!BIT(m_xreg[0x01], 6)) // display disabled
+	if (!BIT(m_regs[0x01], 6)) // display disabled
 		return;
 
-	bitmap.fill(xvdp_color(m_xreg[0x07] & 0x3f), cliprect);
+	bitmap.fill(xvdp_color(m_regs[0x07] & 0x3f), cliprect);
 	xvdp_draw_plane(bitmap, cliprect, 0x12000, 0);
 	xvdp_draw_plane(bitmap, cliprect, 0x14000, 1);
 	xvdp_draw_sprites(bitmap, cliprect);
