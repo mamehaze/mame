@@ -42,13 +42,16 @@ public:
 	uint32_t xvdp_color(int index) const;
 	void xvdp_draw_plane(bitmap_rgb32 &bitmap, const rectangle &cliprect, uint32_t nametable, int plane);
 	void xvdp_draw_sprites(bitmap_rgb32 &bitmap, const rectangle &cliprect);
-	uint8_t xvdp_tile_pixel(uint32_t tile, int x, int y) const;
+	uint8_t xvdp_tile_pixel(uint32_t tile, int x, int y);
 
 protected:
 	virtual void device_start() override ATTR_COLD;
 	virtual void device_reset() override ATTR_COLD;
 
 private:
+	u8 read_xram(u32 address);	
+	void write_xram(u32 address, u8 data);
+
 	// shadow of the VDP state for the extended video mode
 	std::unique_ptr<uint8_t[]> m_xvram; // 128KiB
 	uint16_t m_xcram[0x400];    // 512 x 24-bit colours (2 words each)

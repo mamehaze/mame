@@ -76,6 +76,16 @@ void megadriv_firecore_vdp_device::xvdp_w(offs_t offset, uint16_t data, uint16_t
 	sega315_5313_device::vdp_w(offset, data, mem_mask);
 }
 
+u8 megadriv_firecore_vdp_device::read_xram(u32 address)
+{
+	return m_xvram[address];
+}
+
+void megadriv_firecore_vdp_device::write_xram(u32 address, u8 data)
+{
+	m_xvram[address] = data;
+}
+
 void megadriv_firecore_vdp_device::xvdp_data_w(uint16_t data)
 {
 	m_xpending = false;
@@ -87,11 +97,11 @@ void megadriv_firecore_vdp_device::xvdp_data_w(uint16_t data)
 		if (!length)
 			length = 0x10000;
 
-		m_xvram[(m_xaddr & 0x1fffe) | 0] = data >> 8;
-		m_xvram[(m_xaddr & 0x1fffe) | 1] = data & 0xff;
+		write_xram((m_xaddr & 0x1fffe) | 0, data >> 8);
+		write_xram((m_xaddr & 0x1fffe) | 1, data & 0xff);
 		for (uint32_t i = 0; i < length; i++)
 		{
-			m_xvram[(m_xaddr ^ 1) & 0x1ffff] = data >> 8;
+			write_xram((m_xaddr ^ 1) & 0x1ffff, data >> 8);
 			m_xaddr = (m_xaddr + m_xreg[0x0f]) & 0x1ffff;
 		}
 		return;
@@ -100,8 +110,8 @@ void megadriv_firecore_vdp_device::xvdp_data_w(uint16_t data)
 	switch (m_xcode & 0x0f)
 	{
 	case 0x01: // VRAM
-		m_xvram[(m_xaddr & 0x1fffe) | 0] = data >> 8;
-		m_xvram[(m_xaddr & 0x1fffe) | 1] = data & 0xff;
+		write_xram((m_xaddr & 0x1fffe) | 0, data >> 8);
+		write_xram((m_xaddr & 0x1fffe) | 1, data & 0xff);
 		break;
 	case 0x03: // CRAM
 		m_xcram[(m_xaddr >> 1) & 0x3ff] = data;
@@ -169,7 +179,7 @@ void megadriv_firecore_vdp_device::xvdp_ctrl_w(uint16_t data)
 		uint32_t source = m_xreg[0x15] | (m_xreg[0x16] << 8);
 		for (uint32_t i = 0; i < length; i++)
 		{
-			m_xvram[(m_xaddr ^ 1) & 0x1ffff] = m_xvram[(source ^ 1) & 0x1ffff];
+			write_xram((m_xaddr ^ 1) & 0x1ffff, read_xram((source ^ 1) & 0x1ffff));
 			source = (source + 1) & 0xffff;
 			m_xaddr = (m_xaddr + m_xreg[0x0f]) & 0x1ffff;
 		}
@@ -185,14 +195,14 @@ uint32_t megadriv_firecore_vdp_device::xvdp_color(int index) const
 	return rgb_t(gr & 0xff, gr >> 8, b & 0xff);
 }
 
-uint8_t megadriv_firecore_vdp_device::xvdp_tile_pixel(uint32_t tile, int x, int y) const
+uint8_t megadriv_firecore_vdp_device::xvdp_tile_pixel(uint32_t tile, int x, int y)
 {
 	const uint32_t bit = ((y * 8) + x) * 6;
 	const uint32_t base = tile * 48;
 	const uint32_t word0 = base + ((bit >> 4) << 1);
 	const uint32_t word1 = word0 + 2;
-	const uint32_t w0 = (m_xvram[word0 & 0x1ffff] << 8) | m_xvram[(word0 + 1) & 0x1ffff];
-	const uint32_t w1 = (m_xvram[word1 & 0x1ffff] << 8) | m_xvram[(word1 + 1) & 0x1ffff];
+	const uint32_t w0 = (read_xram(word0 & 0x1ffff) << 8) | read_xram((word0 + 1) & 0x1ffff);
+	const uint32_t w1 = (read_xram(word1 & 0x1ffff) << 8) | read_xram((word1 + 1) & 0x1ffff);
 	return ((w0 | (w1 << 16)) >> (bit & 15)) & 0x3f;
 }
 
@@ -213,7 +223,7 @@ void megadriv_firecore_vdp_device::xvdp_draw_plane(bitmap_rgb32 &bitmap, const r
 		case 3: hscroll = 0x16000 + y * 4; break;
 		}
 		hscroll += plane * 2;
-		const int hs = ((m_xvram[hscroll & 0x1ffff] << 8) | m_xvram[(hscroll + 1) & 0x1ffff]) & 0x3ff;
+		const int hs = ((read_xram(hscroll & 0x1ffff) << 8) | read_xram((hscroll + 1) & 0x1ffff)) & 0x3ff;
 		const int vs = m_xvsram[plane] & 0x3ff;
 
 		uint32_t *const dest = &bitmap.pix(y);
@@ -222,7 +232,7 @@ void megadriv_firecore_vdp_device::xvdp_draw_plane(bitmap_rgb32 &bitmap, const r
 		{
 			const int px = (x - hs) & ((hsize * 8) - 1);
 			const uint32_t entryaddr = nametable + (((py >> 3) * hsize) + (px >> 3)) * 2;
-			const uint16_t entry = (m_xvram[entryaddr & 0x1ffff] << 8) | m_xvram[(entryaddr + 1) & 0x1ffff];
+			const uint16_t entry = (read_xram(entryaddr & 0x1ffff) << 8) | read_xram((entryaddr + 1) & 0x1ffff);
 			int tx = px & 7, ty = py & 7;
 			if (BIT(entry, 11)) tx ^= 7;
 			if (BIT(entry, 12)) ty ^= 7;
@@ -246,13 +256,13 @@ void megadriv_firecore_vdp_device::xvdp_draw_sprites(bitmap_rgb32 &bitmap, const
 	{
 		order[count++] = link;
 		const uint32_t a = table + link * 8;
-		link = m_xvram[(a + 3) & 0x1ffff] & 0x7f;
+		link = read_xram((a + 3) & 0x1ffff) & 0x7f;
 	} while (link && (link < maxsprites) && (count < maxsprites));
 
 	for (int i = count - 1; i >= 0; i--)
 	{
 		const uint32_t a = table + order[i] * 8;
-		auto word = [this, a] (int n) { return uint16_t((m_xvram[(a + n * 2) & 0x1ffff] << 8) | m_xvram[(a + n * 2 + 1) & 0x1ffff]); };
+		auto word = [this, a] (int n) { return uint16_t((read_xram((a + n * 2) & 0x1ffff) << 8) | read_xram((a + n * 2 + 1) & 0x1ffff)); };
 		const int ypos = (word(0) & 0x3ff) - 128;
 		const int w = ((word(1) >> 10) & 3) + 1;
 		const int h = ((word(1) >> 8) & 3) + 1;
