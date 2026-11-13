@@ -61,12 +61,21 @@ uint16_t megadriv_firecore_vdp_device::xvdp_r(offs_t offset, uint16_t mem_mask)
 
 void megadriv_firecore_vdp_device::xvdp_w(offs_t offset, uint16_t data, uint16_t mem_mask)
 {
-	//if (mem_mask == 0xffff)
+	if (xvdp_enabled())
 	{
-		if ((offset & 0x0e) == 0x00)
-			xvdp_data_w(data);
-		else if ((offset & 0x0e) == 0x02)
-			xvdp_ctrl_w(data);
+		//if (mem_mask == 0xffff)
+		{
+			if ((offset & 0x0e) == 0x00)
+			{
+				xvdp_data_w(data);
+				return;
+			}
+			else if ((offset & 0x0e) == 0x02)
+			{
+				xvdp_ctrl_w(data);
+				return;
+			}
+		}
 	}
 
 	sega315_5313_device::vdp_w(offset, data, mem_mask);
@@ -125,7 +134,9 @@ void megadriv_firecore_vdp_device::xvdp_ctrl_w(uint16_t data)
 	{
 		if ((data & 0xc000) == 0x8000)
 		{
-			m_regs[(data >> 8) & 0x1f] = data & 0xff;
+			vdp_set_register((data >> 8) & 0x1f, data & 0xff);
+			m_vdp_code = 0;
+			m_vdp_address = 0;
 			return;
 		}
 

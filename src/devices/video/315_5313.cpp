@@ -197,11 +197,11 @@ sega315_5313_device::sega315_5313_device(const machine_config& mconfig, device_t
 	, m_space68k(nullptr)
 	, m_vram(nullptr)
 	, m_regs(nullptr)
+	, m_vdp_code(0)
+	, m_vdp_address(0)
 	, m_command_pending(0)
 	, m_command_part1(0)
 	, m_command_part2(0)
-	, m_vdp_code(0)
-	, m_vdp_address(0)
 	, m_vram_fill_pending(0)
 	, m_vram_fill_length(0)
 	, m_irq4counter(0)
@@ -580,10 +580,6 @@ void sega315_5313_device::data_port_w(int data)
 
 void sega315_5313_device::vdp_set_register(int regnum, u8 value)
 {
-	// in mode 4 all writes beyond register 10 are ignored
-	// bassmpro relies on this at Sega startup logo
-	if (!BIT(m_regs[0x01], 2) && regnum > 10)
-		return;
 	m_regs[regnum] = value;
 
 //  if (regnum == 1)
@@ -885,6 +881,11 @@ void sega315_5313_device::ctrl_port_w(int data)
 			const int value  = (data & 0x00ff);
 
 			if (regnum & 0x20) osd_printf_debug("reg error\n");
+
+			// in mode 4 all writes beyond register 10 are ignored
+			// bassmpro relies on this at Sega startup logo
+			if (!BIT(m_regs[0x01], 2) && regnum > 10)
+				return;
 
 			vdp_set_register(regnum & 0x1f, value);
 			m_vdp_code = 0;

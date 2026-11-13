@@ -123,6 +123,8 @@ protected:
 	virtual void device_reset() override ATTR_COLD;
 	virtual void device_add_mconfig(machine_config &config) override ATTR_COLD;
 
+	void vdp_set_register(int regnum, u8 value);
+
 	// called when we hit 240 and 241 (used to control the z80 irq line on genesis, or the main irq on c2)
 	devcb_write_line m_sndirqline_callback;
 	devcb_write_line m_lv6irqline_callback;
@@ -136,6 +138,8 @@ protected:
 	address_space *m_space68k;
 	std::unique_ptr<u16[]> m_vram;
 	std::unique_ptr<u8[]> m_regs;
+	u8  m_vdp_code;
+	u16 m_vdp_address;
 
 	// config
 	u32 m_vram_size;
@@ -171,8 +175,6 @@ private:
 	int m_command_pending; // 2nd half of command pending..
 	u16 m_command_part1;
 	u16 m_command_part2;
-	u8  m_vdp_code;
-	u16 m_vdp_address;
 	u8  m_vram_fill_pending;
 	u16 m_vram_fill_length;
 	int m_irq4counter;
@@ -225,7 +227,6 @@ private:
 	void vdp_vsram_write(u16 data);
 
 	void vdp_address_inc();
-	void vdp_set_register(int regnum, u8 value);
 
 	void handle_dma_bits();
 
