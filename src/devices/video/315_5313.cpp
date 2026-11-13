@@ -174,9 +174,14 @@ int sega315_5313_device::screen_hpos() { return screen().hpos() / (m_lcm_scaling
 
 DEFINE_DEVICE_TYPE(SEGA315_5313, sega315_5313_device, "sega315_5313", "Sega 315-5313 Megadrive VDP")
 
-sega315_5313_device::sega315_5313_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock)
+sega315_5313_device::sega315_5313_device(const machine_config& mconfig, const char* tag, device_t* owner, u32 clock)
+	: sega315_5313_device(mconfig, SEGA315_5313, tag, owner, clock)
+{
+}
+
+sega315_5313_device::sega315_5313_device(const machine_config& mconfig, device_type type, const char *tag, device_t *owner, u32 clock)
 	// mode 4 support, for SMS compatibility, is implemented in 315_5124.cpp
-	: sega315_5313_mode4_device(mconfig, SEGA315_5313, tag, owner, clock, SEGA315_5124_CRAM_SIZE, 0x00, 0x1f, 0, 0, line_315_5313_mode4)
+	: sega315_5313_mode4_device(mconfig, type, tag, owner, clock, SEGA315_5124_CRAM_SIZE, 0x00, 0x1f, 0, 0, line_315_5313_mode4)
 	, device_gfx_interface(mconfig, *this, nullptr, "gfx_palette")
 	, m_render_bitmap(nullptr)
 	, m_render_line(nullptr)
@@ -188,6 +193,7 @@ sega315_5313_device::sega315_5313_device(const machine_config &mconfig, const ch
 	, m_32x_scanline_func(*this)
 	, m_32x_interrupt_func(*this)
 	, m_32x_scanline_helper_func(*this)
+	, m_cpu68k(*this, finder_base::DUMMY_TAG)
 	, m_command_pending(0)
 	, m_command_part1(0)
 	, m_command_part2(0)
@@ -226,7 +232,6 @@ sega315_5313_device::sega315_5313_device(const machine_config &mconfig, const ch
 	, m_video_renderline(nullptr)
 	, m_palette_lookup(nullptr)
 	, m_space68k(nullptr)
-	, m_cpu68k(*this, finder_base::DUMMY_TAG)
 	, m_ext_palette(*this, finder_base::DUMMY_TAG)
 	, m_gfx_palette(*this, "gfx_palette")
 	, m_gfx_palette_shadow(*this, "gfx_palette_shadow")

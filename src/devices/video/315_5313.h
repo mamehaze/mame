@@ -23,6 +23,7 @@ public:
 	}
 
 	sega315_5313_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock);
+	sega315_5313_device(const machine_config &mconfig, device_type type, const char* tag, device_t *owner, u32 clock);
 
 	typedef device_delegate<void (int x, u32 priority, u32 &lineptr)> md_32x_scanline_delegate;
 	typedef device_delegate<void (int scanline, int irq6)> md_32x_interrupt_delegate;
@@ -130,6 +131,8 @@ protected:
 	md_32x_scanline_delegate m_32x_scanline_func;
 	md_32x_interrupt_delegate m_32x_interrupt_func;
 	md_32x_scanline_helper_delegate m_32x_scanline_helper_func;
+
+	required_device<m68000_base_device> m_cpu68k;
 
 	virtual int screen_hpos() override;
 private:
@@ -243,7 +246,6 @@ private:
 	std::unique_ptr<u16[]> m_palette_lookup;
 
 	address_space *m_space68k;
-	required_device<m68000_base_device> m_cpu68k;
 	optional_device<palette_device> m_ext_palette;
 
 	// debug functions
