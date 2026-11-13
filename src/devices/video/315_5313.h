@@ -133,6 +133,7 @@ protected:
 	md_32x_scanline_helper_delegate m_32x_scanline_helper_func;
 
 	required_device<m68000_base_device> m_cpu68k;
+	address_space *m_space68k;
 
 	virtual int screen_hpos() override;
 private:
@@ -245,7 +246,6 @@ private:
 	std::unique_ptr<u32[]> m_video_renderline;
 	std::unique_ptr<u16[]> m_palette_lookup;
 
-	address_space *m_space68k;
 	optional_device<palette_device> m_ext_palette;
 
 	// debug functions
