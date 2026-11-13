@@ -28,9 +28,6 @@ DEFINE_DEVICE_TYPE(FIRECORE_VDP, megadriv_firecore_vdp_device, "megadriv_firecor
 void megadriv_firecore_vdp_device::device_start()
 {
 	sega315_5313_device::device_start();
-	m_xvram = std::make_unique<uint8_t[]>(0x20000);
-	std::fill_n(m_xvram.get(), 0x20000, 0);
-	save_pointer(NAME(m_xvram), 0x20000);
 	save_item(NAME(m_xcram));
 	save_item(NAME(m_xvsram));
 	save_item(NAME(m_xaddr));
@@ -83,12 +80,28 @@ void megadriv_firecore_vdp_device::xvdp_w(offs_t offset, uint16_t data, uint16_t
 
 u8 megadriv_firecore_vdp_device::read_xram(u32 address)
 {
-	return m_xvram[address];
+	u32 offset = address >> 1;
+	if (address & 1)
+	{
+		return (m_vram[offset] >> 8) & 0xff;
+	}
+	else
+	{
+		return (m_vram[offset] >> 0) & 0xff;
+	}
 }
 
 void megadriv_firecore_vdp_device::write_xram(u32 address, u8 data)
 {
-	m_xvram[address] = data;
+	u32 offset = address >> 1;
+	if (address & 1)
+	{
+		m_vram[offset] = (m_vram[offset] & 0x00ff) | (data << 8);
+	}
+	else
+	{
+		m_vram[offset] = (m_vram[offset] & 0xff00) | (data);
+	}
 }
 
 void megadriv_firecore_vdp_device::xvdp_data_w(uint16_t data)
