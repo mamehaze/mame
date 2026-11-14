@@ -220,7 +220,7 @@ void megadriv_firecore_vdp_device::xvdp_draw_plane(bitmap_rgb32 &bitmap, const r
 		case 3: hscroll = 0x16000 + y * 4; break;
 		}
 		hscroll += plane * 2;
-		const int hs = ((read_xram(hscroll & 0x1ffff) << 8) | read_xram((hscroll + 1) & 0x1ffff)) & 0x3ff;
+		const int hs = m_vram[(hscroll >> 1) & 0xffff] & 0x3ff;
 		const int vs = m_vsram[plane] & 0x3ff;
 
 		uint32_t *const dest = &bitmap.pix(y);
@@ -229,7 +229,7 @@ void megadriv_firecore_vdp_device::xvdp_draw_plane(bitmap_rgb32 &bitmap, const r
 		{
 			const int px = (x - hs) & ((hsize * 8) - 1);
 			const uint32_t entryaddr = nametable + (((py >> 3) * hsize) + (px >> 3)) * 2;
-			const uint16_t entry = (read_xram(entryaddr & 0x1ffff) << 8) | read_xram((entryaddr + 1) & 0x1ffff);
+			const uint16_t entry = m_vram[(entryaddr >> 1) & 0xffff];
 			int tx = px & 7, ty = py & 7;
 			if (BIT(entry, 11)) tx ^= 7;
 			if (BIT(entry, 12)) ty ^= 7;
@@ -253,13 +253,13 @@ void megadriv_firecore_vdp_device::xvdp_draw_sprites(bitmap_rgb32 &bitmap, const
 	{
 		order[count++] = link;
 		const uint32_t a = table + link * 8;
-		link = read_xram((a + 3) & 0x1ffff) & 0x7f;
+		link = m_vram[((a + 3)>>1) & 0xffff] & 0x7f;
 	} while (link && (link < maxsprites) && (count < maxsprites));
 
 	for (int i = count - 1; i >= 0; i--)
 	{
 		const uint32_t a = table + order[i] * 8;
-		auto word = [this, a] (int n) { return uint16_t((read_xram((a + n * 2) & 0x1ffff) << 8) | read_xram((a + n * 2 + 1) & 0x1ffff)); };
+		auto word = [this, a](int n) { return m_vram[((a + n * 2) >> 1) & 0xffff]; };
 		const int ypos = (word(0) & 0x3ff) - 128;
 		const int w = ((word(1) >> 10) & 3) + 1;
 		const int h = ((word(1) >> 8) & 3) + 1;
