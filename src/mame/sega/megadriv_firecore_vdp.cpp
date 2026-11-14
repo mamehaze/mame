@@ -60,11 +60,11 @@ u8 megadriv_firecore_vdp_device::read_xram(u32 address)
 	u32 offset = address >> 1;
 	if (address & 1)
 	{
-		return (m_vram[offset] >> 8) & 0xff;
+		return (m_vram[offset] >> 0) & 0xff;
 	}
 	else
 	{
-		return (m_vram[offset] >> 0) & 0xff;
+		return (m_vram[offset] >> 8) & 0xff;
 	}
 }
 
@@ -73,11 +73,11 @@ void megadriv_firecore_vdp_device::write_xram(u32 address, u8 data)
 	u32 offset = address >> 1;
 	if (address & 1)
 	{
-		m_vram[offset] = (m_vram[offset] & 0x00ff) | (data << 8);
+		m_vram[offset] = (m_vram[offset] & 0xff00) | (data);
 	}
 	else
 	{
-		m_vram[offset] = (m_vram[offset] & 0xff00) | (data);
+		m_vram[offset] = (m_vram[offset] & 0x00ff) | (data << 8);
 	}
 }
 
@@ -198,8 +198,8 @@ uint8_t megadriv_firecore_vdp_device::xvdp_tile_pixel(uint32_t tile, int x, int 
 	const uint32_t base = tile * 48;
 	const uint32_t word0 = base + ((bit >> 4) << 1);
 	const uint32_t word1 = word0 + 2;
-	const uint32_t w0 = (read_xram(word0 & 0x1ffff) << 8) | read_xram((word0 + 1) & 0x1ffff);
-	const uint32_t w1 = (read_xram(word1 & 0x1ffff) << 8) | read_xram((word1 + 1) & 0x1ffff);
+	const uint32_t w0 = m_vram[(word0 >> 1) & 0xffff];
+	const uint32_t w1 = m_vram[(word1 >> 1) & 0xffff];
 	return ((w0 | (w1 << 16)) >> (bit & 15)) & 0x3f;
 }
 
