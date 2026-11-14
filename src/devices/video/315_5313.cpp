@@ -241,6 +241,7 @@ sega315_5313_device::sega315_5313_device(const machine_config& mconfig, device_t
 	m_palwrite_base = -1;
 	printf("a\n");
 	m_vram_size = 0x10000;
+	m_cram_size = 0x80;
 
 }
 
@@ -312,19 +313,19 @@ void sega315_5313_device::device_start()
 	m_32x_scanline_helper_func.resolve();
 
 	m_vram  = std::make_unique<u16[]>(m_vram_size / 2);
-	m_cram  = std::make_unique<u16[]>(0x80 / 2);
+	m_cram  = std::make_unique<u16[]>(m_cram_size / 2);
 	m_vsram = std::make_unique<u16[]>(0x80 / 2);
 	m_regs  = std::make_unique<u8[]>(0x20);
 	m_internal_sprite_attribute_table = std::make_unique<u16[]>(0x400 / 2);
 
 	memset(m_vram.get(), 0x00, m_vram_size);
-	memset(m_cram.get(), 0x00, 0x80);
+	memset(m_cram.get(), 0x00, m_cram_size);
 	memset(m_vsram.get(), 0x00, 0x80);
 	memset(m_regs.get(), 0x00, 0x20);
 	memset(m_internal_sprite_attribute_table.get(), 0x00, 0x400);
 
 	save_pointer(NAME(m_vram), m_vram_size / 2);
-	save_pointer(NAME(m_cram), 0x80 / 2);
+	save_pointer(NAME(m_cram), m_cram_size / 2);
 	save_pointer(NAME(m_vsram), 0x80 / 2);
 	save_pointer(NAME(m_regs), 0x20);
 	save_pointer(NAME(m_internal_sprite_attribute_table), 0x400 / 2);

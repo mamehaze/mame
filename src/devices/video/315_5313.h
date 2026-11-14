@@ -143,6 +143,7 @@ protected:
 
 	// config
 	u32 m_vram_size;
+	u32 m_cram_size;
 
 	virtual int screen_hpos() override;
 private:

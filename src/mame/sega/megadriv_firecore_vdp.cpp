@@ -28,7 +28,6 @@ DEFINE_DEVICE_TYPE(FIRECORE_VDP, megadriv_firecore_vdp_device, "megadriv_firecor
 void megadriv_firecore_vdp_device::device_start()
 {
 	sega315_5313_device::device_start();
-	save_item(NAME(m_xcram));
 	save_item(NAME(m_xvsram));
 	save_item(NAME(m_xaddr));
 	save_item(NAME(m_xcode));
@@ -40,7 +39,6 @@ void megadriv_firecore_vdp_device::device_reset()
 {
 	sega315_5313_device::device_reset();
 
-	std::fill(std::begin(m_xcram), std::end(m_xcram), 0);
 	std::fill(std::begin(m_xvsram), std::end(m_xvsram), 0);
 	m_xaddr = 0;
 	m_xcode = 0;
@@ -132,7 +130,7 @@ void megadriv_firecore_vdp_device::xvdp_data_w(uint16_t data)
 		write_xram((m_xaddr & 0x1fffe) | 1, data & 0xff);
 		break;
 	case 0x03: // CRAM
-		m_xcram[(m_xaddr >> 1) & 0x3ff] = data;
+		m_cram[(m_xaddr >> 1) & 0x3ff] = data;
 		break;
 	case 0x05: // VSRAM
 		m_xvsram[(m_xaddr >> 1) & 0x3f] = data;
@@ -210,8 +208,8 @@ void megadriv_firecore_vdp_device::xvdp_ctrl_w(uint16_t data)
 
 uint32_t megadriv_firecore_vdp_device::xvdp_color(int index) const
 {
-	const uint16_t gr = m_xcram[(index * 2 + 0) & 0x3ff];
-	const uint16_t b = m_xcram[(index * 2 + 1) & 0x3ff];
+	const uint16_t gr = m_cram[(index * 2 + 0) & 0x3ff];
+	const uint16_t b = m_cram[(index * 2 + 1) & 0x3ff];
 	return rgb_t(gr & 0xff, gr >> 8, b & 0xff);
 }
 
