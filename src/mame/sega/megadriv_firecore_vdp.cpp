@@ -18,11 +18,15 @@ DEFINE_DEVICE_TYPE(FIRECORE_VDP, megadriv_firecore_vdp_device, "megadriv_firecor
       LSB first into consecutive 16-bit VRAM words
     - name table / sprite attribute entries: bits 15-13 palette (8 palettes of 64 colours), bit 12 V flip,
       bit 11 H flip, bits 10-0 tile number, there is no priority bit
-    - CRAM holds 512 colours of 2 words each: word 0 = GGBB, word 1 = 00RR
+    - CRAM holds 512 colours of 2 words each: word 0 = GGRR, word 1 = 00BB
     - 68k -> VDP DMA transfers twice the programmed length (the length is in 32-bit units)
     - the table locations don't follow the standard register formulas; the menus always use (and their
       software copies of the addresses say) plane A at 0x12000, plane B at 0x14000, H scroll at 0x16000 and
       the sprite table at 0x17000, so these are hardcoded for now.  Plane B is drawn above plane A.
+
+	TODO
+	 - see if we can reuse some of the base VDP handling without being too disruptive
+	 - colours are incorrect in several games (eg sprites and background fade for "Black Sheep" in atgames40)
 */
 
 uint16_t megadriv_firecore_vdp_device::xvdp_r(offs_t offset, uint16_t mem_mask)
@@ -35,23 +39,22 @@ uint16_t megadriv_firecore_vdp_device::xvdp_r(offs_t offset, uint16_t mem_mask)
 
 void megadriv_firecore_vdp_device::xvdp_w(offs_t offset, uint16_t data, uint16_t mem_mask)
 {
+	// for the data and control port we have special handling
 	if (xvdp_enabled())
 	{
-		//if (mem_mask == 0xffff)
+		if ((offset & 0x0e) == 0x00)
 		{
-			if ((offset & 0x0e) == 0x00)
-			{
-				xvdp_data_w(data);
-				return;
-			}
-			else if ((offset & 0x0e) == 0x02)
-			{
-				xvdp_ctrl_w(data);
-				return;
-			}
+			xvdp_data_w(data);
+			return;
+		}
+		else if ((offset & 0x0e) == 0x02)
+		{
+			xvdp_ctrl_w(data);
+			return;
 		}
 	}
 
+	// otherwies fall through to the base VDP handling
 	sega315_5313_device::vdp_w(offset, data, mem_mask);
 }
 
@@ -92,11 +95,12 @@ void megadriv_firecore_vdp_device::xvdp_data_w(uint16_t data)
 		if (!length)
 			length = 0x10000;
 
-		write_xram((m_vdp_address & 0x1fffe) | 0, data >> 8);
-		write_xram((m_vdp_address & 0x1fffe) | 1, data & 0xff);
+		m_vram[(m_vdp_address >> 1) & 0xffff] = data;
 		for (uint32_t i = 0; i < length; i++)
 		{
-			write_xram((m_vdp_address ^ 1) & 0x1ffff, data >> 8);
+			const u8 byte = data >> 8;
+			write_xram((m_vdp_address ^ 1) & 0x1ffff, byte);
+
 			m_vdp_address = (m_vdp_address + m_regs[0x0f]) & 0x1ffff;
 		}
 		return;
@@ -105,8 +109,7 @@ void megadriv_firecore_vdp_device::xvdp_data_w(uint16_t data)
 	switch (m_vdp_code & 0x0f)
 	{
 	case 0x01: // VRAM
-		write_xram((m_vdp_address & 0x1fffe) | 0, data >> 8);
-		write_xram((m_vdp_address & 0x1fffe) | 1, data & 0xff);
+		m_vram[(m_vdp_address >> 1) & 0xffff] = data;
 		break;
 	case 0x03: // CRAM
 		m_cram[(m_vdp_address >> 1) & 0x3ff] = data;
@@ -151,15 +154,16 @@ void megadriv_firecore_vdp_device::xvdp_ctrl_w(uint16_t data)
 		uint32_t length = m_regs[0x13] | (m_regs[0x14] << 8);
 		if (!length)
 			length = 0x10000;
-		if (xvdp_enabled())
-			length <<= 1;
 
 		uint32_t source = (m_regs[0x15] | (m_regs[0x16] << 8) | ((m_regs[0x17] & 0x7f) << 16)) << 1;
 		for (uint32_t i = 0; i < length; i++)
 		{
-			xvdp_data_w(m_space68k->read_word(source));
 			// the standard VDP wraps the source within 128KiB, the extended mode transfers can cross that boundary
-			source = xvdp_enabled() ? ((source + 2) & 0xfffffe) : ((source & 0xfe0000) | ((source + 2) & 0x1ffff));
+			// length is also in dwords here, not words
+			xvdp_data_w(m_space68k->read_word(source));
+			source = ((source + 2) & 0xfffffe);
+			xvdp_data_w(m_space68k->read_word(source));
+			source = ((source + 2) & 0xfffffe);
 		}
 		break;
 	}
@@ -173,10 +177,13 @@ void megadriv_firecore_vdp_device::xvdp_ctrl_w(uint16_t data)
 		uint32_t length = m_regs[0x13] | (m_regs[0x14] << 8);
 		if (!length)
 			length = 0x10000;
+
 		uint32_t source = m_regs[0x15] | (m_regs[0x16] << 8);
+
 		for (uint32_t i = 0; i < length; i++)
 		{
-			write_xram((m_vdp_address ^ 1) & 0x1ffff, read_xram((source ^ 1) & 0x1ffff));
+			const u8 byte = read_xram((source ^ 1) & 0x1ffff);
+			write_xram((m_vdp_address ^ 1) & 0x1ffff, byte);
 			source = (source + 1) & 0xffff;
 			m_vdp_address = (m_vdp_address + m_regs[0x0f]) & 0x1ffff;
 		}
@@ -240,7 +247,7 @@ void megadriv_firecore_vdp_device::xvdp_draw_plane(bitmap_rgb32 &bitmap, const r
 	}
 }
 
-void megadriv_firecore_vdp_device::xvdp_draw_sprites(bitmap_rgb32 &bitmap, const rectangle &cliprect)
+void megadriv_firecore_vdp_device::xvdp_draw_sprites(bitmap_rgb32& bitmap, const rectangle& cliprect)
 {
 	const uint32_t table = 0x17000;
 	const int maxsprites = BIT(m_regs[0x0c], 0) ? 80 : 64;
@@ -253,7 +260,7 @@ void megadriv_firecore_vdp_device::xvdp_draw_sprites(bitmap_rgb32 &bitmap, const
 	{
 		order[count++] = link;
 		const uint32_t a = table + link * 8;
-		link = m_vram[((a + 3)>>1) & 0xffff] & 0x7f;
+		link = m_vram[((a + 3) >> 1) & 0xffff] & 0x7f;
 	} while (link && (link < maxsprites) && (count < maxsprites));
 
 	for (int i = count - 1; i >= 0; i--)
