@@ -28,7 +28,6 @@ DEFINE_DEVICE_TYPE(FIRECORE_VDP, megadriv_firecore_vdp_device, "megadriv_firecor
 void megadriv_firecore_vdp_device::device_start()
 {
 	sega315_5313_device::device_start();
-	save_item(NAME(m_xaddr));
 	save_item(NAME(m_xcode));
 	save_item(NAME(m_xpending));
 	save_item(NAME(m_xfill));
@@ -38,7 +37,6 @@ void megadriv_firecore_vdp_device::device_reset()
 {
 	sega315_5313_device::device_reset();
 
-	m_xaddr = 0;
 	m_xcode = 0;
 	m_xpending = false;
 	m_xfill = false;
@@ -111,12 +109,12 @@ void megadriv_firecore_vdp_device::xvdp_data_w(uint16_t data)
 		if (!length)
 			length = 0x10000;
 
-		write_xram((m_xaddr & 0x1fffe) | 0, data >> 8);
-		write_xram((m_xaddr & 0x1fffe) | 1, data & 0xff);
+		write_xram((m_vdp_address & 0x1fffe) | 0, data >> 8);
+		write_xram((m_vdp_address & 0x1fffe) | 1, data & 0xff);
 		for (uint32_t i = 0; i < length; i++)
 		{
-			write_xram((m_xaddr ^ 1) & 0x1ffff, data >> 8);
-			m_xaddr = (m_xaddr + m_regs[0x0f]) & 0x1ffff;
+			write_xram((m_vdp_address ^ 1) & 0x1ffff, data >> 8);
+			m_vdp_address = (m_vdp_address + m_regs[0x0f]) & 0x1ffff;
 		}
 		return;
 	}
@@ -124,17 +122,17 @@ void megadriv_firecore_vdp_device::xvdp_data_w(uint16_t data)
 	switch (m_xcode & 0x0f)
 	{
 	case 0x01: // VRAM
-		write_xram((m_xaddr & 0x1fffe) | 0, data >> 8);
-		write_xram((m_xaddr & 0x1fffe) | 1, data & 0xff);
+		write_xram((m_vdp_address & 0x1fffe) | 0, data >> 8);
+		write_xram((m_vdp_address & 0x1fffe) | 1, data & 0xff);
 		break;
 	case 0x03: // CRAM
-		m_cram[(m_xaddr >> 1) & 0x3ff] = data;
+		m_cram[(m_vdp_address >> 1) & 0x3ff] = data;
 		break;
 	case 0x05: // VSRAM
-		m_vsram[(m_xaddr >> 1) & 0x3f] = data;
+		m_vsram[(m_vdp_address >> 1) & 0x3f] = data;
 		break;
 	}
-	m_xaddr = (m_xaddr + m_regs[0x0f]) & 0x1ffff;
+	m_vdp_address = (m_vdp_address + m_regs[0x0f]) & 0x1ffff;
 }
 
 void megadriv_firecore_vdp_device::xvdp_ctrl_w(uint16_t data)
@@ -151,13 +149,13 @@ void megadriv_firecore_vdp_device::xvdp_ctrl_w(uint16_t data)
 
 		m_xpending = true;
 		m_xcode = (m_xcode & 0x3c) | (data >> 14);
-		m_xaddr = (m_xaddr & 0x1c000) | (data & 0x3fff);
+		m_vdp_address = (m_vdp_address & 0x1c000) | (data & 0x3fff);
 		return;
 	}
 
 	m_xpending = false;
 	m_xcode = (m_xcode & 0x03) | ((data >> 2) & 0x3c);
-	m_xaddr = (m_xaddr & 0x03fff) | ((data & 0x03) << 14) | ((data & 0x04) << 14);
+	m_vdp_address = (m_vdp_address & 0x03fff) | ((data & 0x03) << 14) | ((data & 0x04) << 14);
 
 	if (!(m_xcode & 0x20) || !BIT(m_regs[0x01], 4))
 		return;
@@ -195,9 +193,9 @@ void megadriv_firecore_vdp_device::xvdp_ctrl_w(uint16_t data)
 		uint32_t source = m_regs[0x15] | (m_regs[0x16] << 8);
 		for (uint32_t i = 0; i < length; i++)
 		{
-			write_xram((m_xaddr ^ 1) & 0x1ffff, read_xram((source ^ 1) & 0x1ffff));
+			write_xram((m_vdp_address ^ 1) & 0x1ffff, read_xram((source ^ 1) & 0x1ffff));
 			source = (source + 1) & 0xffff;
-			m_xaddr = (m_xaddr + m_regs[0x0f]) & 0x1ffff;
+			m_vdp_address = (m_vdp_address + m_regs[0x0f]) & 0x1ffff;
 		}
 		break;
 	}

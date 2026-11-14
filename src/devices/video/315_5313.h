@@ -142,7 +142,7 @@ protected:
 	std::unique_ptr<u16[]> m_vsram;
 
 	u8  m_vdp_code;
-	u16 m_vdp_address;
+	u32 m_vdp_address;
 
 	// config
 	u32 m_vram_size;

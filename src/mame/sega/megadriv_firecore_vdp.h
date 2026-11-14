@@ -53,7 +53,6 @@ private:
 	void write_xram(u32 address, u8 data);
 
 	// shadow of the VDP state for the extended video mode
-	uint32_t m_xaddr;
 	uint8_t m_xcode;
 	bool m_xpending;
 	bool m_xfill;
