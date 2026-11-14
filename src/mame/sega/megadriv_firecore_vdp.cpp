@@ -28,7 +28,6 @@ DEFINE_DEVICE_TYPE(FIRECORE_VDP, megadriv_firecore_vdp_device, "megadriv_firecor
 void megadriv_firecore_vdp_device::device_start()
 {
 	sega315_5313_device::device_start();
-	save_item(NAME(m_xvsram));
 	save_item(NAME(m_xaddr));
 	save_item(NAME(m_xcode));
 	save_item(NAME(m_xpending));
@@ -39,7 +38,6 @@ void megadriv_firecore_vdp_device::device_reset()
 {
 	sega315_5313_device::device_reset();
 
-	std::fill(std::begin(m_xvsram), std::end(m_xvsram), 0);
 	m_xaddr = 0;
 	m_xcode = 0;
 	m_xpending = false;
@@ -133,7 +131,7 @@ void megadriv_firecore_vdp_device::xvdp_data_w(uint16_t data)
 		m_cram[(m_xaddr >> 1) & 0x3ff] = data;
 		break;
 	case 0x05: // VSRAM
-		m_xvsram[(m_xaddr >> 1) & 0x3f] = data;
+		m_vsram[(m_xaddr >> 1) & 0x3f] = data;
 		break;
 	}
 	m_xaddr = (m_xaddr + m_regs[0x0f]) & 0x1ffff;
@@ -242,7 +240,7 @@ void megadriv_firecore_vdp_device::xvdp_draw_plane(bitmap_rgb32 &bitmap, const r
 		}
 		hscroll += plane * 2;
 		const int hs = ((read_xram(hscroll & 0x1ffff) << 8) | read_xram((hscroll + 1) & 0x1ffff)) & 0x3ff;
-		const int vs = m_xvsram[plane] & 0x3ff;
+		const int vs = m_vsram[plane] & 0x3ff;
 
 		uint32_t *const dest = &bitmap.pix(y);
 		const int py = (y + vs) & ((vsize * 8) - 1);

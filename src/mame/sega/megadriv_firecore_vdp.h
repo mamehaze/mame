@@ -53,8 +53,6 @@ private:
 	void write_xram(u32 address, u8 data);
 
 	// shadow of the VDP state for the extended video mode
-	uint16_t m_cram[0x400];    // 512 x 24-bit colours (2 words each)
-	uint16_t m_xvsram[0x40];
 	uint32_t m_xaddr;
 	uint8_t m_xcode;
 	bool m_xpending;

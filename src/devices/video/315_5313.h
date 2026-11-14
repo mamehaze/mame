@@ -138,6 +138,9 @@ protected:
 	address_space *m_space68k;
 	std::unique_ptr<u16[]> m_vram;
 	std::unique_ptr<u8[]> m_regs;
+	std::unique_ptr<u16[]> m_cram;
+	std::unique_ptr<u16[]> m_vsram;
+
 	u8  m_vdp_code;
 	u16 m_vdp_address;
 
@@ -201,8 +204,6 @@ private:
 	int m_use_cram; // c2 uses it's own palette ram, so it sets this to 0
 	int m_dma_delay;    // SVP and SegaCD have some 'lag' in DMA transfers
 
-	std::unique_ptr<u16[]> m_cram;
-	std::unique_ptr<u16[]> m_vsram;
 	/* The VDP keeps a 0x400 byte on-chip cache of the Sprite Attribute Table
 	   to speed up processing, Castlevania Bloodlines abuses this on the upside down level */
 	std::unique_ptr<u16[]> m_internal_sprite_attribute_table;
