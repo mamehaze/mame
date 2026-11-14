@@ -54,7 +54,6 @@ private:
 
 	// shadow of the VDP state for the extended video mode
 	uint8_t m_xcode;
-	bool m_xpending;
 	bool m_xfill;
 
 };

@@ -143,6 +143,7 @@ protected:
 
 	u8  m_vdp_code;
 	u32 m_vdp_address;
+	int m_command_pending; // 2nd half of command pending..
 
 	// config
 	u32 m_vram_size;
@@ -176,7 +177,6 @@ private:
 	inline void draw_tile(nametable_t tile, int start, int end, int &dpos, bool is_fg);
 
 	inline u8 get_hres();
-	int m_command_pending; // 2nd half of command pending..
 	u16 m_command_part1;
 	u16 m_command_part2;
 	u8  m_vram_fill_pending;
