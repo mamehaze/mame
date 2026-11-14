@@ -29,7 +29,6 @@ void megadriv_firecore_vdp_device::device_start()
 {
 	sega315_5313_device::device_start();
 	save_item(NAME(m_xcode));
-	save_item(NAME(m_xfill));
 }
 
 void megadriv_firecore_vdp_device::device_reset()
@@ -37,7 +36,6 @@ void megadriv_firecore_vdp_device::device_reset()
 	sega315_5313_device::device_reset();
 
 	m_xcode = 0;
-	m_xfill = false;
 }
 
 uint16_t megadriv_firecore_vdp_device::xvdp_r(offs_t offset, uint16_t mem_mask)
@@ -100,9 +98,9 @@ void megadriv_firecore_vdp_device::xvdp_data_w(uint16_t data)
 {
 	m_command_pending = 0;
 
-	if (m_xfill)
+	if (m_vram_fill_pending)
 	{
-		m_xfill = false;
+		m_vram_fill_pending = 0;
 		uint32_t length = m_regs[0x13] | (m_regs[0x14] << 8);
 		if (!length)
 			length = 0x10000;
@@ -180,7 +178,7 @@ void megadriv_firecore_vdp_device::xvdp_ctrl_w(uint16_t data)
 	}
 
 	case 2: // fill, happens on the next data port write
-		m_xfill = true;
+		m_vram_fill_pending = 1;
 		break;
 
 	case 3: // VRAM copy

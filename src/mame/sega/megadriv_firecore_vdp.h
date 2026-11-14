@@ -54,8 +54,6 @@ private:
 
 	// shadow of the VDP state for the extended video mode
 	uint8_t m_xcode;
-	bool m_xfill;
-
 };
 
 #endif // MAME_VIDEO_MEGADRIV_FIRECORE_H

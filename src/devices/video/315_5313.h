@@ -144,6 +144,7 @@ protected:
 	u8  m_vdp_code;
 	u32 m_vdp_address;
 	int m_command_pending; // 2nd half of command pending..
+	u8  m_vram_fill_pending;
 
 	// config
 	u32 m_vram_size;
@@ -179,7 +180,6 @@ private:
 	inline u8 get_hres();
 	u16 m_command_part1;
 	u16 m_command_part2;
-	u8  m_vram_fill_pending;
 	u16 m_vram_fill_length;
 	int m_irq4counter;
 	int m_imode_odd_frame;
