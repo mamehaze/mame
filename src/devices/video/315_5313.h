@@ -23,6 +23,7 @@ public:
 	}
 
 	sega315_5313_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock);
+	sega315_5313_device(const machine_config &mconfig, device_type type, const char* tag, device_t *owner, u32 clock);
 
 	typedef device_delegate<void (int x, u32 priority, u32 &lineptr)> md_32x_scanline_delegate;
 	typedef device_delegate<void (int scanline, int irq6)> md_32x_interrupt_delegate;
@@ -122,6 +123,8 @@ protected:
 	virtual void device_reset() override ATTR_COLD;
 	virtual void device_add_mconfig(machine_config &config) override ATTR_COLD;
 
+	void vdp_set_register(int regnum, u8 value);
+
 	// called when we hit 240 and 241 (used to control the z80 irq line on genesis, or the main irq on c2)
 	devcb_write_line m_sndirqline_callback;
 	devcb_write_line m_lv6irqline_callback;
@@ -130,6 +133,16 @@ protected:
 	md_32x_scanline_delegate m_32x_scanline_func;
 	md_32x_interrupt_delegate m_32x_interrupt_func;
 	md_32x_scanline_helper_delegate m_32x_scanline_helper_func;
+
+	required_device<m68000_base_device> m_cpu68k;
+	address_space *m_space68k;
+	std::unique_ptr<u16[]> m_vram;
+	std::unique_ptr<u8[]> m_regs;
+	u8  m_vdp_code;
+	u16 m_vdp_address;
+
+	// config
+	u32 m_vram_size;
 
 	virtual int screen_hpos() override;
 private:
@@ -162,8 +175,6 @@ private:
 	int m_command_pending; // 2nd half of command pending..
 	u16 m_command_part1;
 	u16 m_command_part2;
-	u8  m_vdp_code;
-	u16 m_vdp_address;
 	u8  m_vram_fill_pending;
 	u16 m_vram_fill_length;
 	int m_irq4counter;
@@ -189,8 +200,6 @@ private:
 	int m_use_cram; // c2 uses it's own palette ram, so it sets this to 0
 	int m_dma_delay;    // SVP and SegaCD have some 'lag' in DMA transfers
 
-	std::unique_ptr<u16[]> m_regs;
-	std::unique_ptr<u16[]> m_vram;
 	std::unique_ptr<u16[]> m_cram;
 	std::unique_ptr<u16[]> m_vsram;
 	/* The VDP keeps a 0x400 byte on-chip cache of the Sprite Attribute Table
@@ -218,7 +227,6 @@ private:
 	void vdp_vsram_write(u16 data);
 
 	void vdp_address_inc();
-	void vdp_set_register(int regnum, u8 value);
 
 	void handle_dma_bits();
 
@@ -242,8 +250,6 @@ private:
 	std::unique_ptr<u32[]> m_video_renderline;
 	std::unique_ptr<u16[]> m_palette_lookup;
 
-	address_space *m_space68k;
-	required_device<m68000_base_device> m_cpu68k;
 	optional_device<palette_device> m_ext_palette;
 
 	// debug functions
