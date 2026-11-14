@@ -25,19 +25,6 @@ DEFINE_DEVICE_TYPE(FIRECORE_VDP, megadriv_firecore_vdp_device, "megadriv_firecor
       the sprite table at 0x17000, so these are hardcoded for now.  Plane B is drawn above plane A.
 */
 
-void megadriv_firecore_vdp_device::device_start()
-{
-	sega315_5313_device::device_start();
-	save_item(NAME(m_xcode));
-}
-
-void megadriv_firecore_vdp_device::device_reset()
-{
-	sega315_5313_device::device_reset();
-
-	m_xcode = 0;
-}
-
 uint16_t megadriv_firecore_vdp_device::xvdp_r(offs_t offset, uint16_t mem_mask)
 {
 	if (!machine().side_effects_disabled() && ((offset & 0x0e) == 0x02)) // control port read clears the pending command
@@ -115,7 +102,7 @@ void megadriv_firecore_vdp_device::xvdp_data_w(uint16_t data)
 		return;
 	}
 
-	switch (m_xcode & 0x0f)
+	switch (m_vdp_code & 0x0f)
 	{
 	case 0x01: // VRAM
 		write_xram((m_vdp_address & 0x1fffe) | 0, data >> 8);
@@ -144,16 +131,16 @@ void megadriv_firecore_vdp_device::xvdp_ctrl_w(uint16_t data)
 		}
 
 		m_command_pending = 1;
-		m_xcode = (m_xcode & 0x3c) | (data >> 14);
+		m_vdp_code = (m_vdp_code & 0x3c) | (data >> 14);
 		m_vdp_address = (m_vdp_address & 0x1c000) | (data & 0x3fff);
 		return;
 	}
 
 	m_command_pending = 0;
-	m_xcode = (m_xcode & 0x03) | ((data >> 2) & 0x3c);
+	m_vdp_code = (m_vdp_code & 0x03) | ((data >> 2) & 0x3c);
 	m_vdp_address = (m_vdp_address & 0x03fff) | ((data & 0x03) << 14) | ((data & 0x04) << 14);
 
-	if (!(m_xcode & 0x20) || !BIT(m_regs[0x01], 4))
+	if (!(m_vdp_code & 0x20) || !BIT(m_regs[0x01], 4))
 		return;
 
 	switch (m_regs[0x17] >> 6)

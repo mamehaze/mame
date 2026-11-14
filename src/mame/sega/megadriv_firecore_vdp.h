@@ -44,16 +44,9 @@ public:
 	void xvdp_draw_sprites(bitmap_rgb32 &bitmap, const rectangle &cliprect);
 	uint8_t xvdp_tile_pixel(uint32_t tile, int x, int y);
 
-protected:
-	virtual void device_start() override ATTR_COLD;
-	virtual void device_reset() override ATTR_COLD;
-
 private:
 	u8 read_xram(u32 address);	
 	void write_xram(u32 address, u8 data);
-
-	// shadow of the VDP state for the extended video mode
-	uint8_t m_xcode;
 };
 
 #endif // MAME_VIDEO_MEGADRIV_FIRECORE_H
