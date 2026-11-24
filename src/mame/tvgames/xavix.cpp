@@ -5518,7 +5518,7 @@ CONS( 2003,  rad_madf,  0,        0, xavix_rad_madf,      rad_fb,    xavix_rad_m
 CONS( 2005,  rad_fb,    0,        0, xavix_rad_madf,      rad_fb,    xavix_rad_madf_state,   empty_init,  "Radica / FarSight Studios / SSD Company Ltd.", "Play TV Football (NTSC)", MACHINE_NOT_WORKING ) // USA only release? doesn't change logo for PAL.
 
 // fails to display any kind of XaviX logo or SSD Copyright, it is the only XaviX based game so far to not show these details anywhere in the game.
-CONS( 2003,  rad_rh,    0,        0, xavix_2mb,           rad_rh,    xavix_rad_rh_state,           empty_init,  "Radica / Fisher-Price / Pronto Games / SSD Company Ltd.", "Play TV Rescue Heroes (NTSC)", MACHINE_NOT_WORKING )
+CONS( 2003,  rad_rh,    0,        0, xavix_2mb,           rad_rh,    xavix_rad_rh_state,           empty_init,  "Radica / Fisher-Price / Pronto Games / SSD Company Ltd.", "Play TV Rescue Heroes (NTSC)", 0 )
 
 CONS( 2004,  rad_ssx,   0,        0, xavix_nv_4mb,        rad_ssx,   xavix_power_state,            empty_init,  "Radica / Electronic Arts / SSD Company Ltd.", "Play TV SSX Snowboarder (NTSC)", 0 )
 CONS( 2004,  rad_ssxp,  rad_ssx,  0, xavixp_nv_4mb,       rad_ssxp,  xavix_power_state,            empty_init,  "Radica / Electronic Arts / SSD Company Ltd.", "Connectv SSX Snowboarder (PAL)", 0 )
